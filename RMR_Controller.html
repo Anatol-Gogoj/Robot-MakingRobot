@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMR Gantry Controller</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #eee;
+    --text-dim: #888;
+    --green: #4ecca3;
+    --yellow: #f0c040;
+    --red: #e94560;
+    --border: #2a2a4a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header h1 span { color: var(--accent); }
+  .conn-bar { display: flex; align-items: center; gap: 10px; }
+  .conn-bar select, .conn-bar button {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .conn-bar button:hover { background: var(--accent); }
+  .conn-bar button.connected { background: var(--green); color: #000; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--red);
+    display: inline-block;
+  }
+  .status-dot.connected { background: var(--green); }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 12px;
+    padding: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Panels */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  /* Jog Controls */
+  .jog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 48px);
+    gap: 4px;
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .jog-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .jog-btn:hover { background: var(--accent); }
+  .jog-btn:active { transform: scale(0.95); }
+  .jog-btn.home-btn { font-size: 12px; font-weight: 600; }
+
+  .jog-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .jog-row label { font-size: 12px; color: var(--text-dim); min-width: 20px; }
+  .jog-row .jog-btn { width: 48px; height: 40px; }
+
+  /* Step size */
+  .step-selector {
+    display: flex;
+    gap: 4px;
+    margin: 10px 0;
+    justify-content: center;
+  }
+  .step-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); }
+
+  /* Feedrate slider */
+  .feed-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    justify-content: center;
+  }
+  .feed-control label { font-size: 12px; color: var(--text-dim); }
+  .feed-control input[type=range] { width: 120px; }
+  .feed-control .feed-val { font-size: 12px; min-width: 65px; }
+
+  /* Aux / Extruder */
+  .ext-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  .ext-row label { font-size: 13px; min-width: 100px; }
+  .ext-row .jog-btn { width: 44px; height: 36px; font-size: 14px; }
+  .ext-row input[type=number] {
+    width: 60px;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* Servo / Solenoid */
+  .servo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  .servo-row label { font-size: 13px; min-width: 80px; }
+  .servo-row input[type=range] { flex: 1; }
+  .servo-row .val { font-size: 12px; min-width: 30px; text-align: right; }
+  .toggle-btn {
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .toggle-btn.on { background: var(--green); color: #000; }
+
+  /* Position readout */
+  .pos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .pos-cell {
+    text-align: center;
+    padding: 8px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .pos-cell .axis-label { font-size: 11px; color: var(--text-dim); }
+  .pos-cell .axis-val { font-size: 20px; font-weight: 600; font-family: 'Consolas', 'Courier New', monospace; }
+
+  /* Console */
+  .console-wrap {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+  }
+  #console {
+    flex: 1;
+    background: #0a0a1a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 150px;
+    max-height: 300px;
+  }
+  #console .tx { color: var(--yellow); }
+  #console .rx { color: var(--green); }
+  #console .err { color: var(--red); }
+  #console .info { color: var(--text-dim); }
+  .cmd-bar {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .cmd-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+  }
+  .cmd-bar input:focus { outline: none; border-color: var(--accent); }
+  .cmd-bar button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* Quick buttons */
+  .quick-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .quick-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .quick-btn:hover { background: var(--accent); }
+
+  /* Verbose panel */
+  .verbose-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .verbose-toggle label { font-size: 12px; color: var(--text-dim); }
+
+  /* E-stop */
+  .estop-btn {
+    background: var(--red) !important;
+    color: white !important;
+    font-weight: 700;
+    font-size: 16px !important;
+    border: 2px solid #ff2040 !important;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    animation: pulse-red 2s infinite;
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
+  }
+  .estop-btn:hover { background: #ff2040 !important; }
+
+  /* Advanced settings */
+  .adv-panel { display: none; }
+  .adv-panel.show { display: block; }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 12px;
+  }
+  .setting-row label { min-width: 140px; color: var(--text-dim); }
+  .setting-row input {
+    width: 70px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 12px;
+    text-align: center;
+  }
+  .setting-row button {
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .setting-row button:hover { background: var(--accent); }
+
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; }
+    .console-wrap { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>RMR</span> Gantry Controller</h1>
+  <div class="conn-bar">
+    <span class="status-dot" id="statusDot"></span>
+    <select id="baudRate">
+      <option value="250000" selected>250000 baud</option>
+      <option value="115200">115200 baud</option>
+      <option value="57600">57600 baud</option>
+    </select>
+    <button id="connectBtn" onclick="toggleConnection()">Connect</button>
+    <button class="estop-btn" onclick="emergencyStop()">E-STOP</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Jog Controls -->
+  <div class="panel">
+    <h2>Gantry Jog (X / Y)</h2>
+    <div class="step-selector">
+      <button class="step-btn" onclick="setStep(0.1)">0.1</button>
+      <button class="step-btn" onclick="setStep(1)">1</button>
+      <button class="step-btn active" onclick="setStep(10)">10</button>
+      <button class="step-btn" onclick="setStep(50)">50</button>
+      <button class="step-btn" onclick="setStep(100)">100</button>
+    </div>
+    <div class="feed-control">
+      <label>Feed:</label>
+      <input type="range" id="xyFeed" min="100" max="9000" value="3000" step="100"
+             oninput="document.getElementById('xyFeedVal').textContent=this.value+' mm/min'">
+      <span class="feed-val" id="xyFeedVal">3000 mm/min</span>
+    </div>
+    <div class="jog-grid">
+      <div></div>
+      <button class="jog-btn" onclick="jog('Y',1)" title="Y+">&#9650;</button>
+      <div></div>
+      <button class="jog-btn" onclick="jog('X',-1)" title="X-">&#9664;</button>
+      <button class="jog-btn home-btn" onclick="homeXY()" title="Home X Y">HOME</button>
+      <button class="jog-btn" onclick="jog('X',1)" title="X+">&#9654;</button>
+      <div></div>
+      <button class="jog-btn" onclick="jog('Y',-1)" title="Y-">&#9660;</button>
+      <div></div>
+    </div>
+
+    <!-- Z axis -->
+    <h2 style="margin-top:14px">Z Axis</h2>
+    <div class="feed-control">
+      <label>Feed:</label>
+      <input type="range" id="zFeed" min="10" max="300" value="150" step="10"
+             oninput="document.getElementById('zFeedVal').textContent=this.value+' mm/min'">
+      <span class="feed-val" id="zFeedVal">150 mm/min</span>
+    </div>
+    <div class="jog-row" style="justify-content:center">
+      <label>Z</label>
+      <button class="jog-btn" onclick="jog('Z',1)" title="Z+">&#9650;</button>
+      <button class="jog-btn" onclick="jog('Z',-1)" title="Z-">&#9660;</button>
+      <button class="jog-btn home-btn" onclick="sendCmd('G92 Z0')" title="Set Z=0" style="font-size:11px">Z=0</button>
+    </div>
+  </div>
+
+  <!-- Aux Motors + Servos -->
+  <div class="panel">
+    <h2>Auxiliary Axes (Extruders)</h2>
+    <div class="feed-control">
+      <label>E Feed:</label>
+      <input type="range" id="eFeed" min="10" max="600" value="300" step="10"
+             oninput="document.getElementById('eFeedVal').textContent=this.value+' mm/min'">
+      <span class="feed-val" id="eFeedVal">300 mm/min</span>
+    </div>
+    <div class="ext-row">
+      <label>E0 Filter Feed</label>
+      <button class="jog-btn" onclick="jogE(0,-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogE(0,1)">&#9654;</button>
+    </div>
+    <div class="ext-row">
+      <label>E1 Syringe</label>
+      <button class="jog-btn" onclick="jogE(1,-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogE(1,1)">&#9654;</button>
+    </div>
+    <div class="ext-row">
+      <label>E2 Syr. Height</label>
+      <button class="jog-btn" onclick="jogE(2,-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogE(2,1)">&#9654;</button>
+    </div>
+
+    <h2 style="margin-top:14px">Servos</h2>
+    <div class="servo-row">
+      <label>Gripper (P0)</label>
+      <input type="range" id="servo0" min="0" max="180" value="90"
+             oninput="document.getElementById('servo0Val').textContent=this.value+'°'">
+      <span class="val" id="servo0Val">90°</span>
+      <button class="toggle-btn" onclick="setServo(0)">Set</button>
+    </div>
+    <div class="servo-row">
+      <label>Lid (P1)</label>
+      <input type="range" id="servo1" min="0" max="180" value="90"
+             oninput="document.getElementById('servo1Val').textContent=this.value+'°'">
+      <span class="val" id="servo1Val">90°</span>
+      <button class="toggle-btn" onclick="setServo(1)">Set</button>
+    </div>
+
+    <h2 style="margin-top:14px">Solenoid</h2>
+    <div class="servo-row">
+      <label>Pin:</label>
+      <input type="number" id="solPin" value="4" min="0" max="70" style="width:50px">
+      <button class="toggle-btn" id="solBtn" onclick="toggleSolenoid()">OFF</button>
+    </div>
+  </div>
+
+  <!-- Position Readout -->
+  <div class="panel" style="grid-column: 1 / -1">
+    <h2>Position Readout</h2>
+    <div class="pos-grid">
+      <div class="pos-cell"><div class="axis-label">X (mm)</div><div class="axis-val" id="posX">---</div></div>
+      <div class="pos-cell"><div class="axis-label">Y (mm)</div><div class="axis-val" id="posY">---</div></div>
+      <div class="pos-cell"><div class="axis-label">Z (mm)</div><div class="axis-val" id="posZ">---</div></div>
+      <div class="pos-cell"><div class="axis-label">E0 Filter</div><div class="axis-val" id="posE0">---</div></div>
+      <div class="pos-cell"><div class="axis-label">E1 Syringe</div><div class="axis-val" id="posE1">---</div></div>
+      <div class="pos-cell"><div class="axis-label">E2 Syr.Ht</div><div class="axis-val" id="posE2">---</div></div>
+    </div>
+    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+      <button class="toggle-btn" onclick="sendCmd('M114')">Report Position</button>
+      <label style="font-size:12px; color:var(--text-dim)">
+        <input type="checkbox" id="autoReport" onchange="toggleAutoReport()"> Auto-report (1s)
+      </label>
+    </div>
+  </div>
+
+  <!-- Console -->
+  <div class="panel console-wrap">
+    <h2>
+      G-Code Console
+      <span style="float:right">
+        <label style="font-size:11px; color:var(--text-dim)">
+          <input type="checkbox" id="verboseMode"> Verbose
+        </label>
+      </span>
+    </h2>
+    <div id="console"></div>
+    <div class="cmd-bar">
+      <input type="text" id="cmdInput" placeholder="Enter G-code (e.g. G1 X50 Y50 F3000)"
+             onkeydown="if(event.key==='Enter')sendManual()"
+             autocomplete="off" spellcheck="false">
+      <button onclick="sendManual()">Send</button>
+      <button onclick="clearConsole()" style="background:var(--surface2)">Clear</button>
+    </div>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
+      <button class="quick-btn" onclick="sendCmd('G92 Z0')">Set Z=0</button>
+      <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
+      <button class="quick-btn" onclick="sendCmd('M302 S0')">Cold Extrude</button>
+      <button class="quick-btn" onclick="sendCmd('M114')">Position</button>
+      <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
+      <button class="quick-btn" onclick="sendCmd('M503')">Settings</button>
+      <button class="quick-btn" onclick="sendCmd('M92')">Steps/mm</button>
+      <button class="quick-btn" onclick="sendCmd('M500')">Save EEPROM</button>
+      <button class="quick-btn" onclick="sendCmd('M501')">Load EEPROM</button>
+      <button class="quick-btn" onclick="sendCmd('M17')">Enable Motors</button>
+      <button class="quick-btn" onclick="sendCmd('M18')">Disable Motors</button>
+    </div>
+
+    <!-- Advanced Settings -->
+    <div style="margin-top:10px">
+      <button class="toggle-btn" onclick="toggleAdvanced()">Advanced Settings</button>
+    </div>
+    <div class="adv-panel" id="advPanel">
+      <h2 style="margin-top:10px">Steps/mm Override (M92)</h2>
+      <div class="setting-row">
+        <label>X steps/mm:</label><input type="number" id="stepsX" value="57.1425">
+        <label>Y:</label><input type="number" id="stepsY" value="57.1425">
+        <label>Z:</label><input type="number" id="stepsZ" value="1280">
+      </div>
+      <div class="setting-row">
+        <label>E0:</label><input type="number" id="stepsE0" value="1280">
+        <label>E1:</label><input type="number" id="stepsE1" value="1280">
+        <label>E2:</label><input type="number" id="stepsE2" value="1280">
+        <button onclick="applySteps()">Apply M92</button>
+      </div>
+
+      <h2 style="margin-top:10px">Max Feedrate Override (M203)</h2>
+      <div class="setting-row">
+        <label>X (mm/s):</label><input type="number" id="frX" value="150">
+        <label>Y:</label><input type="number" id="frY" value="150">
+        <label>Z:</label><input type="number" id="frZ" value="5">
+      </div>
+      <div class="setting-row">
+        <label>E0:</label><input type="number" id="frE0" value="10">
+        <label>E1:</label><input type="number" id="frE1" value="10">
+        <label>E2:</label><input type="number" id="frE2" value="10">
+        <button onclick="applyFeedrates()">Apply M203</button>
+      </div>
+
+      <h2 style="margin-top:10px">Max Acceleration Override (M201)</h2>
+      <div class="setting-row">
+        <label>X (mm/s²):</label><input type="number" id="accX" value="1000">
+        <label>Y:</label><input type="number" id="accY" value="1000">
+        <label>Z:</label><input type="number" id="accZ" value="500">
+      </div>
+      <div class="setting-row">
+        <label>E0:</label><input type="number" id="accE0" value="500">
+        <label>E1:</label><input type="number" id="accE1" value="500">
+        <label>E2:</label><input type="number" id="accE2" value="500">
+        <button onclick="applyAccel()">Apply M201</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───
+let port = null;
+let reader = null;
+let writer = null;
+let isConnected = false;
+let stepSize = 10;
+let solenoidOn = false;
+let readBuffer = '';
+let autoReportInterval = null;
+let cmdHistory = [];
+let historyIdx = -1;
+
+// ─── Serial Connection ───
+async function toggleConnection() {
+  if (isConnected) {
+    await disconnect();
+  } else {
+    await connect();
+  }
+}
+
+async function connect() {
+  try {
+    port = await navigator.serial.requestPort();
+    const baud = parseInt(document.getElementById('baudRate').value);
+    await port.open({ baudRate: baud });
+    writer = port.writable.getWriter();
+    setConnected(true);
+    logInfo(`Connected at ${baud} baud`);
+    readLoop();
+    // Send cold extrusion enable on connect
+    setTimeout(() => sendCmd('M302 S0'), 1500);
+  } catch (e) {
+    logErr('Connection failed: ' + e.message);
+  }
+}
+
+async function disconnect() {
+  try {
+    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+    if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
+    if (writer) { writer.releaseLock(); writer = null; }
+    if (port) { await port.close(); port = null; }
+  } catch (e) { /* ignore */ }
+  setConnected(false);
+  logInfo('Disconnected');
+}
+
+function setConnected(state) {
+  isConnected = state;
+  document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
+  const btn = document.getElementById('connectBtn');
+  btn.textContent = state ? 'Disconnect' : 'Connect';
+  btn.className = state ? 'connected' : '';
+}
+
+async function readLoop() {
+  const decoder = new TextDecoderStream();
+  const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (value) {
+        readBuffer += value;
+        let lines = readBuffer.split('\n');
+        readBuffer = lines.pop(); // keep incomplete line in buffer
+        for (const line of lines) {
+          processLine(line.trim());
+        }
+      }
+    }
+  } catch (e) {
+    if (isConnected) logErr('Read error: ' + e.message);
+  }
+}
+
+function processLine(line) {
+  if (!line) return;
+  const verbose = document.getElementById('verboseMode').checked;
+
+  // Parse position from M114 response
+  // Format: X:100.00 Y:50.00 Z:10.00 E:0.00 Count ...
+  const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)\s+E:([\d.-]+)/);
+  if (posMatch) {
+    document.getElementById('posX').textContent = parseFloat(posMatch[1]).toFixed(1);
+    document.getElementById('posY').textContent = parseFloat(posMatch[2]).toFixed(1);
+    document.getElementById('posZ').textContent = parseFloat(posMatch[3]).toFixed(1);
+    // E position shown is the active extruder only
+  }
+
+  // Filter 'ok' and temp responses unless verbose
+  if (!verbose) {
+    if (line === 'ok' || line.startsWith('ok') && line.length < 5) return;
+    if (line.match(/^T:\d/)) return; // temp reports
+    if (line.startsWith('echo:busy')) return;
+  }
+
+  logRx(line);
+}
+
+// ─── Command Sending ───
+async function sendCmd(cmd) {
+  if (!isConnected || !writer) {
+    logErr('Not connected');
+    return;
+  }
+  try {
+    const encoder = new TextEncoder();
+    await writer.write(encoder.encode(cmd + '\n'));
+    logTx(cmd);
+  } catch (e) {
+    logErr('Send error: ' + e.message);
+  }
+}
+
+function sendManual() {
+  const input = document.getElementById('cmdInput');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+  cmdHistory.unshift(cmd);
+  if (cmdHistory.length > 50) cmdHistory.pop();
+  historyIdx = -1;
+  sendCmd(cmd);
+  input.value = '';
+}
+
+// Command history navigation
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cmdInput').addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyIdx < cmdHistory.length - 1) {
+        historyIdx++;
+        e.target.value = cmdHistory[historyIdx];
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIdx > 0) {
+        historyIdx--;
+        e.target.value = cmdHistory[historyIdx];
+      } else {
+        historyIdx = -1;
+        e.target.value = '';
+      }
+    }
+  });
+});
+
+// ─── Jog Functions ───
+function setStep(size) {
+  stepSize = size;
+  document.querySelectorAll('.step-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.textContent) === size);
+  });
+}
+
+function jog(axis, dir) {
+  const dist = stepSize * dir;
+  let feed;
+  if (axis === 'Z') {
+    feed = document.getElementById('zFeed').value;
+  } else {
+    feed = document.getElementById('xyFeed').value;
+  }
+  sendCmd('G91'); // relative
+  sendCmd(`G1 ${axis}${dist} F${feed}`);
+  sendCmd('G90'); // back to absolute
+}
+
+function jogE(extruder, dir) {
+  const dist = stepSize * dir;
+  const feed = document.getElementById('eFeed').value;
+  sendCmd(`T${extruder}`);
+  sendCmd('G92 E0');
+  sendCmd('G91');
+  sendCmd(`G1 E${dist} F${feed}`);
+  sendCmd('G90');
+  sendCmd('G92 E0');
+}
+
+function homeXY() {
+  sendCmd('G28 X Y');
+}
+
+// ─── Servo / Solenoid ───
+function setServo(idx) {
+  const angle = document.getElementById(`servo${idx}`).value;
+  sendCmd(`M280 P${idx} S${angle}`);
+}
+
+function toggleSolenoid() {
+  solenoidOn = !solenoidOn;
+  const pin = document.getElementById('solPin').value;
+  const btn = document.getElementById('solBtn');
+  sendCmd(`M42 P${pin} S${solenoidOn ? 255 : 0}`);
+  btn.textContent = solenoidOn ? 'ON' : 'OFF';
+  btn.classList.toggle('on', solenoidOn);
+}
+
+// ─── Emergency Stop ───
+function emergencyStop() {
+  sendCmd('M112');
+  logErr('>>> EMERGENCY STOP SENT <<<');
+}
+
+// ─── Auto Report ───
+function toggleAutoReport() {
+  if (document.getElementById('autoReport').checked) {
+    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+  } else {
+    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  }
+}
+
+// ─── Advanced Settings ───
+function toggleAdvanced() {
+  document.getElementById('advPanel').classList.toggle('show');
+}
+
+function applySteps() {
+  const x = document.getElementById('stepsX').value;
+  const y = document.getElementById('stepsY').value;
+  const z = document.getElementById('stepsZ').value;
+  // For distinct E factors, set with T-select
+  sendCmd(`M92 X${x} Y${y} Z${z}`);
+  const e0 = document.getElementById('stepsE0').value;
+  const e1 = document.getElementById('stepsE1').value;
+  const e2 = document.getElementById('stepsE2').value;
+  sendCmd(`T0`); sendCmd(`M92 E${e0}`);
+  sendCmd(`T1`); sendCmd(`M92 E${e1}`);
+  sendCmd(`T2`); sendCmd(`M92 E${e2}`);
+  logInfo('Steps/mm updated. Use M500 to save to EEPROM.');
+}
+
+function applyFeedrates() {
+  const x = document.getElementById('frX').value;
+  const y = document.getElementById('frY').value;
+  const z = document.getElementById('frZ').value;
+  sendCmd(`M203 X${x} Y${y} Z${z}`);
+  const e0 = document.getElementById('frE0').value;
+  const e1 = document.getElementById('frE1').value;
+  const e2 = document.getElementById('frE2').value;
+  sendCmd(`T0`); sendCmd(`M203 E${e0}`);
+  sendCmd(`T1`); sendCmd(`M203 E${e1}`);
+  sendCmd(`T2`); sendCmd(`M203 E${e2}`);
+  logInfo('Max feedrates updated. Use M500 to save to EEPROM.');
+}
+
+function applyAccel() {
+  const x = document.getElementById('accX').value;
+  const y = document.getElementById('accY').value;
+  const z = document.getElementById('accZ').value;
+  sendCmd(`M201 X${x} Y${y} Z${z}`);
+  const e0 = document.getElementById('accE0').value;
+  const e1 = document.getElementById('accE1').value;
+  const e2 = document.getElementById('accE2').value;
+  sendCmd(`T0`); sendCmd(`M201 E${e0}`);
+  sendCmd(`T1`); sendCmd(`M201 E${e1}`);
+  sendCmd(`T2`); sendCmd(`M201 E${e2}`);
+  logInfo('Max acceleration updated. Use M500 to save to EEPROM.');
+}
+
+// ─── Console Logging ───
+const consoleEl = document.getElementById('console');
+const MAX_LINES = 500;
+let lineCount = 0;
+
+function appendLog(html) {
+  consoleEl.innerHTML += html + '\n';
+  lineCount++;
+  if (lineCount > MAX_LINES) {
+    const lines = consoleEl.innerHTML.split('\n');
+    consoleEl.innerHTML = lines.slice(lines.length - MAX_LINES).join('\n');
+    lineCount = MAX_LINES;
+  }
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+function logTx(msg) { appendLog(`<span class="tx">&gt;&gt; ${esc(msg)}</span>`); }
+function logRx(msg) { appendLog(`<span class="rx">&lt;&lt; ${esc(msg)}</span>`); }
+function logErr(msg) { appendLog(`<span class="err">[ERR] ${esc(msg)}</span>`); }
+function logInfo(msg) { appendLog(`<span class="info">[INFO] ${esc(msg)}</span>`); }
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function clearConsole() { consoleEl.innerHTML = ''; lineCount = 0; }
+
+// ─── Keyboard Shortcuts ───
+document.addEventListener('keydown', (e) => {
+  // Only if not focused on input
+  if (document.activeElement.tagName === 'INPUT') return;
+  const map = {
+    'ArrowLeft':  () => jog('X', -1),
+    'ArrowRight': () => jog('X', 1),
+    'ArrowUp':    () => jog('Y', 1),
+    'ArrowDown':  () => jog('Y', -1),
+    'PageUp':     () => jog('Z', 1),
+    'PageDown':   () => jog('Z', -1),
+    'Escape':     () => emergencyStop(),
+  };
+  if (map[e.key]) { e.preventDefault(); map[e.key](); }
+});
+
+// ─── Init ───
+logInfo('RMR Gantry Controller ready.');
+logInfo('Click "Connect" and select your serial port (250000 baud).');
+logInfo('Keyboard: Arrow keys = XY jog, PgUp/PgDn = Z jog, Esc = E-STOP');
+logInfo('NOTE: Requires Chrome/Edge with Web Serial API support.');
+</script>
+</body>
+</html>

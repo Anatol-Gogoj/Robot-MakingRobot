@@ -1,0 +1,60 @@
+Robot-Making Robot Data
+
+Steps per rev per mm
+X-axis - 6400 steps / rev
+GT2-16 pulley --> 200 steps / mm
+
+Y-axis - 6400 steps / rev
+GT2-14 pulley --> 200 steps / mm
+
+5 mm / rev:
+Z axis, Motor 1, Motor 2, Motor 3
+
+
+
+Pin mappings
+X-Axis
+PUL: A0
+DIR: A1
+ENA: 38
+
+Y1-Axis
+PUL: A6
+DIR: A7
+ENA: A2
+
+Y2-Axis
+PUL: 36
+DIR: 34
+ENA: 30
+
+Z-Axis
+PUL: 46
+DIR: 48
+ENA: A8
+
+Limit Switches
+X-Limit: 3
+Y-Limit: 14
+
+Motor 1 - Filter Feed
+PUL: 2
+DIR: 9
+ENA: 12
+
+Motor 2 - Syringe
+PUL: 13
+DIR: 19
+ENA: 20
+
+Motor 3 - Syringe Height
+PUL: 21
+DIR: 22
+ENA: 31
+
+Gripper Servo
+GPIO: 5
+
+Lid Servo
+GPIO: TBD
+
