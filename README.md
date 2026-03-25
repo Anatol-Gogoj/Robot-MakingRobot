@@ -25,14 +25,14 @@ The gantry has three Cartesian axes (X, Y, Z) plus three auxiliary linear actuat
 
 | Marlin Axis | Function       | Drive           | Steps/mm |
 |-------------|----------------|-----------------|----------|
-| X           | Gantry X       | GT2-16 belt     | 200      |
-| Y + Y2      | Gantry Y       | GT2-16 belt (2 motors, 1 driver) | 200 |
-| Z           | Gantry Z       | 5 mm lead screw | 1280     |
-| E0          | Filter Feed    | 5 mm lead screw | 1280     |
-| E1          | Syringe        | 5 mm lead screw | 1280     |
-| E2          | Syringe Height | 5 mm lead screw | 1280     |
+| X           | Gantry X       | GT2-14 belt     | 57.14    |
+| Y + Y2      | Gantry Y       | GT2-14 belt (2 motors, 1 driver) | 57.14 |
+| Z           | Gantry Z       | 5 mm lead screw | 320      |
+| E0          | Filter Feed    | 5 mm lead screw | 320      |
+| E1          | Syringe        | 1 mm lead screw | 1600     |
+| E2          | Syringe Height | 5 mm lead screw | 320      |
 
-Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_rev`. All drivers are set to 1/32 microstepping (6400 steps/rev with 200-step motors).
+Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_rev`. All drivers are set to 1/8 microstepping (1600 steps/rev with 200-step motors).
 
 ### End Effectors and Peripherals
 
@@ -112,7 +112,7 @@ G1 X100 Y50 F3000    ; move to (100, 50) at 50 mm/s
 G1 Z10 F600          ; lower Z 10 mm at 10 mm/s
 ```
 
-Feedrates are in mm/min. Max recommended: X/Y 150 mm/s (F9000), Z ~10 mm/s (F600).
+Feedrates are in mm/min. Max recommended: X/Y 150 mm/s (F9000), Z 5 mm/s (F300), E axes 10 mm/s (F600).
 
 ### Driving Auxiliary Motors
 
@@ -160,7 +160,7 @@ M92              ; report steps/mm
 1. **Never send bare `G28`** — there is no Z endstop, so the Z axis will crash into its physical limit. Always specify axes: `G28 X Y`.
 2. **Cold extrusion lockout** — Marlin silently ignores E-axis moves if the hotend temperature is below `EXTRUDE_MINTEMP`. The firmware sets this to 0, but sending `M302 S0` in your G-code preamble is a belt-and-suspenders safeguard.
 3. **`DISABLE_OTHER_EXTRUDERS`** is currently enabled, meaning selecting T1 de-energizes E0 and E2. If the syringe height motor (E2) needs to hold position while the syringe (E1) runs, this must be disabled in `Configuration_adv.h`.
-4. **Max feedrate** — X/Y are limited to 150 mm/s (≈30 kHz step rate at 200 steps/mm), near the Mega's ISR comfort zone. Don't increase without testing for missed steps.
+4. **Max feedrate** — X/Y limited to 150 mm/s (~8.6 kHz step rate at 57.14 steps/mm). Z limited to 5 mm/s, E axes to 10 mm/s. Don't increase without testing for missed steps.
 5. **Pins 19/20/21 conflict** with Serial1 and I2C. Adding an I2C LCD or a second serial device requires rewiring those motors.
 
 ## License

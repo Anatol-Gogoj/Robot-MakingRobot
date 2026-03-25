@@ -15,17 +15,18 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 
 | Marlin Axis | Function | PUL Pin | DIR Pin | ENA Pin | Steps/mm | Notes |
 |---|---|---|---|---|---|---|
-| X | Gantry X | A0 (54) | A1 (55) | 38 | 200 | GT2-16 pulley, 6400 steps/rev (1/32 µstep) |
-| Y | Gantry Y | A6 (60) | A7 (61) | A2 (56) | 200 | GT2-16 pulley, 1 driver controls 2 parallel motors |
+| X | Gantry X | A0 (54) | A1 (55) | 38 | 57.14 | GT2-14 pulley (28 mm/rev), 1600 steps/rev (1/8 µstep) |
+| Y | Gantry Y | A6 (60) | A7 (61) | A2 (56) | 57.14 | GT2-14 pulley, 1 driver controls 2 parallel motors |
 | Y2 | Gantry Y clone | 36 | 34 | 30 | (follows Y) | Second Y motor, same driver signal via Y2_DRIVER_TYPE |
-| Z | Gantry Z | 46 | 48 | A8 (62) | 1280 | 5 mm/rev lead screw, 6400 steps/rev |
-| E0 | Filter Feed | 2 | 9 | 12 | 1280 | 5 mm/rev lead screw |
-| E1 | Syringe | 13 | 19 | 20 | 1280 | 5 mm/rev lead screw |
-| E2 | Syringe Height | 21 | 22 | 31 | 1280 | 5 mm/rev lead screw |
+| Z | Gantry Z | 46 | 48 | A8 (62) | 320 | 5 mm/rev lead screw, 1600 steps/rev (1/8 µstep) |
+| E0 | Filter Feed | 2 | 9 | 12 | 320 | 5 mm/rev lead screw |
+| E1 | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw |
+| E2 | Syringe Height | 21 | 22 | 31 | 320 | 5 mm/rev lead screw |
 
 **Steps/mm formula:** (motor_steps_per_rev × microstepping) ÷ linear_travel_per_rev
-- Belt axes: 200 × 32 ÷ 32mm (GT2 × 16 teeth) = 200 steps/mm
-- Lead screw axes: 200 × 32 ÷ 5mm = 1280 steps/mm
+- Belt axes: 200 × 8 ÷ 28mm (GT2 × 14 teeth) = 57.14 steps/mm
+- 5 mm lead screw axes: 200 × 8 ÷ 5mm = 320 steps/mm
+- 1 mm lead screw (syringe): 200 × 8 ÷ 1mm = 1600 steps/mm
 
 ### Limit Switches
 - X endstop: pin 3 (X_MIN, hardware interrupt capable)
@@ -83,8 +84,8 @@ Z_HOME_DIR               0 (no Z homing)
 1. **Cold extrusion:** Marlin silently refuses E-axis moves if temperature < EXTRUDE_MINTEMP. Set to 0 in firmware AND/OR send `M302 S0` in G-code preamble.
 2. **DISABLE_OTHER_EXTRUDERS** (line 1668): Currently enabled. Selecting T1 de-energizes E0 and E2 motors. If the syringe height (E2) needs to hold position while syringe (E1) runs, comment this out.
 3. **No Z endstop:** `G28` without axis arguments tries to home Z and will crash. Always use `G28 X Y` explicitly.
-4. **Max feedrate:** X/Y limited to 150 mm/s (30 kHz step rate at 200 steps/mm). This is near the Mega's comfortable ISR limit. Don't increase without testing.
-5. **Acceleration:** X/Y set conservatively to 1000 mm/s² due to 1/32 microstepping (lower holding torque at speed). Tune up carefully — missed steps are the failure mode.
+4. **Max feedrate:** X/Y limited to 150 mm/s (~8.6 kHz step rate at 57.14 steps/mm). Well within the Mega's ISR limit, but mechanical resonance and missed steps are the practical ceiling. Z limited to 5 mm/s, E axes to 10 mm/s.
+5. **Acceleration:** X/Y set to 1000 mm/s², Z and E axes to 500 mm/s². Tune up carefully — missed steps are the failure mode.
 
 ## G-Code Reference for This Machine
 
@@ -123,7 +124,7 @@ M42 P<pin> S0    # solenoid OFF
 ```gcode
 M119             # report endstop states (use to verify wiring)
 M503             # report all active firmware settings
-M92              # report steps/mm (M92 X200 Y200 Z1280 E1280 to override)
+M92              # report steps/mm (M92 X57.14 Y57.14 Z320 E320 to override)
 M500             # save settings to EEPROM
 M501             # load settings from EEPROM
 ```
@@ -159,7 +160,7 @@ Connect via Pronterface (or any serial terminal) at 250000 baud. Port is typical
 
 ## What's Left To Do
 
-- [ ] Confirm DIP switch settings on ALL DM556T drivers (verify 6400 steps/rev assumption for Z, E0, E1, E2)
+- [ ] Confirm DIP switch settings on ALL DM556T drivers (verify 1600 steps/rev = 1/8 µstep on all drivers)
 - [ ] Wire and assign lid servo GPIO (currently TBD, placeholder pin 6)
 - [ ] Choose and wire solenoid valve pin
 - [ ] Test each axis individually after first flash (direction, distance, endstop logic)

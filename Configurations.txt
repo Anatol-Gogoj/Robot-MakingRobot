@@ -1,14 +1,17 @@
 Robot-Making Robot Data
 
-Steps per rev per mm
-X-axis - 6400 steps / rev
-GT2-16 pulley --> 200 steps / mm
+Steps per rev per mm (1/8 microstepping, 1600 steps/rev)
+X-axis - 1600 steps / rev
+GT2-14 pulley (28 mm/rev) --> 57.14 steps / mm
 
-Y-axis - 6400 steps / rev
-GT2-14 pulley --> 200 steps / mm
+Y-axis - 1600 steps / rev
+GT2-14 pulley (28 mm/rev) --> 57.14 steps / mm
 
-5 mm / rev:
-Z axis, Motor 1, Motor 2, Motor 3
+5 mm / rev lead screw: 320 steps / mm
+Z axis, Motor 1 (Filter Feed), Motor 3 (Syringe Height)
+
+1 mm / rev lead screw: 1600 steps / mm
+Motor 2 (Syringe)
 
 
 
