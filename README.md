@@ -163,6 +163,10 @@ M92              ; report steps/mm
 4. **Max feedrate** — X/Y limited to 150 mm/s (~8.6 kHz step rate at 57.14 steps/mm). Z limited to 5 mm/s, E axes to 10 mm/s. Don't increase without testing for missed steps.
 5. **Pins 19/20/21 conflict** with Serial1 and I2C. Adding an I2C LCD or a second serial device requires rewiring those motors.
 
+## AI Attribution
+
+Portions of this project's documentation, firmware configuration, and supporting code were generated or edited with the assistance of Claude (Anthropic). All AI-generated content was reviewed and validated by the project author. See [AI_ATTRIBUTION.md](AI_ATTRIBUTION.md) for details.
+
 ## License
 
 The Marlin firmware is licensed under the GPL v3. See the `Marlin-2.1.2.7/` directory for full license text. Project-specific files (pin map, controller UI, configurations) are provided as-is for this specific machine build.
