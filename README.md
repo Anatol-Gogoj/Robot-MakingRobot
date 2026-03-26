@@ -12,6 +12,8 @@ Robot-MakingRobot/
 │       ├── Configuration_adv.h      # Advanced config
 │       └── src/pins/ramps/
 │           └── pins_RAMPS_14_RMR.h  # Custom pin mapping for this machine
+├── SpincoaterStage.ino           # Arduino sketch for ODrive-based spin coater
+├── SpincoaterPinMap.jfif         # ODrive J11 connector pinout reference image
 ├── RMR_Controller.html           # Browser-based serial G-code controller UI
 ├── Configurations.txt            # Quick-reference pin map and steps/mm notes
 └── README.md                     # This file
@@ -69,6 +71,100 @@ Several stock RAMPS pins are reassigned to free GPIOs for the auxiliary motors (
 - `EXTRUDE_MINTEMP 0` — allows extruder-axis moves without a hotend
 - `Z_HOME_DIR 0` — Z homing disabled (no endstop)
 - `NUM_SERVOS 2`
+
+## Spin Coater Subsystem
+
+The project includes a separate spin coater stage driven by an ODrive motor controller. This subsystem runs on its own **Arduino UNO**, independent of the Marlin gantry firmware on the Mega 2560. The intended architecture is: the gantry Mega commands the spin coater UNO over a serial link (UART or I2C — TBD), and the UNO in turn talks to the ODrive over UART using the `ODriveUART` library.
+
+### System Architecture
+
+```
+Mega 2560 (Marlin gantry)  ──UART or I2C──►  Arduino UNO  ──UART──►  ODrive
+```
+
+### UNO ↔ ODrive Communication
+
+The UNO communicates with the ODrive at 115200 baud using the `ODriveUART` library. The current sketch (`SpincoaterStage.ino`) references `Serial1`, which is a hardware UART available on the Mega but **not on the UNO**. On the UNO, ODrive communication must use `SoftwareSerial` (the include is already present in the sketch but commented out) or be routed through the UNO's only hardware serial (pins 0/1), which would conflict with USB debugging.
+
+| Arduino UNO Pin | ODrive J11 Pin | Function |
+|-----------------|----------------|----------|
+| SoftwareSerial TX (TBD) | 8 (UART RX, G07) | Arduino TX → ODrive RX |
+| SoftwareSerial RX (TBD) | 7 (UART TX, G06) | ODrive TX → Arduino RX |
+| GND             | ISO GND (pin 10) | Common ground |
+
+The ODrive's ISOVDD and ISOGND must also be connected to the Arduino's 5V and GND respectively to power the optoisolated UART interface.
+
+**Note:** The sketch as written uses `HardwareSerial& odrive_serial = Serial1;` which will not compile on an UNO. Migration requires switching to `SoftwareSerial` (at a lower baud rate — 19200 is recommended by ODrive for SoftwareSerial) or dedicating the hardware serial (pins 0/1) to the ODrive and losing USB serial debug output.
+
+### ODrive J11 Connector Pinout
+
+The full J11 connector is a 30-pin header (2×15). The dashed region in `SpincoaterPinMap.jfif` marks the isolated IO section (pins 7–12), which requires external power. See the image for the full visual layout; key pins used or available:
+
+**Top row (odd pins):**
+
+| Pin | Function | GPIO |
+|-----|----------|------|
+| 1 | CAN_H | — |
+| 3 | CAN_H | — |
+| 5 | 12V IN [2] | — |
+| 7 | UART TX | G06 |
+| 9 | ISO VDD | — |
+| 11 | DIR | G05 |
+| 13 | — | G04 |
+| 15 | THERMISTOR+ | — |
+| 17 | 5V [1] | G03 |
+| 19 | ENC0 A | G02 |
+| 21 | HALL C | G01 |
+| 23 | HALL A | G0 |
+| 25 | RS-485 A | — |
+| 27 | 5V [1] | — |
+| 29 | SPI SCK | — |
+
+**Bottom row (even pins):**
+
+| Pin | Function | GPIO |
+|-----|----------|------|
+| 2 | CAN_L | — |
+| 4 | CAN_L | — |
+| 6 | 3.3V [1] | — |
+| 8 | UART RX | G07 |
+| 10 | ISO GND | G08 |
+| 12 | STEP | — |
+| 14 | THERMISTOR− | — |
+| 16 | GND | — |
+| 18 | ENC0 B | G09 |
+| 20 | ENC0 Z | G10 |
+| 22 | HALL B | G11 |
+| 24 | RS-485 B | G0 |
+| 26 | GND | — |
+| 28 | SPI MISO | — |
+| 30 | SPI nCS | G12 |
+
+An ERROR output and ANALOG IN input are also available on the top row (see image for exact locations). The yellow-highlighted ANALOG IN pin is near pin 25.
+
+### Firmware Behavior (`SpincoaterStage.ino`)
+
+The sketch implements a single-shot spin-measure-stop cycle:
+
+1. **Wait for start** — the sketch idles until it receives `START\n` over USB serial (115200 baud).
+2. **ODrive init** — waits for the ODrive to become reachable, reads bus voltage, then transitions to closed-loop velocity control. If the ODrive is idle (not yet calibrated), it runs a full calibration sequence first.
+3. **Ramp to target** — sets `vel_ramp_rate` to 15 rev/s² and commands the target velocity (default 5000 RPM, i.e., ~83.5 rev/s). Blocks until measured velocity reaches 98% of target.
+4. **Measurement** — samples velocity at 100 ms intervals for 30 seconds (300 samples), then computes and prints the mean and standard deviation in RPM.
+5. **Decelerate and stop** — increases `vel_ramp_rate` to 100 rev/s² for a faster stop, commands zero velocity, and blocks until the motor is effectively stationary.
+6. **Encoder re-home** — triggers `AXIS_STATE_ENCODER_INDEX_SEARCH` to re-establish the encoder index.
+7. **Reset** — returns to the idle/waiting state, ready for another `START` command.
+
+### Mega ↔ UNO Communication (TBD)
+
+The gantry Mega needs to trigger spin coater cycles and potentially receive measurement results. Two options under consideration:
+
+- **UART** — use a spare serial port. The Mega has Serial1/2/3 available (though Serial1 pins 18/19 conflict with gantry E1 motor — Serial2 on pins 16/17 or Serial3 on pins 14/15 are alternatives). The UNO side would use SoftwareSerial for this link (its hardware serial is occupied by either USB debug or ODrive).
+- **I2C** — the UNO acts as an I2C slave. Simpler wiring (SDA/SCL + GND), but the Mega's I2C pins (20/21) are currently used by E1_ENA and E2_STEP — those motors would need remapping first.
+
+### Dependencies
+
+- [ODriveUART Arduino library](https://docs.odriverobotics.com/v/latest/guides/arduino-uart-guide.html) — install via the Arduino Library Manager or from the ODrive GitHub.
+- `SoftwareSerial.h` is included in the sketch and will be needed on the UNO (which lacks a second hardware UART).
 
 ## Building and Uploading
 

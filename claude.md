@@ -158,6 +158,72 @@ Connect via Pronterface (or any serial terminal) at 250000 baud. Port is typical
 | boards.h | `Marlin/src/core/boards.h` | Needs 1 line added (board ID) |
 | pins.h | `Marlin/src/pins/pins.h` | Needs 2 lines added (routing) |
 
+## Spin Coater Subsystem
+
+### Overview
+A separate spin coater stage uses an ODrive motor controller commanded over UART from a dedicated **Arduino UNO**. The firmware is in `SpincoaterStage.ino`. This is independent of the Marlin gantry firmware on the Mega. The intended system architecture is: Mega (Marlin) → UART or I2C → UNO → UART → ODrive.
+
+### ODrive Wiring (UNO side)
+- UNO → ODrive J11 UART: pin 8 RX (G07), pin 7 TX (G06)
+- Baud rate: 115200 (but see SoftwareSerial note below)
+- Library: `ODriveUART` (Arduino)
+- ODrive ISOVDD/ISOGND must be connected to Arduino 5V and GND
+
+**Serial1 issue:** The sketch currently uses `HardwareSerial& odrive_serial = Serial1;` which is Mega-specific. The UNO has only one hardware UART (pins 0/1, shared with USB). To run on an UNO, the ODrive link must switch to `SoftwareSerial` (recommended baud: 19200) or the hardware serial must be dedicated to the ODrive (sacrificing USB debug). The `SoftwareSerial.h` include is already in the sketch but commented out.
+
+### Mega ↔ UNO Communication (TBD)
+The gantry Mega needs to trigger spin coater cycles on the UNO. Options:
+- **UART:** Mega Serial2 (pins 16/17) or Serial3 (pins 14/15) to UNO SoftwareSerial. Serial1 (pins 18/19) conflicts with gantry E1 motor.
+- **I2C:** UNO as I2C slave. Requires remapping E1_ENA (pin 20) and E2_STEP (pin 21) on the Mega to free up SDA/SCL.
+
+### Sketch Behavior
+The sketch (`SpincoaterStage.ino`) runs a single-shot cycle: wait for `START` over USB serial → calibrate ODrive if needed → ramp to 5000 RPM at 15 rev/s² → measure velocity (100 ms sampling for 30 s, reports mean ± σ) → decelerate at 100 rev/s² → encoder index re-home → return to idle. Target RPM is hardcoded as `int RPM = 5000`. Currently the `START` command comes over USB serial; in the final system it would come from the Mega over the inter-board link.
+
+### Migrating SpincoaterStage.ino to PlatformIO
+
+The `.ino` file is currently an Arduino IDE sketch. To bring it into the PlatformIO ecosystem (consistent with the Marlin build):
+
+#### Directory Structure
+```
+SpincoaterStage/
+├── platformio.ini
+├── src/
+│   └── main.cpp          # renamed from SpincoaterStage.ino
+└── lib/
+    └── (ODriveUART goes here if not using lib_deps)
+```
+
+#### platformio.ini
+```ini
+[env:uno]
+platform = atmelavr
+board = uno
+framework = arduino
+monitor_speed = 115200
+lib_deps =
+    odriverobotics/ODriveArduino @ ^0.1.0
+    ; Or use the library's GitHub URL if the PlatformIO registry version is stale:
+    ; https://github.com/odriverobotics/ODrive.git#master
+```
+
+**Note:** The ODrive Arduino library's PlatformIO registry name may vary. If `odriverobotics/ODriveArduino` doesn't resolve, use the GitHub URL directly or manually place the library source in `lib/ODriveUART/`.
+
+#### Conversion Steps
+1. **Rename:** Copy `SpincoaterStage.ino` → `SpincoaterStage/src/main.cpp`.
+2. **Add Arduino.h include:** PlatformIO does not implicitly include `Arduino.h` like the Arduino IDE. Add `#include <Arduino.h>` as the first line.
+3. **Switch from Serial1 to SoftwareSerial:** The UNO has no `Serial1`. Uncomment the `SoftwareSerial` lines in the sketch (pins 8/9 as suggested, or pick other free pins), set baud to 19200, and replace `HardwareSerial& odrive_serial = Serial1;` with the SoftwareSerial instance. Update `baudrate` accordingly.
+4. **Forward-declare functions:** The Arduino IDE auto-generates forward declarations; PlatformIO/GCC does not. Add `void MS();` before `setup()` (or move the `MS()` definition above `setup()`/`loop()`).
+5. **Create `platformio.ini`** as shown above.
+6. **Fix SRAM usage (critical):** The `float samples[300]` array in `MS()` uses ~1.2 KB. The UNO's ATmega328P has only 2 KB total SRAM. With the stack, ODrive library buffers, and SoftwareSerial buffers, this will almost certainly overflow. Replace the array with Welford's online algorithm for running mean and variance — this reduces memory usage to a few floats regardless of sample count.
+7. **Build:** `pio run -e uno`
+8. **Upload:** `pio run -e uno -t upload`
+
+#### Gotchas
+- The `ODriveUART` library header might be `<ODriveArduino.h>` vs `<ODriveUART.h>` depending on the library version. Check the installed library's actual header filename.
+- `SoftwareSerial` on the UNO is unreliable above 19200 baud. The ODrive docs confirm 19200 as the recommended rate for SoftwareSerial. This means the ODrive must also be configured to 19200 baud (via `odrv0.config.uart_baudrate = 19200` in odrivetool, then `odrv0.save_configuration()`).
+- `monitor_speed` in platformio.ini should match the USB serial baud (115200), which is separate from the ODrive SoftwareSerial baud.
+- The UNO's ATmega328P has 2 KB SRAM vs the Mega's 8 KB. Every buffer matters. Profile with `pio run -e uno -t checkprogsize` after building.
+
 ## What's Left To Do
 
 - [ ] Confirm DIP switch settings on ALL DM556T drivers (verify 1600 steps/rev = 1/8 µstep on all drivers)
@@ -169,3 +235,9 @@ Connect via Pronterface (or any serial terminal) at 250000 baud. Port is typical
 - [ ] Set actual travel limits (X_BED_SIZE, Y_BED_SIZE, Z_MAX_POS — currently 200×200×200 defaults)
 - [ ] Add Z endstop if repeatable Z homing is needed
 - [ ] Write production G-code sequences for the actual robot workflow
+- [ ] Migrate `SpincoaterStage.ino` to PlatformIO project structure targeting UNO (see migration steps above)
+- [ ] **Critical:** Replace `Serial1` with `SoftwareSerial` for UNO compatibility and configure ODrive to 19200 baud
+- [ ] **Critical:** Replace `float samples[300]` array with Welford's online algorithm — 1.2 KB array will overflow UNO's 2 KB SRAM
+- [ ] Verify ODriveUART library version compatibility and correct header name
+- [ ] Design and implement Mega ↔ UNO communication protocol (UART vs I2C, command format)
+- [ ] Make target RPM configurable via inter-board command instead of hardcoded constant
