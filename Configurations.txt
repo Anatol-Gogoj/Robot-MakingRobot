@@ -39,18 +39,22 @@ ENA: A8
 Limit Switches
 X-Limit: 3
 Y-Limit: 14
+Z-Limit: 18
+Motor 1: 15
+Motor 2: N/A TODO
+Motor 3: 17
 
-Motor 1 - Filter Feed
+Motor 1 - Filter Feed (I-axis, homeable)
 PUL: 2
 DIR: 9
 ENA: 12
 
-Motor 2 - Syringe
+Motor 2 - Syringe (E0, sole extruder)
 PUL: 13
 DIR: 19
 ENA: 20
 
-Motor 3 - Syringe Height
+Motor 3 - Syringe Height (J-axis, homeable)
 PUL: 21
 DIR: 22
 ENA: 31

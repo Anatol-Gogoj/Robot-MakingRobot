@@ -19,9 +19,9 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 | Y | Gantry Y | A6 (60) | A7 (61) | A2 (56) | 57.14 | GT2-14 pulley, 1 driver controls 2 parallel motors |
 | Y2 | Gantry Y clone | 36 | 34 | 30 | (follows Y) | Second Y motor, same driver signal via Y2_DRIVER_TYPE |
 | Z | Gantry Z | 46 | 48 | A8 (62) | 320 | 5 mm/rev lead screw, 1600 steps/rev (1/8 µstep) |
-| E0 | Filter Feed | 2 | 9 | 12 | 320 | 5 mm/rev lead screw |
-| E1 | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw |
-| E2 | Syringe Height | 21 | 22 | 31 | 320 | 5 mm/rev lead screw |
+| I | Filter Feed | 2 | 9 | 12 | 320 | 5 mm/rev lead screw — homeable linear axis (was E0) |
+| E0 | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw — sole extruder (was E1) |
+| J | Syringe Height | 21 | 22 | 31 | 320 | 5 mm/rev lead screw — homeable linear axis (was E2) |
 
 **Steps/mm formula:** (motor_steps_per_rev × microstepping) ÷ linear_travel_per_rev
 - Belt axes: 200 × 8 ÷ 28mm (GT2 × 14 teeth) = 57.14 steps/mm
@@ -31,9 +31,12 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 ### Limit Switches
 - X endstop: pin 3 (X_MIN, hardware interrupt capable)
 - Y endstop: pin 14 (Y_MIN)
-- Z: **no endstop** — Z_HOME_DIR is set to 0 (homing disabled). Z origin is set manually with `G92 Z0`.
+- Z endstop: pin 18 (Z_MIN, RAMPS Z- header)
+- I endstop (Filter Feed): pin 15 (I_MIN, RAMPS Y+ header)
+- J endstop (Syringe Height): pin 17 (J_MIN, Mega TX2)
+- Motor 2 (Syringe / E0): **no endstop**
 
-Switch type: normally-open mechanical, wired common→GND, NO→signal pin. Internal pullups enabled via `ENDSTOPPULLUPS`. Logic: untriggered=HIGH, triggered=LOW, `*_ENDSTOP_INVERTING false`.
+Switch type: normally-open, wired common→GND, NO→signal pin. Internal pullups enabled via `ENDSTOPPULLUPS`. Logic: untriggered=HIGH, triggered=LOW, `*_ENDSTOP_INVERTING true`.
 
 ### Servos
 - Servo 0 (gripper): GPIO 5 — `M280 P0 S<angle>`
@@ -48,7 +51,7 @@ The two Y-axis motors are physically spliced to a single DM556T driver. In Marli
 ## Firmware Architecture
 
 ### Board Definition
-Custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and overrides E0/E1/E2 pins plus resolves conflicts.
+Custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and overrides pin assignments for I/J linear axes and E0 extruder, plus resolves conflicts.
 
 **Files that define the board:**
 - `Marlin/src/pins/ramps/pins_RAMPS_14_RMR.h` — pin overrides and conflict resolution
@@ -58,54 +61,66 @@ Custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and ov
 ### Pin Conflicts Resolved in pins_RAMPS_14_RMR.h
 | Pin | Stock RAMPS Function | Our Use | Resolution |
 |-----|---------------------|---------|------------|
-| 2 | X_MAX_PIN | E0 STEP (Filter Feed) | X_MAX_PIN → -1 |
-| 9 | FAN (MOSFET_B) | E0 DIR (Filter Feed) | MOSFET_B_PIN → -1 |
-| 12 | PS_ON_PIN | E0 ENABLE (Filter Feed) | PS_ON_PIN → -1 |
-| 13 | LED_PIN | E1 STEP (Syringe) | LED_PIN → -1 |
-| 19 | Serial1 RX | E1 DIR | OK if Serial1 unused |
-| 20 | I2C SDA | E1 ENABLE | OK if I2C unused |
-| 21 | I2C SCL | E2 STEP | OK if I2C unused |
+| 2 | X_MAX_PIN | I STEP (Filter Feed) | X_MAX_PIN → -1 |
+| 9 | FAN (MOSFET_B) | I DIR (Filter Feed) | MOSFET_B_PIN → -1 |
+| 12 | PS_ON_PIN | I ENABLE (Filter Feed) | PS_ON_PIN → -1 |
+| 13 | LED_PIN | E0 STEP (Syringe) | LED_PIN → -1 |
+| 15 | Y_MAX_PIN | I_MIN endstop (Filter Feed) | Y_MAX_PIN → -1 |
+| 19 | Serial1 RX / Z_MAX | E0 DIR (Syringe) | Z_MAX_PIN → -1, OK if Serial1 unused |
+| 20 | I2C SDA | E0 ENABLE (Syringe) | OK if I2C unused |
+| 21 | I2C SCL | J STEP (Syringe Height) | OK if I2C unused |
 
 **Warning:** Pins 19/20/21 conflict with Serial1 and I2C. If an I2C device (LCD, sensor) or a second serial device is ever added, those motors must be rewired to free GPIOs.
 
 ### Key Configuration.h Settings
 ```
 MOTHERBOARD              BOARD_RAMPS_14_RMR
-EXTRUDERS                3
-TEMP_SENSOR_0/1/2        0 (all disabled — no heaters)
-EXTRUDE_MINTEMP          0 (allows E moves without hotend)
+EXTRUDERS                1           (syringe only; filter feed & syringe height are I/J axes)
+I_DRIVER_TYPE            A4988       (Filter Feed — linear axis)
+J_DRIVER_TYPE            A4988       (Syringe Height — linear axis)
+TEMP_SENSOR_0            0           (disabled — no heaters)
+EXTRUDE_MINTEMP          0           (allows E moves without hotend)
 PREVENT_COLD_EXTRUSION   defined but mintemp=0 disables it
 NUM_SERVOS               2
-X_HOME_DIR / Y_HOME_DIR  -1 (home to min endstop)
-Z_HOME_DIR               0 (no Z homing)
+X_HOME_DIR / Y_HOME_DIR  -1          (home to min endstop)
+Z_HOME_DIR               -1          (home to Z_MIN endstop, pin 18)
+I_HOME_DIR               -1          (home to I_MIN endstop, pin 15)
+J_HOME_DIR               -1          (home to J_MIN endstop, pin 17)
+Z_SAFE_HOMING            disabled    (Z homes first via HOME_Z_FIRST)
+HOME_Z_FIRST             enabled     (in Configuration_adv.h)
+Homing order             Z → Y → J → X → I  (G28.cpp patched)
 ```
 
 ### Critical Gotchas
 1. **Cold extrusion:** Marlin silently refuses E-axis moves if temperature < EXTRUDE_MINTEMP. Set to 0 in firmware AND/OR send `M302 S0` in G-code preamble.
-2. **DISABLE_OTHER_EXTRUDERS** (line 1668): Currently enabled. Selecting T1 de-energizes E0 and E2 motors. If the syringe height (E2) needs to hold position while syringe (E1) runs, comment this out.
-3. **No Z endstop:** `G28` without axis arguments tries to home Z and will crash. Always use `G28 X Y` explicitly.
-4. **Max feedrate:** X/Y limited to 150 mm/s (~8.6 kHz step rate at 57.14 steps/mm). Well within the Mega's ISR limit, but mechanical resonance and missed steps are the practical ceiling. Z limited to 5 mm/s, E axes to 10 mm/s.
-5. **Acceleration:** X/Y set to 1000 mm/s², Z and E axes to 500 mm/s². Tune up carefully — missed steps are the failure mode.
+2. **Custom homing order (G28.cpp patched):** A bare `G28` homes in order: Z → Y → J(Syr.Ht) → X → I(Filter Feed). HOME_Z_FIRST is enabled, Z_SAFE_HOMING is disabled. The order is hardcoded in G28.cpp.
+3. **Max feedrate:** X/Y limited to 150 mm/s (~8.6 kHz step rate at 57.14 steps/mm). Well within the Mega's ISR limit, but mechanical resonance and missed steps are the practical ceiling. Z/I/J limited to 5–10 mm/s, E0 to 10 mm/s.
+4. **Acceleration:** X/Y set to 1000 mm/s², Z/I/J/E0 to 500 mm/s². Tune up carefully — missed steps are the failure mode.
+5. **Travel limits:** X=770, Y=150, Z=150, I(Filter Feed)=347, J(Syringe Height)=304 mm.
+6. **I/J direction:** INVERT_I_DIR and INVERT_J_DIR default to false. Verify after first test — if axis moves away from endstop during homing, flip to true.
+7. **Pin 17 (J endstop):** This is Mega TX2. If Mega↔UNO communication uses Serial2 (pins 16/17), the J endstop must move to a different pin.
 
 ## G-Code Reference for This Machine
 
 ### Homing & Positioning
 ```gcode
-G28 X Y          # home gantry (NEVER bare G28 — no Z endstop)
-G92 Z0           # set current Z as origin
-G92 E0           # reset extruder position counter
+G28              # home all axes (X, Y, Z, A, B) — now safe with all endstops
+G28 X Y          # home gantry XY only
+G28 Z            # home Z only (requires X/Y homed first due to Z_SAFE_HOMING)
+G28 A            # home Filter Feed only
+G28 B            # home Syringe Height only
+G92 E0           # reset extruder (syringe) position counter
 G1 X_ Y_ F_     # move gantry (F in mm/min: F3000 = 50mm/s)
 G1 Z_ F_         # move Z
 ```
 
-### Aux Motors (via extruder axes)
+### Aux Motors (I/J linear axes + E0 extruder)
 ```gcode
-M302 S0          # allow cold extrusion (belt-and-suspenders)
-T0               # select Filter Feed (E0)
-T1               # select Syringe (E1)
-T2               # select Syringe Height (E2)
-G1 E_ F_         # move active extruder axis
-G92 E0           # reset E position (do this after each T-switch)
+M302 S0          # allow cold extrusion (belt-and-suspenders for syringe)
+G1 A_ F_         # move Filter Feed (was: T0, G1 E_)
+G1 E_ F_         # move Syringe (was: T1, G1 E_) — sole extruder, no T-switch needed
+G1 B_ F_         # move Syringe Height (was: T2, G1 E_)
+G92 E0           # reset syringe position
 ```
 
 ### Servos
@@ -124,7 +139,7 @@ M42 P<pin> S0    # solenoid OFF
 ```gcode
 M119             # report endstop states (use to verify wiring)
 M503             # report all active firmware settings
-M92              # report steps/mm (M92 X57.14 Y57.14 Z320 E320 to override)
+M92              # report steps/mm (M92 X57.14 Y57.14 Z320 A320 B320 E1600 to override)
 M500             # save settings to EEPROM
 M501             # load settings from EEPROM
 ```
@@ -173,8 +188,8 @@ A separate spin coater stage uses an ODrive motor controller commanded over UART
 
 ### Mega ↔ UNO Communication (TBD)
 The gantry Mega needs to trigger spin coater cycles on the UNO. Options:
-- **UART:** Mega Serial2 (pins 16/17) or Serial3 (pins 14/15) to UNO SoftwareSerial. Serial1 (pins 18/19) conflicts with gantry E1 motor.
-- **I2C:** UNO as I2C slave. Requires remapping E1_ENA (pin 20) and E2_STEP (pin 21) on the Mega to free up SDA/SCL.
+- **UART:** Mega Serial3 (pins 14/15) to UNO SoftwareSerial. Serial1 (pins 18/19) conflicts with Z endstop and E0 DIR. Serial2 (pins 16/17) conflicts with J endstop on pin 17 — would require moving J endstop to a free GPIO.
+- **I2C:** UNO as I2C slave. Requires remapping E0_ENA (pin 20) and J_STEP (pin 21) on the Mega to free up SDA/SCL — not practical with current wiring.
 
 ### Sketch Behavior
 The sketch (`SpincoaterStage.ino`) runs a single-shot cycle: wait for `START` over USB serial → calibrate ODrive if needed → ramp to 5000 RPM at 15 rev/s² → measure velocity (100 ms sampling for 30 s, reports mean ± σ) → decelerate at 100 rev/s² → encoder index re-home → return to idle. Target RPM is hardcoded as `int RPM = 5000`. Currently the `START` command comes over USB serial; in the final system it would come from the Mega over the inter-board link.
@@ -230,10 +245,10 @@ lib_deps =
 - [ ] Wire and assign lid servo GPIO (currently TBD, placeholder pin 6)
 - [ ] Choose and wire solenoid valve pin
 - [ ] Test each axis individually after first flash (direction, distance, endstop logic)
-- [ ] Determine if `DISABLE_OTHER_EXTRUDERS` needs to be commented out for the use case
+- [x] ~~Determine if `DISABLE_OTHER_EXTRUDERS` needs to be commented out~~ (N/A — only 1 extruder now)
 - [ ] Calibrate servo angles for gripper open/close positions
-- [ ] Set actual travel limits (X_BED_SIZE, Y_BED_SIZE, Z_MAX_POS — currently 200×200×200 defaults)
-- [ ] Add Z endstop if repeatable Z homing is needed
+- [x] ~~Set actual travel limits~~ (X=770, Y=150, Z=150, I=400, J=400)
+- [x] ~~Add Z endstop if repeatable Z homing is needed~~ (Z endstop on pin 18, Z_HOME_DIR=-1)
 - [ ] Write production G-code sequences for the actual robot workflow
 - [ ] Migrate `SpincoaterStage.ino` to PlatformIO project structure targeting UNO (see migration steps above)
 - [ ] **Critical:** Replace `Serial1` with `SoftwareSerial` for UNO compatibility and configure ODrive to 19200 baud

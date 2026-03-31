@@ -435,10 +435,21 @@ void GcodeSuite::G28() {
     // Diagonal move first if both are homing
     TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
 
+    // ============================================================
+    //  RMR custom homing order: Z, Y, J(Syr.Ht), X, I(FiltFeed)
+    //  Z is handled above by HOME_Z_FIRST.
+    //  Below we do: Y → J → X → I
+    // ============================================================
+
     #if HAS_Y_AXIS
       // Home Y (before X)
       if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
         homeaxis(Y_AXIS);
+    #endif
+
+    // Home J (Syringe Height) — after Y, before X
+    #if HAS_J_AXIS
+      if (doJ) homeaxis(J_AXIS);
     #endif
 
     // Home X
@@ -467,20 +478,15 @@ void GcodeSuite::G28() {
       #endif
     }
 
-    #if ALL(FOAMCUTTER_XYUV, HAS_I_AXIS)
-      // Home I (after X)
+    // Home I (Filter Feed) — after X
+    #if HAS_I_AXIS
       if (doI) homeaxis(I_AXIS);
     #endif
 
     #if HAS_Y_AXIS
-      // Home Y (after X)
+      // Home Y (after X) — only if HOME_Y_BEFORE_X is disabled
       if (DISABLED(HOME_Y_BEFORE_X) && doY)
         homeaxis(Y_AXIS);
-    #endif
-
-    #if ALL(FOAMCUTTER_XYUV, HAS_J_AXIS)
-      // Home J (after Y)
-      if (doJ) homeaxis(J_AXIS);
     #endif
 
     TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
@@ -506,9 +512,10 @@ void GcodeSuite::G28() {
         }
       #endif
 
+      // I and J already homed above in RMR custom order — skip SECONDARY_AXIS_CODE for I/J
       SECONDARY_AXIS_CODE(
-        if (doI) homeaxis(I_AXIS),
-        if (doJ) homeaxis(J_AXIS),
+        NOOP, /* I — already homed */
+        NOOP, /* J — already homed */
         if (doK) homeaxis(K_AXIS),
         if (doU) homeaxis(U_AXIS),
         if (doV) homeaxis(V_AXIS),

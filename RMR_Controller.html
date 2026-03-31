@@ -408,27 +408,29 @@
 
   <!-- Aux Motors + Servos -->
   <div class="panel">
-    <h2>Auxiliary Axes (Extruders)</h2>
+    <h2>Auxiliary Axes</h2>
     <div class="feed-control">
-      <label>E Feed:</label>
+      <label>Aux Feed:</label>
       <input type="range" id="eFeed" min="10" max="600" value="300" step="10"
              oninput="document.getElementById('eFeedVal').textContent=this.value+' mm/min'">
       <span class="feed-val" id="eFeedVal">300 mm/min</span>
     </div>
     <div class="ext-row">
-      <label>E0 Filter Feed</label>
-      <button class="jog-btn" onclick="jogE(0,-1)">&#9664;</button>
-      <button class="jog-btn" onclick="jogE(0,1)">&#9654;</button>
+      <label>A - Filter Feed</label>
+      <button class="jog-btn" onclick="jogAxis('A',-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogAxis('A',1)">&#9654;</button>
+      <button class="jog-btn home-btn" onclick="sendCmd('G28 A')" title="Home Filter Feed">&#8962;</button>
     </div>
     <div class="ext-row">
-      <label>E1 Syringe</label>
-      <button class="jog-btn" onclick="jogE(1,-1)">&#9664;</button>
-      <button class="jog-btn" onclick="jogE(1,1)">&#9654;</button>
+      <label>E - Syringe</label>
+      <button class="jog-btn" onclick="jogSyringe(-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogSyringe(1)">&#9654;</button>
     </div>
     <div class="ext-row">
-      <label>E2 Syr. Height</label>
-      <button class="jog-btn" onclick="jogE(2,-1)">&#9664;</button>
-      <button class="jog-btn" onclick="jogE(2,1)">&#9654;</button>
+      <label>B - Syr. Height</label>
+      <button class="jog-btn" onclick="jogAxis('B',-1)">&#9664;</button>
+      <button class="jog-btn" onclick="jogAxis('B',1)">&#9654;</button>
+      <button class="jog-btn home-btn" onclick="sendCmd('G28 B')" title="Home Syr. Height">&#8962;</button>
     </div>
 
     <h2 style="margin-top:14px">Servos</h2>
@@ -462,9 +464,9 @@
       <div class="pos-cell"><div class="axis-label">X (mm)</div><div class="axis-val" id="posX">---</div></div>
       <div class="pos-cell"><div class="axis-label">Y (mm)</div><div class="axis-val" id="posY">---</div></div>
       <div class="pos-cell"><div class="axis-label">Z (mm)</div><div class="axis-val" id="posZ">---</div></div>
-      <div class="pos-cell"><div class="axis-label">E0 Filter</div><div class="axis-val" id="posE0">---</div></div>
-      <div class="pos-cell"><div class="axis-label">E1 Syringe</div><div class="axis-val" id="posE1">---</div></div>
-      <div class="pos-cell"><div class="axis-label">E2 Syr.Ht</div><div class="axis-val" id="posE2">---</div></div>
+      <div class="pos-cell"><div class="axis-label">A Filter</div><div class="axis-val" id="posA">---</div></div>
+      <div class="pos-cell"><div class="axis-label">E Syringe</div><div class="axis-val" id="posE">---</div></div>
+      <div class="pos-cell"><div class="axis-label">B Syr.Ht</div><div class="axis-val" id="posB">---</div></div>
     </div>
     <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
       <button class="toggle-btn" onclick="sendCmd('M114')">Report Position</button>
@@ -493,8 +495,9 @@
       <button onclick="clearConsole()" style="background:var(--surface2)">Clear</button>
     </div>
     <div class="quick-btns">
+      <button class="quick-btn" onclick="sendCmd('G28')">Home All</button>
       <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
-      <button class="quick-btn" onclick="sendCmd('G92 Z0')">Set Z=0</button>
+      <button class="quick-btn" onclick="sendCmd('G28 Z')">Home Z</button>
       <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
       <button class="quick-btn" onclick="sendCmd('M302 S0')">Cold Extrude</button>
       <button class="quick-btn" onclick="sendCmd('M114')">Position</button>
@@ -519,9 +522,9 @@
         <label>Z:</label><input type="number" id="stepsZ" value="1280">
       </div>
       <div class="setting-row">
-        <label>E0:</label><input type="number" id="stepsE0" value="1280">
-        <label>E1:</label><input type="number" id="stepsE1" value="1280">
-        <label>E2:</label><input type="number" id="stepsE2" value="1280">
+        <label>A(FiltFeed):</label><input type="number" id="stepsA" value="320">
+        <label>E(Syringe):</label><input type="number" id="stepsE" value="1600">
+        <label>B(SyrHt):</label><input type="number" id="stepsB" value="320">
         <button onclick="applySteps()">Apply M92</button>
       </div>
 
@@ -532,9 +535,9 @@
         <label>Z:</label><input type="number" id="frZ" value="5">
       </div>
       <div class="setting-row">
-        <label>E0:</label><input type="number" id="frE0" value="10">
-        <label>E1:</label><input type="number" id="frE1" value="10">
-        <label>E2:</label><input type="number" id="frE2" value="10">
+        <label>A:</label><input type="number" id="frA" value="10">
+        <label>E:</label><input type="number" id="frE" value="10">
+        <label>B:</label><input type="number" id="frB" value="10">
         <button onclick="applyFeedrates()">Apply M203</button>
       </div>
 
@@ -545,9 +548,9 @@
         <label>Z:</label><input type="number" id="accZ" value="500">
       </div>
       <div class="setting-row">
-        <label>E0:</label><input type="number" id="accE0" value="500">
-        <label>E1:</label><input type="number" id="accE1" value="500">
-        <label>E2:</label><input type="number" id="accE2" value="500">
+        <label>A:</label><input type="number" id="accA" value="500">
+        <label>E:</label><input type="number" id="accE" value="500">
+        <label>B:</label><input type="number" id="accB" value="500">
         <button onclick="applyAccel()">Apply M201</button>
       </div>
     </div>
@@ -638,13 +641,18 @@ function processLine(line) {
   const verbose = document.getElementById('verboseMode').checked;
 
   // Parse position from M114 response
-  // Format: X:100.00 Y:50.00 Z:10.00 E:0.00 Count ...
-  const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)\s+E:([\d.-]+)/);
+  // Format with I/J axes: X:0.00 Y:0.00 Z:0.00 A:0.00 B:0.00 E:0.00 Count ...
+  const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)/);
   if (posMatch) {
     document.getElementById('posX').textContent = parseFloat(posMatch[1]).toFixed(1);
     document.getElementById('posY').textContent = parseFloat(posMatch[2]).toFixed(1);
     document.getElementById('posZ').textContent = parseFloat(posMatch[3]).toFixed(1);
-    // E position shown is the active extruder only
+    const aMatch = line.match(/A:([\d.-]+)/);
+    const bMatch = line.match(/B:([\d.-]+)/);
+    const eMatch = line.match(/E:([\d.-]+)/);
+    if (aMatch) document.getElementById('posA').textContent = parseFloat(aMatch[1]).toFixed(1);
+    if (bMatch) document.getElementById('posB').textContent = parseFloat(bMatch[1]).toFixed(1);
+    if (eMatch) document.getElementById('posE').textContent = parseFloat(eMatch[1]).toFixed(1);
   }
 
   // Filter 'ok' and temp responses unless verbose
@@ -726,10 +734,19 @@ function jog(axis, dir) {
   sendCmd('G90'); // back to absolute
 }
 
-function jogE(extruder, dir) {
+// Jog A (Filter Feed) or B (Syringe Height) — true linear axes
+function jogAxis(axis, dir) {
   const dist = stepSize * dir;
   const feed = document.getElementById('eFeed').value;
-  sendCmd(`T${extruder}`);
+  sendCmd('G91'); // relative
+  sendCmd(`G1 ${axis}${dist} F${feed}`);
+  sendCmd('G90'); // back to absolute
+}
+
+// Jog E (Syringe) — extruder axis, needs relative E reset
+function jogSyringe(dir) {
+  const dist = stepSize * dir;
+  const feed = document.getElementById('eFeed').value;
   sendCmd('G92 E0');
   sendCmd('G91');
   sendCmd(`G1 E${dist} F${feed}`);
@@ -780,14 +797,10 @@ function applySteps() {
   const x = document.getElementById('stepsX').value;
   const y = document.getElementById('stepsY').value;
   const z = document.getElementById('stepsZ').value;
-  // For distinct E factors, set with T-select
-  sendCmd(`M92 X${x} Y${y} Z${z}`);
-  const e0 = document.getElementById('stepsE0').value;
-  const e1 = document.getElementById('stepsE1').value;
-  const e2 = document.getElementById('stepsE2').value;
-  sendCmd(`T0`); sendCmd(`M92 E${e0}`);
-  sendCmd(`T1`); sendCmd(`M92 E${e1}`);
-  sendCmd(`T2`); sendCmd(`M92 E${e2}`);
+  const a = document.getElementById('stepsA').value;
+  const e = document.getElementById('stepsE').value;
+  const b = document.getElementById('stepsB').value;
+  sendCmd(`M92 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
   logInfo('Steps/mm updated. Use M500 to save to EEPROM.');
 }
 
@@ -795,13 +808,10 @@ function applyFeedrates() {
   const x = document.getElementById('frX').value;
   const y = document.getElementById('frY').value;
   const z = document.getElementById('frZ').value;
-  sendCmd(`M203 X${x} Y${y} Z${z}`);
-  const e0 = document.getElementById('frE0').value;
-  const e1 = document.getElementById('frE1').value;
-  const e2 = document.getElementById('frE2').value;
-  sendCmd(`T0`); sendCmd(`M203 E${e0}`);
-  sendCmd(`T1`); sendCmd(`M203 E${e1}`);
-  sendCmd(`T2`); sendCmd(`M203 E${e2}`);
+  const a = document.getElementById('frA').value;
+  const e = document.getElementById('frE').value;
+  const b = document.getElementById('frB').value;
+  sendCmd(`M203 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
   logInfo('Max feedrates updated. Use M500 to save to EEPROM.');
 }
 
@@ -809,13 +819,10 @@ function applyAccel() {
   const x = document.getElementById('accX').value;
   const y = document.getElementById('accY').value;
   const z = document.getElementById('accZ').value;
-  sendCmd(`M201 X${x} Y${y} Z${z}`);
-  const e0 = document.getElementById('accE0').value;
-  const e1 = document.getElementById('accE1').value;
-  const e2 = document.getElementById('accE2').value;
-  sendCmd(`T0`); sendCmd(`M201 E${e0}`);
-  sendCmd(`T1`); sendCmd(`M201 E${e1}`);
-  sendCmd(`T2`); sendCmd(`M201 E${e2}`);
+  const a = document.getElementById('accA').value;
+  const e = document.getElementById('accE').value;
+  const b = document.getElementById('accB').value;
+  sendCmd(`M201 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
   logInfo('Max acceleration updated. Use M500 to save to EEPROM.');
 }
 
