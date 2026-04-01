@@ -357,6 +357,7 @@
     </select>
     <button id="connectBtn" onclick="toggleConnection()">Connect</button>
     <button class="estop-btn" onclick="emergencyStop()">E-STOP</button>
+    <button class="toggle-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">Reset (M999)</button>
   </div>
 </header>
 
@@ -374,19 +375,19 @@
     </div>
     <div class="feed-control">
       <label>Feed:</label>
-      <input type="range" id="xyFeed" min="100" max="9000" value="3000" step="100"
+      <input type="range" id="xyFeed" min="100" max="24000" value="3000" step="100"
              oninput="document.getElementById('xyFeedVal').textContent=this.value+' mm/min'">
       <span class="feed-val" id="xyFeedVal">3000 mm/min</span>
     </div>
     <div class="jog-grid">
       <div></div>
-      <button class="jog-btn" onclick="jog('Y',1)" title="Y+">&#9650;</button>
+      <button class="jog-btn" onclick="jog('Y',-1)" title="Y-">&#9650;</button>
       <div></div>
       <button class="jog-btn" onclick="jog('X',-1)" title="X-">&#9664;</button>
       <button class="jog-btn home-btn" onclick="homeXY()" title="Home X Y">HOME</button>
       <button class="jog-btn" onclick="jog('X',1)" title="X+">&#9654;</button>
       <div></div>
-      <button class="jog-btn" onclick="jog('Y',-1)" title="Y-">&#9660;</button>
+      <button class="jog-btn" onclick="jog('Y',1)" title="Y+">&#9660;</button>
       <div></div>
     </div>
 
@@ -394,14 +395,14 @@
     <h2 style="margin-top:14px">Z Axis</h2>
     <div class="feed-control">
       <label>Feed:</label>
-      <input type="range" id="zFeed" min="10" max="300" value="150" step="10"
+      <input type="range" id="zFeed" min="10" max="3000" value="150" step="10"
              oninput="document.getElementById('zFeedVal').textContent=this.value+' mm/min'">
       <span class="feed-val" id="zFeedVal">150 mm/min</span>
     </div>
     <div class="jog-row" style="justify-content:center">
       <label>Z</label>
-      <button class="jog-btn" onclick="jog('Z',1)" title="Z+">&#9650;</button>
-      <button class="jog-btn" onclick="jog('Z',-1)" title="Z-">&#9660;</button>
+      <button class="jog-btn" onclick="jog('Z',-1)" title="Z down">&#9650;</button>
+      <button class="jog-btn" onclick="jog('Z',1)" title="Z up">&#9660;</button>
       <button class="jog-btn home-btn" onclick="sendCmd('G92 Z0')" title="Set Z=0" style="font-size:11px">Z=0</button>
     </div>
   </div>
@@ -409,37 +410,47 @@
   <!-- Aux Motors + Servos -->
   <div class="panel">
     <h2>Auxiliary Axes</h2>
-    <div class="feed-control">
-      <label>Aux Feed:</label>
-      <input type="range" id="eFeed" min="10" max="600" value="300" step="10"
-             oninput="document.getElementById('eFeedVal').textContent=this.value+' mm/min'">
-      <span class="feed-val" id="eFeedVal">300 mm/min</span>
-    </div>
     <div class="ext-row">
       <label>A - Filter Feed</label>
       <button class="jog-btn" onclick="jogAxis('A',-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogAxis('A',1)">&#9654;</button>
       <button class="jog-btn home-btn" onclick="sendCmd('G28 A')" title="Home Filter Feed">&#8962;</button>
+      <input type="range" id="aFeed" min="10" max="2000" value="300" step="10"
+             oninput="document.getElementById('aFeedVal').textContent=this.value"
+             style="flex:1;margin-left:6px">
+      <span class="feed-val" id="aFeedVal">300</span><span class="feed-val"> mm/min</span>
     </div>
     <div class="ext-row">
       <label>E - Syringe</label>
       <button class="jog-btn" onclick="jogSyringe(-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogSyringe(1)">&#9654;</button>
+      <input type="range" id="eFeed" min="10" max="500" value="300" step="10"
+             oninput="document.getElementById('eFeedVal').textContent=this.value"
+             style="flex:1;margin-left:6px">
+      <span class="feed-val" id="eFeedVal">300</span><span class="feed-val"> mm/min</span>
     </div>
     <div class="ext-row">
       <label>B - Syr. Height</label>
       <button class="jog-btn" onclick="jogAxis('B',-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogAxis('B',1)">&#9654;</button>
       <button class="jog-btn home-btn" onclick="sendCmd('G28 B')" title="Home Syr. Height">&#8962;</button>
+      <input type="range" id="bFeed" min="10" max="3000" value="300" step="10"
+             oninput="document.getElementById('bFeedVal').textContent=this.value"
+             style="flex:1;margin-left:6px">
+      <span class="feed-val" id="bFeedVal">300</span><span class="feed-val"> mm/min</span>
     </div>
 
     <h2 style="margin-top:14px">Servos</h2>
     <div class="servo-row">
       <label>Gripper (P0)</label>
-      <input type="range" id="servo0" min="0" max="180" value="90"
+      <input type="range" id="servo0" min="90" max="170" value="90"
              oninput="document.getElementById('servo0Val').textContent=this.value+'°'">
-      <span class="val" id="servo0Val">90°</span>
+      <span class="val" id="servo0Val">90° (closed)</span>
       <button class="toggle-btn" onclick="setServo(0)">Set</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo0').value=170;document.getElementById('servo0Val').textContent='170°';setServo(0)">Open</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo0').value=90;document.getElementById('servo0Val').textContent='90°';setServo(0)">Close</button>
+      <input type="number" id="servo0Override" min="0" max="180" value="" placeholder="0-180" style="width:55px;margin-left:8px">
+      <button class="toggle-btn" onclick="let v=document.getElementById('servo0Override').value; if(v!=='') sendCmd('M280 P0 S'+v)">Override</button>
     </div>
     <div class="servo-row">
       <label>Lid (P1)</label>
@@ -455,6 +466,56 @@
       <input type="number" id="solPin" value="4" min="0" max="70" style="width:50px">
       <button class="toggle-btn" id="solBtn" onclick="toggleSolenoid()">OFF</button>
     </div>
+  </div>
+
+  <!-- Acceleration Tuning -->
+  <div class="panel" style="grid-column: 1 / -1">
+    <details>
+    <summary style="cursor:pointer;font-weight:bold;font-size:15px;user-select:none">Acceleration Tuning (M201)</summary>
+    <p style="font-size:11px;color:var(--text-dim);margin:6px 0 8px 0">Adjust max acceleration per axis (mm/s&sup2;). Changes take effect immediately via M201 — not saved to EEPROM until you send M500.</p>
+    <div style="display:grid;grid-template-columns:90px 1fr 70px 60px;gap:6px 8px;align-items:center">
+      <label>X</label>
+      <input type="range" id="accelX" min="50" max="5000" value="500" step="50"
+             oninput="document.getElementById('accelXVal').textContent=this.value">
+      <span class="feed-val" id="accelXVal">500</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value)">Set</button>
+
+      <label>Y</label>
+      <input type="range" id="accelY" min="50" max="5000" value="200" step="50"
+             oninput="document.getElementById('accelYVal').textContent=this.value">
+      <span class="feed-val" id="accelYVal">200</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 Y'+document.getElementById('accelY').value)">Set</button>
+
+      <label>Z</label>
+      <input type="range" id="accelZ" min="50" max="2000" value="100" step="50"
+             oninput="document.getElementById('accelZVal').textContent=this.value">
+      <span class="feed-val" id="accelZVal">100</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 Z'+document.getElementById('accelZ').value)">Set</button>
+
+      <label>A - Filter Feed</label>
+      <input type="range" id="accelA" min="50" max="5000" value="150" step="50"
+             oninput="document.getElementById('accelAVal').textContent=this.value">
+      <span class="feed-val" id="accelAVal">150</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 A'+document.getElementById('accelA').value)">Set</button>
+
+      <label>B - Syr. Height</label>
+      <input type="range" id="accelB" min="50" max="5000" value="50" step="50"
+             oninput="document.getElementById('accelBVal').textContent=this.value">
+      <span class="feed-val" id="accelBVal">50</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 B'+document.getElementById('accelB').value)">Set</button>
+
+      <label>E - Syringe</label>
+      <input type="range" id="accelE" min="50" max="5000" value="500" step="50"
+             oninput="document.getElementById('accelEVal').textContent=this.value">
+      <span class="feed-val" id="accelEVal">500</span>
+      <button class="toggle-btn" onclick="sendCmd('M201 E'+document.getElementById('accelE').value)">Set</button>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="toggle-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' E'+document.getElementById('accelE').value)">Set All</button>
+      <button class="toggle-btn" onclick="sendCmd('M500')">Save to EEPROM (M500)</button>
+      <button class="toggle-btn" onclick="sendCmd('M503')">Report Settings (M503)</button>
+    </div>
+    </details>
   </div>
 
   <!-- Position Readout -->
@@ -499,7 +560,6 @@
       <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
       <button class="quick-btn" onclick="sendCmd('G28 Z')">Home Z</button>
       <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
-      <button class="quick-btn" onclick="sendCmd('M302 S0')">Cold Extrude</button>
       <button class="quick-btn" onclick="sendCmd('M114')">Position</button>
       <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
       <button class="quick-btn" onclick="sendCmd('M503')">Settings</button>
@@ -588,8 +648,6 @@ async function connect() {
     setConnected(true);
     logInfo(`Connected at ${baud} baud`);
     readLoop();
-    // Send cold extrusion enable on connect
-    setTimeout(() => sendCmd('M302 S0'), 1500);
   } catch (e) {
     logErr('Connection failed: ' + e.message);
   }
@@ -737,7 +795,8 @@ function jog(axis, dir) {
 // Jog A (Filter Feed) or B (Syringe Height) — true linear axes
 function jogAxis(axis, dir) {
   const dist = stepSize * dir;
-  const feed = document.getElementById('eFeed').value;
+  const feedId = axis === 'A' ? 'aFeed' : 'bFeed';
+  const feed = document.getElementById(feedId).value;
   sendCmd('G91'); // relative
   sendCmd(`G1 ${axis}${dist} F${feed}`);
   sendCmd('G90'); // back to absolute
@@ -776,7 +835,13 @@ function toggleSolenoid() {
 // ─── Emergency Stop ───
 function emergencyStop() {
   sendCmd('M112');
-  logErr('>>> EMERGENCY STOP SENT <<<');
+  logErr('>>> EMERGENCY STOP SENT — press Reset (M999) to recover without replug <<<');
+}
+
+// ─── Firmware Reset ───
+function resetFirmware() {
+  sendCmd('M999');
+  logInfo('>>> M999 firmware reset sent <<<');
 }
 
 // ─── Auto Report ───
@@ -858,10 +923,10 @@ document.addEventListener('keydown', (e) => {
   const map = {
     'ArrowLeft':  () => jog('X', -1),
     'ArrowRight': () => jog('X', 1),
-    'ArrowUp':    () => jog('Y', 1),
-    'ArrowDown':  () => jog('Y', -1),
-    'PageUp':     () => jog('Z', 1),
-    'PageDown':   () => jog('Z', -1),
+    'ArrowUp':    () => jog('Y', -1),
+    'ArrowDown':  () => jog('Y', 1),
+    'PageUp':     () => jog('Z', -1),
+    'PageDown':   () => jog('Z', 1),
     'Escape':     () => emergencyStop(),
   };
   if (map[e.key]) { e.preventDefault(); map[e.key](); }

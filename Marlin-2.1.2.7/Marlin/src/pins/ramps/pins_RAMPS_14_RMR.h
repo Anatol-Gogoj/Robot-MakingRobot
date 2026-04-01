@@ -132,8 +132,8 @@
 #undef  Y_MAX_PIN
 #define Y_MAX_PIN      -1
 
-// I-axis (Filter Feed) endstop: pin 15 on RAMPS Y+ header
-#define I_MIN_PIN      15
+// I-axis (Filter Feed) endstop: pin 15 on RAMPS Y+ header — endstop at far end
+#define I_MAX_PIN      15
 
 // J-axis (Syringe Height) endstop: pin 17 (Mega TX2)
 #define J_MIN_PIN      17

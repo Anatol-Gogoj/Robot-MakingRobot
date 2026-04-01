@@ -1063,7 +1063,7 @@
 #define USE_XMIN_PLUG
 #define USE_YMIN_PLUG
 #define USE_ZMIN_PLUG
-#define USE_IMIN_PLUG     // Filter Feed (Motor 1) endstop on pin 15
+//#define USE_IMIN_PLUG     // Filter Feed endstop moved to MAX side
 #define USE_JMIN_PLUG     // Syringe Height (Motor 3) endstop on pin 17
 //#define USE_KMIN_PLUG
 //#define USE_UMIN_PLUG
@@ -1072,7 +1072,7 @@
 //#define USE_XMAX_PLUG
 //#define USE_YMAX_PLUG   // Pin 15 repurposed for I_MIN
 //#define USE_ZMAX_PLUG
-//#define USE_IMAX_PLUG
+#define USE_IMAX_PLUG     // Filter Feed (Motor 1) endstop on pin 15 (far end)
 //#define USE_JMAX_PLUG
 //#define USE_KMAX_PLUG
 //#define USE_UMAX_PLUG
@@ -1142,7 +1142,7 @@
 #define X_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define Y_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
 #define Z_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
-#define I_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
+#define I_MAX_ENDSTOP_INVERTING true // NO switch, internal pullup: HIGH=untriggered, LOW=triggered
 #define J_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define K_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define U_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
@@ -1205,7 +1205,8 @@
  * X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
 //                                        X    Y    Z   I   J   E0
-#define DEFAULT_MAX_FEEDRATE          { 150, 150, 5,  10, 10, 10 }
+// Values in mm/s.  mm/min equivalents: X=24000 Y=20000 Z=3000 I=2000 J=3000 E=500
+#define DEFAULT_MAX_FEEDRATE          { 400, 333, 50, 33, 50, 8 }
 
 //#define LIMITED_MAX_FR_EDITING        // Limit edit via M203 or LCD to DEFAULT_MAX_FEEDRATE * 2
 #if ENABLED(LIMITED_MAX_FR_EDITING)
@@ -1219,7 +1220,8 @@
  * X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
 //                                        X     Y     Z    I    J    E0
-#define DEFAULT_MAX_ACCELERATION      { 1000, 1000, 500, 500, 500, 500 }
+//                                        X    Y    Z    I(A)  J(B)  E0
+#define DEFAULT_MAX_ACCELERATION      { 500, 200, 100, 150,  50,   500 }
 
 //#define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
 #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
@@ -1717,7 +1719,7 @@
 #define X_HOME_DIR -1
 #define Y_HOME_DIR -1
 #define Z_HOME_DIR -1 // Home to Z_MIN endstop (pin 18)
-#define I_HOME_DIR -1   // Filter Feed homes to I_MIN (pin 15)
+#define I_HOME_DIR 1    // Filter Feed homes to I_MAX (pin 15) — endstop moved to far end
 #define J_HOME_DIR -1   // Syringe Height homes to J_MIN (pin 17)
 //#define K_HOME_DIR -1
 //#define U_HOME_DIR -1
@@ -1736,7 +1738,7 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
-#define Z_MAX_POS 150    // Measured travel limit
+#define Z_MAX_POS 250    // Measured travel limit
 #define I_MIN_POS 0
 #define I_MAX_POS 347    // Filter Feed measured travel limit (mm)
 #define J_MIN_POS 0
@@ -3402,10 +3404,10 @@
 // (ms) Delay before the next move will start, to give the servo time to reach its target angle.
 // 300ms is a good value but you can try less delay.
 // If the servo can't reach the requested position, increase it.
-#define SERVO_DELAY { 300, 300 }
+#define SERVO_DELAY { 2000, 2000 }
 
 // Only power servos during movement, otherwise leave off to prevent jitter
-//#define DEACTIVATE_SERVOS_AFTER_MOVE
+#define DEACTIVATE_SERVOS_AFTER_MOVE
 
 // Edit servo angles with M281 and save to EEPROM with M500
 //#define EDITABLE_SERVO_ANGLES

@@ -45,8 +45,10 @@ void GcodeSuite::M280() {
   const int servo_index = parser.value_int();
   if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
     if (parser.seenval('S')) {
-      const int anew = parser.value_int();
+      int anew = parser.value_int();
       if (anew >= 0) {
+        // RMR: Gripper servo (P0) soft limits 90°-170° enforced in HTML slider.
+        // Override textbox allows full 0-180° range — no firmware clamp.
         #if ENABLED(POLARGRAPH)
           if (parser.seenval('T')) { // (ms) Total duration of servo move
             const int16_t t = constrain(parser.value_int(), 0, 10000);

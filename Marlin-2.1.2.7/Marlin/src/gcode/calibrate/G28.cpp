@@ -28,6 +28,10 @@
 #include "../../module/planner.h"
 #include "../../module/stepper.h" // for various
 
+#if HAS_SERVOS
+  #include "../../module/servo.h"  // RMR: close gripper before X homing
+#endif
+
 #if HAS_HOMING_CURRENT
   #include "../../module/motion.h" // for set/restore_homing_current
 #endif
@@ -450,6 +454,14 @@ void GcodeSuite::G28() {
     // Home J (Syringe Height) — after Y, before X
     #if HAS_J_AXIS
       if (doJ) homeaxis(J_AXIS);
+    #endif
+
+    // RMR: Close gripper (servo 0 → 90°) before X homing to prevent collision
+    #if HAS_SERVOS
+      if (doX) {
+        servo[0].move(90);
+        safe_delay(300);  // SERVO_DELAY — wait for gripper to close
+      }
     #endif
 
     // Home X
