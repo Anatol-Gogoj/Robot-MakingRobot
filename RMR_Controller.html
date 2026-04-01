@@ -615,6 +615,35 @@
       </div>
     </div>
   </div>
+
+  <!-- Program Runner -->
+  <div class="panel" style="grid-column: 1 / -1">
+    <h2>Program Runner</h2>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+      <button class="toggle-btn" id="progRunBtn" onclick="progRun()" style="background:#2d8a4e;min-width:70px">Run</button>
+      <button class="toggle-btn" id="progPauseBtn" onclick="progPause()" style="min-width:70px" disabled>Pause</button>
+      <button class="toggle-btn" id="progStopBtn" onclick="progStop()" style="background:#c0392b;min-width:70px" disabled>Stop</button>
+      <span id="progStatus" style="font-size:12px;color:var(--text-dim)">Idle</span>
+      <span style="flex:1"></span>
+      <label class="toggle-btn" style="cursor:pointer;font-size:12px;padding:4px 10px">
+        Load .gcode <input type="file" id="progFileInput" accept=".gcode,.nc,.txt" style="display:none" onchange="progLoadFile(event)">
+      </label>
+      <button class="toggle-btn" onclick="progClear()" style="font-size:12px">Clear</button>
+    </div>
+    <div style="position:relative">
+      <textarea id="progTextarea" rows="14" spellcheck="false"
+        style="width:100%;box-sizing:border-box;font-family:'Fira Mono','Consolas',monospace;font-size:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:8px;resize:vertical"
+        placeholder="Paste G-code here or load a .gcode file..."></textarea>
+      <div id="progLineHighlight" style="position:absolute;left:0;top:0;width:100%;pointer-events:none"></div>
+    </div>
+    <div style="margin-top:6px;display:flex;gap:12px;align-items:center;font-size:12px;color:var(--text-dim)">
+      <span>Line: <strong id="progLineNum">0</strong> / <strong id="progLineTotal">0</strong></span>
+      <span>|</span>
+      <span id="progCurrentCmd" style="font-family:monospace">—</span>
+      <span style="flex:1"></span>
+      <label><input type="checkbox" id="progWaitOk" checked> Wait for ok between lines</label>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -713,9 +742,14 @@ function processLine(line) {
     if (eMatch) document.getElementById('posE').textContent = parseFloat(eMatch[1]).toFixed(1);
   }
 
-  // Filter 'ok' and temp responses unless verbose
+  // Detect 'ok' for program runner sequencing
+  if (line === 'ok' || (line.startsWith('ok') && line.length < 5)) {
+    progOnOk();
+    if (!verbose) return;
+  }
+
+  // Filter temp responses unless verbose
   if (!verbose) {
-    if (line === 'ok' || line.startsWith('ok') && line.length < 5) return;
     if (line.match(/^T:\d/)) return; // temp reports
     if (line.startsWith('echo:busy')) return;
   }
@@ -918,8 +952,8 @@ function clearConsole() { consoleEl.innerHTML = ''; lineCount = 0; }
 
 // ─── Keyboard Shortcuts ───
 document.addEventListener('keydown', (e) => {
-  // Only if not focused on input
-  if (document.activeElement.tagName === 'INPUT') return;
+  // Only if not focused on input or textarea
+  if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
   const map = {
     'ArrowLeft':  () => jog('X', -1),
     'ArrowRight': () => jog('X', 1),
@@ -931,6 +965,157 @@ document.addEventListener('keydown', (e) => {
   };
   if (map[e.key]) { e.preventDefault(); map[e.key](); }
 });
+
+// ─── Program Runner ───
+let progLines = [];
+let progIndex = 0;
+let progRunning = false;
+let progPaused = false;
+let progWaitingOk = false;
+
+function progParseLines() {
+  const raw = document.getElementById('progTextarea').value;
+  progLines = raw.split('\n').map(l => {
+    // Strip comments and trim
+    const noComment = l.replace(/;.*$/, '').trim();
+    return noComment;
+  });
+  document.getElementById('progLineTotal').textContent = progLines.filter(l => l.length > 0).length;
+}
+
+function progRun() {
+  if (progPaused) {
+    // Resume
+    progPaused = false;
+    document.getElementById('progPauseBtn').textContent = 'Pause';
+    document.getElementById('progStatus').textContent = 'Running...';
+    progSendNext();
+    return;
+  }
+  progParseLines();
+  progIndex = 0;
+  progRunning = true;
+  progPaused = false;
+  progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = true;
+  document.getElementById('progPauseBtn').disabled = false;
+  document.getElementById('progStopBtn').disabled = false;
+  document.getElementById('progTextarea').readOnly = true;
+  document.getElementById('progStatus').textContent = 'Running...';
+  logInfo('Program started (' + progLines.filter(l => l.length > 0).length + ' commands)');
+  progSendNext();
+}
+
+function progPause() {
+  if (!progRunning) return;
+  progPaused = !progPaused;
+  document.getElementById('progPauseBtn').textContent = progPaused ? 'Resume' : 'Pause';
+  document.getElementById('progStatus').textContent = progPaused ? 'Paused at line ' + progIndex : 'Running...';
+  if (progPaused) logInfo('Program paused at line ' + progIndex);
+  else logInfo('Program resumed');
+}
+
+function progStop() {
+  progRunning = false;
+  progPaused = false;
+  progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = false;
+  document.getElementById('progPauseBtn').disabled = true;
+  document.getElementById('progPauseBtn').textContent = 'Pause';
+  document.getElementById('progStopBtn').disabled = true;
+  document.getElementById('progTextarea').readOnly = false;
+  document.getElementById('progStatus').textContent = 'Stopped';
+  logInfo('Program stopped at line ' + progIndex);
+}
+
+function progComplete() {
+  progRunning = false;
+  progPaused = false;
+  progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = false;
+  document.getElementById('progPauseBtn').disabled = true;
+  document.getElementById('progStopBtn').disabled = true;
+  document.getElementById('progTextarea').readOnly = false;
+  document.getElementById('progStatus').textContent = 'Complete';
+  logInfo('Program complete (' + progLines.filter(l => l.length > 0).length + ' commands executed)');
+}
+
+function progSendNext() {
+  if (!progRunning || progPaused) return;
+
+  // Skip blank lines
+  while (progIndex < progLines.length && progLines[progIndex].length === 0) {
+    progIndex++;
+  }
+
+  if (progIndex >= progLines.length) {
+    progComplete();
+    return;
+  }
+
+  const cmd = progLines[progIndex];
+  const cmdCount = progLines.slice(0, progIndex + 1).filter(l => l.length > 0).length;
+  document.getElementById('progLineNum').textContent = cmdCount;
+  document.getElementById('progCurrentCmd').textContent = cmd;
+
+  // Highlight current line in textarea
+  const textarea = document.getElementById('progTextarea');
+  const rawLines = textarea.value.split('\n');
+  let rawLineIdx = 0;
+  let nonBlankSeen = 0;
+  for (let i = 0; i < rawLines.length; i++) {
+    const stripped = rawLines[i].replace(/;.*$/, '').trim();
+    if (stripped.length > 0) {
+      nonBlankSeen++;
+      if (nonBlankSeen === cmdCount) { rawLineIdx = i; break; }
+    }
+  }
+  // Scroll textarea to show current line
+  const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 16;
+  textarea.scrollTop = Math.max(0, rawLineIdx * lineHeight - textarea.clientHeight / 2);
+
+  sendCmd(cmd);
+  progIndex++;
+
+  const waitOk = document.getElementById('progWaitOk').checked;
+  if (waitOk) {
+    progWaitingOk = true;
+    // progOnOk() will be called when 'ok' is received from firmware
+  } else {
+    // Fire next line after a small delay
+    setTimeout(progSendNext, 50);
+  }
+}
+
+// Hook into the serial read to detect 'ok' responses for program sequencing
+function progOnOk() {
+  if (progWaitingOk && progRunning && !progPaused) {
+    progWaitingOk = false;
+    progSendNext();
+  }
+}
+
+function progLoadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('progTextarea').value = e.target.result;
+    progParseLines();
+    logInfo('Loaded program: ' + file.name + ' (' + progLines.filter(l => l.length > 0).length + ' commands)');
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset so same file can be loaded again
+}
+
+function progClear() {
+  if (progRunning) progStop();
+  document.getElementById('progTextarea').value = '';
+  document.getElementById('progLineNum').textContent = '0';
+  document.getElementById('progLineTotal').textContent = '0';
+  document.getElementById('progCurrentCmd').textContent = '—';
+  document.getElementById('progStatus').textContent = 'Idle';
+}
 
 // ─── Init ───
 logInfo('RMR Gantry Controller ready.');
