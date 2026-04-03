@@ -429,14 +429,14 @@
           <div class="param-unit">seconds</div>
         </div>
         <div class="param-item">
-          <label>Acceleration</label>
-          <input type="number" id="pACCEL" value="15" min="1" max="500" step="1">
-          <div class="param-unit">rev/s&sup2;</div>
+          <label>Rise Time</label>
+          <input type="number" id="pRISE" value="5" min="0.1" max="60" step="0.1">
+          <div class="param-unit">seconds</div>
         </div>
         <div class="param-item">
-          <label>Deceleration</label>
-          <input type="number" id="pDECEL" value="100" min="1" max="500" step="1">
-          <div class="param-unit">rev/s&sup2;</div>
+          <label>Sink Time</label>
+          <input type="number" id="pSINK" value="1" min="0.1" max="60" step="0.1">
+          <div class="param-unit">seconds</div>
         </div>
         <div class="param-item full">
           <div class="toggle-row">
@@ -830,11 +830,11 @@
   function sendSpin() {
     const rpm   = el('pRPM').value;
     const dur   = el('pDUR').value;
-    const accel = el('pACCEL').value;
-    const decel = el('pDECEL').value;
+    const rise  = el('pRISE').value;
+    const sink  = el('pSINK').value;
     const home  = el('pHOME').checked ? 1 : 0;
     targetRPM = parseInt(rpm);
-    sendBytes(`SPIN ${rpm} ${dur} ${accel} ${decel} ${home}`);
+    sendBytes(`SPIN ${rpm} ${dur} ${rise} ${sink} ${home}`);
   }
 
   function sendStop()    { sendBytes('STOP'); }

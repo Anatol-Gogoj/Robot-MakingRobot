@@ -22,9 +22,9 @@
  *
  * Serial protocol (115200 baud, newline-terminated):
  *
- *   SPIN <rpm> <dur_s> <accel> <decel> <home 0|1>
+ *   SPIN <rpm> <dur_s> <rise_s> <sink_s> <home 0|1>
  *   START           — run with current defaults
- *   SET <param> <value>  — RPM, DUR, ACCEL, DECEL, HOME
+ *   SET <param> <value>  — RPM, DUR, RISE, SINK, HOME
  *   STATUS          — report params + ODrive state
  *   STOP            — emergency velocity zero (works mid-cycle)
  *   HOME            — encoder index search (does NOT reset degree datum)
@@ -36,9 +36,15 @@
 
 #include <Arduino.h>
 #include <cmath>
+#include <ODriveUART.h>
 
-// ── ODrive serial link (raw ASCII, no library) ──
+// ── ODrive serial link (raw ASCII, no library methods used) ──
+// The ODriveUART global MUST exist — on RP2040 mbed, its constructor
+// triggers Serial1 hardware initialization that Serial1.begin() alone
+// does not complete.  We never call any odrive.xxx() methods; all
+// communication goes through the raw ASCII wrappers below.
 static const unsigned long ODRIVE_BAUD = 115200;
+ODriveUART odrive(Serial1);  // DO NOT REMOVE — needed for Serial1 init
 
 // ODrive axis states (from ODrive firmware — these are stable across versions)
 #define AXIS_STATE_UNDEFINED                0
@@ -50,8 +56,8 @@ static const unsigned long ODRIVE_BAUD = 115200;
 // ── Default spin parameters (mutable via SET command) ──
 static int     cfg_rpm       = 5000;
 static int     cfg_duration  = 30;      // seconds
-static float   cfg_accel     = 15.0f;   // rev/s²
-static float   cfg_decel     = 100.0f;  // rev/s²
+static float   cfg_rise      = 5.0f;    // ramp-up time in seconds
+static float   cfg_sink      = 1.0f;    // ramp-down time in seconds
 static bool    cfg_home      = true;    // encoder index search after spin
 
 // ── Telemetry ──
@@ -66,7 +72,7 @@ static float   homePos       = 0.0f;   // encoder pos at last home (turns)
 
 // ── Forward declarations ──
 void handleCommand(const String& cmd);
-void runCycle(int rpm, int dur_s, float accel, float decel, bool home);
+void runCycle(int rpm, int dur_s, float rise_s, float sink_s, bool home);
 void measureSpeed(int dur_s);
 bool doHome();
 void doSetHome();
@@ -97,17 +103,27 @@ void setup() {
 
   while (!Serial) { delay(10); }
 
-  Serial.println("SpincoaterStage v2.5 [Nano RP2040]");
+  Serial.println("SpincoaterStage v2.6 [Nano RP2040]");
   Serial.println("Commands: SPIN, START, SET, STATUS, STOP, HOME, SETHOME");
 
   // ── Wait for ODrive UART to come alive ──
   // The ODrive S1 takes several seconds to boot after power-on.
   // Poll with raw 'r vbus_voltage' (works even before encoder cal).
+  //
+  // Send a bare newline first to flush any partial command the ODrive
+  // may have buffered from a previous session / brown-out.
+  Serial1.println("");
+  Serial1.flush();
+  delay(50);
+  while (Serial1.available()) Serial1.read();  // drain echo/error
+
   sendState("WAITING_ODRIVE");
   unsigned long bootStart = millis();
   bool odriveReady = false;
-  while (millis() - bootStart < 10000) {  // 10s timeout
+  while (millis() - bootStart < 15000) {  // 15s timeout (was 10s)
     String vb = odriveReadRaw("vbus_voltage");
+    Serial.print("DATA: UART probe: '"); Serial.print(vb);
+    Serial.print("' ("); Serial.print(millis() - bootStart); Serial.println("ms)");
     if (vb.length() > 0 && vb.toFloat() > 1.0f) {
       Serial.print("DATA: Vbus="); Serial.print(vb); Serial.println("V");
       odriveReady = true;
@@ -117,7 +133,7 @@ void setup() {
   }
 
   if (!odriveReady) {
-    sendErr("ODrive not detected on UART — check wiring and power");
+    sendErr("ODrive not detected on UART (15s) — check wiring and power");
     sendOK("READY_NO_ODRIVE");
     return;  // skip index search, let user debug
   }
@@ -332,7 +348,7 @@ void handleCommand(const String& cmd) {
     return;
   }
 
-  // ── SPIN <rpm> <dur> <accel> <decel> <home> ──
+  // ── SPIN <rpm> <dur> <rise_s> <sink_s> <home> ──
   if (cmd.startsWith("SPIN ")) {
     String rest = cmd.substring(5);
     rest.trim();
@@ -346,24 +362,24 @@ void handleCommand(const String& cmd) {
     }
 
     if (tIdx == 5) {
-      int   rpm   = tokens[0].toInt();
-      int   dur   = tokens[1].toInt();
-      float accel = tokens[2].toFloat();
-      float decel = tokens[3].toFloat();
-      int   home  = tokens[4].toInt();
-      if (rpm > 0 && dur > 0 && accel > 0 && decel > 0) {
-        runCycle(rpm, dur, accel, decel, home != 0);
+      int   rpm    = tokens[0].toInt();
+      int   dur    = tokens[1].toInt();
+      float rise_s = tokens[2].toFloat();
+      float sink_s = tokens[3].toFloat();
+      int   home   = tokens[4].toInt();
+      if (rpm > 0 && dur > 0 && rise_s > 0 && sink_s > 0) {
+        runCycle(rpm, dur, rise_s, sink_s, home != 0);
       } else {
-        sendErr("All values must be > 0. Usage: SPIN <rpm> <dur_s> <accel> <decel> <home 0|1>");
+        sendErr("All values must be > 0. Usage: SPIN <rpm> <dur_s> <rise_s> <sink_s> <home 0|1>");
       }
     } else {
-      sendErr("Need 5 args. Usage: SPIN <rpm> <dur_s> <accel> <decel> <home 0|1>");
+      sendErr("Need 5 args. Usage: SPIN <rpm> <dur_s> <rise_s> <sink_s> <home 0|1>");
     }
     return;
   }
 
   if (cmd == "START") {
-    runCycle(cfg_rpm, cfg_duration, cfg_accel, cfg_decel, cfg_home);
+    runCycle(cfg_rpm, cfg_duration, cfg_rise, cfg_sink, cfg_home);
     return;
   }
 
@@ -373,7 +389,7 @@ void handleCommand(const String& cmd) {
     rest.trim();
     int spaceIdx = rest.indexOf(' ');
     if (spaceIdx < 0) {
-      sendErr("Usage: SET <RPM|DUR|ACCEL|DECEL|HOME> <value>");
+      sendErr("Usage: SET <RPM|DUR|RISE|SINK|HOME> <value>");
       return;
     }
     String param = rest.substring(0, spaceIdx);
@@ -390,22 +406,22 @@ void handleCommand(const String& cmd) {
       if (v > 0) { cfg_duration = v; sendOK("DUR set"); }
       else sendErr("DUR must be > 0");
     }
-    else if (param == "ACCEL") {
+    else if (param == "RISE") {
       float v = valStr.toFloat();
-      if (v > 0) { cfg_accel = v; sendOK("ACCEL set"); }
-      else sendErr("ACCEL must be > 0");
+      if (v > 0) { cfg_rise = v; sendOK("RISE set"); }
+      else sendErr("RISE must be > 0");
     }
-    else if (param == "DECEL") {
+    else if (param == "SINK") {
       float v = valStr.toFloat();
-      if (v > 0) { cfg_decel = v; sendOK("DECEL set"); }
-      else sendErr("DECEL must be > 0");
+      if (v > 0) { cfg_sink = v; sendOK("SINK set"); }
+      else sendErr("SINK must be > 0");
     }
     else if (param == "HOME") {
       cfg_home = (valStr.toInt() != 0);
       sendOK(cfg_home ? "HOME enabled" : "HOME disabled");
     }
     else {
-      sendErr("Unknown param. Use: RPM, DUR, ACCEL, DECEL, HOME");
+      sendErr("Unknown param. Use: RPM, DUR, RISE, SINK, HOME");
     }
     return;
   }
@@ -601,8 +617,8 @@ void doSetHome() {
 void reportStatus() {
   Serial.print("DATA: RPM=");      Serial.print(cfg_rpm);
   Serial.print(" DUR=");           Serial.print(cfg_duration);
-  Serial.print(" ACCEL=");         Serial.print(cfg_accel, 1);
-  Serial.print(" DECEL=");         Serial.print(cfg_decel, 1);
+  Serial.print(" RISE=");          Serial.print(cfg_rise, 1);
+  Serial.print(" SINK=");          Serial.print(cfg_sink, 1);
   Serial.print(" HOME=");          Serial.println(cfg_home ? 1 : 0);
 
   Serial.print("DATA: ODrive state=");
@@ -628,16 +644,23 @@ void reportStatus() {
 // ═══════════════════════════════════════════════════════════════════════════
 //  Full spin cycle — now with telemetry during ramp-up, measure, ramp-down
 // ═══════════════════════════════════════════════════════════════════════════
-void runCycle(int rpm, int dur_s, float accel, float decel, bool home) {
+void runCycle(int rpm, int dur_s, float rise_s, float sink_s, bool home) {
   running       = true;
   stopRequested = false;
   lastTelem     = 0;  // reset so first telem fires immediately
 
+  // Compute ODrive ramp rates (rev/s²) from user-facing rise/sink times
+  float targetRPS = (float)rpm / 60.0f;
+  float accel = targetRPS / rise_s;   // rev/s² for ramp-up
+  float decel = targetRPS / sink_s;   // rev/s² for ramp-down
+
   Serial.print("OK: Cycle starting — RPM="); Serial.print(rpm);
   Serial.print(" DUR=");   Serial.print(dur_s);
-  Serial.print("s ACCEL="); Serial.print(accel, 1);
-  Serial.print(" DECEL="); Serial.print(decel, 1);
-  Serial.print(" HOME=");  Serial.println(home ? "ON" : "OFF");
+  Serial.print("s RISE="); Serial.print(rise_s, 1);
+  Serial.print("s SINK="); Serial.print(sink_s, 1);
+  Serial.print("s HOME="); Serial.println(home ? "ON" : "OFF");
+  Serial.print("DATA: Computed accel="); Serial.print(accel, 2);
+  Serial.print(" decel="); Serial.print(decel, 2); Serial.println(" rev/s²");
 
   // ── Connect to ODrive ──
   sendState("CONNECTING");
@@ -673,9 +696,9 @@ void runCycle(int rpm, int dur_s, float accel, float decel, bool home) {
   Serial1.flush();
   delay(10);
 
-  float targetRPS = (float)(rpm + 10) / 60.0f;
+  float cmdRPS    = (float)(rpm + 10) / 60.0f;  // slight overshoot for faster settling
   float threshRPM = (float)rpm * 0.98f;
-  odriveSetVelocity(targetRPS);
+  odriveSetVelocity(cmdRPS);
 
   // Ramp-up: use telemetry's cached RPM for exit check (avoids
   // conflicting serial reads on the ODrive UART).
@@ -685,9 +708,8 @@ void runCycle(int rpm, int dur_s, float accel, float decel, bool home) {
   float stallRPM = 0;                       // RPM at last stall-check
   unsigned long stallCheck = millis();       // timestamp of last stall-check
   unsigned long rampStart  = millis();
-  // Expected ramp time = targetRPS / accel, with 3x margin + 10s floor
-  float expectedSec = targetRPS / accel;
-  unsigned long rampTimeout = (unsigned long)(expectedSec * 3000.0f);
+  // Timeout = 3x the requested rise time, minimum 10s
+  unsigned long rampTimeout = (unsigned long)(rise_s * 3000.0f);
   if (rampTimeout < 10000) rampTimeout = 10000;
 
   while (lastTelemRPM < threshRPM) {
