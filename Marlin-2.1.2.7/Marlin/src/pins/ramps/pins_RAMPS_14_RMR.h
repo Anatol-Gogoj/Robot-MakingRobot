@@ -7,7 +7,7 @@
  *   Gantry X:        X axis   (PUL=A0, DIR=A1, ENA=38)    endstop: pin 3  (X_MIN)
  *   Gantry Y:        Y axis   (PUL=A6, DIR=A7, ENA=A2)    endstop: pin 14 (Y_MIN)
  *   Gantry Y2:       Y2 clone (PUL=36, DIR=34, ENA=30)    (follows Y)
- *   Gantry Z:        Z axis   (PUL=46, DIR=48, ENA=A8)    endstop: pin 18 (Z_MIN)
+ *   Gantry Z:        Z axis   (PUL=46, DIR=48, ENA=A8)    endstop: pin 40 (Z_MIN)
  *   Filter Feed:     I axis   (PUL=2,  DIR=9,  ENA=12)    endstop: pin 15 (I_MIN)
  *   Syringe:         E0       (PUL=13, DIR=19, ENA=20)    no endstop
  *   Syringe Height:  J axis   (PUL=21, DIR=22, ENA=31)    endstop: pin 17 (J_MIN)
@@ -124,9 +124,13 @@
 //  Endstops
 // ==========================================================
 
-// Z endstop: pin 18 on RAMPS Z- header
+// Z endstop: pin 40 — moved from pin 18 (TX1) due to EMI false triggers
+// Using Z_STOP_PIN instead of Z_MIN_PIN so pins_postprocess.h can't override it.
+// postprocess.h will derive Z_MIN_PIN from Z_STOP_PIN when Z_HOME_TO_MIN is true.
 #undef  Z_MIN_PIN
-#define Z_MIN_PIN      18    // Gantry Z endstop
+#undef  Z_MAX_PIN
+#define Z_STOP_PIN     40    // Gantry Z endstop
+#define Z_MAX_PIN      -1
 
 // Disable Y_MAX (pin 15 repurposed for I-axis endstop)
 #undef  Y_MAX_PIN

@@ -1166,7 +1166,7 @@
  *
  * :[2,3,4,5,6,7]
  */
-//#define ENDSTOP_NOISE_THRESHOLD 2
+#define ENDSTOP_NOISE_THRESHOLD 7
 
 // Check for stuck or disconnected endstops during homing moves.
 //#define DETECT_BROKEN_ENDSTOP
@@ -2135,8 +2135,8 @@
 #endif
 
 // Homing speeds (linear=mm/min, rotational=°/min)
-//                                X        Y        Z       I(A)      J(B)
-#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (4*60), (25*60), (25*60) }
+//                                X        Y        Z        I(A)      J(B)
+#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (15*60), (25*60), (25*60) }
 
 // Validate that endstops are triggered on homing moves
 #define VALIDATE_HOMING_ENDSTOPS

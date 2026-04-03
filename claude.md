@@ -31,7 +31,7 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 ### Limit Switches
 - X endstop: pin 3 (X_MIN, hardware interrupt capable)
 - Y endstop: pin 14 (Y_MIN)
-- Z endstop: pin 18 (Z_MIN, RAMPS Z- header)
+- Z endstop: pin 40 (Z_MIN — moved from pin 18/TX1 due to EMI sensitivity)
 - I endstop (Filter Feed): pin 15 (I_MAX, RAMPS Y+ header) — homes to MAX (far end)
 - J endstop (Syringe Height): pin 17 (J_MIN, Mega TX2)
 - Syringe (E0): **no endstop**
