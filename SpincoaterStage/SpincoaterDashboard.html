@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spincoater Dashboard v2.5</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #e94560;
+    --text: #eee;
+    --text-dim: #888;
+    --green: #4ecca3;
+    --yellow: #f0c040;
+    --red: #e94560;
+    --border: #2a2a4a;
+    --blue: #6ec6ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header h1 span { color: var(--accent); }
+  .conn-bar { display: flex; align-items: center; gap: 10px; }
+  .conn-bar button, .btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .conn-bar button:hover, .btn:hover { background: var(--accent); }
+  .conn-bar button.connected { background: var(--green); color: #000; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--red);
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .status-dot.connected { background: var(--green); }
+
+  .main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 12px;
+    padding: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  /* Live telemetry */
+  .telem-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  /* RPM gauge */
+  .rpm-gauge {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .rpm-gauge .gauge-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+  .rpm-gauge .gauge-value {
+    font-size: 36px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Consolas', 'Fira Code', monospace;
+    line-height: 1.1;
+    color: var(--green);
+  }
+  .rpm-gauge .gauge-unit { font-size: 12px; color: var(--text-dim); }
+  .rpm-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px;
+    background: var(--green);
+    transition: width 0.2s;
+    border-radius: 0 0 8px 8px;
+  }
+  .gauge-stale .gauge-value { color: var(--text-dim) !important; }
+
+  /* Circular dial */
+  .dial-container {
+    width: 140px;
+    min-width: 140px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .dial-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .dial-svg {
+    width: 100px;
+    height: 100px;
+  }
+  .dial-track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 6;
+  }
+  .dial-arc {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.15s;
+  }
+  .dial-needle {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    /* No CSS transition — we handle smooth rotation in JS to avoid
+       the 350°→10° wraparound problem where CSS animates the long way */
+  }
+  .dial-center {
+    fill: var(--accent);
+  }
+  .dial-deg {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: var(--blue);
+    margin-top: 2px;
+  }
+  .dial-deg-unit {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Parameter inputs */
+  .param-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .param-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .param-item.full { grid-column: 1 / -1; }
+  .param-item label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .param-item input[type="number"] {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Consolas', monospace;
+  }
+  .param-item input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .toggle-label { font-size: 13px; }
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+  }
+  .toggle input { display: none; }
+  .toggle .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 12px;
+    transition: background 0.2s;
+  }
+  .toggle .slider::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: var(--text);
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle input:checked + .slider { background: var(--green); }
+  .toggle input:checked + .slider::after { transform: translateX(20px); }
+
+  .action-row { display: flex; gap: 8px; margin-top: 8px; }
+  .big-btn {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    border: 2px solid var(--green);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--green);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.15s;
+  }
+  .big-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .big-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .big-btn.stop { border-color: var(--red); color: var(--red); flex: 0 0 auto; padding-left: 20px; padding-right: 20px; }
+  .big-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .big-btn.home-btn { border-color: var(--yellow); color: var(--yellow); }
+  .big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: #000; }
+  .big-btn.home-btn[style*="blue"]:hover:not(:disabled) { background: var(--blue); color: #000; }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .unit { font-size: 11px; color: var(--text-dim); }
+
+  .phase-bar {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .phase-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .phase-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .phase-dot.warn   { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .phase-dot.error  { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .phase-label { font-size: 13px; font-weight: 600; }
+
+  .cmd-row { display: flex; gap: 6px; }
+  .cmd-row input {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 13px;
+  }
+
+  .right-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+  .console-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #console {
+    flex: 1;
+    min-height: 250px;
+    max-height: calc(100vh - 340px);
+    overflow-y: auto;
+    background: #0d0d1a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .log-ok    { color: var(--green); }
+  .log-state { color: #6ec6ff; }
+  .log-data  { color: var(--yellow); }
+  .log-telem { color: var(--text-dim); }
+  .log-err   { color: var(--red); }
+  .log-tx    { color: #c090ff; }
+  .log-sys   { color: var(--text-dim); font-style: italic; }
+
+  .console-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+  .console-toolbar button {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .console-toolbar button:hover { color: var(--text); background: var(--accent); }
+  .console-toolbar label { font-size: 11px; color: var(--text-dim); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>Spincoater</span> Dashboard <small style="color:var(--text-dim);font-weight:400;">v2.5</small></h1>
+  <div class="conn-bar">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="connLabel" style="font-size:13px;">Disconnected</span>
+    <button id="connectBtn" onclick="toggleConnection()">Connect</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
+
+    <!-- Phase -->
+    <div class="panel">
+      <h2>Cycle Status</h2>
+      <div class="phase-bar">
+        <span class="phase-dot" id="phaseDot"></span>
+        <span class="phase-label" id="phaseLabel">Idle — waiting for connection</span>
+      </div>
+    </div>
+
+    <!-- Parameters -->
+    <div class="panel">
+      <h2>Spin Parameters</h2>
+      <div class="param-grid">
+        <div class="param-item">
+          <label>Target Speed</label>
+          <input type="number" id="pRPM" value="5000" min="100" max="10000" step="100">
+          <div class="param-unit">RPM</div>
+        </div>
+        <div class="param-item">
+          <label>Duration</label>
+          <input type="number" id="pDUR" value="30" min="1" max="300" step="1">
+          <div class="param-unit">seconds</div>
+        </div>
+        <div class="param-item">
+          <label>Acceleration</label>
+          <input type="number" id="pACCEL" value="15" min="1" max="500" step="1">
+          <div class="param-unit">rev/s&sup2;</div>
+        </div>
+        <div class="param-item">
+          <label>Deceleration</label>
+          <input type="number" id="pDECEL" value="100" min="1" max="500" step="1">
+          <div class="param-unit">rev/s&sup2;</div>
+        </div>
+        <div class="param-item full">
+          <div class="toggle-row">
+            <span class="toggle-label">Encoder homing after spin</span>
+            <label class="toggle">
+              <input type="checkbox" id="pHOME" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="big-btn" id="startBtn" onclick="sendSpin()" disabled>Start</button>
+        <button class="big-btn stop" id="stopBtn" onclick="sendStop()" disabled>Stop</button>
+      </div>
+      <div class="action-row">
+        <button class="big-btn home-btn" id="homeBtn" onclick="sendSetHome()" disabled>Set Home</button>
+        <button class="big-btn home-btn" id="indexBtn" onclick="sendHome()" disabled style="border-color:var(--blue);color:var(--blue);">Index Home</button>
+      </div>
+      <div class="action-row">
+        <button class="btn" id="statusBtn" onclick="sendStatus()" disabled style="flex:1;padding:14px;">Status</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="panel">
+      <h2>Last Measurement</h2>
+      <div class="status-grid">
+        <div class="stat-card">
+          <div class="label">Mean Speed</div>
+          <div class="value" id="valMean">&mdash;</div>
+          <div class="unit">RPM</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Std Dev</div>
+          <div class="value" id="valStd">&mdash;</div>
+          <div class="unit">RPM</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Min</div>
+          <div class="value" id="valMin">&mdash;</div>
+          <div class="unit">RPM</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Max</div>
+          <div class="value" id="valMax">&mdash;</div>
+          <div class="unit">RPM</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Samples</div>
+          <div class="value" id="valSamples">&mdash;</div>
+          <div class="unit">&nbsp;</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Bus Voltage</div>
+          <div class="value" id="valVbus">&mdash;</div>
+          <div class="unit">V</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Home Pos</div>
+          <div class="value" id="valHome">&mdash;</div>
+          <div class="unit">deg</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Range</div>
+          <div class="value" id="valRange">&mdash;</div>
+          <div class="unit">RPM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raw command -->
+    <div class="panel">
+      <h2>Raw Command</h2>
+      <div class="cmd-row">
+        <input type="text" id="cmdInput" placeholder="e.g. SET RPM 3000" onkeydown="if(event.key==='Enter')sendRaw()">
+        <button class="btn" onclick="sendRaw()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- Live Telemetry -->
+    <div class="panel">
+      <h2>Live Telemetry</h2>
+      <div class="telem-row">
+
+        <!-- RPM gauge -->
+        <div class="rpm-gauge gauge-stale" id="gaugeRPM">
+          <div class="gauge-label">Speed</div>
+          <div class="gauge-value" id="liveRPM">0</div>
+          <div class="gauge-unit">RPM</div>
+          <div class="rpm-bar" id="rpmBar" style="width:0%"></div>
+        </div>
+
+        <!-- Circular position dial -->
+        <div class="dial-container" id="dialContainer">
+          <div class="dial-label">Position</div>
+          <svg class="dial-svg" viewBox="0 0 100 100">
+            <!-- Tick marks -->
+            <g id="dialTicks"></g>
+            <!-- Track circle -->
+            <circle class="dial-track" cx="50" cy="50" r="40"/>
+            <!-- Needle -->
+            <line class="dial-needle" id="dialNeedle" x1="50" y1="50" x2="50" y2="14"/>
+            <!-- Center dot -->
+            <circle class="dial-center" cx="50" cy="50" r="3"/>
+            <!-- Cardinal labels -->
+            <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">0</text>
+            <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">90</text>
+            <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">180</text>
+            <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">270</text>
+          </svg>
+          <div class="dial-deg" id="liveDEG">0.00</div>
+          <div class="dial-deg-unit">degrees</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Console -->
+    <div class="panel console-wrap" style="flex:1;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <h2 style="margin:0;border:none;padding:0;">Serial Console</h2>
+        <div class="console-toolbar">
+          <label><input type="checkbox" id="showTelem" onchange="toggleTelemLog()"> Show telemetry</label>
+          <button onclick="toggleAutoScroll()">Auto-scroll: <span id="scrollLabel">ON</span></button>
+          <button onclick="clearConsole()">Clear</button>
+        </div>
+      </div>
+      <div id="console"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── State ──
+  let port = null, reader = null, writer = null;
+  let connected = false, autoScroll = true, readLoopActive = false;
+  let showTelemInLog = false;
+  let targetRPM = 5000;
+  let telemStaleTimer = null;
+
+  const el = (id) => document.getElementById(id);
+
+  // ── Init tick marks on dial ──
+  (function initDial() {
+    const ticks = el('dialTicks');
+    for (let d = 0; d < 360; d += 30) {
+      const rad = (d - 90) * Math.PI / 180;
+      const r1 = 35, r2 = 40;
+      const x1 = 50 + r1 * Math.cos(rad);
+      const y1 = 50 + r1 * Math.sin(rad);
+      const x2 = 50 + r2 * Math.cos(rad);
+      const y2 = 50 + r2 * Math.sin(rad);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('stroke', '#555');
+      line.setAttribute('stroke-width', d % 90 === 0 ? '1.5' : '0.5');
+      ticks.appendChild(line);
+    }
+  })();
+
+  // ── Connection ──
+  async function toggleConnection() {
+    connected ? await disconnect() : await connect();
+  }
+
+  async function connect() {
+    try {
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      writer = port.writable.getWriter();
+      connected = true;
+      updateConnUI(true);
+      setButtons(true);
+      logSys('Connected at 115200 baud');
+      setPhase('idle', 'Connected — ready');
+      readLoop();
+    } catch (err) {
+      logErr('Connection failed: ' + err.message);
+    }
+  }
+
+  async function disconnect() {
+    try {
+      readLoopActive = false;
+      if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
+      if (writer) { writer.releaseLock(); writer = null; }
+      if (port)   { await port.close(); port = null; }
+    } catch (e) {}
+    connected = false;
+    updateConnUI(false);
+    setButtons(false);
+    setPhase('off', 'Disconnected');
+    logSys('Disconnected');
+  }
+
+  function updateConnUI(conn) {
+    el('statusDot').className = 'status-dot' + (conn ? ' connected' : '');
+    el('connLabel').textContent = conn ? 'Connected' : 'Disconnected';
+    el('connectBtn').textContent = conn ? 'Disconnect' : 'Connect';
+    el('connectBtn').className = conn ? 'connected' : '';
+  }
+
+  function setButtons(on) {
+    el('startBtn').disabled  = !on;
+    el('stopBtn').disabled   = !on;
+    el('homeBtn').disabled   = !on;
+    el('indexBtn').disabled   = !on;
+    el('statusBtn').disabled = !on;
+  }
+
+  // ── Read loop ──
+  async function readLoop() {
+    readLoopActive = true;
+    const decoder = new TextDecoderStream();
+    port.readable.pipeTo(decoder.writable);
+    reader = decoder.readable.getReader();
+    let lineBuf = '';
+
+    try {
+      while (readLoopActive) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+
+        lineBuf += value;
+        const lines = lineBuf.split('\n');
+        lineBuf = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.replace(/\r$/, '');
+          if (trimmed.length === 0) continue;
+          parseLine(trimmed);
+        }
+      }
+    } catch (err) {
+      if (readLoopActive) logErr('Read error: ' + err.message);
+    }
+  }
+
+  // ── Parse firmware output ──
+  function parseLine(line) {
+
+    // ── TELEM lines ──
+    if (line.startsWith('TELEM: ')) {
+      const rpmMatch = line.match(/RPM=([-\d.]+)/);
+      const degMatch = line.match(/DEG=([-\d.]+)/);
+      if (rpmMatch) updateGaugeRPM(parseFloat(rpmMatch[1]));
+      if (degMatch) updateDial(parseFloat(degMatch[1]));
+      if (showTelemInLog) {
+        appendLog('<span class="log-telem">' + escHtml(line) + '</span>');
+      }
+      return;
+    }
+
+    logLine(line);
+
+    // ── State tracking ──
+    const stateMap = {
+      'CONNECTING':          ['warn',   'Connecting to ODrive...'],
+      'ODRIVE_FOUND':        ['active', 'ODrive found'],
+      'CALIBRATING':         ['warn',   'Calibrating...'],
+      'FULL_CALIBRATION':    ['warn',   'Full calibration sequence...'],
+      'CLOSED_LOOP':         ['active', 'Closed-loop active'],
+      'RAMP_UP':             ['active', 'Ramping up...'],
+      'MEASURING':           ['active', 'Measuring speed...'],
+      'RAMP_DOWN':           ['warn',   'Decelerating...'],
+      'SETTLING':            ['warn',   'Settling...'],
+      'STOPPED':             ['active', 'Motor stopped'],
+      'ENTERING_IDLE':       ['warn',   'Entering idle...'],
+      'HOMING':              ['warn',   'Homing...'],
+      'INDEX_SEARCH_ACTIVE': ['warn',   'Index search active...'],
+      'INDEX_FOUND_INSTANT': ['active', 'Index found (instant)'],
+      'HOMED':               ['active', 'Homed'],
+      'ABORTED':             ['error',  'Aborted'],
+      'EMERGENCY STOP':      ['error',  'EMERGENCY STOP'],
+    };
+
+    if (line.startsWith('STATE: ')) {
+      const state = line.substring(7).trim();
+      for (const [key, [phase, label]] of Object.entries(stateMap)) {
+        if (state.includes(key)) { setPhase(phase, label); break; }
+      }
+    }
+
+    if (line.includes('CYCLE_COMPLETE'))  setPhase('idle', 'Cycle complete — ready');
+    if (line.includes('INDEX_COMPLETE')) setPhase('idle', 'Index search done — ready');
+    if (line.includes('HOME_SET'))       setPhase('idle', 'Home set — ready');
+    if (line.includes('READY'))          setPhase('idle', 'Ready');
+
+    const rpmParamMatch = line.match(/Cycle starting.*RPM=(\d+)/);
+    if (rpmParamMatch) targetRPM = parseInt(rpmParamMatch[1]);
+
+    // ── DATA fields ──
+    const dataMatch = line.match(/^DATA:\s*(\w+)=(.*)/);
+    if (dataMatch) {
+      const key = dataMatch[1];
+      const val = dataMatch[2].trim();
+      const num = parseFloat(val);
+      if (key === 'MeanRPM')    el('valMean').textContent    = num.toFixed(1);
+      if (key === 'StdDevRPM')  el('valStd').textContent     = num.toFixed(1);
+      if (key === 'MinRPM')     el('valMin').textContent      = num.toFixed(1);
+      if (key === 'MaxRPM')     el('valMax').textContent      = num.toFixed(1);
+      if (key === 'Samples')    el('valSamples').textContent  = Math.round(num);
+      if (key === 'Vbus')       el('valVbus').textContent     = num.toFixed(1);
+      // HomePos is in turns from ODrive — convert to degrees for display
+      if (key === 'HomePos')    el('valHome').textContent     = (num * 360).toFixed(1);
+      if (key === 'DegFromHome') el('valHome').textContent    = num.toFixed(1);
+      if (key === 'Range')      el('valRange').textContent    = num.toFixed(1);
+    }
+
+    const vbusAlt = line.match(/Vbus=([\d.]+)/);
+    if (vbusAlt) el('valVbus').textContent = parseFloat(vbusAlt[1]).toFixed(1);
+  }
+
+  // ── Live gauge updates ──
+  let lastAbsRPM = 0;  // track for dial spinning indicator
+
+  function updateGaugeRPM(rpm) {
+    el('liveRPM').textContent = Math.round(rpm);
+    const pct = Math.min(100, Math.max(0, (Math.abs(rpm) / (targetRPM || 5000)) * 100));
+    el('rpmBar').style.width = pct + '%';
+    el('gaugeRPM').classList.remove('gauge-stale');
+    lastAbsRPM = Math.abs(rpm);
+    // Dim the dial needle when spinning fast (position is aliased/meaningless)
+    const needle = el('dialNeedle');
+    if (lastAbsRPM > 60) {  // > 1 rps — position changes too fast for 200ms telemetry
+      needle.setAttribute('stroke', '#555');
+      needle.setAttribute('stroke-width', '1');
+    } else {
+      needle.setAttribute('stroke', 'var(--accent)');
+      needle.setAttribute('stroke-width', '2');
+    }
+    resetTelemStale();
+  }
+
+  // Track the cumulative (unwrapped) needle angle so we always take
+  // the shortest path, even across the 360°→0° boundary.
+  let dialAngle = 0;  // cumulative degrees, not clamped to 0-360
+
+  function updateDial(deg) {
+    // deg is 0-360 from firmware.  Find the shortest delta from
+    // our current displayed angle (mod 360) to the new value.
+    const cur360 = ((dialAngle % 360) + 360) % 360;
+    let delta = deg - cur360;
+    // Shortest path: if delta > 180, go the other way
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    dialAngle += delta;
+
+    el('dialNeedle').setAttribute('transform', `rotate(${dialAngle} 50 50)`);
+    el('liveDEG').textContent = deg.toFixed(2);
+    el('dialContainer').classList.remove('gauge-stale');
+    resetTelemStale();
+  }
+
+  function resetTelemStale() {
+    if (telemStaleTimer) clearTimeout(telemStaleTimer);
+    telemStaleTimer = setTimeout(() => {
+      el('gaugeRPM').classList.add('gauge-stale');
+      el('dialContainer').classList.add('gauge-stale');
+      // Force RPM readout to 0 when stale
+      el('liveRPM').textContent = '0';
+      el('rpmBar').style.width = '0%';
+    }, 2000);
+  }
+
+  function setPhase(state, text) {
+    const dot = el('phaseDot');
+    dot.className = 'phase-dot';
+    if (state === 'active') dot.classList.add('active');
+    else if (state === 'warn') dot.classList.add('warn');
+    else if (state === 'error') dot.classList.add('error');
+    el('phaseLabel').textContent = text;
+  }
+
+  // ── Send commands ──
+  async function sendBytes(str) {
+    if (!writer) return;
+    await writer.write(new TextEncoder().encode(str + '\n'));
+    logTx(str);
+  }
+
+  function sendSpin() {
+    const rpm   = el('pRPM').value;
+    const dur   = el('pDUR').value;
+    const accel = el('pACCEL').value;
+    const decel = el('pDECEL').value;
+    const home  = el('pHOME').checked ? 1 : 0;
+    targetRPM = parseInt(rpm);
+    sendBytes(`SPIN ${rpm} ${dur} ${accel} ${decel} ${home}`);
+  }
+
+  function sendStop()    { sendBytes('STOP'); }
+  function sendSetHome() { sendBytes('SETHOME'); }
+  function sendHome()    { sendBytes('HOME'); }
+  function sendStatus()  { sendBytes('STATUS'); }
+
+  function sendRaw() {
+    const input = el('cmdInput');
+    const cmd = input.value.trim();
+    if (cmd) { sendBytes(cmd); input.value = ''; }
+  }
+
+  // ── Console logging ──
+  function logLine(msg) {
+    let cls = 'log-sys';
+    if (msg.startsWith('OK:'))    cls = 'log-ok';
+    else if (msg.startsWith('STATE:')) cls = 'log-state';
+    else if (msg.startsWith('DATA:'))  cls = 'log-data';
+    else if (msg.startsWith('ERR:'))   cls = 'log-err';
+    appendLog(`<span class="${cls}">${escHtml(msg)}</span>`);
+  }
+  function logTx(msg)  { appendLog('<span class="log-tx">&gt; ' + escHtml(msg) + '</span>'); }
+  function logSys(msg) { appendLog('<span class="log-sys">&mdash; ' + escHtml(msg) + '</span>'); }
+  function logErr(msg) { appendLog('<span class="log-err">! ' + escHtml(msg) + '</span>'); }
+
+  function appendLog(html) {
+    const con = el('console');
+    con.innerHTML += html + '\n';
+    if (autoScroll) con.scrollTop = con.scrollHeight;
+  }
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function clearConsole() { el('console').innerHTML = ''; }
+  function toggleAutoScroll() {
+    autoScroll = !autoScroll;
+    el('scrollLabel').textContent = autoScroll ? 'ON' : 'OFF';
+  }
+  function toggleTelemLog() {
+    showTelemInLog = el('showTelem').checked;
+  }
+
+  // ── Init ──
+  if (!('serial' in navigator)) {
+    logErr('Web Serial API not available. Use Chrome or Edge.');
+    el('connectBtn').disabled = true;
+  }
+</script>
+
+</body>
+</html>
