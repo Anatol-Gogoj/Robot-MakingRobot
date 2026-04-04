@@ -72,7 +72,7 @@ Custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and ov
 | 20 | I2C SDA | E0 ENABLE (Syringe) | OK if I2C unused |
 | 21 | I2C SCL | J STEP (Syringe Height) | OK if I2C unused |
 
-**Warning:** Pins 19/20/21 conflict with Serial1 and I2C. If an I2C device (LCD, sensor) or a second serial device is ever added, those motors must be rewired to free GPIOs.
+**Warning:** Pins 19/20/21 conflict with Serial1 and I2C. Pin 18 (Serial1 TX) is now free after Z endstop moved to pin 40, but pin 19 (Serial1 RX) is still occupied by E0 DIR. If an I2C device (LCD, sensor) or a second serial device is ever added, those motors must be rewired to free GPIOs.
 
 ### Key Configuration.h Settings
 ```
@@ -88,7 +88,7 @@ NUM_SERVOS               2
 DEACTIVATE_SERVOS_AFTER_MOVE  enabled (anti-jitter, 2s hold)
 SERVO_DELAY              { 2000, 2000 }
 X_HOME_DIR / Y_HOME_DIR  -1          (home to min endstop)
-Z_HOME_DIR               -1          (home to Z_MIN endstop, pin 18)
+Z_HOME_DIR               -1          (home to Z_MIN endstop, pin 40)
 I_HOME_DIR                1          (home to I_MAX endstop, pin 15 — far end)
 J_HOME_DIR               -1          (home to J_MIN endstop, pin 17)
 Z_SAFE_HOMING            disabled    (Z homes first via HOME_Z_FIRST)
@@ -106,6 +106,10 @@ Max Feedrate (mm/s):     X=400  Y=333  Z=50  I(A)=33  J(B)=50  E=8
 Max Acceleration (mm/s²): X=500  Y=200  Z=100  I(A)=150  J(B)=50  E=500
 Steps/mm:                X=57.14 Y=57.14 Z=320 I=320 J=320 E=1600
 Travel limits (mm):      X=770  Y=150  Z=250  I=347  J=304
+Homing feedrates (mm/s): X=50  Y=50  Z=15  I(A)=25  J(B)=25
+Homing bump (mm):        X=5   Y=5   Z=10  I=2     J=2
+Homing bump divisor:     X=2   Y=2   Z=4   I=4     J=4
+ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 ```
 
 ### Patched Marlin Source Files
@@ -121,10 +125,12 @@ Travel limits (mm):      X=770  Y=150  Z=250  I=347  J=304
 2. **Custom homing order (G28.cpp patched):** A bare `G28` homes in order: Z → Y → J(Syr.Ht) → [gripper servo closes to 90°] → X → I(Filter Feed). HOME_Z_FIRST is enabled, Z_SAFE_HOMING is disabled.
 3. **Gripper closes before X homing:** Servo 0 is commanded to 90° with a 300ms delay before X homing begins, to prevent the gripper from colliding with the frame.
 4. **Filter Feed homes to MAX:** I_HOME_DIR=1, endstop is on the far end (I_MAX, pin 15). All other axes home to MIN.
-5. **Servo jitter prevention:** `DEACTIVATE_SERVOS_AFTER_MOVE` cuts PWM signal 2 seconds after `M280` command. Servo goes limp after that — fine if grip is mechanically self-holding.
+5. **Servo jitter prevention:** `DEACTIVATE_SERVOS_AFTER_MOVE` cuts PWM signal 2 seconds after `M280` command. Servo goes limp after that — fine if grip is mechanically self-holding. SanityCheck.h patched to allow this without a Z probe defined.
 6. **E-Stop recovery:** Send `M999` to reset firmware after `M112` emergency stop, instead of unplugging USB.
 7. **Pin 17 (J endstop):** This is Mega TX2. If Mega↔UNO communication uses Serial2 (pins 16/17), the J endstop must move to a different pin.
-8. **Axis name mapping:** G-code uses A/B for the I/J axes (set via AXIS4_NAME/AXIS5_NAME). Marlin restricts these names to A,B,C,U,V,W — 'I' and 'J' are not valid axis names.
+8. **Axis name mapping:** G-code uses A/B for the I/J axes (set via AXIS4_NAME/AXIS5_NAME). Marlin restricts these names to A,B,C,U,V,W — 'I' and 'J' are not valid axis names. This affects ALL G-code commands: M201, M203, G28, G1, etc. must use A/B, not I/J.
+9. **Z endstop EMI history:** Pin 18 (Mega TX1) suffered severe false triggers from stepper EMI during homing. Noise threshold, 100nF cap on signal→GND, and external pullup resistor were insufficient. Moved to pin 40 (plain GPIO, no alternate function) using `Z_STOP_PIN` in pins file (not `Z_MIN_PIN`) because `pins_postprocess.h` can override `Z_MIN_PIN`. The `Z_STOP_PIN` approach lets postprocess derive `Z_MIN_PIN` automatically. Hardware: 100nF ceramic cap from pin 40 to GND recommended. Pin 18 is now free.
+10. **M400 before servos in G-code programs:** M280 (servo) executes immediately when parsed, not when the motion planner finishes preceding G1 moves. Always place `M400` before `M280` in G-code sequences to drain the planner queue first. G4 (dwell) alone is NOT a reliable substitute.
 
 ## G-Code Reference for This Machine
 
@@ -211,7 +217,8 @@ Browser-based control interface using Web Serial API (Chrome/Edge required).
 - **Position readout** with auto-report (1s polling via M114)
 - **E-Stop** button (M112) with **Reset (M999)** button for recovery without USB replug
 - **Raw G-code** input with command history
-- **Keyboard shortcuts:** Arrow keys = XY, PgUp/PgDn = Z, Esc = E-Stop
+- **Program Runner** — textarea for G-code programs, Load .gcode button, Run/Pause/Stop controls, line counter, Wait-for-ok checkbox. Sends lines sequentially, waits for Marlin `ok` before sending next line.
+- **Keyboard shortcuts:** Arrow keys = XY, PgUp/PgDn = Z, Esc = E-Stop (disabled when textarea focused)
 
 ## File Inventory
 
@@ -226,88 +233,190 @@ Browser-based control interface using Web Serial API (Chrome/Edge required).
 | M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed |
 | SanityCheck.h | `Marlin/src/inc/` | Patched — DEACTIVATE_SERVOS_AFTER_MOVE check bypassed |
 | RMR_Controller.html | repo root | Browser-based Web Serial controller UI |
+| DemoProgram.gcode | repo root | Demo pick-and-place cycle: left/right filters → spincoater → dispose |
 
 ## Spin Coater Subsystem
 
 ### Overview
-A separate spin coater stage uses an ODrive motor controller commanded over UART from a dedicated **Arduino UNO**. The firmware is in `SpincoaterStage.ino`. This is independent of the Marlin gantry firmware on the Mega. The intended system architecture is: Mega (Marlin) → UART or I2C → UNO → UART → ODrive.
 
-### ODrive Wiring (UNO side)
-- UNO → ODrive J11 UART: pin 8 RX (G07), pin 7 TX (G06)
-- Baud rate: 115200 (but see SoftwareSerial note below)
-- Library: `ODriveUART` (Arduino)
-- ODrive ISOVDD/ISOGND must be connected to Arduino 5V and GND
+The spin coater uses an ODrive S1 motor controller driving a D5312s-330kV motor with an AMT102 encoder. In the **final system**, the Mega 2560 (running Marlin) drives the ODrive S1 directly over UART — there is NO second Arduino. The current benchtop test setup uses an Arduino Nano RP2040 Connect as a stand-in for the Mega, connected to a PC via the `SpincoaterDashboard.html` Web Serial interface.
 
-**Serial1 issue:** The sketch currently uses `HardwareSerial& odrive_serial = Serial1;` which is Mega-specific. The UNO has only one hardware UART (pins 0/1, shared with USB). To run on an UNO, the ODrive link must switch to `SoftwareSerial` (recommended baud: 19200) or the hardware serial must be dedicated to the ODrive (sacrificing USB debug). The `SoftwareSerial.h` include is already in the sketch but commented out.
+### Architecture
 
-### Mega ↔ UNO Communication (TBD)
-The gantry Mega needs to trigger spin coater cycles on the UNO. Options:
-- **UART:** Mega Serial3 (pins 14/15) to UNO SoftwareSerial. Serial1 (pins 18/19) conflicts with Z endstop and E0 DIR. Serial2 (pins 16/17) conflicts with J endstop on pin 17 — would require moving J endstop to a free GPIO.
-- **I2C:** UNO as I2C slave. Requires remapping E0_ENA (pin 20) and J_STEP (pin 21) on the Mega to free up SDA/SCL — not practical with current wiring.
-
-### Sketch Behavior
-The sketch (`SpincoaterStage.ino`) runs a single-shot cycle: wait for `START` over USB serial → calibrate ODrive if needed → ramp to 5000 RPM at 15 rev/s² → measure velocity (100 ms sampling for 30 s, reports mean ± σ) → decelerate at 100 rev/s² → encoder index re-home → return to idle. Target RPM is hardcoded as `int RPM = 5000`. Currently the `START` command comes over USB serial; in the final system it would come from the Mega over the inter-board link.
-
-### Migrating SpincoaterStage.ino to PlatformIO
-
-The `.ino` file is currently an Arduino IDE sketch. To bring it into the PlatformIO ecosystem (consistent with the Marlin build):
-
-#### Directory Structure
 ```
-SpincoaterStage/
-├── platformio.ini
-├── src/
-│   └── main.cpp          # renamed from SpincoaterStage.ino
-└── lib/
-    └── (ODriveUART goes here if not using lib_deps)
+Final system:     Mega (Marlin + custom M750) ──Serial2──► ODrive S1 ──► Motor
+Benchtop test:    PC (SpincoaterDashboard.html) ──USB──► Nano RP2040 ──Serial1──► ODrive S1 ──► Motor
 ```
 
-#### platformio.ini
+### Hardware
+
+- **Motor:** D5312s-330kV brushless outrunner
+- **Controller:** ODrive S1
+- **Encoder:** AMT102 (incremental with index pulse)
+- **ODrive control mode:** Ramped Velocity Control (vel_ramp_rate for accel/decel)
+- **UART baud:** 115200
+
+### Benchtop Test Setup (Nano RP2040 Connect)
+
+#### Wiring
+- Nano pin 0 (TX1) → ODrive J11 pin 4 (RX / GPIO7)
+- Nano pin 1 (RX1) → ODrive J11 pin 3 (TX / GPIO6)
+- ODrive J11 ISOVDD → Nano 3.3V
+- ODrive J11 ISOGND → Nano GND
+
+#### PlatformIO Config
 ```ini
-[env:uno]
-platform = atmelavr
-board = uno
+[env:nanorp2040connect]
+platform = raspberrypi
+board = nanorp2040connect
 framework = arduino
 monitor_speed = 115200
 lib_deps =
-    odriverobotics/ODriveArduino @ ^0.1.0
-    ; Or use the library's GitHub URL if the PlatformIO registry version is stale:
-    ; https://github.com/odriverobotics/ODrive.git#master
+    https://github.com/odriverobotics/ODriveArduino.git#master
 ```
 
-**Note:** The ODrive Arduino library's PlatformIO registry name may vary. If `odriverobotics/ODriveArduino` doesn't resolve, use the GitHub URL directly or manually place the library source in `lib/ODriveUART/`.
+The ODriveUART library must be pulled from GitHub — the PlatformIO registry name `odriverobotics/ODriveArduino @ ^0.1.0` does not resolve. The full firmware repo URL (`odriverobotics/ODrive.git`) is the wrong repo (that's the ODrive firmware, not the Arduino library).
 
-#### Conversion Steps
-1. **Rename:** Copy `SpincoaterStage.ino` → `SpincoaterStage/src/main.cpp`.
-2. **Add Arduino.h include:** PlatformIO does not implicitly include `Arduino.h` like the Arduino IDE. Add `#include <Arduino.h>` as the first line.
-3. **Switch from Serial1 to SoftwareSerial:** The UNO has no `Serial1`. Uncomment the `SoftwareSerial` lines in the sketch (pins 8/9 as suggested, or pick other free pins), set baud to 19200, and replace `HardwareSerial& odrive_serial = Serial1;` with the SoftwareSerial instance. Update `baudrate` accordingly.
-4. **Forward-declare functions:** The Arduino IDE auto-generates forward declarations; PlatformIO/GCC does not. Add `void MS();` before `setup()` (or move the `MS()` definition above `setup()`/`loop()`).
-5. **Create `platformio.ini`** as shown above.
-6. **Fix SRAM usage (critical):** The `float samples[300]` array in `MS()` uses ~1.2 KB. The UNO's ATmega328P has only 2 KB total SRAM. With the stack, ODrive library buffers, and SoftwareSerial buffers, this will almost certainly overflow. Replace the array with Welford's online algorithm for running mean and variance — this reduces memory usage to a few floats regardless of sample count.
-7. **Build:** `pio run -e uno`
-8. **Upload:** `pio run -e uno -t upload`
+#### Upload Method
+The Nano RP2040 uses UF2 drag-and-drop: double-tap the reset button, a `RPI-RP2` USB drive appears, drag `firmware.uf2` onto it. PlatformIO's `picotool` upload protocol is unreliable.
 
-#### Gotchas
-- The `ODriveUART` library header might be `<ODriveArduino.h>` vs `<ODriveUART.h>` depending on the library version. Check the installed library's actual header filename.
-- `SoftwareSerial` on the UNO is unreliable above 19200 baud. The ODrive docs confirm 19200 as the recommended rate for SoftwareSerial. This means the ODrive must also be configured to 19200 baud (via `odrv0.config.uart_baudrate = 19200` in odrivetool, then `odrv0.save_configuration()`).
-- `monitor_speed` in platformio.ini should match the USB serial baud (115200), which is separate from the ODrive SoftwareSerial baud.
-- The UNO's ATmega328P has 2 KB SRAM vs the Mega's 8 KB. Every buffer matters. Profile with `pio run -e uno -t checkprogsize` after building.
+### Firmware (SpincoaterStage/src/main.cpp — v2.5)
+
+#### Serial Protocol (115200 baud, newline-terminated)
+
+| Command | Description |
+|---------|-------------|
+| `SPIN <rpm> <dur_s> <accel> <decel> <home 0\|1>` | Run a full spin cycle with specified parameters |
+| `START` | Run with current default parameters |
+| `SET <param> <value>` | Set default: RPM, DUR, ACCEL, DECEL, HOME |
+| `STATUS` | Report params + ODrive state + bus voltage + position |
+| `STOP` | Emergency velocity zero — works mid-cycle (checked in all blocking loops) |
+| `HOME` | Encoder index search — does NOT reset degree datum |
+| `SETHOME` | Set current position as 0° datum — dial snaps to 0° |
+
+#### Output Prefixes
+
+All firmware output is prefixed for machine parsing:
+- `OK:` — success messages
+- `ERR:` — error messages
+- `STATE:` — phase transitions (CONNECTING, RAMP_UP, MEASURING, RAMP_DOWN, SETTLING, HOMING, etc.)
+- `DATA:` — measurement results and status data
+- `TELEM:` — real-time telemetry (RPM, position, degrees from home)
+
+#### Telemetry
+
+Emitted every 200ms during active phases via the ODrive `f 0` command (returns pos and vel in a single round-trip):
+```
+TELEM: RPM=<val> POS=<val> DEG=<val>
+```
+- `RPM` — current motor speed (vel × 60)
+- `POS` — raw encoder position in turns
+- `DEG` — absolute degrees from last SETHOME datum, normalized to [0, 360)
+
+#### Spin Cycle Phases
+1. **CONNECTING** — verify ODrive responding (5s timeout)
+2. **CALIBRATING** — enter closed-loop control (full calibration if needed)
+3. **RAMP_UP** — set vel_ramp_rate to accel, command target velocity, wait for 98% RPM
+4. **MEASURING** — Welford's online algorithm for mean/variance at 100ms intervals
+5. **RAMP_DOWN** — set vel_ramp_rate to decel, command velocity 0, wait for RPM < 6
+6. **SETTLING** — 1s active telemetry dwell
+7. **HOMING** (optional) — encoder index search, does NOT reset degree datum
+
+#### Homing vs Set Home
+- **`HOME` / post-cycle auto-home:** Runs ODrive encoder index search (IDLE → ENCODER_INDEX_SEARCH → IDLE). Corrects encoder position for accuracy. Does NOT overwrite the degree datum (`homePos`). The dial shows the actual angular position relative to the original Set Home.
+- **`SETHOME`:** Reads current encoder position, stores it as `homePos` (the 0° reference). Emits `TELEM: DEG=0.00`. This is a datum-setting operation — the user declares "this is my zero."
+
+#### Key Implementation Details
+- **E-stop works mid-cycle:** `checkStop()` polls USB serial for STOP commands inside every blocking loop (ramp-up, measure, ramp-down, settling, calibration). Previously STOP was ignored until cycle completion.
+- **No `sscanf` with `%f`:** The RP2040 mbed platform's C library doesn't link float support for scanf/sscanf. All parsing uses Arduino `String.toFloat()` / `String.toInt()`.
+- **No `getParameterAsFloat()`:** The ODriveUART library's getter uses `sscanf` internally — broken on RP2040. All ODrive reads use raw ASCII commands (`r <property>`, `f 0`) with manual String parsing.
+- **Serial bus contention avoidance:** `lastTelemRPM` is cached from telemetry reads and used for ramp-up/ramp-down exit conditions, eliminating separate `odrive.getVelocity()` calls that would conflict with telemetry's `f 0` reads on the same UART.
+- **ODrive state machine:** Cannot go directly from CLOSED_LOOP_CONTROL to ENCODER_INDEX_SEARCH. `doHome()` explicitly transitions to IDLE first, waits for the transition, then commands the index search.
+
+### Dashboard (SpincoaterDashboard.html — v2.5)
+
+Web Serial dashboard (Chrome/Edge only, 115200 baud). Dark theme matching RMR_Controller.html.
+
+#### Features
+- **Connection management** — connect/disconnect with status indicator
+- **Parameter inputs** — RPM, Duration, Accel, Decel, Encoder homing toggle
+- **Buttons:** Start, Stop, Set Home (yellow — sets 0° datum), Index Home (blue — encoder search, preserves datum), Status
+- **Live RPM gauge** — progress bar scaled to target RPM, zeroes on stale (2s no telemetry)
+- **SVG circular position dial** — needle rotates to show degrees from home, tick marks at 30° intervals, cardinal labels at 0/90/180/270. Needle dims to grey during high-speed spinning (> 60 RPM) where angular position is aliased. Shortest-path rotation logic prevents wraparound animation glitches (350°→10° doesn't animate 340° backwards).
+- **Stats cards** — mean, std dev, min, max, range, samples, bus voltage, home position (displayed in degrees)
+- **Serial console** — color-coded log levels, telemetry display toggle (default OFF), auto-scroll toggle
+- **Raw command input** — send arbitrary commands to firmware
+
+### Marlin/Mega Integration Plan
+
+A detailed integration plan is in `SpincoaterStage/INTEGRATION_PLAN.md`. Summary:
+
+#### Serial Port: Free Serial2 by relocating J endstop
+All four Mega hardware UARTs are currently occupied. The plan is to move the J endstop from pin 17 (TX2) to pin 23 (or any free GPIO), freeing Serial2 (pins 16/17) for the ODrive UART link.
+
+#### Custom M-Code: M750
+```gcode
+M750 [S<rpm>] [D<seconds>] [A<accel_rps2>] [C<decel_rps2>] [H<0|1>]
+```
+Blocking M-code that runs the full spin cycle. Reuses the proven ODrive ASCII protocol from the Nano firmware. Calls Marlin's `idle()` in all blocking loops to maintain watchdog and host keepalive. Returns `ok` to host when complete.
+
+#### Implementation Files
+- `Marlin/src/gcode/control/M750.cpp` — M-code handler
+- `Marlin/src/feature/spincoater.h/.cpp` — ODrive Serial2 communication layer (raw ASCII, no ODriveUART library)
+- Modified: `pins_RAMPS_14_RMR.h` (J_MIN_PIN 17→23), `gcode.cpp`, `gcode.h`, `Configuration_adv.h` (SPINCOATER feature flag)
+
+## File Inventory
+
+| File | Location | Purpose |
+|------|----------|---------|
+| Configuration.h | `Marlin/` | Main firmware config |
+| Configuration_adv.h | `Marlin/` | Advanced config |
+| pins_RAMPS_14_RMR.h | `Marlin/src/pins/ramps/` | Custom pin mapping |
+| boards.h | `Marlin/src/core/boards.h` | Needs 1 line added (board ID) |
+| pins.h | `Marlin/src/pins/pins.h` | Needs 2 lines added (routing) |
+| G28.cpp | `Marlin/src/gcode/calibrate/` | Patched for custom homing order + gripper close |
+| M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed |
+| SanityCheck.h | `Marlin/src/inc/` | Patched — DEACTIVATE_SERVOS_AFTER_MOVE check bypassed |
+| RMR_Controller.html | repo root | Browser-based Web Serial gantry controller UI |
+| DemoProgram.gcode | repo root | Demo pick-and-place cycle |
+| SpincoaterStage/platformio.ini | `SpincoaterStage/` | PlatformIO config for Nano RP2040 Connect |
+| SpincoaterStage/src/main.cpp | `SpincoaterStage/src/` | Spincoater test firmware v2.5 |
+| SpincoaterStage/SpincoaterDashboard.html | `SpincoaterStage/` | Web Serial spincoater dashboard v2.5 |
+| SpincoaterStage/INTEGRATION_PLAN.md | `SpincoaterStage/` | Marlin/Mega integration plan |
+| SpincoaterStage.ino | repo root | Original Arduino IDE sketch (reference only, superseded) |
+| SpincoaterPinMap.jfif | repo root | ODrive S1 J11 connector pinout image |
 
 ## What's Left To Do
 
+### Gantry / Marlin
 - [ ] Confirm DIP switch settings on ALL DM556T drivers (verify 1600 steps/rev = 1/8 µstep on all drivers)
 - [ ] Wire and assign lid servo GPIO (currently TBD, placeholder pin 6)
 - [ ] Choose and wire solenoid valve pin
+- [ ] Write production G-code sequences for the actual robot workflow
 - [x] ~~Test each axis individually after first flash (direction, distance, endstop logic)~~ — all axes verified, directions corrected
 - [x] ~~Determine if `DISABLE_OTHER_EXTRUDERS` needs to be commented out~~ (N/A — only 1 extruder now)
 - [x] ~~Calibrate servo angles for gripper open/close positions~~ (90° closed, 170° open)
 - [x] ~~Set actual travel limits~~ (X=770, Y=150, Z=250, I=347, J=304)
-- [x] ~~Add Z endstop if repeatable Z homing is needed~~ (Z endstop on pin 18, Z_HOME_DIR=-1)
+- [x] ~~Add Z endstop if repeatable Z homing is needed~~ (Z endstop on pin 40 via Z_STOP_PIN)
 - [x] ~~Tune feedrates and accelerations~~ (tested, production values set)
-- [ ] Write production G-code sequences for the actual robot workflow
-- [ ] Migrate `SpincoaterStage.ino` to PlatformIO project structure targeting UNO (see migration steps above)
-- [ ] **Critical:** Replace `Serial1` with `SoftwareSerial` for UNO compatibility and configure ODrive to 19200 baud
-- [ ] **Critical:** Replace `float samples[300]` array with Welford's online algorithm — 1.2 KB array will overflow UNO's 2 KB SRAM
-- [ ] Verify ODriveUART library version compatibility and correct header name
-- [ ] Design and implement Mega ↔ UNO communication protocol (UART vs I2C, command format)
-- [ ] Make target RPM configurable via inter-board command instead of hardcoded constant
+
+### Spincoater — Benchtop Testing (Nano RP2040)
+- [x] ~~PlatformIO project setup~~ — targeting nanorp2040connect
+- [x] ~~Parameterized spin commands~~ — SPIN, START, SET, STATUS, STOP, HOME, SETHOME
+- [x] ~~Real-time telemetry~~ — RPM + position via ODrive `f 0` command
+- [x] ~~Absolute degree display~~ — degrees from SETHOME datum on circular dial
+- [x] ~~E-stop works mid-cycle~~ — checkStop() in all blocking loops
+- [x] ~~Homing vs Set Home separation~~ — HOME preserves datum, SETHOME resets it
+- [x] ~~Web Serial dashboard~~ — SpincoaterDashboard.html v2.5
+- [x] ~~Welford's online algorithm~~ — replaced float array with O(1) streaming stats
+- [ ] Verify dial behavior after multiple consecutive spin cycles
+- [ ] Long-duration stability test (>60s cycles)
+
+### Spincoater — Marlin/Mega Integration (see INTEGRATION_PLAN.md)
+- [ ] **Hardware:** Move J endstop from pin 17 to pin 23, wire Serial2 to ODrive J11
+- [ ] **Firmware:** Update J_MIN_PIN in pins_RAMPS_14_RMR.h, verify all axes home correctly
+- [ ] **Firmware:** Implement spincoater communication layer (spincoater.h/.cpp)
+- [ ] **Firmware:** Implement M750 custom G-code handler
+- [ ] **Test:** M750 from serial terminal, then from Program Runner with multi-line G-code
+- [ ] **Test:** Verify M112 E-stop works during M750 spin (via idle() processing)
+- [ ] **Production:** Write full pick-and-place → spin-coat → dispose G-code workflow
