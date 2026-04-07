@@ -3494,6 +3494,28 @@
 #endif // SPINDLE_FEATURE || LASER_FEATURE
 
 /**
+ * Spincoater — ODrive S1 over Serial2
+ *
+ * Drives an ODrive S1 motor controller (D5312s-330kV + AMT102 encoder)
+ * via raw ASCII protocol on Serial2 (pins 16/17 on Mega 2560).
+ * Provides M750 (spin cycle), M751 (set home datum), M752 (encoder index search).
+ *
+ * Requires: J endstop moved from pin 17 to pin 23 to free Serial2.
+ * See pins_RAMPS_14_RMR.h and INTEGRATION_PLAN.md for wiring details.
+ */
+#define SPINCOATER
+#if ENABLED(SPINCOATER)
+  #define SPINCOATER_SERIAL     Serial2
+  #define SPINCOATER_BAUD       115200
+  // Default spin parameters (overridable via M750 S/D/A/C/H params)
+  #define SPINCOATER_DEFAULT_RPM        5000
+  #define SPINCOATER_DEFAULT_DURATION   30      // seconds
+  #define SPINCOATER_DEFAULT_RISE       5.0f    // ramp-up time (seconds)
+  #define SPINCOATER_DEFAULT_SINK       1.0f    // ramp-down time (seconds)
+  #define SPINCOATER_DEFAULT_HOME       true    // encoder index search after spin
+#endif
+
+/**
  * Synchronous Laser Control with M106/M107
  *
  * Marlin normally applies M106/M107 fan speeds at a time "soon after" processing
