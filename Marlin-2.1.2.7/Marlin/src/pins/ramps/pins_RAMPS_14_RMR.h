@@ -139,8 +139,9 @@
 // I-axis (Filter Feed) endstop: pin 15 on RAMPS Y+ header — endstop at far end
 #define I_MAX_PIN      15
 
-// J-axis (Syringe Height) endstop: pin 17 (Mega TX2)
-#define J_MIN_PIN      17
+// J-axis (Syringe Height) endstop: moved from pin 17 (TX2) to free Serial2 for ODrive
+// Pin 17 is now Serial2 RX for spincoater ODrive S1 UART link
+#define J_MIN_PIN      23
 
 // ==========================================================
 //  Servo pins

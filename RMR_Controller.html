@@ -16,6 +16,7 @@
     --green: #4ecca3;
     --yellow: #f0c040;
     --red: #e94560;
+    --blue: #6ec6ff;
     --border: #2a2a4a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -342,6 +343,91 @@
     .main { grid-template-columns: 1fr; }
     .console-wrap { grid-column: 1; }
   }
+
+  /* Spincoater panel */
+  .spin-telem-row { display: flex; gap: 12px; align-items: stretch; margin-bottom: 12px; }
+  .rpm-gauge {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; text-align: center;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .rpm-gauge .gauge-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 2px; }
+  .rpm-gauge .gauge-value { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; font-family: 'Consolas', monospace; line-height: 1.1; color: var(--green); }
+  .rpm-gauge .gauge-unit { font-size: 12px; color: var(--text-dim); }
+  .rpm-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--green); transition: width 0.2s; border-radius: 0 0 8px 8px; }
+  .gauge-stale .gauge-value { color: var(--text-dim) !important; }
+
+  .dial-container {
+    width: 140px; min-width: 140px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .dial-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
+  .dial-svg { width: 100px; height: 100px; }
+  .dial-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .dial-needle { stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+  .dial-center { fill: var(--accent); }
+  .dial-deg { font-size: 16px; font-weight: 700; font-family: 'Consolas', monospace; color: var(--blue); margin-top: 2px; }
+  .dial-deg-unit { font-size: 10px; color: var(--text-dim); }
+
+  .spin-param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .spin-param-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
+  .spin-param-item.full { grid-column: 1 / -1; }
+  .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
+  .spin-param-item input[type="number"] {
+    width: 100%; padding: 6px 8px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 16px; font-weight: 600; font-family: 'Consolas', monospace;
+  }
+  .spin-param-item input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .spin-param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .spin-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+  .spin-toggle-label { font-size: 13px; }
+  .spin-toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+  .spin-toggle input { display: none; }
+  .spin-toggle .slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 12px; transition: background 0.2s;
+  }
+  .spin-toggle .slider::after {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    left: 3px; top: 3px; background: var(--text);
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .spin-toggle input:checked + .slider { background: var(--green); }
+  .spin-toggle input:checked + .slider::after { transform: translateX(20px); }
+
+  .spin-action-row { display: flex; gap: 8px; margin-top: 8px; }
+  .spin-big-btn {
+    flex: 1; padding: 12px; font-size: 14px; font-weight: 700;
+    border: 2px solid var(--green); border-radius: 8px;
+    background: transparent; color: var(--green); cursor: pointer;
+    text-transform: uppercase; letter-spacing: 2px; transition: all 0.15s;
+  }
+  .spin-big-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .spin-big-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .spin-big-btn.stop { border-color: var(--red); color: var(--red); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
+  .spin-big-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .spin-big-btn.home-btn { border-color: var(--yellow); color: var(--yellow); }
+  .spin-big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: #000; }
+  .spin-big-btn.index-btn { border-color: var(--blue); color: var(--blue); }
+  .spin-big-btn.index-btn:hover:not(:disabled) { background: var(--blue); color: #000; }
+
+  .spin-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .spin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+  .spin-stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
+  .spin-stat-card .value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .spin-stat-card .unit { font-size: 11px; color: var(--text-dim); }
+
+  .spin-phase-bar { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .spin-phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+  .spin-phase-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .spin-phase-dot.warn { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .spin-phase-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .spin-phase-label { font-size: 13px; font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -515,6 +601,139 @@
       <button class="toggle-btn" onclick="sendCmd('M500')">Save to EEPROM (M500)</button>
       <button class="toggle-btn" onclick="sendCmd('M503')">Report Settings (M503)</button>
     </div>
+    </details>
+  </div>
+
+  <!-- Spincoater Control -->
+  <div class="panel" style="grid-column: 1 / -1">
+    <details open>
+    <summary style="cursor:pointer;font-weight:bold;font-size:15px;user-select:none">Spincoater (M750)</summary>
+    <p style="font-size:11px;color:var(--text-dim);margin:6px 0 8px 0">ODrive S1 spin coater control via Serial2. Uses M750 (spin cycle), M751 (set home datum), M752 (encoder index search).</p>
+
+    <!-- Phase indicator -->
+    <div class="spin-phase-bar">
+      <span class="spin-phase-dot" id="spinPhaseDot"></span>
+      <span class="spin-phase-label" id="spinPhaseLabel">Idle</span>
+    </div>
+
+    <!-- Live telemetry: RPM gauge + circular dial -->
+    <div class="spin-telem-row">
+      <div class="rpm-gauge gauge-stale" id="spinGaugeRPM">
+        <div class="gauge-label">Speed</div>
+        <div class="gauge-value" id="spinLiveRPM">0</div>
+        <div class="gauge-unit">RPM</div>
+        <div class="rpm-bar" id="spinRpmBar" style="width:0%"></div>
+      </div>
+      <div class="dial-container" id="spinDialContainer">
+        <div class="dial-label">Position</div>
+        <svg class="dial-svg" viewBox="0 0 100 100">
+          <g id="spinDialTicks"></g>
+          <circle class="dial-track" cx="50" cy="50" r="40"/>
+          <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
+          <circle class="dial-center" cx="50" cy="50" r="3"/>
+          <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">0</text>
+          <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">90</text>
+          <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">180</text>
+          <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">270</text>
+        </svg>
+        <div class="dial-deg" id="spinLiveDEG">0.00</div>
+        <div class="dial-deg-unit">degrees</div>
+      </div>
+    </div>
+
+    <!-- Parameters + actions in a 2-col layout -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <!-- Left: Parameters -->
+      <div>
+        <div class="spin-param-grid">
+          <div class="spin-param-item">
+            <label>Target Speed</label>
+            <input type="number" id="spinRPM" value="5000" min="100" max="10000" step="100">
+            <div class="spin-param-unit">RPM</div>
+          </div>
+          <div class="spin-param-item">
+            <label>Duration</label>
+            <input type="number" id="spinDUR" value="30" min="1" max="300" step="1">
+            <div class="spin-param-unit">seconds</div>
+          </div>
+          <div class="spin-param-item">
+            <label>Rise Time</label>
+            <input type="number" id="spinRISE" value="5" min="0.1" max="60" step="0.1">
+            <div class="spin-param-unit">seconds</div>
+          </div>
+          <div class="spin-param-item">
+            <label>Sink Time</label>
+            <input type="number" id="spinSINK" value="1" min="0.1" max="60" step="0.1">
+            <div class="spin-param-unit">seconds</div>
+          </div>
+          <div class="spin-param-item full">
+            <div class="spin-toggle-row">
+              <span class="spin-toggle-label">Encoder homing after spin</span>
+              <label class="spin-toggle">
+                <input type="checkbox" id="spinHOME" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="spin-action-row">
+          <button class="spin-big-btn" onclick="spinStart()">Start</button>
+          <button class="spin-big-btn stop" onclick="emergencyStop()">Stop</button>
+        </div>
+        <div class="spin-action-row">
+          <button class="spin-big-btn home-btn" onclick="spinSetHome()">Set Home</button>
+          <button class="spin-big-btn index-btn" onclick="spinIndexHome()">Index Home</button>
+        </div>
+      </div>
+
+      <!-- Right: Stats -->
+      <div>
+        <div class="spin-stat-grid">
+          <div class="spin-stat-card">
+            <div class="label">Mean Speed</div>
+            <div class="value" id="spinValMean">&mdash;</div>
+            <div class="unit">RPM</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Std Dev</div>
+            <div class="value" id="spinValStd">&mdash;</div>
+            <div class="unit">RPM</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Min</div>
+            <div class="value" id="spinValMin">&mdash;</div>
+            <div class="unit">RPM</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Max</div>
+            <div class="value" id="spinValMax">&mdash;</div>
+            <div class="unit">RPM</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Samples</div>
+            <div class="value" id="spinValSamples">&mdash;</div>
+            <div class="unit">&nbsp;</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Bus Voltage</div>
+            <div class="value" id="spinValVbus">&mdash;</div>
+            <div class="unit">V</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Home Pos</div>
+            <div class="value" id="spinValHome">&mdash;</div>
+            <div class="unit">deg</div>
+          </div>
+          <div class="spin-stat-card">
+            <div class="label">Range</div>
+            <div class="value" id="spinValRange">&mdash;</div>
+            <div class="unit">RPM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     </details>
   </div>
 
@@ -726,6 +945,81 @@ async function readLoop() {
 function processLine(line) {
   if (!line) return;
   const verbose = document.getElementById('verboseMode').checked;
+
+
+  // ── Spincoater telemetry and data (from echo:SPIN lines) ──
+  if (line.startsWith('echo:SPIN ')) {
+    const spinMsg = line.substring(10); // strip "echo:SPIN "
+
+    // Telemetry: "TELEM: RPM=... POS=... DEG=..."
+    if (spinMsg.startsWith('TELEM:')) {
+      const rpmMatch = spinMsg.match(/RPM=([-\d.]+)/);
+      const degMatch = spinMsg.match(/DEG=([-\d.]+)/);
+      if (rpmMatch) spinUpdateGaugeRPM(parseFloat(rpmMatch[1]));
+      if (degMatch) spinUpdateDial(parseFloat(degMatch[1]));
+      if (!document.getElementById('verboseMode').checked) return; // suppress telem noise unless verbose
+    }
+
+    // State transitions: "STATE:..."
+    if (spinMsg.startsWith('STATE:')) {
+      const state = spinMsg.substring(6).trim();
+      const stateMap = {
+        'BOOTING':              ['warn',   'Booting ODrive...'],
+        'WAITING_ODRIVE':       ['warn',   'Waiting for ODrive...'],
+        'INDEX_SEARCH_BOOT':    ['warn',   'Boot index search...'],
+        'INDEX_SEARCH_ACTIVE':  ['warn',   'Index search active...'],
+        'INDEX_SETTLE_BOOT':    ['warn',   'Settling to index...'],
+        'INDEX_SETTLE':         ['warn',   'Settling to index...'],
+        'CONNECTING':           ['warn',   'Connecting to ODrive...'],
+        'ODRIVE_FOUND':         ['active', 'ODrive found'],
+        'CALIBRATING':          ['warn',   'Calibrating...'],
+        'FULL_CALIBRATION':     ['warn',   'Full calibration...'],
+        'CLOSED_LOOP':          ['active', 'Closed-loop active'],
+        'RAMP_UP':              ['active', 'Ramping up...'],
+        'MEASURING':            ['active', 'Measuring speed...'],
+        'RAMP_DOWN':            ['warn',   'Decelerating...'],
+        'SETTLING':             ['warn',   'Settling...'],
+        'STOPPED':              ['active', 'Motor stopped'],
+        'HOMING':               ['warn',   'Homing...'],
+        'ENTERING_IDLE':        ['warn',   'Entering idle...'],
+        'INDEX_FOUND_INSTANT':  ['active', 'Index found'],
+        'RAMP_TIMEOUT':         ['error',  'Ramp-up timeout!'],
+        'RAMP_STALL':           ['error',  'RPM stall detected!'],
+      };
+      for (const [key, [phase, label]] of Object.entries(stateMap)) {
+        if (state.includes(key)) { spinSetPhase(phase, label); break; }
+      }
+    }
+
+    // Completion markers
+    if (spinMsg.includes('CYCLE_COMPLETE')) spinSetPhase('idle', 'Cycle complete');
+    if (spinMsg.includes('INDEX_COMPLETE')) spinSetPhase('idle', 'Index search done');
+    if (spinMsg.includes('HOME_SET'))       spinSetPhase('idle', 'Home datum set');
+    if (spinMsg.includes('READY'))          spinSetPhase('idle', 'ODrive ready');
+
+    // Data fields: "DATA: MeanRPM=..."
+    const dataMatch = spinMsg.match(/DATA:\s*(\w+)=(.*)/);
+    if (dataMatch) {
+      const key = dataMatch[1], num = parseFloat(dataMatch[2]);
+      if (key === 'MeanRPM')    document.getElementById('spinValMean').textContent    = num.toFixed(1);
+      if (key === 'StdDevRPM')  document.getElementById('spinValStd').textContent     = num.toFixed(1);
+      if (key === 'MinRPM')     document.getElementById('spinValMin').textContent      = num.toFixed(1);
+      if (key === 'MaxRPM')     document.getElementById('spinValMax').textContent      = num.toFixed(1);
+      if (key === 'Samples')    document.getElementById('spinValSamples').textContent  = Math.round(num);
+      if (key === 'Vbus')       document.getElementById('spinValVbus').textContent     = num.toFixed(1);
+      if (key === 'HomePos')    document.getElementById('spinValHome').textContent     = (num * 360).toFixed(1);
+      if (key === 'DegFromHome') document.getElementById('spinValHome').textContent   = num.toFixed(1);
+      if (key === 'Range')      document.getElementById('spinValRange').textContent    = num.toFixed(1);
+    }
+    const vbusAlt = spinMsg.match(/Vbus=([\d.]+)/);
+    if (vbusAlt) document.getElementById('spinValVbus').textContent = parseFloat(vbusAlt[1]).toFixed(1);
+
+    // Log it (non-telem lines)
+    if (!spinMsg.startsWith('TELEM:')) {
+      logRx(line);
+    }
+    return;
+  }
 
   // Parse position from M114 response
   // Format with I/J axes: X:0.00 Y:0.00 Z:0.00 A:0.00 B:0.00 E:0.00 Count ...
@@ -1115,6 +1409,90 @@ function progClear() {
   document.getElementById('progLineTotal').textContent = '0';
   document.getElementById('progCurrentCmd').textContent = '—';
   document.getElementById('progStatus').textContent = 'Idle';
+}
+
+// ─── Spincoater Control ───
+let spinTargetRPM = 5000;
+let spinTelemStaleTimer = null;
+let spinDialAngle = 0;
+
+// Init dial tick marks
+(function initSpinDial() {
+  const ticks = document.getElementById('spinDialTicks');
+  if (!ticks) return;
+  for (let d = 0; d < 360; d += 30) {
+    const rad = (d - 90) * Math.PI / 180;
+    const r1 = 35, r2 = 40;
+    const x1 = 50 + r1 * Math.cos(rad), y1 = 50 + r1 * Math.sin(rad);
+    const x2 = 50 + r2 * Math.cos(rad), y2 = 50 + r2 * Math.sin(rad);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#555');
+    line.setAttribute('stroke-width', d % 90 === 0 ? '1.5' : '0.5');
+    ticks.appendChild(line);
+  }
+})();
+
+function spinStart() {
+  const rpm  = document.getElementById('spinRPM').value;
+  const dur  = document.getElementById('spinDUR').value;
+  const rise = document.getElementById('spinRISE').value;
+  const sink = document.getElementById('spinSINK').value;
+  const home = document.getElementById('spinHOME').checked ? 1 : 0;
+  spinTargetRPM = parseInt(rpm);
+  sendCmd(`M750 S${rpm} D${dur} A${rise} C${sink} H${home}`);
+}
+
+function spinSetHome()   { sendCmd('M751'); }
+function spinIndexHome() { sendCmd('M752'); }
+
+function spinUpdateGaugeRPM(rpm) {
+  document.getElementById('spinLiveRPM').textContent = Math.round(rpm);
+  const pct = Math.min(100, Math.max(0, (Math.abs(rpm) / (spinTargetRPM || 5000)) * 100));
+  document.getElementById('spinRpmBar').style.width = pct + '%';
+  document.getElementById('spinGaugeRPM').classList.remove('gauge-stale');
+  // Dim needle when spinning fast (position aliased at >60 RPM)
+  const needle = document.getElementById('spinDialNeedle');
+  if (Math.abs(rpm) > 60) {
+    needle.setAttribute('stroke', '#555');
+    needle.setAttribute('stroke-width', '1');
+  } else {
+    needle.setAttribute('stroke', 'var(--accent)');
+    needle.setAttribute('stroke-width', '2');
+  }
+  spinResetStale();
+}
+
+function spinUpdateDial(deg) {
+  const cur360 = ((spinDialAngle % 360) + 360) % 360;
+  let delta = deg - cur360;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  spinDialAngle += delta;
+  document.getElementById('spinDialNeedle').setAttribute('transform', `rotate(${spinDialAngle} 50 50)`);
+  document.getElementById('spinLiveDEG').textContent = deg.toFixed(2);
+  document.getElementById('spinDialContainer').classList.remove('gauge-stale');
+  spinResetStale();
+}
+
+function spinResetStale() {
+  if (spinTelemStaleTimer) clearTimeout(spinTelemStaleTimer);
+  spinTelemStaleTimer = setTimeout(() => {
+    document.getElementById('spinGaugeRPM').classList.add('gauge-stale');
+    document.getElementById('spinDialContainer').classList.add('gauge-stale');
+    document.getElementById('spinLiveRPM').textContent = '0';
+    document.getElementById('spinRpmBar').style.width = '0%';
+  }, 2000);
+}
+
+function spinSetPhase(state, text) {
+  const dot = document.getElementById('spinPhaseDot');
+  dot.className = 'spin-phase-dot';
+  if (state === 'active') dot.classList.add('active');
+  else if (state === 'warn') dot.classList.add('warn');
+  else if (state === 'error') dot.classList.add('error');
+  document.getElementById('spinPhaseLabel').textContent = text;
 }
 
 // ─── Init ───

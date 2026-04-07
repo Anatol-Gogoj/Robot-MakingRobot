@@ -968,6 +968,13 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 710: M710(); break;                                  // M710: Set Controller Fan settings
       #endif
 
+      #if ENABLED(SPINCOATER)
+        case 750: M750(); break;                                  // M750: Spincoater spin cycle
+        case 751: M751(); break;                                  // M751: Spincoater set home datum
+        case 752: M752(); break;                                  // M752: Spincoater encoder index search
+        case 753: M753(); break;                                  // M753: Spincoater UART diagnostic
+      #endif
+
       #if ENABLED(GCODE_MACROS)
         case 810: case 811: case 812: case 813: case 814:
         case 815: case 816: case 817: case 818: case 819:
