@@ -93,7 +93,7 @@ SERVO_DELAY              { 2000, 2000 }
 X_HOME_DIR / Y_HOME_DIR  -1          (home to min endstop)
 Z_HOME_DIR               -1          (home to Z_MIN endstop, pin 40)
 I_HOME_DIR                1          (home to I_MAX endstop, pin 15 — far end)
-J_HOME_DIR               -1          (home to J_MIN endstop, pin 17)
+J_HOME_DIR               -1          (home to J_MIN endstop, pin 23 — moved from 17 to free Serial2)
 Z_SAFE_HOMING            disabled    (Z homes first via HOME_Z_FIRST)
 HOME_Z_FIRST             enabled     (in Configuration_adv.h)
 Homing order             Z → Y → J → [gripper close] → X → I  (G28.cpp patched)
@@ -134,6 +134,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 8. **Axis name mapping:** G-code uses A/B for the I/J axes (set via AXIS4_NAME/AXIS5_NAME). Marlin restricts these names to A,B,C,U,V,W — 'I' and 'J' are not valid axis names. This affects ALL G-code commands: M201, M203, G28, G1, etc. must use A/B, not I/J.
 9. **Z endstop EMI history:** Pin 18 (Mega TX1) suffered severe false triggers from stepper EMI during homing. Noise threshold, 100nF cap on signal→GND, and external pullup resistor were insufficient. Moved to pin 40 (plain GPIO, no alternate function) using `Z_STOP_PIN` in pins file (not `Z_MIN_PIN`) because `pins_postprocess.h` can override `Z_MIN_PIN`. The `Z_STOP_PIN` approach lets postprocess derive `Z_MIN_PIN` automatically. Hardware: 100nF ceramic cap from pin 40 to GND recommended. Pin 18 is now free.
 10. **M400 before servos in G-code programs:** M280 (servo) executes immediately when parsed, not when the motion planner finishes preceding G1 moves. Always place `M400` before `M280` in G-code sequences to drain the planner queue first. G4 (dwell) alone is NOT a reliable substitute.
+11. **AVR Serial.println() sends `\r\n`, ODrive expects bare `\n`:** On AVR (Mega 2560), `Serial.println()` appends `\r\n` (0x0D 0x0A). The ODrive S1 ASCII protocol expects only `\n` as the command terminator — the stray `\r` makes commands fail with "unknown command." All ODrive UART writes in spincoater.cpp use `print()` + `write('\n')` instead of `println()`. The Nano RP2040 (mbed/ARM) `println()` sends only `\n`, which is why the standalone spincoater firmware worked without this issue.
 
 ## G-Code Reference for This Machine
 
@@ -175,6 +176,7 @@ M750 S5000 D30 A5 C1 H1   # spin cycle: 5000 RPM, 30s, 5s ramp-up, 1s ramp-down,
 M750                       # spin with defaults (S5000 D30 A5 C1 H1)
 M751                       # set current position as 0° home datum
 M752                       # encoder index search (preserves existing datum)
+M753                       # UART diagnostic — probes ODrive Serial2 link, reports raw response
 ```
 
 ### Motion Tuning (runtime, no rebuild needed)
@@ -393,6 +395,7 @@ M752    ; Encoder index search (does NOT reset home datum)
 #### Implementation Files
 - `Marlin/src/gcode/control/M750.cpp` — spin cycle handler
 - `Marlin/src/gcode/control/M751_M752.cpp` — datum set + index home handlers
+- `Marlin/src/gcode/control/M753.cpp` — UART diagnostic (probes ODrive Serial2 link)
 - `Marlin/src/feature/spincoater.h` — ODrive communication namespace declaration
 - `Marlin/src/feature/spincoater.cpp` — ODrive Serial2 raw ASCII communication layer
 - Modified: `pins_RAMPS_14_RMR.h` (J_MIN_PIN 17→23), `gcode.cpp`, `gcode.h`, `Configuration_adv.h` (SPINCOATER feature flag)
@@ -422,6 +425,7 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 | M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed |
 | M750.cpp | `Marlin/src/gcode/control/` | Spincoater spin cycle handler |
 | M751_M752.cpp | `Marlin/src/gcode/control/` | Spincoater datum set + index home |
+| M753.cpp | `Marlin/src/gcode/control/` | ODrive UART diagnostic (Serial2 probe) |
 | spincoater.h | `Marlin/src/feature/` | ODrive raw ASCII communication namespace |
 | spincoater.cpp | `Marlin/src/feature/` | ODrive Serial2 communication implementation |
 | gcode.cpp | `Marlin/src/gcode/` | M-code dispatch (M750/M751/M752 cases added) |
@@ -464,12 +468,14 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 
 ### Spincoater — Marlin/Mega Integration (see INTEGRATION_PLAN.md)
 - [x] ~~**Hardware:** Move J endstop from pin 17 to pin 23~~ — `J_MIN_PIN` updated in pins file
-- [x] ~~**Firmware:** SPINCOATER feature flag, spincoater.h/.cpp, M750/M751/M752~~ — all implemented
+- [x] ~~**Firmware:** SPINCOATER feature flag, spincoater.h/.cpp, M750/M751/M752/M753~~ — all implemented
 - [x] ~~**Dashboard:** Merge spincoater panel into RMR_Controller.html~~ — RPM gauge, dial, stats, params all integrated
-- [ ] **Hardware:** Wire Serial2 (pins 16/17) to ODrive J11 (physically connect the wires)
-- [ ] **Test:** Flash updated Marlin, verify `G28 B` with J endstop on pin 23
-- [ ] **Test:** Verify `M119` shows J endstop correctly on new pin
-- [ ] **Test:** `M750 S3000 D10 A5 C1 H1` — first integrated spin cycle
+- [x] ~~**Hardware:** Wire Serial2 (pins 16/17) to ODrive J11~~ — TX2→J11 pin 4, RX2→J11 pin 3, GND, 5V
+- [x] ~~**Test:** Flash updated Marlin, verify `G28 B` with J endstop on pin 23~~ — pass
+- [x] ~~**Test:** Verify `M119` shows J endstop correctly on new pin~~ — pass
+- [x] ~~**Test:** M753 UART diagnostic~~ — ODrive responds with Vbus voltage (24.07V), 11 bytes in 4ms
+- [x] ~~**Test:** `M750 S3000 D10 A5 C1 H1` — first integrated spin cycle~~ — pass
+- [x] ~~**Debug:** AVR `println()` sends `\r\n`, ODrive expects bare `\n`~~ — fixed with `print()` + `write('\n')`
 - [ ] **Test:** M751 (set home) and M752 (index home) standalone
 - [ ] **Test:** Verify M112 E-stop works during M750 spin (via idle() processing)
 - [ ] **Test:** Dashboard spincoater panel telemetry display
