@@ -105,6 +105,14 @@ void GcodeSuite::M42() {
   #endif
   extDigitalWrite(pin, pin_status);
 
+  // For pure digital-high / digital-low writes, skip the PWM path entirely.
+  // On AVR, hal.set_pwm_duty() maps to analogWrite(), which hijacks the hardware
+  // timer compare unit for the pin. That fights other timer users (e.g. Timer1
+  // is Marlin's stepper ISR, Timer0 is millis()) and leaves pin state undefined
+  // after the first S1/S0 sequence. STM32 already had this guard; extend it to
+  // all architectures so M42 S0/S1 is always a clean digitalWrite.
+  if (pin_status <= 1) return;
+
   #ifdef ARDUINO_ARCH_STM32
     // A simple I/O will be set to 0 by hal.set_pwm_duty()
     if (pin_status <= 1 && !PWM_PIN(pin)) return;
