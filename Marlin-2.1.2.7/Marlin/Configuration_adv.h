@@ -4255,8 +4255,20 @@
 
 //
 // M42 - Set pin states
+// Enabled for relay control: D4 = UV lamp, D42 = solenoid valve
+// (ACTIVE-LOW via Bestep JQC3F-03VDC-C relay module on 3.3V buck rail)
+// i.e. M42 Pxx S0 = relay ENERGIZED, M42 Pxx S1 = relay OFF.
+// The opto LED cathode ties to the IN pin, so pulling IN to GND lights
+// the opto and drives the coil transistor. Boot-time floating inputs
+// read HIGH (via the module's internal pullup) = safe de-energized state.
+// NOTE: D42 chosen over D11 because D11 = OC1A collides with Marlin's
+// stepper ISR (Timer1). D42 = PL7, pure GPIO on the Mega, no timer unit,
+// not claimed by any stock RAMPS function (AUX2_08 header pin).
+// D4 = OC0B (Timer0) is tolerable because M42.cpp has been patched to
+// skip set_pwm_duty on S<=1 (see comment in src/gcode/control/M42.cpp)
+// so digital-only writes never touch the PWM path on any architecture.
 //
-//#define DIRECT_PIN_CONTROL
+#define DIRECT_PIN_CONTROL
 
 //
 // M43 - display pin status, toggle pins, watch pins, watch endstops & toggle LED, test servo probe
