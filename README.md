@@ -32,7 +32,7 @@ Robot-MakingRobot/
 │   └── INTEGRATION_PLAN.md         # Integration design rationale
 ├── RMR_Controller.html           # Unified Web Serial controller (gantry + spincoater)
 ├── SpincoaterPinMap.jfif         # ODrive S1 J11 connector pinout reference image
-├── Configurations.txt            # Quick-reference pin map and steps/mm notes
+├── PIN_MAP.md                    # Consolidated pin map + wiring reference (authoritative bench doc)
 ├── claude.md                     # Detailed firmware architecture & project docs
 └── README.md                     # This file
 ```
