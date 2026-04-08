@@ -4,7 +4,7 @@ This project used **Claude** (Anthropic) as a development tool. This document de
 
 ## What Claude Was Used For
 
-- **Documentation** — README.md, claude.md (project reference), and Configurations.txt were drafted and/or edited with Claude's assistance.
+- **Documentation** — README.md, claude.md (project reference), and PIN_MAP.md (wiring reference) were drafted and/or edited with Claude's assistance.
 - **Firmware configuration** — Configuration.h values (steps/mm, feedrates, acceleration) were reviewed and updated in collaboration with Claude. Claude did not generate the hardware design or wiring; it translated known hardware parameters into Marlin configuration values.
 - **Custom pin mapping** — pins_RAMPS_14_RMR.h conflict resolution and pin assignments were developed with Claude's assistance.
 - **Web controller UI** — RMR_Controller.html was generated with Claude.

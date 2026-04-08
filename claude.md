@@ -447,6 +447,7 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 | gcode.cpp | `Marlin/src/gcode/` | M-code dispatch (M750/M751/M752 cases added) |
 | gcode.h | `Marlin/src/gcode/` | M-code declarations (M750/M751/M752 added) |
 | SanityCheck.h | `Marlin/src/inc/` | Patched — DEACTIVATE_SERVOS_AFTER_MOVE check bypassed |
+| PIN_MAP.md | repo root | Consolidated pin map + wiring reference (authoritative bench doc) |
 | RMR_Controller.html | repo root | Unified Web Serial controller (gantry + spincoater) |
 | DemoProgram.gcode | repo root | Demo pick-and-place cycle |
 | SpincoaterStage/platformio.ini | `SpincoaterStage/` | PlatformIO config for Nano RP2040 Connect (benchtop test) |
