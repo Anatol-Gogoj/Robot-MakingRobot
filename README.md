@@ -46,7 +46,7 @@ The gantry has three Cartesian axes (X, Y, Z) plus three auxiliary linear actuat
 | Marlin Axis | G-Code | Function       | Drive           | Steps/mm |
 |-------------|--------|----------------|-----------------|----------|
 | X           | X      | Gantry X       | GT2-14 belt     | 57.14    |
-| Y + Y2      | Y      | Gantry Y       | GT2-14 belt (2 motors, 1 driver) | 57.14 |
+| Y + Y2      | Y      | Gantry Y       | GT2-14 belt (2 motors, 2 drivers, firmware-synchronized via `Y2_DRIVER_TYPE`) | 57.14 |
 | Z           | Z      | Gantry Z       | 5 mm lead screw | 320      |
 | I           | A      | Filter Feed    | 5 mm lead screw | 320      |
 | E0          | E      | Syringe        | 1 mm lead screw | 1600     |
