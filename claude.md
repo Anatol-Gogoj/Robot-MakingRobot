@@ -16,8 +16,8 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 | Marlin Axis | G-Code Letter | Function | PUL Pin | DIR Pin | ENA Pin | Steps/mm | Notes |
 |---|---|---|---|---|---|---|---|
 | X | X | Gantry X | A0 (54) | A1 (55) | 38 | 57.14 | GT2-14 pulley (28 mm/rev), 1600 steps/rev (1/8 µstep) |
-| Y | Y | Gantry Y | A6 (60) | A7 (61) | A2 (56) | 57.14 | GT2-14 pulley, 1 driver controls 2 parallel motors |
-| Y2 | — | Gantry Y clone | 36 | 34 | 30 | (follows Y) | Second Y motor, same driver signal via Y2_DRIVER_TYPE |
+| Y | Y | Gantry Y1 | A6 (60) | A7 (61) | A2 (56) | 57.14 | GT2-14 pulley — drives the first Y motor via its own DM556T |
+| Y2 | — | Gantry Y2 | 36 | 34 | 30 | (follows Y) | Second Y motor on its own DM556T; `Y2_DRIVER_TYPE` makes Marlin pulse this pin set in lockstep with Y |
 | Z | Z | Gantry Z | 46 | 48 | A8 (62) | 320 | 5 mm/rev lead screw, 1600 steps/rev (1/8 µstep) |
 | I | A | Filter Feed | 2 | 9 | 12 | 320 | 5 mm/rev lead screw — homeable linear axis (AXIS4_NAME='A') |
 | E0 | E | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw — sole extruder |
@@ -58,7 +58,7 @@ Two opto-isolated relay modules (Bestep JQC3F-03VDC-C) control the UV cure lamp 
 **Why pin 42 and not pin 11 or pin 28:** pin 11 = OC1A collides with Marlin's stepper ISR (Timer1); `analogWrite(11, ...)` fights the stepper timer continuously. Pin 28 is `E0_DIR_PIN` and is actively driven by the stepper subsystem on every syringe move. Pin 42 (PL7) has no hardware timer compare unit and no stepper/endstop/servo claim. See gotcha #12 for the underlying M42.cpp bug that caused the initial pin-11 failure and the patch that fixes it.
 
 ### Dual-Y Configuration
-The two Y-axis motors are physically spliced to a single DM556T driver. In Marlin, `Y2_DRIVER_TYPE` is defined so Marlin sends step signals to both the Y and Y2 pin sets, but since they share a physical driver this is redundant (both pin sets pulse the same driver). Auto-squaring (`Y_DUAL_ENDSTOPS`) is NOT possible with this wiring — it requires independent drivers per motor.
+The two Y-axis motors are each on their own DM556T driver, with independent PUL/DIR/ENA signal sets coming from the Mega. Pin set Y (A6/A7/A2) drives the first Y motor and pin set Y2 (36/34/30) drives the second. `Y2_DRIVER_TYPE` is defined in `Configuration.h`, which is what tells Marlin to pulse both pin sets in lockstep so the motors stay synchronized — the synchronization happens in firmware, not by splicing the Mega outputs together externally. Because each motor has its own driver, auto-squaring (`Y_DUAL_ENDSTOPS`) is possible in principle, but only if a second Y endstop is added (currently only pin 14 / Y_MIN is populated).
 
 ## Firmware Architecture
 
