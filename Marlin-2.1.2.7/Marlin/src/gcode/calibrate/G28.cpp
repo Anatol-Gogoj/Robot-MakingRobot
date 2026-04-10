@@ -411,6 +411,12 @@ void GcodeSuite::G28() {
       #endif
     #endif
 
+    // RMR: Open lid (servo 1 → 30°) as the very first homing action
+    #if HAS_SERVOS && NUM_SERVOS > 1
+      servo[1].move(30);
+      safe_delay(300);  // Wait for lid to open before any axis motion
+    #endif
+
     // Z may home first, e.g., when homing away from the bed
     TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
 
@@ -440,9 +446,9 @@ void GcodeSuite::G28() {
     TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
 
     // ============================================================
-    //  RMR custom homing order: Z, Y, J(Syr.Ht), X, I(FiltFeed)
-    //  Z is handled above by HOME_Z_FIRST.
-    //  Below we do: Y → J → X → I
+    //  RMR custom homing order: lid open, Z, Y, J(Syr.Ht), X, I(FiltFeed)
+    //  Lid open (servo 1 → 30°) and Z are handled above.
+    //  Below we do: Y → J → gripper close → X → I
     // ============================================================
 
     #if HAS_Y_AXIS

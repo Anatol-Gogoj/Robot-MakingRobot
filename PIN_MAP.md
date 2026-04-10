@@ -27,8 +27,8 @@ Pin columns show the Mega GPIO number in decimal. For analog pins, the `Ax` alia
 | X           | X             | Gantry X        | DM556T #1  | A0 (54)   | A1 (55)   | 38        | 57.14    | 770         | GT2-14 pulley (28 mm/rev) |
 | Y           | Y             | Gantry Y1       | DM556T #2a | A6 (60)   | A7 (61)   | A2 (56)   | 57.14    | 150         | GT2-14 pulley. Drives the first Y motor. |
 | Y2          | —             | Gantry Y2       | DM556T #2b | 36        | 34        | 30        | (follows Y) | —        | Second Y motor on its **own** DM556T driver with its own PUL/DIR/ENA signal set. `Y2_DRIVER_TYPE` is defined in `Configuration.h` so Marlin pulses this pin set in lockstep with the Y pin set — step/direction signals are synchronized by the firmware, not by a splicing the Mega outputs together. Auto-squaring (`Y_DUAL_ENDSTOPS`) is possible in principle since each motor has an independent driver, but it would require adding a second Y endstop (currently only pin 14 / Y_MIN is populated). |
-| Z           | Z             | Gantry Z        | DM556T #3  | 46        | 48        | A8 (62)   | 320      | 250         | 5 mm/rev lead screw. `INVERT_Z_DIR true`. |
-| I           | A             | Filter Feed     | DM556T #4  | 2         | 9         | 12        | 320      | 347         | 5 mm/rev lead screw. `AXIS4_NAME='A'`. Homes to MAX. `INVERT_I_DIR true`. |
+| Z           | Z             | Gantry Z        | DM556T #3  | 46        | 48        | A8 (62)   | 320      | 186         | 5 mm/rev lead screw. `INVERT_Z_DIR true`. |
+| I           | A             | Filter Feed     | DM556T #4  | 2         | 9         | 12        | 320      | 343         | 5 mm/rev lead screw. `AXIS4_NAME='A'`. Homes to MAX. `INVERT_I_DIR true`. |
 | J           | B             | Syringe Height  | DM556T #5  | 21        | 22        | 31        | 320      | 304         | 5 mm/rev lead screw. `AXIS5_NAME='B'`. `INVERT_J_DIR true`. |
 | E0          | E             | Syringe (sole extruder) | DM556T #6 | 13 | 19        | 20        | 1600     | —           | 1 mm/rev lead screw. `EXTRUDERS 1`, `EXTRUDE_MINTEMP 0` (cold extrusion allowed). |
 
@@ -49,7 +49,7 @@ All endstops are NO (normally-open), wired **COM → Mega GND, NO → signal pin
 | J    | B      | 23  | `J_MIN_PIN`     | MIN (-1)       | **Moved from pin 17 (TX2) to free Serial2 for ODrive.** |
 | E0   | E      | —   | —               | (no endstop)   | Syringe has no endstop. |
 
-Homing order (`G28`, via patched `G28.cpp`): **Z → Y → J → gripper close (M280 P0 S90) → X → I**. `HOME_Z_FIRST` enabled, `Z_SAFE_HOMING` disabled.
+Homing order (`G28`, via patched `G28.cpp`): **lid open (servo 1 → 30°) → Z → Y → J → gripper close (servo 0 → 90°) → X → I**. `HOME_Z_FIRST` enabled, `Z_SAFE_HOMING` disabled.
 
 ---
 

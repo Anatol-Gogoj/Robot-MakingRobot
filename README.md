@@ -47,7 +47,7 @@ The gantry has three Cartesian axes (X, Y, Z) plus three auxiliary linear actuat
 |-------------|--------|----------------|-----------------|----------|
 | X           | X      | Gantry X       | GT2-14 belt     | 57.14    |
 | Y + Y2      | Y      | Gantry Y       | GT2-14 belt (2 motors, 2 drivers, firmware-synchronized via `Y2_DRIVER_TYPE`) | 57.14 |
-| Z           | Z      | Gantry Z       | 5 mm lead screw | 320      |
+| Z           | Z      | Gantry Z       | 5 mm lead screw | 320 |
 | I           | A      | Filter Feed    | 5 mm lead screw | 320      |
 | E0          | E      | Syringe        | 1 mm lead screw | 1600     |
 | J           | B      | Syringe Height | 5 mm lead screw | 320      |
@@ -61,7 +61,7 @@ Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_r
 | Max feedrate (mm/s) | 400 | 333 | 50 | 33 | 50 | 8 |
 | Max feedrate (mm/min) | 24000 | 20000 | 3000 | 2000 | 3000 | 500 |
 | Max acceleration (mm/s²) | 500 | 200 | 100 | 150 | 50 | 500 |
-| Travel limit (mm) | 770 | 150 | 250 | 347 | 304 | — |
+| Travel limit (mm) | 770 | 150 | 186 | 343 | 304 | — |
 
 ### End Effectors and Peripherals
 
@@ -117,7 +117,7 @@ Several stock RAMPS pins are reassigned to free GPIOs for the auxiliary motors (
 - All temperature sensors disabled (`TEMP_SENSOR_* 0`) — no heaters on this machine
 - `EXTRUDE_MINTEMP 0` — allows extruder moves without temperature checks
 - `INVERT_Z_DIR`, `INVERT_I_DIR`, `INVERT_J_DIR` all `true` — verified by physical testing
-- Custom homing order: Z → Y → J(Syr.Ht) → gripper close (90°) → X → I(Filter Feed)
+- Custom homing order: lid open (30°) → Z → Y → J(Syr.Ht) → gripper close (90°) → X → I(Filter Feed)
 - `DEACTIVATE_SERVOS_AFTER_MOVE` with 2-second hold — prevents servo jitter
 
 ## Spin Coater Subsystem
@@ -170,7 +170,7 @@ Connect via the included `RMR_Controller.html` web UI (Chrome/Edge, Web Serial A
 ### Startup Sequence
 
 ```gcode
-G28              ; home all axes (Z → Y → J → X → I) — safe, all have endstops
+G28              ; home all axes (lid open → Z → Y → J → X → I) — safe, all have endstops
 G92 E0           ; reset syringe position
 ```
 

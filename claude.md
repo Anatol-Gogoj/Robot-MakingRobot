@@ -105,7 +105,7 @@ I_HOME_DIR                1          (home to I_MAX endstop, pin 15 — far end)
 J_HOME_DIR               -1          (home to J_MIN endstop, pin 23 — moved from 17 to free Serial2)
 Z_SAFE_HOMING            disabled    (Z homes first via HOME_Z_FIRST)
 HOME_Z_FIRST             enabled     (in Configuration_adv.h)
-Homing order             Z → Y → J → [gripper close] → X → I  (G28.cpp patched)
+Homing order             [lid open] → Z → Y → J → [gripper close] → X → I  (G28.cpp patched)
 INVERT_Z_DIR             true        (verified by physical test)
 INVERT_I_DIR             true        (verified by physical test)
 INVERT_J_DIR             true        (verified by physical test)
@@ -117,7 +117,7 @@ Max Feedrate (mm/s):     X=400  Y=333  Z=50  I(A)=33  J(B)=50  E=8
   (mm/min equivalents):  X=24000 Y=20000 Z=3000 A=2000 B=3000 E=500
 Max Acceleration (mm/s²): X=500  Y=200  Z=100  I(A)=150  J(B)=50  E=500
 Steps/mm:                X=57.14 Y=57.14 Z=320 I=320 J=320 E=1600
-Travel limits (mm):      X=770  Y=150  Z=250  I=347  J=304
+Travel limits (mm):      X=770  Y=150  Z=186  I=343  J=304
 Homing feedrates (mm/s): X=50  Y=50  Z=15  I(A)=25  J(B)=25
 Homing bump (mm):        X=5   Y=5   Z=10  I=2     J=2
 Homing bump divisor:     X=2   Y=2   Z=4   I=4     J=4
@@ -135,7 +135,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 
 ### Critical Gotchas
 1. **Cold extrusion:** `EXTRUDE_MINTEMP` is set to 0, so E-axis moves work without temperature checks. `M302 S0` is **not compiled in** (returns "Unknown command") and is not needed.
-2. **Custom homing order (G28.cpp patched):** A bare `G28` homes in order: Z → Y → J(Syr.Ht) → [gripper servo closes to 90°] → X → I(Filter Feed). HOME_Z_FIRST is enabled, Z_SAFE_HOMING is disabled.
+2. **Custom homing order (G28.cpp patched):** A bare `G28` homes in order: [lid servo opens to 30°] → Z → Y → J(Syr.Ht) → [gripper servo closes to 90°] → X → I(Filter Feed). HOME_Z_FIRST is enabled, Z_SAFE_HOMING is disabled.
 3. **Gripper closes before X homing:** Servo 0 is commanded to 90° with a 300ms delay before X homing begins, to prevent the gripper from colliding with the frame.
 4. **Filter Feed homes to MAX:** I_HOME_DIR=1, endstop is on the far end (I_MAX, pin 15). All other axes home to MIN.
 5. **Servo jitter prevention:** `DEACTIVATE_SERVOS_AFTER_MOVE` cuts PWM signal 2 seconds after `M280` command. Servo goes limp after that — fine if grip is mechanically self-holding. SanityCheck.h patched to allow this without a Z probe defined.
