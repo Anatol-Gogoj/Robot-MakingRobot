@@ -4,7 +4,7 @@
 
 **Authoritative source:** `Marlin-2.1.2.7/Marlin/src/pins/ramps/pins_RAMPS_14_RMR.h` (plus inherited assignments from stock `pins_RAMPS.h`). This document consolidates and mirrors those headers for bench/wiring use. If the two disagree, the `.h` file wins — update this document.
 
-**Last updated:** 2026-04-08 (UV relay D4, solenoid relay D42, M42 timer-hijack patch)
+**Last updated:** 2026-04-10 (lid servo pin 6 enabled)
 
 ---
 
@@ -12,7 +12,7 @@
 
 - 6 stepper drivers (DM556T externals): X, Y (1 driver / 2 motors), Z, Filter Feed (I), Syringe Height (J), Syringe (E0)
 - 5 homing endstops: X, Y, Z, I, J (E0 has no endstop)
-- 2 servos: gripper (connected), lid (placeholder, not wired)
+- 2 servos: gripper (pin 5), lid (pin 6)
 - 2 opto-isolated relays: UV lamp, solenoid valve (Bestep JQC3F-03VDC-C, active-low, 3.3 V buck rail)
 - 1 spincoater: ODrive S1 on Serial2 (115200 baud raw ASCII)
 
@@ -58,7 +58,7 @@ Homing order (`G28`, via patched `G28.cpp`): **Z → Y → J → gripper close (
 | Servo | Slot     | Pin | Command         | Range                                 | Notes |
 |-------|----------|-----|-----------------|---------------------------------------|-------|
 | 0     | Gripper  | 5   | `M280 P0 S<angle>` | 90° closed, 170° open (soft limits in HTML; firmware clamp removed) | Remapped from stock RAMPS SERVO2 slot to SERVO0 index. `M280.cpp` patched to allow full 0–180° via override textbox. |
-| 1     | Lid      | 6   | `M280 P1 S<angle>` | TBD                                   | **Placeholder** — not physically wired. Stock RAMPS SERVO1 slot. Uncomment `SERVO1_PIN` in pins file when wired. |
+| 1     | Lid      | 6   | `M280 P1 S<angle>` | 0–180° (no soft limits)               | Stock RAMPS SERVO1 slot. Full 0–180° range; no firmware clamp. |
 
 `NUM_SERVOS 2`, `DEACTIVATE_SERVOS_AFTER_MOVE` enabled with 2-second hold (`SERVO_DELAY { 2000, 2000 }`) to prevent PWM jitter. Servo goes limp 2 s after each `M280` — gripper must be mechanically self-holding.
 
