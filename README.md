@@ -66,7 +66,7 @@ Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_r
 ### End Effectors and Peripherals
 
 - **Gripper servo** — GPIO 5, `M280 P0 S<angle>`, range 90° (closed) to 170° (open)
-- **Lid servo** — GPIO TBD (placeholder pin 6), `M280 P1 S<angle>`
+- **Lid servo** — GPIO 6, `M280 P1 S<angle>`, 0–180° range
 - **UV lamp relay** — GPIO 4, active-low, `M42 P4 S0` = ON / `M42 P4 S1` = OFF
 - **Solenoid valve relay** — GPIO 42, active-low, `M42 P42 S0` = ON / `M42 P42 S1` = OFF
 

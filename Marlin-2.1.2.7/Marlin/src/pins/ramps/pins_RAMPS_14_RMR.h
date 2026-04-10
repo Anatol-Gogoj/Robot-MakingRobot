@@ -154,9 +154,9 @@
 #undef  SERVO0_PIN
 #define SERVO0_PIN      5    // M280 P0 S<angle>
 
-// Lid on GPIO 6 (standard RAMPS SERVO1 slot — uncomment when wired)
-// #undef  SERVO1_PIN
-// #define SERVO1_PIN   6    // M280 P1 S<angle>
+// Lid on GPIO 6 (standard RAMPS SERVO1 slot)
+#undef  SERVO1_PIN
+#define SERVO1_PIN   6    // M280 P1 S<angle>
 
 // ==========================================================
 //  Relay outputs (M42 DIRECT_PIN_CONTROL, ACTIVE-LOW)

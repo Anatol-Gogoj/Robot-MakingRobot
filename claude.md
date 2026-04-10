@@ -41,7 +41,7 @@ Switch type: normally-open, wired common→GND, NO→signal pin. Internal pullup
 
 ### Servos
 - Servo 0 (gripper): GPIO 5 — `M280 P0 S<angle>`, soft limits 90°–170° in HTML slider, full 0–180° via override textbox
-- Servo 1 (lid): GPIO TBD (placeholder pin 6) — `M280 P1 S<angle>`
+- Servo 1 (lid): GPIO 6 — `M280 P1 S<angle>`, full 0–180° range, no firmware clamp
 - `DEACTIVATE_SERVOS_AFTER_MOVE` enabled — PWM signal cuts after 2 seconds to prevent jitter
 - `SERVO_DELAY { 2000, 2000 }` — hold time before deactivation
 
@@ -461,7 +461,7 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 
 ### Gantry / Marlin
 - [ ] Confirm DIP switch settings on ALL DM556T drivers (verify 1600 steps/rev = 1/8 µstep on all drivers)
-- [ ] Wire and assign lid servo GPIO (currently TBD, placeholder pin 6)
+- [x] ~~Wire and assign lid servo GPIO~~ (pin 6, SERVO1_PIN enabled, 0–180° no clamp)
 - [x] ~~Choose and wire solenoid valve pin~~ (pin 42, Bestep active-low relay on 3.3V buck rail)
 - [x] ~~Wire UV lamp relay~~ (pin 4, Bestep active-low relay on 3.3V buck rail)
 - [x] ~~Enable DIRECT_PIN_CONTROL for M42~~ (Configuration_adv.h, plus M42.cpp patch for timer-hijack bug)

@@ -544,6 +544,11 @@
              oninput="document.getElementById('servo1Val').textContent=this.value+'°'">
       <span class="val" id="servo1Val">90°</span>
       <button class="toggle-btn" onclick="setServo(1)">Set</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo1').value=0;document.getElementById('servo1Val').textContent='0°';setServo(1)">0°</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo1').value=90;document.getElementById('servo1Val').textContent='90°';setServo(1)">90°</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo1').value=180;document.getElementById('servo1Val').textContent='180°';setServo(1)">180°</button>
+      <input type="number" id="servo1Override" min="0" max="180" value="" placeholder="0-180" style="width:55px;margin-left:8px">
+      <button class="toggle-btn" onclick="let v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Override</button>
     </div>
 
     <h2 style="margin-top:14px">Solenoid</h2>
