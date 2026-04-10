@@ -1738,9 +1738,9 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
-#define Z_MAX_POS 250    // Measured travel limit
+#define Z_MAX_POS 186    // Measured travel limit
 #define I_MIN_POS 0
-#define I_MAX_POS 347    // Filter Feed measured travel limit (mm)
+#define I_MAX_POS 343    // Filter Feed measured travel limit (mm)
 #define J_MIN_POS 0
 #define J_MAX_POS 304    // Syringe Height measured travel limit (mm)
 //#define K_MIN_POS 0
