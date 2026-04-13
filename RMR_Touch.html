@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RMR Touch Controller</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #e94560;
+    --text: #eee;
+    --text-dim: #888;
+    --green: #4ecca3;
+    --yellow: #f0c040;
+    --red: #e94560;
+    --blue: #6ec6ff;
+    --border: #2a2a4a;
+    --touch-min: 48px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; touch-action: manipulation; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 20px; font-weight: 700; white-space: nowrap; }
+  header h1 span { color: var(--accent); }
+  .hdr-btns { display: flex; align-items: center; gap: 6px; }
+  .hdr-btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 16px; font-weight: 600;
+    cursor: pointer; min-height: var(--touch-min);
+  }
+  .hdr-btn:active { opacity: 0.7; }
+  .hdr-btn.connected { background: var(--green); color: #000; }
+  .estop {
+    background: var(--red) !important; color: #fff !important;
+    font-weight: 800; font-size: 18px !important; border: 2px solid #ff2040 !important;
+    padding: 10px 22px; animation: pulse-red 2s infinite;
+  }
+  @keyframes pulse-red {
+    0%,100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
+  }
+  .status-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--red); display: inline-block;
+  }
+  .status-dot.connected { background: var(--green); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 4px; border: none; background: none;
+    color: var(--text-dim); font-size: 16px; font-weight: 700;
+    cursor: pointer; border-bottom: 3px solid transparent;
+    min-height: var(--touch-min); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:active { background: rgba(233,69,96,0.1); }
+
+  /* ── Main Scroll Area ── */
+  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .tab-page { display: none; padding: 10px; }
+  .tab-page.active { display: block; }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; margin-bottom: 10px;
+  }
+  .panel h2 {
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 8px;
+    border-bottom: 1px solid var(--border); padding-bottom: 4px;
+  }
+
+  /* ── 3-Column Jog Layout ── */
+  .jog-3col {
+    display: grid; grid-template-columns: 1.3fr 0.6fr 1.1fr;
+    gap: 8px; margin-bottom: 6px;
+    height: clamp(280px, calc(100vh - 280px), 560px);
+  }
+  .jog-col { margin-bottom: 0; padding: 10px; overflow: hidden; }
+
+  /* ── Touch Jog Buttons ── */
+  .jog-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr); gap: 6px;
+    width: 100%; height: 100%;
+  }
+  .jog-btn {
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 36px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    user-select: none; min-height: 54px;
+  }
+  .jog-btn:active { background: var(--accent); transform: scale(0.95); }
+  .jog-btn.home-btn { font-size: 18px; font-weight: 800; letter-spacing: 1px; }
+  .jog-vert { width: 100%; flex: 1; min-height: 54px; font-size: 36px; }
+  .jog-vert.home-btn { font-size: 18px; }
+  .jog-sm { flex: 1; min-height: 48px; min-width: 56px; font-size: 30px; }
+  .jog-sm.home-btn { font-size: 16px; }
+
+  /* ── Position Chips ── */
+  .pos-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px;
+  }
+  .pos-lbl { font-size: 14px; color: var(--text-dim); font-weight: 700; }
+  .pos-chip .axis-val { font-size: 20px; font-weight: 700; font-family: 'Consolas', monospace; }
+
+  /* ── Compact Aux Rows ── */
+  .aux-compact {
+    display: flex; align-items: center; gap: 6px; flex: 1;
+  }
+  .aux-lbl { font-size: 20px; font-weight: 800; min-width: 24px; text-align: center; color: var(--text-dim); }
+
+  /* ── Step Selector ── */
+  .step-selector { display: flex; gap: 6px; margin: 8px 0; justify-content: center; }
+  .step-btn {
+    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 18px; font-weight: 700;
+    cursor: pointer; min-height: 52px; min-width: 58px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); }
+  .step-btn:active { opacity: 0.7; }
+
+  /* ── Quick Command Buttons ── */
+  .quick-btn {
+    padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 16px; font-weight: 700;
+    cursor: pointer; min-height: 48px;
+  }
+  .quick-btn:active { background: var(--accent); }
+
+  /* ── Feed Slider ── */
+  .feed-control {
+    display: flex; align-items: center; gap: 8px; margin: 8px 0;
+  }
+  .feed-control label { font-size: 16px; color: var(--text-dim); min-width: 35px; font-weight: 600; }
+  .feed-control input[type=range] { flex: 1; height: 36px; }
+  .feed-control .feed-val { font-size: 16px; min-width: 90px; text-align: right; font-weight: 600; }
+
+
+  /* ── Servo Row ── */
+  .servo-row {
+    display: flex; align-items: center; gap: 6px; margin: 8px 0; flex-wrap: wrap;
+  }
+  .servo-row label { font-size: 13px; min-width: 80px; font-weight: 600; }
+  .servo-row input[type=range] { flex: 1; min-width: 100px; height: 28px; }
+  .servo-row .val { font-size: 13px; min-width: 40px; text-align: right; }
+  .touch-btn {
+    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 16px; font-weight: 700;
+    cursor: pointer; min-height: 48px;
+  }
+  .touch-btn:active { background: var(--accent); }
+  .touch-btn.on { background: var(--green); color: #000; }
+
+
+  /* ── Spincoater ── */
+  .spin-telem-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 10px; }
+  .rpm-gauge {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; text-align: center;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .rpm-gauge .gauge-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .rpm-gauge .gauge-value { font-size: 36px; font-weight: 800; font-family: 'Consolas', monospace; color: var(--green); }
+  .rpm-gauge .gauge-unit { font-size: 11px; color: var(--text-dim); }
+  .rpm-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--green); transition: width 0.2s; }
+  .gauge-stale .gauge-value { color: var(--text-dim) !important; }
+
+  .dial-container {
+    width: 120px; min-width: 120px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .dial-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .dial-svg { width: 90px; height: 90px; }
+  .dial-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .dial-needle { stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+  .dial-center { fill: var(--accent); }
+  .dial-deg { font-size: 15px; font-weight: 700; font-family: 'Consolas', monospace; color: var(--blue); }
+  .dial-deg-unit { font-size: 10px; color: var(--text-dim); }
+
+  .spin-param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .spin-param-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+  .spin-param-item.full { grid-column: 1 / -1; }
+  .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 3px; }
+  .spin-param-item input[type="number"] {
+    width: 100%; padding: 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 18px; font-weight: 600; font-family: 'Consolas', monospace;
+    min-height: var(--touch-min);
+  }
+  .spin-param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .spin-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+  .spin-toggle-label { font-size: 13px; }
+  .spin-toggle { position: relative; width: 50px; height: 28px; cursor: pointer; }
+  .spin-toggle input { display: none; }
+  .spin-toggle .slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 14px; transition: background 0.2s;
+  }
+  .spin-toggle .slider::after {
+    content: ''; position: absolute; width: 22px; height: 22px;
+    left: 3px; top: 3px; background: var(--text);
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .spin-toggle input:checked + .slider { background: var(--green); }
+  .spin-toggle input:checked + .slider::after { transform: translateX(22px); }
+
+  .spin-action-row { display: flex; gap: 6px; margin-top: 8px; }
+  .spin-big-btn {
+    flex: 1; padding: 14px 8px; font-size: 14px; font-weight: 700;
+    border: 2px solid var(--green); border-radius: 10px;
+    background: transparent; color: var(--green); cursor: pointer;
+    text-transform: uppercase; letter-spacing: 2px;
+    min-height: 54px;
+  }
+  .spin-big-btn:active:not(:disabled) { background: var(--green); color: #000; }
+  .spin-big-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .spin-big-btn.stop { border-color: var(--red); color: var(--red); flex: 0 0 auto; padding-left: 16px; padding-right: 16px; }
+  .spin-big-btn.stop:active:not(:disabled) { background: var(--red); color: #fff; }
+  .spin-big-btn.home-btn { border-color: var(--yellow); color: var(--yellow); }
+  .spin-big-btn.home-btn:active:not(:disabled) { background: var(--yellow); color: #000; }
+  .spin-big-btn.index-btn { border-color: var(--blue); color: var(--blue); }
+  .spin-big-btn.index-btn:active:not(:disabled) { background: var(--blue); color: #000; }
+
+  .spin-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .spin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .spin-stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .spin-stat-card .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .spin-stat-card .unit { font-size: 10px; color: var(--text-dim); }
+
+  .spin-phase-bar { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .spin-phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+  .spin-phase-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .spin-phase-dot.warn { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .spin-phase-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .spin-phase-label { font-size: 13px; font-weight: 600; }
+
+  /* ── Console ── */
+  #console {
+    background: #0a0a1a; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px; font-family: 'Consolas', monospace; font-size: 12px;
+    overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+    height: 200px;
+  }
+  #console .tx { color: var(--yellow); }
+  #console .rx { color: var(--green); }
+  #console .err { color: var(--red); }
+  #console .info { color: var(--text-dim); }
+  .cmd-bar { display: flex; gap: 6px; margin-top: 6px; }
+  .cmd-bar input {
+    flex: 1; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-family: 'Consolas', monospace; font-size: 14px;
+    min-height: var(--touch-min);
+  }
+  .cmd-bar input:focus { outline: none; border-color: var(--accent); }
+  .cmd-bar button {
+    padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--accent); color: #fff; font-size: 14px; cursor: pointer;
+    min-height: var(--touch-min);
+  }
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  /* ── Program Runner ── */
+  #progTextarea {
+    width: 100%; font-family: 'Fira Mono','Consolas', monospace; font-size: 12px;
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px; resize: vertical; min-height: 120px;
+  }
+  .prog-btns { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+  .prog-btns .touch-btn { min-width: 70px; text-align: center; }
+  .prog-btns .run-btn { background: #2d8a4e; }
+  .prog-btns .stop-btn { background: #c0392b; }
+
+  .setting-row {
+    display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .setting-row label { min-width: 100px; color: var(--text-dim); }
+  .setting-row input[type=number] {
+    width: 80px; padding: 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 14px; text-align: center;
+    min-height: var(--touch-min);
+  }
+  .settings-drawer .touch-btn { min-height: var(--touch-min); }
+  .close-settings {
+    background: none; border: none; color: var(--text-dim);
+    font-size: 24px; cursor: pointer; padding: 4px;
+  }
+
+  /* ── Accel tuning in settings ── */
+  .accel-row {
+    display: flex; align-items: center; gap: 6px; margin: 6px 0;
+  }
+  .accel-row label { font-size: 13px; min-width: 90px; color: var(--text-dim); }
+  .accel-row input[type=range] { flex: 1; height: 28px; }
+  .accel-row .accel-val { font-size: 13px; min-width: 50px; text-align: right; }
+  .accel-row .touch-btn { font-size: 12px; padding: 6px 10px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <h1><span>RMR</span> Touch</h1>
+  <div class="hdr-btns">
+    <span class="status-dot" id="statusDot"></span>
+    <select id="baudRate" class="hdr-btn" style="min-height:var(--touch-min)">
+      <option value="250000" selected>250k</option>
+      <option value="115200">115.2k</option>
+      <option value="57600">57.6k</option>
+    </select>
+    <button class="hdr-btn" id="connectBtn" onclick="toggleConnection()">Connect</button>
+    <button class="hdr-btn estop" onclick="emergencyStop()">E-STOP</button>
+    <button class="hdr-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
+  </div>
+</header>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('jog')">Jog</button>
+  <button class="tab-btn" onclick="switchTab('spin')">Spin</button>
+  <button class="tab-btn" onclick="switchTab('console')">Console</button>
+  <button class="tab-btn" onclick="switchTab('prog')">Program</button>
+  <button class="tab-btn" onclick="switchTab('config')">Config</button>
+</div>
+
+<!-- Tab Content -->
+<div class="tab-content">
+
+  <!-- ═══ JOG TAB ═══ -->
+  <div class="tab-page active" id="tab-jog">
+    <!-- Position readout (compact single row) -->
+    <div class="panel" style="padding:8px 12px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div class="pos-chip"><span class="pos-lbl">X</span><span class="axis-val" id="posX">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">Y</span><span class="axis-val" id="posY">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">Z</span><span class="axis-val" id="posZ">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">A</span><span class="axis-val" id="posA">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">E</span><span class="axis-val" id="posE">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">B</span><span class="axis-val" id="posB">---</span></div>
+        <button class="touch-btn" style="padding:6px 12px" onclick="sendCmd('M114')">M114</button>
+        <label style="font-size:15px;color:var(--text-dim)">
+          <input type="checkbox" id="autoReport" onchange="toggleAutoReport()" style="width:18px;height:18px"> Auto
+        </label>
+      </div>
+    </div>
+
+    <!-- Step size (shared by all axes) -->
+    <div style="display:flex;gap:4px;justify-content:center;margin:4px 0">
+      <button class="step-btn" onclick="setStep(0.1)">0.1</button>
+      <button class="step-btn" onclick="setStep(1)">1</button>
+      <button class="step-btn active" onclick="setStep(10)">10</button>
+      <button class="step-btn" onclick="setStep(50)">50</button>
+      <button class="step-btn" onclick="setStep(100)">100</button>
+    </div>
+
+    <!-- 3-column jog layout: XY | Z | Aux -->
+    <div class="jog-3col">
+      <!-- Column 1: XY Pad -->
+      <div class="panel jog-col">
+        <h2>XY</h2>
+        <div class="jog-grid">
+          <div></div>
+          <button class="jog-btn" onclick="jog('Y',-1)">&#9650;</button>
+          <div></div>
+          <button class="jog-btn" onclick="jog('X',-1)">&#9664;</button>
+          <button class="jog-btn home-btn" onclick="homeXY()">HOME</button>
+          <button class="jog-btn" onclick="jog('X',1)">&#9654;</button>
+          <div></div>
+          <button class="jog-btn" onclick="jog('Y',1)">&#9660;</button>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- Column 2: Z -->
+      <div class="panel jog-col" style="display:flex;flex-direction:column;align-items:stretch;justify-content:space-between">
+        <h2>Z</h2>
+        <button class="jog-btn jog-vert" onclick="jog('Z',-1)">&#9650;</button>
+        <button class="jog-btn jog-vert home-btn" onclick="sendCmd('G92 Z0')">Z=0</button>
+        <button class="jog-btn jog-vert" onclick="jog('Z',1)">&#9660;</button>
+      </div>
+
+      <!-- Column 3: Aux Axes -->
+      <div class="panel jog-col" style="display:flex;flex-direction:column;justify-content:space-between">
+        <h2>Aux</h2>
+        <div class="aux-compact">
+          <span class="aux-lbl">A</span>
+          <button class="jog-btn jog-sm" onclick="jogAxis('A',-1)">&#9664;</button>
+          <button class="jog-btn jog-sm" onclick="jogAxis('A',1)">&#9654;</button>
+          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G28 A')" style="font-size:16px">HOME</button>
+        </div>
+        <div class="aux-compact">
+          <span class="aux-lbl">E</span>
+          <button class="jog-btn jog-sm" onclick="jogSyringe(-1)">&#9664;</button>
+          <button class="jog-btn jog-sm" onclick="jogSyringe(1)">&#9654;</button>
+          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G92 E0')" style="font-size:16px">E=0</button>
+        </div>
+        <div class="aux-compact">
+          <span class="aux-lbl">B</span>
+          <button class="jog-btn jog-sm" onclick="jogAxis('B',-1)">&#9664;</button>
+          <button class="jog-btn jog-sm" onclick="jogAxis('B',1)">&#9654;</button>
+          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G28 B')" style="font-size:16px">HOME</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick commands + Servos + Solenoid -->
+    <div class="panel" style="padding:10px">
+      <!-- Quick commands -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <button class="quick-btn" onclick="sendCmd('G28')">Home All</button>
+        <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
+        <button class="quick-btn" onclick="sendCmd('G28 Z')">Home Z</button>
+        <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
+        <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
+        <button class="quick-btn" onclick="sendCmd('M17')">Motors On</button>
+        <button class="quick-btn" onclick="sendCmd('M18')">Motors Off</button>
+      </div>
+      <!-- Servos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:17px;font-weight:700;min-width:42px">Grip</span>
+          <input type="range" id="servo0" min="90" max="170" value="90" style="flex:1;height:36px"
+                 oninput="document.getElementById('servo0Val').textContent=this.value+'°'">
+          <span class="val" id="servo0Val" style="font-size:17px;min-width:40px;font-weight:700">90°</span>
+          <button class="touch-btn" onclick="setServo(0)">Set</button>
+          <button class="touch-btn" onclick="document.getElementById('servo0').value=170;document.getElementById('servo0Val').textContent='170°';setServo(0)">Open</button>
+          <button class="touch-btn" onclick="document.getElementById('servo0').value=90;document.getElementById('servo0Val').textContent='90°';setServo(0)">Close</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:17px;font-weight:700;min-width:30px">Lid</span>
+          <input type="range" id="servo1" min="30" max="110" value="110" style="flex:1;height:36px"
+                 oninput="document.getElementById('servo1Val').textContent=this.value+'°'">
+          <span class="val" id="servo1Val" style="font-size:17px;min-width:40px;font-weight:700">110°</span>
+          <button class="touch-btn" onclick="setServo(1)">Set</button>
+          <button class="touch-btn" onclick="document.getElementById('servo1').value=30;document.getElementById('servo1Val').textContent='30°';setServo(1)">Open</button>
+          <button class="touch-btn" onclick="document.getElementById('servo1').value=110;document.getElementById('servo1Val').textContent='110°';setServo(1)">Close</button>
+        </div>
+      </div>
+      <!-- Solenoid -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:17px;font-weight:700">Solenoid</span>
+        <span style="font-size:15px;color:var(--text-dim)">Pin:</span>
+        <input type="number" id="solPin" value="4" min="0" max="70"
+               style="width:54px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:16px;text-align:center;min-height:44px">
+        <button class="touch-btn" id="solBtn" onclick="toggleSolenoid()">OFF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SPIN TAB ═══ -->
+  <div class="tab-page" id="tab-spin">
+    <div class="panel">
+      <h2>Spincoater (M750)</h2>
+
+      <!-- Phase indicator -->
+      <div class="spin-phase-bar">
+        <span class="spin-phase-dot" id="spinPhaseDot"></span>
+        <span class="spin-phase-label" id="spinPhaseLabel">Idle</span>
+      </div>
+
+      <!-- RPM gauge + dial -->
+      <div class="spin-telem-row">
+        <div class="rpm-gauge gauge-stale" id="spinGaugeRPM">
+          <div class="gauge-label">Speed</div>
+          <div class="gauge-value" id="spinLiveRPM">0</div>
+          <div class="gauge-unit">RPM</div>
+          <div class="rpm-bar" id="spinRpmBar" style="width:0%"></div>
+        </div>
+        <div class="dial-container" id="spinDialContainer">
+          <div class="dial-label">Position</div>
+          <svg class="dial-svg" viewBox="0 0 100 100">
+            <g id="spinDialTicks"></g>
+            <circle class="dial-track" cx="50" cy="50" r="40"/>
+            <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
+            <circle class="dial-center" cx="50" cy="50" r="3"/>
+            <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">0</text>
+            <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">90</text>
+            <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">180</text>
+            <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">270</text>
+          </svg>
+          <div class="dial-deg" id="spinLiveDEG">0.00</div>
+          <div class="dial-deg-unit">degrees</div>
+        </div>
+      </div>
+
+      <!-- Params + Stats side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div class="spin-param-grid">
+            <div class="spin-param-item">
+              <label>Target Speed</label>
+              <input type="number" id="spinRPM" value="5000" min="100" max="10000" step="100">
+              <div class="spin-param-unit">RPM</div>
+            </div>
+            <div class="spin-param-item">
+              <label>Duration</label>
+              <input type="number" id="spinDUR" value="30" min="1" max="300" step="1">
+              <div class="spin-param-unit">seconds</div>
+            </div>
+            <div class="spin-param-item">
+              <label>Rise Time</label>
+              <input type="number" id="spinRISE" value="5" min="0.1" max="60" step="0.1">
+              <div class="spin-param-unit">seconds</div>
+            </div>
+            <div class="spin-param-item">
+              <label>Sink Time</label>
+              <input type="number" id="spinSINK" value="1" min="0.1" max="60" step="0.1">
+              <div class="spin-param-unit">seconds</div>
+            </div>
+            <div class="spin-param-item full">
+              <div class="spin-toggle-row">
+                <span class="spin-toggle-label">Encoder homing after spin</span>
+                <label class="spin-toggle">
+                  <input type="checkbox" id="spinHOME" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="spin-action-row">
+            <button class="spin-big-btn" onclick="spinStart()">Start</button>
+            <button class="spin-big-btn stop" onclick="emergencyStop()">Stop</button>
+          </div>
+          <div class="spin-action-row">
+            <button class="spin-big-btn home-btn" onclick="spinSetHome()">Set Home</button>
+            <button class="spin-big-btn index-btn" onclick="spinIndexHome()">Index Home</button>
+          </div>
+        </div>
+        <div>
+          <div class="spin-stat-grid">
+            <div class="spin-stat-card"><div class="label">Mean Speed</div><div class="value" id="spinValMean">&mdash;</div><div class="unit">RPM</div></div>
+            <div class="spin-stat-card"><div class="label">Std Dev</div><div class="value" id="spinValStd">&mdash;</div><div class="unit">RPM</div></div>
+            <div class="spin-stat-card"><div class="label">Min</div><div class="value" id="spinValMin">&mdash;</div><div class="unit">RPM</div></div>
+            <div class="spin-stat-card"><div class="label">Max</div><div class="value" id="spinValMax">&mdash;</div><div class="unit">RPM</div></div>
+            <div class="spin-stat-card"><div class="label">Samples</div><div class="value" id="spinValSamples">&mdash;</div><div class="unit">&nbsp;</div></div>
+            <div class="spin-stat-card"><div class="label">Bus Voltage</div><div class="value" id="spinValVbus">&mdash;</div><div class="unit">V</div></div>
+            <div class="spin-stat-card"><div class="label">Home Pos</div><div class="value" id="spinValHome">&mdash;</div><div class="unit">deg</div></div>
+            <div class="spin-stat-card"><div class="label">Range</div><div class="value" id="spinValRange">&mdash;</div><div class="unit">RPM</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONSOLE TAB ═══ -->
+  <div class="tab-page" id="tab-console">
+    <div class="panel">
+      <h2>G-Code Console
+        <span style="float:right"><label style="font-size:11px;color:var(--text-dim)"><input type="checkbox" id="verboseMode"> Verbose</label></span>
+      </h2>
+      <div id="console"></div>
+      <div class="cmd-bar">
+        <input type="text" id="cmdInput" placeholder="G-code command..."
+               onkeydown="if(event.key==='Enter')sendManual()"
+               autocomplete="off" spellcheck="false">
+        <button onclick="sendManual()">Send</button>
+        <button onclick="clearConsole()" style="background:var(--surface2)">Clear</button>
+      </div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="sendCmd('G28')">Home All</button>
+        <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
+        <button class="quick-btn" onclick="sendCmd('G28 Z')">Home Z</button>
+        <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
+        <button class="quick-btn" onclick="sendCmd('M114')">Position</button>
+        <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
+        <button class="quick-btn" onclick="sendCmd('M503')">Settings</button>
+        <button class="quick-btn" onclick="sendCmd('M92')">Steps/mm</button>
+        <button class="quick-btn" onclick="sendCmd('M500')">Save EEPROM</button>
+        <button class="quick-btn" onclick="sendCmd('M501')">Load EEPROM</button>
+        <button class="quick-btn" onclick="sendCmd('M17')">Motors On</button>
+        <button class="quick-btn" onclick="sendCmd('M18')">Motors Off</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PROGRAM TAB ═══ -->
+  <div class="tab-page" id="tab-prog">
+    <div class="panel">
+      <h2>Program Runner</h2>
+      <div class="prog-btns">
+        <button class="touch-btn run-btn" id="progRunBtn" onclick="progRun()">Run</button>
+        <button class="touch-btn" id="progPauseBtn" onclick="progPause()" disabled>Pause</button>
+        <button class="touch-btn stop-btn" id="progStopBtn" onclick="progStop()" disabled>Stop</button>
+        <span id="progStatus" style="font-size:12px;color:var(--text-dim)">Idle</span>
+        <span style="flex:1"></span>
+        <label class="touch-btn" style="cursor:pointer;font-size:12px">
+          Load .gcode <input type="file" id="progFileInput" accept=".gcode,.nc,.txt" style="display:none" onchange="progLoadFile(event)">
+        </label>
+        <button class="touch-btn" onclick="progClear()" style="font-size:12px">Clear</button>
+      </div>
+      <textarea id="progTextarea" rows="12" spellcheck="false"
+        placeholder="Paste G-code here or load a .gcode file..."></textarea>
+      <div style="margin-top:6px;display:flex;gap:10px;align-items:center;font-size:12px;color:var(--text-dim)">
+        <span>Line: <strong id="progLineNum">0</strong> / <strong id="progLineTotal">0</strong></span>
+        <span>|</span>
+        <span id="progCurrentCmd" style="font-family:monospace">&mdash;</span>
+        <span style="flex:1"></span>
+        <label><input type="checkbox" id="progWaitOk" checked> Wait for ok</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONFIG TAB ═══ -->
+  <div class="tab-page" id="tab-config">
+    <div class="panel">
+      <h2>Jog Feedrates</h2>
+      <div class="feed-control">
+        <label>XY:</label>
+        <input type="range" id="xyFeed" min="100" max="24000" value="20000" step="100"
+               oninput="document.getElementById('xyFeedVal').textContent=this.value+' mm/min'">
+        <span class="feed-val" id="xyFeedVal">20000 mm/min</span>
+      </div>
+      <div class="feed-control">
+        <label>Z:</label>
+        <input type="range" id="zFeed" min="10" max="3000" value="3000" step="10"
+               oninput="document.getElementById('zFeedVal').textContent=this.value+' mm/min'">
+        <span class="feed-val" id="zFeedVal">3000 mm/min</span>
+      </div>
+      <div class="feed-control">
+        <label>A:</label>
+        <input type="range" id="aFeed" min="10" max="2000" value="2000" step="10"
+               oninput="document.getElementById('aFeedVal').textContent=this.value+' mm/min'">
+        <span class="feed-val" id="aFeedVal">2000 mm/min</span>
+      </div>
+      <div class="feed-control">
+        <label>E:</label>
+        <input type="range" id="eFeed" min="10" max="480" value="480" step="10"
+               oninput="document.getElementById('eFeedVal').textContent=this.value+' mm/min'">
+        <span class="feed-val" id="eFeedVal">480 mm/min</span>
+      </div>
+      <div class="feed-control">
+        <label>B:</label>
+        <input type="range" id="bFeed" min="10" max="3000" value="3000" step="10"
+               oninput="document.getElementById('bFeedVal').textContent=this.value+' mm/min'">
+        <span class="feed-val" id="bFeedVal">3000 mm/min</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Steps/mm (M92)</h2>
+      <div class="setting-row"><label>X:</label><input type="number" id="stepsX" value="57.1425"></div>
+      <div class="setting-row"><label>Y:</label><input type="number" id="stepsY" value="57.1425"></div>
+      <div class="setting-row"><label>Z:</label><input type="number" id="stepsZ" value="1280"></div>
+      <div class="setting-row"><label>A (Filter):</label><input type="number" id="stepsA" value="320"></div>
+      <div class="setting-row"><label>E (Syringe):</label><input type="number" id="stepsE" value="1600"></div>
+      <div class="setting-row"><label>B (Syr.Ht):</label><input type="number" id="stepsB" value="320"></div>
+      <button class="touch-btn" onclick="applySteps()" style="margin-top:6px">Apply M92</button>
+    </div>
+
+    <div class="panel">
+      <h2>Max Feedrate (M203, mm/s)</h2>
+      <div class="setting-row"><label>X:</label><input type="number" id="frX" value="400"></div>
+      <div class="setting-row"><label>Y:</label><input type="number" id="frY" value="333"></div>
+      <div class="setting-row"><label>Z:</label><input type="number" id="frZ" value="50"></div>
+      <div class="setting-row"><label>A:</label><input type="number" id="frA" value="33"></div>
+      <div class="setting-row"><label>E:</label><input type="number" id="frE" value="8"></div>
+      <div class="setting-row"><label>B:</label><input type="number" id="frB" value="50"></div>
+      <button class="touch-btn" onclick="applyFeedrates()" style="margin-top:6px">Apply M203</button>
+    </div>
+
+    <div class="panel">
+      <h2>Acceleration (M201, mm/s&sup2;)</h2>
+      <div class="accel-row">
+        <label>X:</label>
+        <input type="range" id="accelX" min="50" max="5000" value="500" step="50"
+               oninput="document.getElementById('accelXVal').textContent=this.value">
+        <span class="accel-val" id="accelXVal">500</span>
+        <button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value)">Set</button>
+      </div>
+      <div class="accel-row">
+        <label>Y:</label>
+        <input type="range" id="accelY" min="50" max="5000" value="200" step="50"
+               oninput="document.getElementById('accelYVal').textContent=this.value">
+        <span class="accel-val" id="accelYVal">200</span>
+        <button class="touch-btn" onclick="sendCmd('M201 Y'+document.getElementById('accelY').value)">Set</button>
+      </div>
+      <div class="accel-row">
+        <label>Z:</label>
+        <input type="range" id="accelZ" min="50" max="2000" value="100" step="50"
+               oninput="document.getElementById('accelZVal').textContent=this.value">
+        <span class="accel-val" id="accelZVal">100</span>
+        <button class="touch-btn" onclick="sendCmd('M201 Z'+document.getElementById('accelZ').value)">Set</button>
+      </div>
+      <div class="accel-row">
+        <label>A (Filter):</label>
+        <input type="range" id="accelA" min="50" max="5000" value="150" step="50"
+               oninput="document.getElementById('accelAVal').textContent=this.value">
+        <span class="accel-val" id="accelAVal">150</span>
+        <button class="touch-btn" onclick="sendCmd('M201 A'+document.getElementById('accelA').value)">Set</button>
+      </div>
+      <div class="accel-row">
+        <label>B (Syr.Ht):</label>
+        <input type="range" id="accelB" min="50" max="5000" value="50" step="50"
+               oninput="document.getElementById('accelBVal').textContent=this.value">
+        <span class="accel-val" id="accelBVal">50</span>
+        <button class="touch-btn" onclick="sendCmd('M201 B'+document.getElementById('accelB').value)">Set</button>
+      </div>
+      <div class="accel-row">
+        <label>E (Syringe):</label>
+        <input type="range" id="accelE" min="50" max="5000" value="500" step="50"
+               oninput="document.getElementById('accelEVal').textContent=this.value">
+        <span class="accel-val" id="accelEVal">500</span>
+        <button class="touch-btn" onclick="sendCmd('M201 E'+document.getElementById('accelE').value)">Set</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' E'+document.getElementById('accelE').value)">Set All Accel</button>
+        <button class="touch-btn" onclick="sendCmd('M500')">Save EEPROM</button>
+        <button class="touch-btn" onclick="sendCmd('M503')">Report (M503)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Servo Override</h2>
+      <div class="setting-row">
+        <label>P0 angle (0-180):</label>
+        <input type="number" id="servo0Override" min="0" max="180" value="" placeholder="°">
+        <button class="touch-btn" onclick="let v=document.getElementById('servo0Override').value; if(v!=='') sendCmd('M280 P0 S'+v)">Send</button>
+      </div>
+      <div class="setting-row">
+        <label>P1 angle (0-180):</label>
+        <input type="number" id="servo1Override" min="0" max="180" value="" placeholder="°">
+        <button class="touch-btn" onclick="let v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Send</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-content -->
+
+
+<script>
+// ─── State ───
+let port = null, reader = null, writer = null, isConnected = false;
+let stepSize = 10, solenoidOn = false, readBuffer = '';
+let autoReportInterval = null, cmdHistory = [], historyIdx = -1;
+
+// ─── Tab Switching ───
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    const tabNames = ['jog','spin','console','prog','config'];
+    b.classList.toggle('active', tabNames[i] === name);
+  });
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── Serial Connection ───
+async function toggleConnection() {
+  if (isConnected) await disconnect(); else await connect();
+}
+
+async function connect() {
+  try {
+    port = await navigator.serial.requestPort();
+    const baud = parseInt(document.getElementById('baudRate').value);
+    await port.open({ baudRate: baud });
+    writer = port.writable.getWriter();
+    setConnected(true);
+    logInfo(`Connected at ${baud} baud`);
+    readLoop();
+  } catch (e) { logErr('Connection failed: ' + e.message); }
+}
+
+async function disconnect() {
+  try {
+    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+    if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
+    if (writer) { writer.releaseLock(); writer = null; }
+    if (port) { await port.close(); port = null; }
+  } catch (e) { /* ignore */ }
+  setConnected(false);
+  logInfo('Disconnected');
+}
+
+function setConnected(state) {
+  isConnected = state;
+  document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
+  const btn = document.getElementById('connectBtn');
+  btn.textContent = state ? 'Disconnect' : 'Connect';
+  btn.className = 'hdr-btn' + (state ? ' connected' : '');
+}
+
+async function readLoop() {
+  const decoder = new TextDecoderStream();
+  port.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (value) {
+        readBuffer += value;
+        let lines = readBuffer.split('\n');
+        readBuffer = lines.pop();
+        for (const line of lines) processLine(line.trim());
+      }
+    }
+  } catch (e) { if (isConnected) logErr('Read error: ' + e.message); }
+}
+
+function processLine(line) {
+  if (!line) return;
+  const verbose = document.getElementById('verboseMode').checked;
+
+  // Spincoater telemetry
+  if (line.startsWith('echo:SPIN ')) {
+    const spinMsg = line.substring(10);
+    if (spinMsg.startsWith('TELEM:')) {
+      const rpmMatch = spinMsg.match(/RPM=([-\d.]+)/);
+      const degMatch = spinMsg.match(/DEG=([-\d.]+)/);
+      if (rpmMatch) spinUpdateGaugeRPM(parseFloat(rpmMatch[1]));
+      if (degMatch) spinUpdateDial(parseFloat(degMatch[1]));
+      if (!verbose) return;
+    }
+    if (spinMsg.startsWith('STATE:')) {
+      const state = spinMsg.substring(6).trim();
+      const stateMap = {
+        'BOOTING':['warn','Booting ODrive...'],'WAITING_ODRIVE':['warn','Waiting for ODrive...'],
+        'INDEX_SEARCH_BOOT':['warn','Boot index search...'],'INDEX_SEARCH_ACTIVE':['warn','Index search active...'],
+        'INDEX_SETTLE_BOOT':['warn','Settling to index...'],'INDEX_SETTLE':['warn','Settling to index...'],
+        'CONNECTING':['warn','Connecting to ODrive...'],'ODRIVE_FOUND':['active','ODrive found'],
+        'CALIBRATING':['warn','Calibrating...'],'FULL_CALIBRATION':['warn','Full calibration...'],
+        'CLOSED_LOOP':['active','Closed-loop active'],'RAMP_UP':['active','Ramping up...'],
+        'MEASURING':['active','Measuring speed...'],'RAMP_DOWN':['warn','Decelerating...'],
+        'SETTLING':['warn','Settling...'],'STOPPED':['active','Motor stopped'],
+        'HOMING':['warn','Homing...'],'ENTERING_IDLE':['warn','Entering idle...'],
+        'INDEX_FOUND_INSTANT':['active','Index found'],'RAMP_TIMEOUT':['error','Ramp-up timeout!'],
+        'RAMP_STALL':['error','RPM stall detected!'],
+      };
+      for (const [key, [phase, label]] of Object.entries(stateMap)) {
+        if (state.includes(key)) { spinSetPhase(phase, label); break; }
+      }
+    }
+    if (spinMsg.includes('CYCLE_COMPLETE')) spinSetPhase('idle','Cycle complete');
+    if (spinMsg.includes('INDEX_COMPLETE')) spinSetPhase('idle','Index search done');
+    if (spinMsg.includes('HOME_SET'))       spinSetPhase('idle','Home datum set');
+    if (spinMsg.includes('READY'))          spinSetPhase('idle','ODrive ready');
+    const dataMatch = spinMsg.match(/DATA:\s*(\w+)=(.*)/);
+    if (dataMatch) {
+      const key = dataMatch[1], num = parseFloat(dataMatch[2]);
+      if (key==='MeanRPM')    document.getElementById('spinValMean').textContent=num.toFixed(1);
+      if (key==='StdDevRPM')  document.getElementById('spinValStd').textContent=num.toFixed(1);
+      if (key==='MinRPM')     document.getElementById('spinValMin').textContent=num.toFixed(1);
+      if (key==='MaxRPM')     document.getElementById('spinValMax').textContent=num.toFixed(1);
+      if (key==='Samples')    document.getElementById('spinValSamples').textContent=Math.round(num);
+      if (key==='Vbus')       document.getElementById('spinValVbus').textContent=num.toFixed(1);
+      if (key==='HomePos')    document.getElementById('spinValHome').textContent=(num*360).toFixed(1);
+      if (key==='DegFromHome')document.getElementById('spinValHome').textContent=num.toFixed(1);
+      if (key==='Range')      document.getElementById('spinValRange').textContent=num.toFixed(1);
+    }
+    const vbusAlt = spinMsg.match(/Vbus=([\d.]+)/);
+    if (vbusAlt) document.getElementById('spinValVbus').textContent=parseFloat(vbusAlt[1]).toFixed(1);
+    if (!spinMsg.startsWith('TELEM:')) logRx(line);
+    return;
+  }
+
+  // Position parsing
+  const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)/);
+  if (posMatch) {
+    document.getElementById('posX').textContent=parseFloat(posMatch[1]).toFixed(1);
+    document.getElementById('posY').textContent=parseFloat(posMatch[2]).toFixed(1);
+    document.getElementById('posZ').textContent=parseFloat(posMatch[3]).toFixed(1);
+    const aM=line.match(/A:([\d.-]+)/), bM=line.match(/B:([\d.-]+)/), eM=line.match(/E:([\d.-]+)/);
+    if (aM) document.getElementById('posA').textContent=parseFloat(aM[1]).toFixed(1);
+    if (bM) document.getElementById('posB').textContent=parseFloat(bM[1]).toFixed(1);
+    if (eM) document.getElementById('posE').textContent=parseFloat(eM[1]).toFixed(1);
+  }
+
+  if (line==='ok' || (line.startsWith('ok') && line.length<5)) {
+    progOnOk();
+    if (!verbose) return;
+  }
+  if (!verbose) {
+    if (line.match(/^T:\d/)) return;
+    if (line.startsWith('echo:busy')) return;
+  }
+  logRx(line);
+}
+
+// ─── Send Commands ───
+async function sendCmd(cmd) {
+  if (!isConnected || !writer) { logErr('Not connected'); return; }
+  try {
+    await writer.write(new TextEncoder().encode(cmd + '\n'));
+    logTx(cmd);
+  } catch (e) { logErr('Send error: ' + e.message); }
+}
+
+function sendManual() {
+  const input = document.getElementById('cmdInput');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+  cmdHistory.unshift(cmd);
+  if (cmdHistory.length > 50) cmdHistory.pop();
+  historyIdx = -1;
+  sendCmd(cmd);
+  input.value = '';
+}
+
+// ─── Jog Functions ───
+function setStep(size) {
+  stepSize = size;
+  document.querySelectorAll('.step-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.textContent) === size);
+  });
+}
+
+function jog(axis, dir) {
+  const dist = stepSize * dir;
+  const feed = axis === 'Z' ? document.getElementById('zFeed').value : document.getElementById('xyFeed').value;
+  sendCmd('G91');
+  sendCmd(`G1 ${axis}${dist} F${feed}`);
+  sendCmd('G90');
+}
+
+function jogAxis(axis, dir) {
+  const dist = stepSize * dir;
+  const feedId = axis === 'A' ? 'aFeed' : 'bFeed';
+  const feed = document.getElementById(feedId).value;
+  sendCmd('G91');
+  sendCmd(`G1 ${axis}${dist} F${feed}`);
+  sendCmd('G90');
+}
+
+function jogSyringe(dir) {
+  const dist = stepSize * dir;
+  const feed = document.getElementById('eFeed').value;
+  sendCmd('G92 E0');
+  sendCmd('G91');
+  sendCmd(`G1 E${dist} F${feed}`);
+  sendCmd('G90');
+  sendCmd('G92 E0');
+}
+
+function homeXY() { sendCmd('G28 X Y'); }
+
+// ─── Servo / Solenoid ───
+function setServo(idx) { sendCmd(`M280 P${idx} S${document.getElementById('servo'+idx).value}`); }
+
+function toggleSolenoid() {
+  solenoidOn = !solenoidOn;
+  const pin = document.getElementById('solPin').value;
+  sendCmd(`M42 P${pin} S${solenoidOn ? 255 : 0}`);
+  const btn = document.getElementById('solBtn');
+  btn.textContent = solenoidOn ? 'ON' : 'OFF';
+  btn.classList.toggle('on', solenoidOn);
+}
+
+// ─── Emergency / Reset ───
+function emergencyStop() {
+  sendCmd('M112');
+  logErr('>>> EMERGENCY STOP — press M999 to recover <<<');
+}
+function resetFirmware() { sendCmd('M999'); logInfo('>>> M999 reset sent <<<'); }
+
+// ─── Auto Report ───
+function toggleAutoReport() {
+  if (document.getElementById('autoReport').checked) {
+    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+  } else {
+    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  }
+}
+
+// ─── Settings Apply ───
+function applySteps() {
+  const ids = ['stepsX','stepsY','stepsZ','stepsA','stepsE','stepsB'];
+  const axes = ['X','Y','Z','A','E','B'];
+  const cmd = 'M92 ' + axes.map((a,i) => a + document.getElementById(ids[i]).value).join(' ');
+  sendCmd(cmd);
+  logInfo('Steps/mm updated. M500 to save.');
+}
+function applyFeedrates() {
+  const cmd = `M203 X${document.getElementById('frX').value} Y${document.getElementById('frY').value} Z${document.getElementById('frZ').value} A${document.getElementById('frA').value} B${document.getElementById('frB').value} E${document.getElementById('frE').value}`;
+  sendCmd(cmd);
+  logInfo('Max feedrates updated. M500 to save.');
+}
+function applyAccel() {
+  const cmd = `M201 X${document.getElementById('accX').value} Y${document.getElementById('accY').value} Z${document.getElementById('accZ').value} A${document.getElementById('accA').value} B${document.getElementById('accB').value} E${document.getElementById('accE').value}`;
+  sendCmd(cmd);
+  logInfo('Max accel updated. M500 to save.');
+}
+
+// ─── Console ───
+const consoleEl = document.getElementById('console');
+const MAX_LINES = 500;
+let lineCount = 0;
+
+function appendLog(html) {
+  consoleEl.innerHTML += html + '\n';
+  lineCount++;
+  if (lineCount > MAX_LINES) {
+    const lines = consoleEl.innerHTML.split('\n');
+    consoleEl.innerHTML = lines.slice(lines.length - MAX_LINES).join('\n');
+    lineCount = MAX_LINES;
+  }
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+function logTx(msg)  { appendLog(`<span class="tx">&gt;&gt; ${esc(msg)}</span>`); }
+function logRx(msg)  { appendLog(`<span class="rx">&lt;&lt; ${esc(msg)}</span>`); }
+function logErr(msg) { appendLog(`<span class="err">[ERR] ${esc(msg)}</span>`); }
+function logInfo(msg){ appendLog(`<span class="info">[INFO] ${esc(msg)}</span>`); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clearConsole() { consoleEl.innerHTML = ''; lineCount = 0; }
+
+// ─── Keyboard Shortcuts ───
+document.addEventListener('keydown', (e) => {
+  if (document.activeElement.tagName==='INPUT' || document.activeElement.tagName==='TEXTAREA' || document.activeElement.tagName==='SELECT') return;
+  const map = {
+    'ArrowLeft':  () => jog('X', -1), 'ArrowRight': () => jog('X', 1),
+    'ArrowUp':    () => jog('Y', -1), 'ArrowDown':  () => jog('Y', 1),
+    'PageUp':     () => jog('Z', -1), 'PageDown':   () => jog('Z', 1),
+    'Escape':     () => emergencyStop(),
+  };
+  if (map[e.key]) { e.preventDefault(); map[e.key](); }
+});
+
+// Command history
+document.getElementById('cmdInput').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (historyIdx < cmdHistory.length - 1) { historyIdx++; e.target.value = cmdHistory[historyIdx]; }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIdx > 0) { historyIdx--; e.target.value = cmdHistory[historyIdx]; }
+    else { historyIdx = -1; e.target.value = ''; }
+  }
+});
+
+// ─── Program Runner ───
+let progLines = [], progIndex = 0, progRunning = false, progPaused = false, progWaitingOk = false;
+
+function progParseLines() {
+  progLines = document.getElementById('progTextarea').value.split('\n').map(l => l.replace(/;.*$/, '').trim());
+  document.getElementById('progLineTotal').textContent = progLines.filter(l => l.length > 0).length;
+}
+
+function progRun() {
+  if (progPaused) {
+    progPaused = false;
+    document.getElementById('progPauseBtn').textContent = 'Pause';
+    document.getElementById('progStatus').textContent = 'Running...';
+    progSendNext(); return;
+  }
+  progParseLines();
+  progIndex = 0; progRunning = true; progPaused = false; progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = true;
+  document.getElementById('progPauseBtn').disabled = false;
+  document.getElementById('progStopBtn').disabled = false;
+  document.getElementById('progTextarea').readOnly = true;
+  document.getElementById('progStatus').textContent = 'Running...';
+  logInfo('Program started (' + progLines.filter(l=>l.length>0).length + ' cmds)');
+  progSendNext();
+}
+
+function progPause() {
+  if (!progRunning) return;
+  progPaused = !progPaused;
+  document.getElementById('progPauseBtn').textContent = progPaused ? 'Resume' : 'Pause';
+  document.getElementById('progStatus').textContent = progPaused ? 'Paused L' + progIndex : 'Running...';
+}
+
+function progStop() {
+  progRunning = false; progPaused = false; progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = false;
+  document.getElementById('progPauseBtn').disabled = true;
+  document.getElementById('progPauseBtn').textContent = 'Pause';
+  document.getElementById('progStopBtn').disabled = true;
+  document.getElementById('progTextarea').readOnly = false;
+  document.getElementById('progStatus').textContent = 'Stopped';
+  logInfo('Program stopped at line ' + progIndex);
+}
+
+function progComplete() {
+  progRunning = false; progPaused = false; progWaitingOk = false;
+  document.getElementById('progRunBtn').disabled = false;
+  document.getElementById('progPauseBtn').disabled = true;
+  document.getElementById('progStopBtn').disabled = true;
+  document.getElementById('progTextarea').readOnly = false;
+  document.getElementById('progStatus').textContent = 'Complete';
+  logInfo('Program complete');
+}
+
+function progSendNext() {
+  if (!progRunning || progPaused) return;
+  while (progIndex < progLines.length && progLines[progIndex].length === 0) progIndex++;
+  if (progIndex >= progLines.length) { progComplete(); return; }
+  const cmd = progLines[progIndex];
+  const cmdCount = progLines.slice(0, progIndex+1).filter(l=>l.length>0).length;
+  document.getElementById('progLineNum').textContent = cmdCount;
+  document.getElementById('progCurrentCmd').textContent = cmd;
+  sendCmd(cmd);
+  progIndex++;
+  if (document.getElementById('progWaitOk').checked) { progWaitingOk = true; }
+  else { setTimeout(progSendNext, 50); }
+}
+
+function progOnOk() {
+  if (progWaitingOk && progRunning && !progPaused) { progWaitingOk = false; progSendNext(); }
+}
+
+function progLoadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = function(e) {
+    document.getElementById('progTextarea').value = e.target.result;
+    progParseLines();
+    logInfo('Loaded: ' + file.name);
+  };
+  r.readAsText(file);
+  event.target.value = '';
+}
+
+function progClear() {
+  if (progRunning) progStop();
+  document.getElementById('progTextarea').value = '';
+  document.getElementById('progLineNum').textContent = '0';
+  document.getElementById('progLineTotal').textContent = '0';
+  document.getElementById('progCurrentCmd').textContent = '\u2014';
+  document.getElementById('progStatus').textContent = 'Idle';
+}
+
+// ─── Spincoater ───
+let spinTargetRPM = 5000, spinTelemStaleTimer = null, spinDialAngle = 0;
+
+(function initSpinDial() {
+  const ticks = document.getElementById('spinDialTicks');
+  if (!ticks) return;
+  for (let d = 0; d < 360; d += 30) {
+    const rad = (d - 90) * Math.PI / 180;
+    const r1 = 35, r2 = 40;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', 50+r1*Math.cos(rad)); line.setAttribute('y1', 50+r1*Math.sin(rad));
+    line.setAttribute('x2', 50+r2*Math.cos(rad)); line.setAttribute('y2', 50+r2*Math.sin(rad));
+    line.setAttribute('stroke', '#555');
+    line.setAttribute('stroke-width', d%90===0 ? '1.5' : '0.5');
+    ticks.appendChild(line);
+  }
+})();
+
+function spinStart() {
+  const rpm=document.getElementById('spinRPM').value, dur=document.getElementById('spinDUR').value;
+  const rise=document.getElementById('spinRISE').value, sink=document.getElementById('spinSINK').value;
+  const home=document.getElementById('spinHOME').checked ? 1 : 0;
+  spinTargetRPM = parseInt(rpm);
+  sendCmd(`M750 S${rpm} D${dur} A${rise} C${sink} H${home}`);
+}
+function spinSetHome() { sendCmd('M751'); }
+function spinIndexHome() { sendCmd('M752'); }
+
+function spinUpdateGaugeRPM(rpm) {
+  document.getElementById('spinLiveRPM').textContent = Math.round(rpm);
+  const pct = Math.min(100, Math.max(0, (Math.abs(rpm)/(spinTargetRPM||5000))*100));
+  document.getElementById('spinRpmBar').style.width = pct+'%';
+  document.getElementById('spinGaugeRPM').classList.remove('gauge-stale');
+  const needle = document.getElementById('spinDialNeedle');
+  if (Math.abs(rpm)>60) { needle.setAttribute('stroke','#555'); needle.setAttribute('stroke-width','1'); }
+  else { needle.setAttribute('stroke','var(--accent)'); needle.setAttribute('stroke-width','2'); }
+  spinResetStale();
+}
+
+function spinUpdateDial(deg) {
+  const cur360 = ((spinDialAngle%360)+360)%360;
+  let delta = deg - cur360;
+  if (delta>180) delta-=360; if (delta<-180) delta+=360;
+  spinDialAngle += delta;
+  document.getElementById('spinDialNeedle').setAttribute('transform',`rotate(${spinDialAngle} 50 50)`);
+  document.getElementById('spinLiveDEG').textContent = deg.toFixed(2);
+  document.getElementById('spinDialContainer').classList.remove('gauge-stale');
+  spinResetStale();
+}
+
+function spinResetStale() {
+  if (spinTelemStaleTimer) clearTimeout(spinTelemStaleTimer);
+  spinTelemStaleTimer = setTimeout(() => {
+    document.getElementById('spinGaugeRPM').classList.add('gauge-stale');
+    document.getElementById('spinDialContainer').classList.add('gauge-stale');
+    document.getElementById('spinLiveRPM').textContent = '0';
+    document.getElementById('spinRpmBar').style.width = '0%';
+  }, 2000);
+}
+
+function spinSetPhase(state, text) {
+  const dot = document.getElementById('spinPhaseDot');
+  dot.className = 'spin-phase-dot';
+  if (state==='active') dot.classList.add('active');
+  else if (state==='warn') dot.classList.add('warn');
+  else if (state==='error') dot.classList.add('error');
+  document.getElementById('spinPhaseLabel').textContent = text;
+}
+
+// ─── Init ───
+logInfo('RMR Touch Controller re
