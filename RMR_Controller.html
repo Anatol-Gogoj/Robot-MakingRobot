@@ -461,9 +461,9 @@
     </div>
     <div class="feed-control">
       <label>Feed:</label>
-      <input type="range" id="xyFeed" min="100" max="24000" value="3000" step="100"
+      <input type="range" id="xyFeed" min="100" max="24000" value="20000" step="100"
              oninput="document.getElementById('xyFeedVal').textContent=this.value+' mm/min'">
-      <span class="feed-val" id="xyFeedVal">3000 mm/min</span>
+      <span class="feed-val" id="xyFeedVal">20000 mm/min</span>
     </div>
     <div class="jog-grid">
       <div></div>
@@ -481,9 +481,9 @@
     <h2 style="margin-top:14px">Z Axis</h2>
     <div class="feed-control">
       <label>Feed:</label>
-      <input type="range" id="zFeed" min="10" max="3000" value="150" step="10"
+      <input type="range" id="zFeed" min="10" max="3000" value="3000" step="10"
              oninput="document.getElementById('zFeedVal').textContent=this.value+' mm/min'">
-      <span class="feed-val" id="zFeedVal">150 mm/min</span>
+      <span class="feed-val" id="zFeedVal">3000 mm/min</span>
     </div>
     <div class="jog-row" style="justify-content:center">
       <label>Z</label>
@@ -501,29 +501,29 @@
       <button class="jog-btn" onclick="jogAxis('A',-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogAxis('A',1)">&#9654;</button>
       <button class="jog-btn home-btn" onclick="sendCmd('G28 A')" title="Home Filter Feed">&#8962;</button>
-      <input type="range" id="aFeed" min="10" max="2000" value="300" step="10"
+      <input type="range" id="aFeed" min="10" max="2000" value="2000" step="10"
              oninput="document.getElementById('aFeedVal').textContent=this.value"
              style="flex:1;margin-left:6px">
-      <span class="feed-val" id="aFeedVal">300</span><span class="feed-val"> mm/min</span>
+      <span class="feed-val" id="aFeedVal">2000</span><span class="feed-val"> mm/min</span>
     </div>
     <div class="ext-row">
       <label>E - Syringe</label>
       <button class="jog-btn" onclick="jogSyringe(-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogSyringe(1)">&#9654;</button>
-      <input type="range" id="eFeed" min="10" max="500" value="300" step="10"
+      <input type="range" id="eFeed" min="10" max="480" value="480" step="10"
              oninput="document.getElementById('eFeedVal').textContent=this.value"
              style="flex:1;margin-left:6px">
-      <span class="feed-val" id="eFeedVal">300</span><span class="feed-val"> mm/min</span>
+      <span class="feed-val" id="eFeedVal">480</span><span class="feed-val"> mm/min</span>
     </div>
     <div class="ext-row">
       <label>B - Syr. Height</label>
       <button class="jog-btn" onclick="jogAxis('B',-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogAxis('B',1)">&#9654;</button>
       <button class="jog-btn home-btn" onclick="sendCmd('G28 B')" title="Home Syr. Height">&#8962;</button>
-      <input type="range" id="bFeed" min="10" max="3000" value="300" step="10"
+      <input type="range" id="bFeed" min="10" max="3000" value="3000" step="10"
              oninput="document.getElementById('bFeedVal').textContent=this.value"
              style="flex:1;margin-left:6px">
-      <span class="feed-val" id="bFeedVal">300</span><span class="feed-val"> mm/min</span>
+      <span class="feed-val" id="bFeedVal">3000</span><span class="feed-val"> mm/min</span>
     </div>
 
     <h2 style="margin-top:14px">Servos</h2>
@@ -540,12 +540,12 @@
     </div>
     <div class="servo-row">
       <label>Lid (P1)</label>
-      <input type="range" id="servo1" min="30" max="115" value="115"
+      <input type="range" id="servo1" min="30" max="110" value="110"
              oninput="document.getElementById('servo1Val').textContent=this.value+'°'">
-      <span class="val" id="servo1Val">115° (closed)</span>
+      <span class="val" id="servo1Val">110° (closed)</span>
       <button class="toggle-btn" onclick="setServo(1)">Set</button>
       <button class="toggle-btn" onclick="document.getElementById('servo1').value=30;document.getElementById('servo1Val').textContent='30°';setServo(1)">Open</button>
-      <button class="toggle-btn" onclick="document.getElementById('servo1').value=115;document.getElementById('servo1Val').textContent='115°';setServo(1)">Close</button>
+      <button class="toggle-btn" onclick="document.getElementById('servo1').value=110;document.getElementById('servo1Val').textContent='110°';setServo(1)">Close</button>
       <input type="number" id="servo1Override" min="0" max="180" value="" placeholder="0-180" style="width:55px;margin-left:8px">
       <button class="toggle-btn" onclick="let v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Override</button>
     </div>
@@ -813,27 +813,27 @@
 
       <h2 style="margin-top:10px">Max Feedrate Override (M203)</h2>
       <div class="setting-row">
-        <label>X (mm/s):</label><input type="number" id="frX" value="150">
-        <label>Y:</label><input type="number" id="frY" value="150">
-        <label>Z:</label><input type="number" id="frZ" value="5">
+        <label>X (mm/s):</label><input type="number" id="frX" value="400">
+        <label>Y:</label><input type="number" id="frY" value="333">
+        <label>Z:</label><input type="number" id="frZ" value="50">
       </div>
       <div class="setting-row">
-        <label>A:</label><input type="number" id="frA" value="10">
-        <label>E:</label><input type="number" id="frE" value="10">
-        <label>B:</label><input type="number" id="frB" value="10">
+        <label>A:</label><input type="number" id="frA" value="33">
+        <label>E:</label><input type="number" id="frE" value="8">
+        <label>B:</label><input type="number" id="frB" value="50">
         <button onclick="applyFeedrates()">Apply M203</button>
       </div>
 
       <h2 style="margin-top:10px">Max Acceleration Override (M201)</h2>
       <div class="setting-row">
-        <label>X (mm/s²):</label><input type="number" id="accX" value="1000">
-        <label>Y:</label><input type="number" id="accY" value="1000">
-        <label>Z:</label><input type="number" id="accZ" value="500">
+        <label>X (mm/s²):</label><input type="number" id="accX" value="500">
+        <label>Y:</label><input type="number" id="accY" value="200">
+        <label>Z:</label><input type="number" id="accZ" value="100">
       </div>
       <div class="setting-row">
-        <label>A:</label><input type="number" id="accA" value="500">
+        <label>A:</label><input type="number" id="accA" value="150">
         <label>E:</label><input type="number" id="accE" value="500">
-        <label>B:</label><input type="number" id="accB" value="500">
+        <label>B:</label><input type="number" id="accB" value="50">
         <button onclick="applyAccel()">Apply M201</button>
       </div>
     </div>
