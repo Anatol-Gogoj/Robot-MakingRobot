@@ -553,8 +553,15 @@
     <h2 style="margin-top:14px">Solenoid</h2>
     <div class="servo-row">
       <label>Pin:</label>
-      <input type="number" id="solPin" value="4" min="0" max="70" style="width:50px">
+      <input type="number" id="solPin" value="42" min="0" max="70" style="width:50px">
       <button class="toggle-btn" id="solBtn" onclick="toggleSolenoid()">OFF</button>
+    </div>
+
+    <h2 style="margin-top:14px">UV Lamp</h2>
+    <div class="servo-row">
+      <label>Pin:</label>
+      <input type="number" id="uvPin" value="4" min="0" max="70" style="width:50px">
+      <button class="toggle-btn" id="uvBtn" onclick="toggleUV()">OFF</button>
     </div>
   </div>
 
@@ -885,6 +892,7 @@ let writer = null;
 let isConnected = false;
 let stepSize = 10;
 let solenoidOn = false;
+let uvOn = false;
 let readBuffer = '';
 let autoReportInterval = null;
 let cmdHistory = [];
@@ -1176,9 +1184,18 @@ function toggleSolenoid() {
   solenoidOn = !solenoidOn;
   const pin = document.getElementById('solPin').value;
   const btn = document.getElementById('solBtn');
-  sendCmd(`M42 P${pin} S${solenoidOn ? 255 : 0}`);
+  sendCmd(`M42 P${pin} S${solenoidOn ? 0 : 1}`);
   btn.textContent = solenoidOn ? 'ON' : 'OFF';
   btn.classList.toggle('on', solenoidOn);
+}
+
+function toggleUV() {
+  uvOn = !uvOn;
+  const pin = document.getElementById('uvPin').value;
+  const btn = document.getElementById('uvBtn');
+  sendCmd(`M42 P${pin} S${uvOn ? 0 : 1}`);
+  btn.textContent = uvOn ? 'ON' : 'OFF';
+  btn.classList.toggle('on', uvOn);
 }
 
 // ─── Emergency Stop ───

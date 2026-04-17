@@ -804,7 +804,13 @@
     <details class="config-section">
       <summary>Solenoid Pin</summary>
       <div class="config-body">
-        <div class="setting-row"><label>Pin number:</label><input type="number" id="solPin" value="4" min="0" max="70"></div>
+        <div class="setting-row"><label>Pin number:</label><input type="number" id="solPin" value="42" min="0" max="70"></div>
+      </div>
+    </details>
+    <details class="config-section">
+      <summary>UV Lamp Pin</summary>
+      <div class="config-body">
+        <div class="setting-row"><label>Pin number:</label><input type="number" id="uvPin" value="4" min="0" max="70"></div>
       </div>
     </details>
     <details class="config-section">
@@ -825,6 +831,7 @@
   <button class="fab-btn" id="fabLidOpen" onclick="lidOpen()"><span class="fab-icon">&#9650;</span><span class="fab-label">Lid Open</span></button>
   <button class="fab-btn" id="fabLidClose" onclick="lidClose()"><span class="fab-icon">&#9660;</span><span class="fab-label">Lid Close</span></button>
   <button class="fab-btn" id="fabSolenoid" onclick="toggleSolenoid()"><span class="fab-icon" id="fabSolIcon">&#9679;</span><span class="fab-label" id="fabSolLabel">Sol OFF</span></button>
+  <button class="fab-btn" id="fabUV" onclick="toggleUV()"><span class="fab-icon" id="fabUVIcon">&#9788;</span><span class="fab-label" id="fabUVLabel">UV OFF</span></button>
 </div>
 
 <!-- Servo Sheet Overlay -->
@@ -851,7 +858,7 @@
 <script>
 // ─── State ───
 let port = null, reader = null, writer = null, isConnected = false;
-let stepSize = 10, solenoidOn = false, readBuffer = '';
+let stepSize = 10, solenoidOn = false, uvOn = false, readBuffer = '';
 let autoReportInterval = null, cmdHistory = [], historyIdx = -1;
 let currentTabIndex = 0;
 const tabNames = ['jog','spin','console','prog','config'];
@@ -1173,6 +1180,13 @@ function toggleSolenoid() {
   document.getElementById('fabSolenoid').classList.toggle('sol-on', solenoidOn);
   document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol ON' : 'Sol OFF';
   buzz(solenoidOn ? 30 : 15);
+}
+function toggleUV() {
+  uvOn = !uvOn;
+  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 0 : 1));
+  document.getElementById('fabUV').classList.toggle('sol-on', uvOn);
+  document.getElementById('fabUVLabel').textContent = uvOn ? 'UV ON' : 'UV OFF';
+  buzz(uvOn ? 30 : 15);
 }
 
 // Servo sheet (long-press via context menu)
