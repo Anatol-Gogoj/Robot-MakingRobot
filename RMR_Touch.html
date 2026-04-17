@@ -6,17 +6,20 @@
 <title>RMR Touch Controller</title>
 <style>
   :root {
-    --bg: #1a1a2e;
+    /* Paul Tol Bright palette — color-blind safe */
+    --bg: #000000;
     --surface: #16213e;
-    --surface2: #0f3460;
-    --accent: #e94560;
-    --text: #eee;
-    --text-dim: #888;
-    --green: #4ecca3;
-    --yellow: #f0c040;
-    --red: #e94560;
-    --blue: #6ec6ff;
-    --border: #2a2a4a;
+    --surface2: #1c2f54;
+    --accent: #EE6677;
+    --text: #ffffff;
+    --text-dim: #ffffff;
+    --green: #228833;
+    --yellow: #CCBB44;
+    --red: #EE6677;
+    --blue: #4477AA;
+    --cyan: #66CCEE;
+    --purple: #AA3377;
+    --border: #BBBBBB;
     --touch-min: 48px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -31,8 +34,8 @@
 
   /* ── Header ── */
   header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
+    background: #4477AA;
+    border-bottom: 2px solid #AA3377;
     padding: 6px 12px;
     display: flex;
     align-items: center;
@@ -43,46 +46,46 @@
     position: relative;
   }
   .hdr-left { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-  .hdr-left h1 { font-size: 20px; font-weight: 700; white-space: nowrap; }
-  .hdr-left h1 span { color: var(--accent); }
+  .hdr-left h1 { font-size: 20px; font-weight: 700; white-space: nowrap; color: #fff; }
+  .hdr-left h1 span { color: #fff; }
   .status-dot {
     width: 16px; height: 16px; border-radius: 50%;
     background: var(--red); display: inline-block; flex-shrink: 0;
   }
   .status-dot.connected { background: var(--green); }
-  .conn-label { font-size: 12px; color: var(--text-dim); font-weight: 600; }
-  .conn-label.connected { color: var(--green); }
+  .conn-label { font-size: 12px; color: #fff; font-weight: 600; }
+  .conn-label.connected { color: #fff; }
   .hdr-right { display: flex; align-items: center; gap: 6px; }
   .hdr-btn {
-    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 14px; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; border: none;
+    background: rgba(0,0,0,0.25); color: #fff; font-size: 14px; font-weight: 600;
     cursor: pointer; min-height: var(--touch-min);
   }
   .hdr-btn:active { opacity: 0.7; }
   .estop {
     background: var(--red) !important; color: #fff !important;
-    font-weight: 800; font-size: 18px !important; border: 2px solid #ff2040 !important;
+    font-weight: 800; font-size: 18px !important; border: 2px solid #EE6677 !important;
     padding: 10px 22px; animation: pulse-red 2s infinite;
   }
   @keyframes pulse-red {
-    0%,100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
-    50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(238,102,119,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(238,102,119,0.4); }
   }
   @keyframes pulse-green {
-    0%,100% { box-shadow: 0 0 0 0 rgba(78,204,163,0.4); }
-    50% { box-shadow: 0 0 12px 4px rgba(78,204,163,0.4); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(34,136,51,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(34,136,51,0.4); }
   }
 
   /* ── Connection Drawer ── */
   .conn-drawer {
     display: none; position: absolute; top: 100%; left: 0; right: 0;
-    background: var(--surface); border-bottom: 2px solid var(--border);
+    background: #4477AA; border-bottom: 2px solid #AA3377;
     padding: 10px 12px; z-index: 29;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
   .conn-drawer.open { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .conn-drawer select {
-    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 8px; border: 2px solid var(--border);
     background: var(--surface2); color: var(--text); font-size: 14px;
     min-height: var(--touch-min);
   }
@@ -91,7 +94,7 @@
   /* ── Quick Commands Dropdown ── */
   .qcmd-dropdown {
     display: none; position: absolute; top: 100%; right: 0;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 10px 10px;
+    background: #4477AA; border: 1px solid rgba(255,255,255,0.2); border-radius: 0 0 10px 10px;
     padding: 10px; z-index: 28; min-width: 260px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
@@ -99,26 +102,26 @@
 
   /* ── Tab Bar ── */
   .tab-bar {
-    display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; background: #4477AA; border-bottom: 1px solid rgba(255,255,255,0.2);
     flex-shrink: 0;
   }
   .tab-btn {
     flex: 1; padding: 10px 4px; border: none; background: none;
-    color: var(--text-dim); font-size: 15px; font-weight: 700;
+    color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 700;
     cursor: pointer; border-bottom: 3px solid transparent;
     min-height: var(--touch-min); text-transform: uppercase; letter-spacing: 0.5px;
   }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-btn:active { background: rgba(233,69,96,0.1); }
+  .tab-btn.active { color: #fff; border-bottom-color: #AA3377; }
+  .tab-btn:active { background: rgba(255,255,255,0.1); }
 
   /* ── Main Scroll Area ── */
-  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 64px; }
+  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
   .tab-page { display: none; padding: 10px; }
   .tab-page.active { display: block; }
 
   /* ── Panel ── */
   .panel {
-    background: var(--surface); border: 1px solid var(--border);
+    background: #000000; border: 2px solid var(--border);
     border-radius: 10px; padding: 12px; margin-bottom: 10px;
   }
   .panel h2 {
@@ -131,9 +134,9 @@
   .jog-3col {
     display: grid; grid-template-columns: 1.3fr 0.6fr 1.1fr;
     gap: 8px; margin-bottom: 6px;
-    height: clamp(260px, calc(100vh - 320px), 520px);
+    height: clamp(280px, calc(100vh - 380px), 400px);
   }
-  .jog-col { margin-bottom: 0; padding: 10px; overflow: hidden; position: relative; }
+  .jog-col { margin-bottom: 0; padding: 10px; overflow: visible; position: relative; }
 
   /* ── Homing Overlay ── */
   .jog-col.homing { border-color: var(--yellow) !important; animation: pulse-yellow 1s infinite; }
@@ -145,47 +148,47 @@
     border-radius: 10px;
   }
   @keyframes pulse-yellow {
-    0%,100% { box-shadow: 0 0 0 0 rgba(240,192,64,0.3); }
-    50% { box-shadow: 0 0 10px 3px rgba(240,192,64,0.3); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(204,187,68,0.3); }
+    50% { box-shadow: 0 0 10px 3px rgba(204,187,68,0.3); }
   }
 
   /* ── Touch Jog Buttons ── */
   .jog-grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr); gap: 6px;
-    width: 100%; height: 100%;
+    width: 100%; height: calc(100% - 30px);
   }
   .jog-btn {
-    background: var(--surface2); border: 1.5px solid var(--border);
-    border-radius: 12px; color: var(--text); font-size: 36px;
+    background: #4477AA; border: none;
+    border-radius: 12px; color: #fff; font-size: 36px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     user-select: none; min-height: 54px;
   }
   .jog-btn:active { background: var(--accent); transform: scale(0.95); }
   .jog-btn.home-btn { font-size: 18px; font-weight: 800; letter-spacing: 1px; }
-  .jog-vert { width: 100%; flex: 1; min-height: 54px; font-size: 36px; }
+  .jog-vert { width: 100%; flex: 0; min-height: 54px; font-size: 36px; }
   .jog-vert.home-btn { font-size: 18px; }
-  .jog-sm { flex: 1; min-height: 48px; min-width: 56px; font-size: 30px; }
+  .jog-sm { flex: 0; min-height: 48px; min-width: 56px; font-size: 30px; }
   .jog-sm.home-btn { font-size: 16px; }
 
   /* ── Position Chips ── */
   .pos-chip {
     display: inline-flex; align-items: center; gap: 6px;
-    background: var(--bg); border: 1px solid var(--border);
+    background: #000000; border: 2px solid var(--border);
     border-radius: 8px; padding: 6px 12px;
   }
-  .pos-lbl { font-size: 14px; color: var(--text-dim); font-weight: 700; }
-  .pos-chip .axis-val { font-size: 20px; font-weight: 700; font-family: 'Consolas', monospace; }
+  .pos-lbl { font-size: 14px; color: #66CCEE; font-weight: 700; }
+  .pos-chip .axis-val { font-size: 20px; font-weight: 700; font-family: 'Consolas', monospace; color: #fff; }
 
   /* ── Compact Aux Rows ── */
-  .aux-compact { display: flex; align-items: center; gap: 6px; flex: 1; }
-  .aux-lbl { font-size: 20px; font-weight: 800; min-width: 24px; text-align: center; color: var(--text-dim); }
+  .aux-compact { display: grid; grid-template-columns: 60px 1fr 1fr; gap: 6px; align-items: center; }
+  .aux-lbl { font-size: 20px; font-weight: 800; text-align: left; color: var(--text-dim); }
 
   /* ── Step Selector ── */
   .step-btn {
-    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 18px; font-weight: 700;
-    cursor: pointer; min-height: 52px; min-width: 58px;
+    padding: 8px 14px; border-radius: 10px; border: none;
+    background: #4477AA; color: #fff; font-size: 18px; font-weight: 700;
+    cursor: pointer; min-height: 44px; min-width: 50px;
     display: flex; align-items: center; justify-content: center;
   }
   .step-btn.active { background: var(--accent); border-color: var(--accent); }
@@ -193,14 +196,14 @@
 
   /* ── Feedrate Drawer (Jog tab inline) ── */
   .feed-drawer {
-    background: var(--surface); border: 1px solid var(--border);
+    background: #000000; border: 2px solid var(--border);
     border-radius: 10px; margin-bottom: 6px; overflow: hidden;
   }
   .feed-drawer-summary {
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
     cursor: pointer; min-height: 44px; user-select: none;
   }
-  .feed-drawer-summary:active { background: rgba(233,69,96,0.05); }
+  .feed-drawer-summary:active { background: rgba(238,102,119,0.05); }
   .feed-drawer-label { font-size: 13px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
   .feed-drawer-vals { font-size: 13px; font-family: 'Consolas', monospace; color: var(--text); flex: 1; }
   .feed-drawer-chevron { font-size: 14px; color: var(--text-dim); transition: transform 0.2s; }
@@ -213,8 +216,8 @@
 
   /* ── Quick Command Buttons ── */
   .quick-btn {
-    padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 14px; font-weight: 700;
+    padding: 10px 14px; border-radius: 10px; border: none;
+    background: #4477AA; color: #fff; font-size: 14px; font-weight: 700;
     cursor: pointer; min-height: 44px;
   }
   .quick-btn:active { background: var(--accent); }
@@ -227,31 +230,14 @@
 
   /* ── Touch Button ── */
   .touch-btn {
-    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 16px; font-weight: 700;
+    padding: 10px 16px; border-radius: 10px; border: none;
+    background: #4477AA; color: #fff; font-size: 16px; font-weight: 700;
     cursor: pointer; min-height: 48px;
   }
   .touch-btn:active { background: var(--accent); }
   .touch-btn.on { background: var(--green); color: #000; }
 
-  /* ── Floating Action Panel (FAP) ── */
-  .fab-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-    display: flex; gap: 4px; padding: 6px 8px;
-    background: var(--surface); border-top: 2px solid var(--border);
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.4);
-  }
-  .fab-btn {
-    flex: 1; padding: 8px 4px; border-radius: 8px; border: 1.5px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 12px; font-weight: 700;
-    cursor: pointer; min-height: 44px; text-align: center;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px; user-select: none;
-  }
-  .fab-btn:active { background: var(--accent); }
-  .fab-btn .fab-icon { font-size: 16px; }
-  .fab-btn .fab-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .fab-btn.sol-on { background: var(--green); color: #000; animation: pulse-green 2s infinite; }
+  /* (FAB bar removed — controls moved inline to jog tab) */
 
   /* ── Servo Sheet Modal ── */
   .servo-sheet-overlay {
@@ -260,7 +246,7 @@
   }
   .servo-sheet-overlay.open { display: block; }
   .servo-sheet {
-    position: fixed; bottom: 56px; left: 0; right: 0; z-index: 26;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 26;
     background: var(--surface); border-top: 2px solid var(--accent);
     border-radius: 16px 16px 0 0; padding: 16px;
     transform: translateY(100%); transition: transform 0.25s ease;
@@ -276,7 +262,7 @@
   .servo-override-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
   .servo-override-row label { font-size: 12px; color: var(--text-dim); }
   .servo-override-row input[type=number] {
-    width: 70px; padding: 8px; border-radius: 6px; border: 1px solid var(--border);
+    width: 70px; padding: 8px; border-radius: 6px; border: 2px solid var(--border);
     background: var(--surface2); color: var(--text); font-size: 16px; text-align: center; min-height: 44px;
   }
 
@@ -290,7 +276,7 @@
     pointer-events: auto; max-width: 300px; animation: toastIn 0.3s ease;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
-  .toast.info { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .toast.info { background: var(--surface2); color: var(--text); border: 2px solid var(--border); }
   .toast.success { background: #1a3a2a; color: var(--green); border: 1px solid var(--green); }
   .toast.warn { background: #3a2a1a; color: var(--yellow); border: 1px solid var(--yellow); }
   .toast.error { background: #3a1a1a; color: var(--red); border: 1px solid var(--red); }
@@ -301,7 +287,7 @@
   /* ── Spincoater ── */
   .spin-telem-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 10px; }
   .rpm-gauge {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    flex: 1; background: #000000; border: 2px solid var(--border);
     border-radius: 8px; padding: 12px; text-align: center;
     position: relative; overflow: hidden;
     display: flex; flex-direction: column; justify-content: center;
@@ -313,8 +299,8 @@
   .gauge-stale .gauge-value { color: var(--text-dim) !important; }
 
   .dial-container {
-    width: 120px; min-width: 120px; background: var(--bg);
-    border: 1px solid var(--border); border-radius: 8px;
+    width: 120px; min-width: 120px; background: #000000;
+    border: 2px solid var(--border); border-radius: 8px;
     padding: 8px; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
   }
@@ -327,13 +313,13 @@
   .dial-deg-unit { font-size: 10px; color: var(--text-dim); }
 
   .spin-param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .spin-param-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+  .spin-param-item { background: #000000; border: 2px solid var(--border); border-radius: 8px; padding: 8px; }
   .spin-param-item.full { grid-column: 1 / -1; }
-  .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 3px; }
+  .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #66CCEE; margin-bottom: 3px; }
   .spin-param-item input[type="number"] {
     width: 100%; padding: 8px; border-radius: 6px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text); font-size: 18px; font-weight: 600; font-family: 'Consolas', monospace;
+    border: 2px solid var(--border); background: #4477AA;
+    color: #fff; font-size: 18px; font-weight: 600; font-family: 'Consolas', monospace;
     min-height: var(--touch-min);
   }
   .spin-param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
@@ -371,12 +357,12 @@
   .spin-big-btn.index-btn:active:not(:disabled) { background: var(--blue); color: #000; }
 
   .spin-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .spin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
-  .spin-stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
-  .spin-stat-card .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .spin-stat-card { background: #000000; border: 2px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .spin-stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #66CCEE; }
+  .spin-stat-card .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; }
   .spin-stat-card .unit { font-size: 10px; color: var(--text-dim); }
 
-  .spin-phase-bar { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .spin-phase-bar { background: #000000; border: 2px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .spin-phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
   .spin-phase-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
   .spin-phase-dot.warn { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
@@ -393,14 +379,15 @@
   .console-tab-inner { display: flex; flex-direction: column; height: calc(100vh - 180px); }
   .console-filters { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; }
   .filter-btn {
-    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--surface2); color: var(--text); font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 6px; border: none;
+    background: #333; color: #888; font-size: 11px; font-weight: 700;
     cursor: pointer; min-height: 32px; text-transform: uppercase;
+    opacity: 0.5;
   }
-  .filter-btn.active { border-color: var(--accent); background: rgba(233,69,96,0.15); }
+  .filter-btn.active { border-color: #228833; background: #228833; color: #fff; opacity: 1; }
   .filter-btn:active { opacity: 0.7; }
   #console {
-    background: #0a0a1a; border: 1px solid var(--border); border-radius: 8px;
+    background: #0a0a1a; border: 2px solid var(--border); border-radius: 8px;
     padding: 8px; font-family: 'Consolas', monospace; font-size: 12px;
     overflow-y: auto; white-space: pre-wrap; word-break: break-all;
     flex: 1; min-height: 120px;
@@ -416,14 +403,14 @@
   .cmd-bar { display: flex; gap: 6px; margin-top: 6px; flex-shrink: 0; }
   .cmd-bar input {
     flex: 1; padding: 10px 12px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface2);
-    color: var(--text); font-family: 'Consolas', monospace; font-size: 14px;
+    border: 2px solid var(--border); background: #4477AA;
+    color: #fff; font-family: 'Consolas', monospace; font-size: 14px;
     min-height: var(--touch-min);
   }
   .cmd-bar input:focus { outline: none; border-color: var(--accent); }
   .cmd-bar button {
-    padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--accent); color: #fff; font-size: 14px; cursor: pointer;
+    padding: 10px 16px; border-radius: 8px; border: none;
+    background: #4477AA; color: #fff; font-size: 14px; cursor: pointer;
     min-height: var(--touch-min);
   }
   .console-quick-scroll { display: flex; gap: 6px; margin-bottom: 6px; overflow-x: auto; flex-shrink: 0; padding-bottom: 2px; }
@@ -435,29 +422,30 @@
   .prog-progress-bar { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; border-radius: 2px; }
   #progTextarea {
     width: 100%; font-family: 'Fira Mono','Consolas', monospace; font-size: 12px;
-    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); border: 2px solid var(--border);
     border-radius: 8px; padding: 8px; resize: vertical; min-height: 120px;
   }
   #progDisplay {
     width: 100%; font-family: 'Fira Mono','Consolas', monospace; font-size: 12px;
-    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); border: 2px solid var(--border);
     border-radius: 8px; padding: 8px; min-height: 120px; max-height: 400px;
     overflow-y: auto; display: none;
   }
   #progDisplay .prog-line { padding: 1px 4px; border-radius: 2px; }
-  #progDisplay .prog-line.current { background: rgba(233,69,96,0.2); color: var(--accent); font-weight: 700; }
+  #progDisplay .prog-line.current { background: rgba(238,102,119,0.2); color: var(--accent); font-weight: 700; }
   #progDisplay .prog-line.done { color: var(--text-dim); }
   .prog-btns { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
-  .prog-btns .touch-btn { min-width: 70px; text-align: center; }
-  .prog-btns .run-btn { background: #2d8a4e; }
-  .prog-btns .stop-btn { background: #c0392b; }
+  .prog-btns .touch-btn { min-width: 70px; text-align: center; display: flex; align-items: center; justify-content: center; }
+  .prog-btns .run-btn { background: #228833; }
+  .prog-btns .stop-btn { background: #EE6677; }
+  .prog-btns .pause-btn { background: #CCBB44; color: #000; }
 
   /* ── Config Tab ── */
   .config-section { margin-bottom: 10px; }
   .config-section summary {
     list-style: none; cursor: pointer; display: flex; align-items: center;
     justify-content: space-between; min-height: 48px; padding: 8px 12px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); border: 2px solid var(--border); border-radius: 10px;
     font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
     color: var(--text-dim); font-weight: 700; user-select: none;
   }
@@ -466,7 +454,7 @@
   .config-section[open] summary::after { transform: rotate(90deg); }
   .config-section[open] summary { border-radius: 10px 10px 0 0; border-bottom: none; }
   .config-section .config-body {
-    background: var(--surface); border: 1px solid var(--border); border-top: none;
+    background: var(--surface); border: 2px solid var(--border); border-top: none;
     border-radius: 0 0 10px 10px; padding: 12px;
   }
   .setting-row {
@@ -475,7 +463,7 @@
   .setting-row label { min-width: 100px; color: var(--text-dim); }
   .setting-row input[type=number] {
     width: 80px; padding: 8px; border-radius: 6px;
-    border: 1px solid var(--border); background: var(--surface2);
+    border: 2px solid var(--border); background: var(--surface2);
     color: var(--text); font-size: 14px; text-align: center; min-height: var(--touch-min);
   }
   .accel-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
@@ -505,7 +493,7 @@
       <option value="115200">115.2k baud</option>
       <option value="57600">57.6k baud</option>
     </select>
-    <button class="hdr-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
+    <button class="hdr-btn" style="background:var(--yellow);color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
     <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px">
       <input type="checkbox" id="hapticToggle" checked style="width:18px;height:18px"> Haptics
     </label>
@@ -558,11 +546,11 @@
       </div>
     </div>
     <div style="display:flex;gap:4px;justify-content:center;margin:4px 0">
-      <button class="step-btn" onclick="setStep(0.1)">0.1</button>
-      <button class="step-btn" onclick="setStep(1)">1</button>
-      <button class="step-btn active" onclick="setStep(10)">10</button>
-      <button class="step-btn" onclick="setStep(50)">50</button>
-      <button class="step-btn" onclick="setStep(100)">100</button>
+      <button class="step-btn" onclick="setStep(0.1)">0.1 mm</button>
+      <button class="step-btn" onclick="setStep(1)">1 mm</button>
+      <button class="step-btn active" onclick="setStep(10)">10 mm</button>
+      <button class="step-btn" onclick="setStep(50)">50 mm</button>
+      <button class="step-btn" onclick="setStep(100)">100 mm</button>
     </div>
     <div class="feed-drawer" id="feedDrawer">
       <div class="feed-drawer-summary" onclick="toggleFeedDrawer()">
@@ -586,37 +574,49 @@
           <button class="jog-btn" data-jog="Y,-1">&#9650;</button>
           <div></div>
           <button class="jog-btn" data-jog="X,-1">&#9664;</button>
-          <button class="jog-btn home-btn" onclick="sendCmd('G28')">HOME</button>
+          <button class="jog-btn home-btn" onclick="sendCmd('G28')">HOME<br>ALL</button>
           <button class="jog-btn" data-jog="X,1">&#9654;</button>
           <div></div>
           <button class="jog-btn" data-jog="Y,1">&#9660;</button>
           <div></div>
         </div>
       </div>
-      <div class="panel jog-col" id="jogColZ" style="display:flex;flex-direction:column;align-items:stretch;justify-content:space-between">
-        <h2>Z</h2>
+      <div class="panel jog-col" id="jogColZ" style="display:flex;flex-direction:column;align-items:stretch;gap:12px">
+        <h2 style="flex-shrink:0">Z</h2>
         <button class="jog-btn jog-vert" data-jog="Z,-1">&#9650;</button>
-        <button class="jog-btn jog-vert home-btn" onclick="sendCmd('G92 Z0')">Z=0</button>
         <button class="jog-btn jog-vert" data-jog="Z,1">&#9660;</button>
       </div>
-      <div class="panel jog-col" id="jogColAux" style="display:flex;flex-direction:column;justify-content:space-between">
+      <div class="panel jog-col" id="jogColAux" style="display:flex;flex-direction:column;gap:10px">
         <h2>Aux</h2>
         <div class="aux-compact">
-          <span class="aux-lbl">A</span>
-          <button class="jog-btn jog-sm" data-jog="A,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="A,1">&#9654;</button>
+          <span class="aux-lbl">A<br><span style="font-size:12px;font-weight:400">Filter</span></span>
+          <button class="jog-btn jog-sm" data-jog="A,-1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="A,1">&#9660;</button>
         </div>
         <div class="aux-compact">
-          <span class="aux-lbl">E</span>
-          <button class="jog-btn jog-sm" data-jog="E,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="E,1">&#9654;</button>
-          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G92 E0')" style="font-size:16px">E=0</button>
+          <span class="aux-lbl">E<br><span style="font-size:12px;font-weight:400">Syringe</span></span>
+          <button class="jog-btn jog-sm" data-jog="E,1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="E,-1">&#9660;</button>
         </div>
         <div class="aux-compact">
-          <span class="aux-lbl">B</span>
-          <button class="jog-btn jog-sm" data-jog="B,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="B,1">&#9654;</button>
+          <span class="aux-lbl">B<br><span style="font-size:12px;font-weight:400">Syr.Ht</span></span>
+          <button class="jog-btn jog-sm" data-jog="B,-1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="B,1">&#9660;</button>
         </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:6px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px">
+        <button class="touch-btn" id="fabGripOpen" onclick="gripOpen()">Grip OPEN</button>
+        <button class="touch-btn" id="fabGripClose" onclick="gripClose()">Grip CLOSE</button>
+        <button class="touch-btn" id="fabLidOpen" onclick="lidOpen()">Lid OPEN</button>
+        <button class="touch-btn" id="fabLidClose" onclick="lidClose()">Lid CLOSE</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <button class="touch-btn" id="fabSolOn" onclick="relayCmd('sol',1)">Sol OPEN</button>
+        <button class="touch-btn" id="fabSolOff" onclick="relayCmd('sol',0)">Sol SHUT</button>
+        <button class="touch-btn" id="fabUvOn" onclick="relayCmd('uv',1)">UV ON</button>
+        <button class="touch-btn" id="fabUvOff" onclick="relayCmd('uv',0)">UV OFF</button>
       </div>
     </div>
   </div>
@@ -643,10 +643,10 @@
             <circle class="dial-track" cx="50" cy="50" r="40"/>
             <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
             <circle class="dial-center" cx="50" cy="50" r="3"/>
-            <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">0</text>
-            <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">90</text>
-            <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">180</text>
-            <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">270</text>
+            <text x="50" y="10" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">0</text>
+            <text x="93" y="53" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">90</text>
+            <text x="50" y="97" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">180</text>
+            <text x="7" y="53" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">270</text>
           </svg>
           <div class="dial-deg" id="spinLiveDEG">0.00</div>
           <div class="dial-deg-unit">degrees</div>
@@ -667,12 +667,12 @@
             </div>
           </div>
           <div class="spin-action-row">
-            <button class="spin-big-btn" onclick="spinStart()">Start</button>
+            <button class="spin-big-btn" onclick="spinStart()" style="background:#228833;border-color:#228833;color:#fff">Start</button>
             <button class="spin-big-btn stop" onclick="emergencyStop()">Stop</button>
           </div>
           <div class="spin-action-row">
-            <button class="spin-big-btn home-btn" onclick="spinSetHome()">Set Home</button>
-            <button class="spin-big-btn index-btn" onclick="spinIndexHome()">Index Home</button>
+            <button class="spin-big-btn home-btn" onclick="spinSetHome()" style="background:#CCBB44;border-color:#CCBB44;color:#000">Set Home</button>
+            <button class="spin-big-btn index-btn" onclick="spinIndexHome()" style="background:#CCBB44;border-color:#CCBB44;color:#000">Index Home</button>
           </div>
         </div>
         <div>
@@ -695,6 +695,7 @@
   <div class="tab-page" id="tab-console">
     <div class="console-tab-inner">
       <div class="console-filters">
+        <span style="font-size:12px;font-weight:700;color:#66CCEE;margin-right:2px">Filter:</span>
         <button class="filter-btn active" id="filterTx" onclick="toggleFilter('tx')">TX</button>
         <button class="filter-btn active" id="filterRx" onclick="toggleFilter('rx')">RX</button>
         <button class="filter-btn active" id="filterErr" onclick="toggleFilter('err')">ERR</button>
@@ -714,7 +715,7 @@
       <div class="cmd-bar">
         <input type="text" id="cmdInput" placeholder="G-code command..." onkeydown="if(event.key==='Enter')sendManual()" autocomplete="off" spellcheck="false">
         <button onclick="sendManual()">Send</button>
-        <button onclick="clearConsole()" style="background:var(--surface2)">Clr</button>
+        <button onclick="clearConsole()">Clr</button>
       </div>
     </div>
   </div>
@@ -726,9 +727,9 @@
       <div class="prog-progress"><div class="prog-progress-bar" id="progProgressBar"></div></div>
       <div class="prog-btns">
         <button class="touch-btn run-btn" id="progRunBtn" onclick="progRun()">Run</button>
-        <button class="touch-btn" id="progPauseBtn" onclick="progPause()" disabled>Pause</button>
+        <button class="touch-btn pause-btn" id="progPauseBtn" onclick="progPause()" disabled>Pause</button>
         <button class="touch-btn stop-btn" id="progStopBtn" onclick="progStop()" disabled>Stop</button>
-        <span id="progStatus" style="font-size:12px;color:var(--text-dim)">Idle</span>
+        <span id="progStatus" style="font-size:18px;font-weight:700;color:var(--text-dim)">Idle</span>
         <span style="flex:1"></span>
         <label class="touch-btn" style="cursor:pointer;font-size:12px">Load .gcode <input type="file" id="progFileInput" accept=".gcode,.nc,.txt" style="display:none" onchange="progLoadFile(event)"></label>
         <button class="touch-btn" onclick="progClear()" style="font-size:12px">Clear</button>
@@ -850,16 +851,7 @@
 </div><!-- /tab-content -->
 
 <!-- Floating Action Panel -->
-<div class="fab-bar">
-  <button class="fab-btn" id="fabGripOpen" onclick="gripOpen()"><span class="fab-icon">&#9654;</span><span class="fab-label">Grip Open</span></button>
-  <button class="fab-btn" id="fabGripClose" onclick="gripClose()"><span class="fab-icon">&#9664;</span><span class="fab-label">Grip Close</span></button>
-  <button class="fab-btn" id="fabLidOpen" onclick="lidOpen()"><span class="fab-icon">&#9650;</span><span class="fab-label">Lid Open</span></button>
-  <button class="fab-btn" id="fabLidClose" onclick="lidClose()"><span class="fab-icon">&#9660;</span><span class="fab-label">Lid Close</span></button>
-  <button class="fab-btn" id="fabSolOn" onclick="relayCmd('sol',1)"><span class="fab-icon">&#9679;</span><span class="fab-label">Sol OPEN</span></button>
-  <button class="fab-btn" id="fabSolOff" onclick="relayCmd('sol',0)"><span class="fab-icon">&#9675;</span><span class="fab-label">Sol SHUT</span></button>
-  <button class="fab-btn" id="fabUvOn" onclick="relayCmd('uv',1)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV ON</span></button>
-  <button class="fab-btn" id="fabUvOff" onclick="relayCmd('uv',0)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV OFF</span></button>
-</div>
+<!-- FAB bar removed — controls moved inline to jog tab -->
 
 <!-- Servo Sheet Overlay -->
 <div class="servo-sheet-overlay" id="servoSheet" onclick="if(event.target===this)closeServoSheet()">
@@ -1196,17 +1188,17 @@ function setServo(idx, angle) {
   }
   servoPositions[idx] = angle; try { localStorage.setItem('servo'+idx, angle); } catch(e) {} buzz(15);
 }
-function gripOpen() { setServo(0, servoConfig[0].openVal); }
-function gripClose() { setServo(0, servoConfig[0].closeVal); }
-function lidOpen() { setServo(1, servoConfig[1].openVal); }
-function lidClose() { setServo(1, servoConfig[1].closeVal); }
+function gripOpen() { setServo(0, servoConfig[0].openVal); document.getElementById('fabGripOpen').classList.add('on'); document.getElementById('fabGripClose').classList.remove('on'); }
+function gripClose() { setServo(0, servoConfig[0].closeVal); document.getElementById('fabGripClose').classList.add('on'); document.getElementById('fabGripOpen').classList.remove('on'); }
+function lidOpen() { setServo(1, servoConfig[1].openVal); document.getElementById('fabLidOpen').classList.add('on'); document.getElementById('fabLidClose').classList.remove('on'); }
+function lidClose() { setServo(1, servoConfig[1].closeVal); document.getElementById('fabLidClose').classList.add('on'); document.getElementById('fabLidOpen').classList.remove('on'); }
 
 function relayCmd(relay, sVal) {
   var pin = document.getElementById(relay === 'sol' ? 'solPin' : 'uvPin').value;
   sendCmd('M42 P' + pin + ' S' + sVal);
   var prefix = relay === 'sol' ? 'fabSol' : 'fabUv';
-  document.getElementById(prefix + 'On').classList.toggle('sol-on', sVal === 1);
-  document.getElementById(prefix + 'Off').classList.toggle('sol-on', sVal === 0);
+  document.getElementById(prefix + 'On').classList.toggle('on', sVal === 1);
+  document.getElementById(prefix + 'Off').classList.toggle('on', sVal === 0);
   buzz(sVal ? 30 : 15);
 }
 
