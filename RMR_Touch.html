@@ -6,16 +6,19 @@
 <title>RMR Touch Controller</title>
 <style>
   :root {
+    /* Paul Tol Bright palette — color-blind safe */
     --bg: #1a1a2e;
     --surface: #16213e;
-    --surface2: #0f3460;
-    --accent: #e94560;
+    --surface2: #1c2f54;
+    --accent: #EE6677;
     --text: #eee;
-    --text-dim: #888;
-    --green: #4ecca3;
-    --yellow: #f0c040;
-    --red: #e94560;
-    --blue: #6ec6ff;
+    --text-dim: #BBBBBB;
+    --green: #228833;
+    --yellow: #CCBB44;
+    --red: #EE6677;
+    --blue: #4477AA;
+    --cyan: #66CCEE;
+    --purple: #AA3377;
     --border: #2a2a4a;
     --touch-min: 48px;
   }
@@ -61,16 +64,16 @@
   .hdr-btn:active { opacity: 0.7; }
   .estop {
     background: var(--red) !important; color: #fff !important;
-    font-weight: 800; font-size: 18px !important; border: 2px solid #ff2040 !important;
+    font-weight: 800; font-size: 18px !important; border: 2px solid #EE6677 !important;
     padding: 10px 22px; animation: pulse-red 2s infinite;
   }
   @keyframes pulse-red {
-    0%,100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
-    50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(238,102,119,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(238,102,119,0.4); }
   }
   @keyframes pulse-green {
-    0%,100% { box-shadow: 0 0 0 0 rgba(78,204,163,0.4); }
-    50% { box-shadow: 0 0 12px 4px rgba(78,204,163,0.4); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(34,136,51,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(34,136,51,0.4); }
   }
 
   /* ── Connection Drawer ── */
@@ -109,7 +112,7 @@
     min-height: var(--touch-min); text-transform: uppercase; letter-spacing: 0.5px;
   }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-btn:active { background: rgba(233,69,96,0.1); }
+  .tab-btn:active { background: rgba(238,102,119,0.1); }
 
   /* ── Main Scroll Area ── */
   .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
@@ -145,8 +148,8 @@
     border-radius: 10px;
   }
   @keyframes pulse-yellow {
-    0%,100% { box-shadow: 0 0 0 0 rgba(240,192,64,0.3); }
-    50% { box-shadow: 0 0 10px 3px rgba(240,192,64,0.3); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(204,187,68,0.3); }
+    50% { box-shadow: 0 0 10px 3px rgba(204,187,68,0.3); }
   }
 
   /* ── Touch Jog Buttons ── */
@@ -200,7 +203,7 @@
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
     cursor: pointer; min-height: 44px; user-select: none;
   }
-  .feed-drawer-summary:active { background: rgba(233,69,96,0.05); }
+  .feed-drawer-summary:active { background: rgba(238,102,119,0.05); }
   .feed-drawer-label { font-size: 13px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
   .feed-drawer-vals { font-size: 13px; font-family: 'Consolas', monospace; color: var(--text); flex: 1; }
   .feed-drawer-chevron { font-size: 14px; color: var(--text-dim); transition: transform 0.2s; }
@@ -380,7 +383,7 @@
     background: var(--surface2); color: var(--text); font-size: 11px; font-weight: 700;
     cursor: pointer; min-height: 32px; text-transform: uppercase;
   }
-  .filter-btn.active { border-color: var(--accent); background: rgba(233,69,96,0.15); }
+  .filter-btn.active { border-color: var(--accent); background: rgba(238,102,119,0.15); }
   .filter-btn:active { opacity: 0.7; }
   #console {
     background: #0a0a1a; border: 1px solid var(--border); border-radius: 8px;
@@ -428,12 +431,12 @@
     overflow-y: auto; display: none;
   }
   #progDisplay .prog-line { padding: 1px 4px; border-radius: 2px; }
-  #progDisplay .prog-line.current { background: rgba(233,69,96,0.2); color: var(--accent); font-weight: 700; }
+  #progDisplay .prog-line.current { background: rgba(238,102,119,0.2); color: var(--accent); font-weight: 700; }
   #progDisplay .prog-line.done { color: var(--text-dim); }
   .prog-btns { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
   .prog-btns .touch-btn { min-width: 70px; text-align: center; }
-  .prog-btns .run-btn { background: #2d8a4e; }
-  .prog-btns .stop-btn { background: #c0392b; }
+  .prog-btns .run-btn { background: var(--green); }
+  .prog-btns .stop-btn { background: var(--red); }
 
   /* ── Config Tab ── */
   .config-section { margin-bottom: 10px; }
@@ -488,7 +491,7 @@
       <option value="115200">115.2k baud</option>
       <option value="57600">57.6k baud</option>
     </select>
-    <button class="hdr-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
+    <button class="hdr-btn" style="background:var(--yellow);color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
     <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px">
       <input type="checkbox" id="hapticToggle" checked style="width:18px;height:18px"> Haptics
     </label>
@@ -541,11 +544,11 @@
       </div>
     </div>
     <div style="display:flex;gap:4px;justify-content:center;margin:4px 0">
-      <button class="step-btn" onclick="setStep(0.1)">0.1</button>
-      <button class="step-btn" onclick="setStep(1)">1</button>
-      <button class="step-btn active" onclick="setStep(10)">10</button>
-      <button class="step-btn" onclick="setStep(50)">50</button>
-      <button class="step-btn" onclick="setStep(100)">100</button>
+      <button class="step-btn" onclick="setStep(0.1)">0.1 mm</button>
+      <button class="step-btn" onclick="setStep(1)">1 mm</button>
+      <button class="step-btn active" onclick="setStep(10)">10 mm</button>
+      <button class="step-btn" onclick="setStep(50)">50 mm</button>
+      <button class="step-btn" onclick="setStep(100)">100 mm</button>
     </div>
     <div class="feed-drawer" id="feedDrawer">
       <div class="feed-drawer-summary" onclick="toggleFeedDrawer()">
@@ -576,29 +579,27 @@
           <div></div>
         </div>
       </div>
-      <div class="panel jog-col" id="jogColZ" style="display:flex;flex-direction:column;align-items:stretch;justify-content:space-between">
+      <div class="panel jog-col" id="jogColZ" style="display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:12px">
         <h2>Z</h2>
         <button class="jog-btn jog-vert" data-jog="Z,-1">&#9650;</button>
-        <button class="jog-btn jog-vert home-btn" onclick="sendCmd('G92 Z0')">Z=0</button>
         <button class="jog-btn jog-vert" data-jog="Z,1">&#9660;</button>
       </div>
       <div class="panel jog-col" id="jogColAux" style="display:flex;flex-direction:column;justify-content:space-between">
         <h2>Aux</h2>
         <div class="aux-compact">
-          <span class="aux-lbl">A</span>
-          <button class="jog-btn jog-sm" data-jog="A,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="A,1">&#9654;</button>
+          <span class="aux-lbl">A<br><span style="font-size:9px;font-weight:400">Filter</span></span>
+          <button class="jog-btn jog-sm" data-jog="A,-1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="A,1">&#9660;</button>
         </div>
         <div class="aux-compact">
-          <span class="aux-lbl">E</span>
-          <button class="jog-btn jog-sm" data-jog="E,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="E,1">&#9654;</button>
-          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G92 E0')" style="font-size:16px">E=0</button>
+          <span class="aux-lbl">E<br><span style="font-size:9px;font-weight:400">Syringe</span></span>
+          <button class="jog-btn jog-sm" data-jog="E,1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="E,-1">&#9660;</button>
         </div>
         <div class="aux-compact">
-          <span class="aux-lbl">B</span>
-          <button class="jog-btn jog-sm" data-jog="B,-1">&#9664;</button>
-          <button class="jog-btn jog-sm" data-jog="B,1">&#9654;</button>
+          <span class="aux-lbl">B<br><span style="font-size:9px;font-weight:400">Syr.Ht</span></span>
+          <button class="jog-btn jog-sm" data-jog="B,-1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="B,1">&#9660;</button>
         </div>
       </div>
     </div>
@@ -640,10 +641,10 @@
             <circle class="dial-track" cx="50" cy="50" r="40"/>
             <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
             <circle class="dial-center" cx="50" cy="50" r="3"/>
-            <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">0</text>
-            <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">90</text>
-            <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">180</text>
-            <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas,monospace">270</text>
+            <text x="50" y="10" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">0</text>
+            <text x="93" y="53" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">90</text>
+            <text x="50" y="97" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">180</text>
+            <text x="7" y="53" text-anchor="middle" fill="#BBBBBB" font-size="6" font-family="Consolas,monospace">270</text>
           </svg>
           <div class="dial-deg" id="spinLiveDEG">0.00</div>
           <div class="dial-deg-unit">degrees</div>
