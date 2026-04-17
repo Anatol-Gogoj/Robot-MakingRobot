@@ -839,7 +839,7 @@
   <button class="fab-btn" id="fabGripClose" onclick="gripClose()"><span class="fab-icon">&#9664;</span><span class="fab-label">Grip Close</span></button>
   <button class="fab-btn" id="fabLidOpen" onclick="lidOpen()"><span class="fab-icon">&#9650;</span><span class="fab-label">Lid Open</span></button>
   <button class="fab-btn" id="fabLidClose" onclick="lidClose()"><span class="fab-icon">&#9660;</span><span class="fab-label">Lid Close</span></button>
-  <button class="fab-btn" id="fabSolenoid" onclick="toggleSolenoid()"><span class="fab-icon" id="fabSolIcon">&#9679;</span><span class="fab-label" id="fabSolLabel">Sol OFF</span></button>
+  <button class="fab-btn" id="fabSolenoid" onclick="toggleSolenoid()"><span class="fab-icon" id="fabSolIcon">&#9679;</span><span class="fab-label" id="fabSolLabel">Sol Shut</span></button>
   <button class="fab-btn" id="fabUV" onclick="toggleUV()"><span class="fab-icon" id="fabUVIcon">&#9788;</span><span class="fab-label" id="fabUVLabel">UV OFF</span></button>
 </div>
 
@@ -1185,14 +1185,14 @@ function lidClose() { setServo(1, servoConfig[1].closeVal); }
 
 function toggleSolenoid() {
   solenoidOn = !solenoidOn;
-  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 0 : 1));
+  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 1 : 0));
   document.getElementById('fabSolenoid').classList.toggle('sol-on', solenoidOn);
-  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol ON' : 'Sol OFF';
+  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol Open' : 'Sol Shut';
   buzz(solenoidOn ? 30 : 15);
 }
 function toggleUV() {
   uvOn = !uvOn;
-  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 0 : 1));
+  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 1 : 0));
   document.getElementById('fabUV').classList.toggle('sol-on', uvOn);
   document.getElementById('fabUVLabel').textContent = uvOn ? 'UV ON' : 'UV OFF';
   buzz(uvOn ? 30 : 15);

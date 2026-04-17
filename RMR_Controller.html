@@ -1184,8 +1184,8 @@ function toggleSolenoid() {
   solenoidOn = !solenoidOn;
   const pin = document.getElementById('solPin').value;
   const btn = document.getElementById('solBtn');
-  sendCmd(`M42 P${pin} S${solenoidOn ? 0 : 1}`);
-  btn.textContent = solenoidOn ? 'ON' : 'OFF';
+  sendCmd(`M42 P${pin} S${solenoidOn ? 1 : 0}`);
+  btn.textContent = solenoidOn ? 'OPEN' : 'SHUT';
   btn.classList.toggle('on', solenoidOn);
 }
 
@@ -1193,7 +1193,7 @@ function toggleUV() {
   uvOn = !uvOn;
   const pin = document.getElementById('uvPin').value;
   const btn = document.getElementById('uvBtn');
-  sendCmd(`M42 P${pin} S${uvOn ? 0 : 1}`);
+  sendCmd(`M42 P${pin} S${uvOn ? 1 : 0}`);
   btn.textContent = uvOn ? 'ON' : 'OFF';
   btn.classList.toggle('on', uvOn);
 }
