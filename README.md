@@ -67,10 +67,10 @@ Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_r
 
 - **Gripper servo** — GPIO 5, `M280 P0 S<angle>`, range 90° (closed) to 170° (open)
 - **Lid servo** — GPIO 6, `M280 P1 S<angle>`, 0–180° range
-- **UV lamp relay** — GPIO 4, active-low, `M42 P4 S0` = ON / `M42 P4 S1` = OFF
-- **Solenoid valve relay** — GPIO 42, active-low, `M42 P42 S0` = ON / `M42 P42 S1` = OFF
+- **UV lamp relay** — GPIO 4, `M42 P4 S1` = ON / `M42 P4 S0` = OFF (current active-HIGH modules)
+- **Solenoid valve relay** — GPIO 42, `M42 P42 S1` = ON / `M42 P42 S0` = OFF (current active-HIGH modules)
 
-Both relays are Bestep JQC3F-03VDC-C opto-isolated modules powered from a dedicated 3.3 V buck converter rail (shared ground with the Mega). The modules are active-low: pulling the IN pin to GND energizes the coil. On Mega boot the pins float, the module's internal pullup keeps IN high, and both relays stay safely de-energized — no need for an explicit pinMode-low in early setup.
+Both relays are opto-isolated modules powered from a dedicated 3.3 V buck converter rail (shared ground with the Mega). The current modules are active-HIGH (S1 = energize). The original Bestep JQC3F-03VDC-C modules were active-LOW (S0 = energize). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values, so correct polarity is handled by which button the user presses.
 
 Servos deactivate 2 seconds after positioning (`DEACTIVATE_SERVOS_AFTER_MOVE`) to prevent PWM jitter.
 
@@ -99,7 +99,7 @@ A custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and 
 | `Marlin/src/pins/pins.h` | Routing `MB(RAMPS_14_RMR)` → pins file |
 | `Marlin/src/gcode/calibrate/G28.cpp` | Custom homing order Z→Y→J→X→I, gripper close before X |
 | `Marlin/src/gcode/control/M42.cpp` | Added `pin_status <= 1` early return so digital-only writes skip `hal.set_pwm_duty()` on AVR (prevents Timer0/Timer1 conflicts) |
-| `Marlin/src/gcode/control/M280.cpp` | Servo clamp removed (soft limits in HTML only) |
+| `Marlin/src/gcode/control/M280.cpp` | Servo clamp removed (soft limits in HTML only). POLARGRAPH gate on T parameter removed — `M280 Px S<angle> T<ms>` now works on all servos for timed linear interpolation. |
 | `Marlin/src/gcode/control/M750.cpp` | Spincoater spin cycle handler |
 | `Marlin/src/gcode/control/M751_M752.cpp` | Spincoater home datum / index search |
 | `Marlin/src/gcode/control/M753.cpp` | ODrive UART diagnostic |
@@ -200,15 +200,16 @@ G1 E5 F300       ; extrude syringe 5 mm
 M280 P0 S90      ; close gripper (90°)
 M280 P0 S170     ; open gripper (170°)
 M280 P1 S0       ; set lid servo to 0°
+M280 P1 S30 T800 ; open lid over 800ms (timed linear interpolation)
 
-; Relays are ACTIVE-LOW (Bestep opto-isolated modules):
-M42 P4  S0       ; UV lamp ON
-M42 P4  S1       ; UV lamp OFF
-M42 P42 S0       ; solenoid valve OPEN
-M42 P42 S1       ; solenoid valve CLOSED
+; Relays (current modules are ACTIVE-HIGH):
+M42 P4  S1       ; UV lamp ON        (active-high)
+M42 P4  S0       ; UV lamp OFF
+M42 P42 S1       ; solenoid valve OPEN  (active-high)
+M42 P42 S0       ; solenoid valve CLOSED
 ```
 
-The counter-intuitive `S0 = ON` mapping is a property of the relay module hardware, not a firmware bug: the opto LED cathode ties to the IN pin, so pulling IN to GND energizes the coil. Consider wrapping these in labeled G-code macros (e.g. `; UV_ON`) when writing production sequences so the intent is obvious at a glance.
+The current relay modules are active-HIGH (S1 = energize, S0 = de-energize). The original Bestep JQC3F-03VDC-C modules were active-LOW (S0 = ON, S1 = OFF). Always comment the intent in production G-code (e.g. `M42 P4 S1 ; UV_ON`) because the S-value meaning depends on which relay module is installed.
 
 ### Spin Coating
 
@@ -265,7 +266,8 @@ M999             ; reset firmware after emergency stop (M112)
 7. **Direction inversions:** Z, I, and J axes all have `INVERT_*_DIR true`. If a new axis is added or a motor is rewired, verify direction during first test.
 8. **AVR `println()` and ODrive:** On AVR, `Serial.println()` sends `\r\n`. The ODrive ASCII protocol expects bare `\n` — the stray `\r` causes "unknown command" errors. All ODrive UART writes use `print()` + `write('\n')` instead.
 9. **M42 hijacks hardware timers on AVR:** Stock Marlin's `M42.cpp` always falls through to `hal.set_pwm_duty(pin, pin_status)` on AVR, which maps to `analogWrite()` and grabs the pin's hardware timer compare unit — even for `S0` and `S1`. On pins tied to Timer1 (e.g. pin 11 = OC1A, used by Marlin's stepper ISR) this causes intermittent pin-fighting where `M42` appears to work once and then stops. Our patched `M42.cpp` adds a `pin_status <= 1` early return so digital-only writes always take the pure `digitalWrite` path. For relay pins, prefer pure-GPIO pads with no timer compare unit (pin 42 = PL7 is used for the solenoid valve; pin 4 = OC0B is tolerable only because of the patch).
-10. **Relay modules are active-low:** Both the UV lamp (pin 4) and solenoid valve (pin 42) use Bestep JQC3F-03VDC-C opto-isolated modules. `M42 Pxx S0` energizes the coil; `M42 Pxx S1` releases it. This is a property of the module hardware (opto LED cathode tied to IN), not a firmware bug.
+10. **Relay module polarity:** The current relay modules are active-HIGH (`M42 Pxx S1` = energize, `M42 Pxx S0` = de-energize). The original Bestep JQC3F-03VDC-C modules were active-LOW (reversed polarity). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values, so the correct polarity is handled by button choice regardless of module type.
+11. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation — with SERVO_DELAY=2000, that is 2s per step. For tight ramp loops, use `write()` with manual `attach(0)` before and `write(final)+safe_delay(250)+detach` after. The M280 T parameter uses this approach. Default lid ramp time in the HTML UIs is 800ms.
 
 ## AI Attribution
 

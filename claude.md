@@ -46,14 +46,15 @@ Switch type: normally-open, wired common→GND, NO→signal pin. Internal pullup
 - `SERVO_DELAY { 2000, 2000 }` — hold time before deactivation
 
 ### Relay Outputs (UV Lamp + Solenoid Valve)
-Two opto-isolated relay modules (Bestep JQC3F-03VDC-C) control the UV cure lamp and the dispense solenoid valve. Both modules are powered from a dedicated 3.3 V buck converter rail sharing ground with the Mega. Triggered via `M42` from G-code (`DIRECT_PIN_CONTROL` enabled in `Configuration_adv.h`).
+Two opto-isolated relay modules control the UV cure lamp and the dispense solenoid valve. Both modules are powered from a dedicated 3.3 V buck converter rail sharing ground with the Mega. Triggered via `M42` from G-code (`DIRECT_PIN_CONTROL` enabled in `Configuration_adv.h`).
 
 - **UV lamp:** pin 4 (RAMPS SERVO3 slot, AVR OC0B / Timer0)
 - **Solenoid valve:** pin 42 (AUX2_08 header, AVR PL7, pure GPIO — no timer compare unit)
-- **Logic:** ACTIVE-LOW. The opto LED cathode ties to the IN pin, so pulling IN to GND energizes the coil.
-  - `M42 P4 S0` = UV ON, `M42 P4 S1` = UV OFF
-  - `M42 P42 S0` = valve OPEN, `M42 P42 S1` = valve CLOSED
-- **Boot-time behavior:** Mega inputs float at reset. The relay module's internal pullup pulls IN high, keeping both relays de-energized until Marlin drives the pins — no chatter and no unsafe state during bootloader handoff.
+- **Current modules (active-HIGH):** `M42 Pxx S1` = energize (ON), `M42 Pxx S0` = de-energize (OFF).
+  - `M42 P4 S1` = UV ON, `M42 P4 S0` = UV OFF
+  - `M42 P42 S1` = valve OPEN, `M42 P42 S0` = valve CLOSED
+- **Original modules (Bestep JQC3F-03VDC-C, active-LOW, replaced):** The opto LED cathode tied to the IN pin, so pulling IN to GND energized the coil. `M42 Pxx S0` = ON, `M42 Pxx S1` = OFF. Boot-time floating inputs were pulled HIGH by the module's internal pullup (safe de-energized state).
+- **HTML UI:** Uses explicit ON/OFF button pairs (not a stateful toggle) that send hardcoded S values, so the correct polarity is handled by which button the user presses regardless of module type.
 
 **Why pin 42 and not pin 11 or pin 28:** pin 11 = OC1A collides with Marlin's stepper ISR (Timer1); `analogWrite(11, ...)` fights the stepper timer continuously. Pin 28 is `E0_DIR_PIN` and is actively driven by the stepper subsystem on every syringe move. Pin 42 (PL7) has no hardware timer compare unit and no stepper/endstop/servo claim. See gotcha #12 for the underlying M42.cpp bug that caused the initial pin-11 failure and the patch that fixes it.
 
@@ -130,7 +131,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 |------|-------------|
 | `src/gcode/calibrate/G28.cpp` | Custom homing order: Z→Y→J→gripper close→X→I. Servo 0 closes to 90° before X homing to prevent collision. SECONDARY_AXIS_CODE I/J entries replaced with NOOP. |
 | `src/gcode/control/M42.cpp` | Added `if (pin_status <= 1) return;` early exit so digital-only writes never fall through to `hal.set_pwm_duty()`. Stock Marlin's AVR path unconditionally calls `analogWrite()` on every M42, which hijacks the pin's timer compare unit (catastrophic on pin 11 = OC1A / stepper ISR). See gotcha #12. |
-| `src/gcode/control/M280.cpp` | Firmware-side servo clamp removed — soft limits enforced in HTML slider only. Override textbox allows full 0–180°. |
+| `src/gcode/control/M280.cpp` | Firmware-side servo clamp removed — soft limits enforced in HTML slider only. Override textbox allows full 0–180°. POLARGRAPH gate on T parameter removed — any servo can now use `M280 Px S<angle> T<ms>` for timed linear interpolation. Uses `servo[i].write()` (not `move()`) in the interpolation loop to avoid per-step 2s SERVO_DELAY blocks; explicit `attach(0)` before the loop and `write()+safe_delay(250)+detach` after. |
 | `src/inc/SanityCheck.h` | Sanity check for DEACTIVATE_SERVOS_AFTER_MOVE commented out — stock Marlin requires Z_PROBE_SERVO_NR or switching toolhead, which don't apply here. |
 
 ### Critical Gotchas
@@ -143,10 +144,11 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 7. **Pin 17 freed for Serial2:** J endstop moved from pin 17 (TX2) to pin 23. Serial2 (pins 16/17) now connects to the ODrive S1 for spincoater control. Pin 16 = TX2 → ODrive RX, Pin 17 = RX2 → ODrive TX.
 8. **Axis name mapping:** G-code uses A/B for the I/J axes (set via AXIS4_NAME/AXIS5_NAME). Marlin restricts these names to A,B,C,U,V,W — 'I' and 'J' are not valid axis names. This affects ALL G-code commands: M201, M203, G28, G1, etc. must use A/B, not I/J.
 9. **Z endstop EMI history:** Pin 18 (Mega TX1) suffered severe false triggers from stepper EMI during homing. Noise threshold, 100nF cap on signal→GND, and external pullup resistor were insufficient. Moved to pin 40 (plain GPIO, no alternate function) using `Z_STOP_PIN` in pins file (not `Z_MIN_PIN`) because `pins_postprocess.h` can override `Z_MIN_PIN`. The `Z_STOP_PIN` approach lets postprocess derive `Z_MIN_PIN` automatically. Hardware: 100nF ceramic cap from pin 40 to GND recommended. Pin 18 is now free.
-10. **M400 before servos in G-code programs:** M280 (servo) executes immediately when parsed, not when the motion planner finishes preceding G1 moves. Always place `M400` before `M280` in G-code sequences to drain the planner queue first. G4 (dwell) alone is NOT a reliable substitute.
+10. **M400 before servos in G-code programs:** M280 (servo) executes immediately when parsed, not when the motion planner finishes preceding G1 moves. Always place `M400` before `M280` in G-code sequences to drain the planner queue first. G4 (dwell) alone is NOT a reliable substitute. When using `M280 Px S<angle> T<ms>`, the ramp itself takes T ms plus a 250ms settle, so `M400` is still needed before the `M280` but a `G4` after it may not be necessary since the ramp is inherently blocking.
 11. **AVR Serial.println() sends `\r\n`, ODrive expects bare `\n`:** On AVR (Mega 2560), `Serial.println()` appends `\r\n` (0x0D 0x0A). The ODrive S1 ASCII protocol expects only `\n` as the command terminator — the stray `\r` makes commands fail with "unknown command." All ODrive UART writes in spincoater.cpp use `print()` + `write('\n')` instead of `println()`. The Nano RP2040 (mbed/ARM) `println()` sends only `\n`, which is why the standalone spincoater firmware worked without this issue.
 12. **Stock M42.cpp calls analogWrite on AVR, even for S0/S1:** The stock implementation calls `extDigitalWrite(pin, pin_status)` and then unconditionally falls through to `hal.set_pwm_duty(pin, pin_status)`. On AVR that maps to `analogWrite()`, which attaches the pin to its hardware timer compare unit — so `M42 P11 S1` ends up configuring Timer1 OC1A at 1/255 duty, fighting Marlin's stepper ISR (Timer1) continuously. Symptom: relay fires once, then M42 "stops working" until the Mega resets via DTR. The STM32 path already had a `pin_status <= 1 && !PWM_PIN(pin)` guard; we extended it to all architectures as `if (pin_status <= 1) return;` so digital-only writes always take the pure `digitalWrite` path. When choosing pins for `M42` relay triggers, prefer pads with no hardware timer compare unit at all (pin 42 = PL7 is clean; pin 4 = OC0B is only safe because of this patch).
-13. **Bestep relay modules are active-low:** The UV lamp (pin 4) and solenoid valve (pin 42) Bestep JQC3F-03VDC-C modules energize on IN=LOW. G-code convention: `M42 Pxx S0` = ON, `M42 Pxx S1` = OFF. The opto LED cathode is tied to the IN pin with the anode on VCC, so pulling IN to GND lights the opto and drives the coil transistor. Side benefit: a floating input at Mega reset is pulled HIGH by the module's internal pullup, which is the safe de-energized state — no chatter on boot. Document this convention near every M42 call in production G-code (e.g. `M42 P4 S0 ; UV_ON`) because S0-means-on is counter-intuitive and will confuse any future reader.
+13. **Relay module polarity — original vs current:** The original Bestep JQC3F-03VDC-C modules were active-LOW (`M42 Pxx S0` = ON, `M42 Pxx S1` = OFF). The opto LED cathode tied to the IN pin, so GND energized the coil; boot-time floating inputs were pulled HIGH by the module's internal pullup (safe de-energized state). **The current relay modules are active-HIGH** (`M42 Pxx S1` = energize, `M42 Pxx S0` = de-energize). The HTML UI now uses explicit ON/OFF button pairs that send hardcoded S values, so the correct polarity is handled by which button the user presses. When writing production G-code, always comment the intent (e.g. `M42 P4 S1 ; UV_ON`) because the S-value meaning depends on which relay module is installed.
+14. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation. With `SERVO_DELAY=2000`, that would be 2 seconds per step — unusable for smooth ramps. For tight interpolation loops, use `write()` with a manual `attach(0)` before the loop and `write(final_angle) + safe_delay(250) + detach` after. The M280 T parameter (timed servo ramp) uses this approach. Default lid move time in the HTML UIs is 800ms.
 
 ## G-Code Reference for This Machine
 
@@ -174,16 +176,18 @@ G92 E0           # reset syringe position
 ```gcode
 M280 P0 S_       # gripper servo (angle 0-180, soft limits 90-170 in HTML)
 M280 P1 S_       # lid servo (angle 0-180)
+M280 P1 S30 T800 # lid servo open over 800ms (timed linear interpolation)
 ```
+T parameter: optional ramp time in milliseconds. When T>0, the servo interpolates linearly from its current angle to the target over T ms plus a 250ms settle. When T=0 or omitted, falls through to normal `move()` with full SERVO_DELAY. Available on all servos (POLARGRAPH gate removed).
 
-### Relays (UV lamp + solenoid valve — ACTIVE-LOW)
+### Relays (UV lamp + solenoid valve — current modules ACTIVE-HIGH)
 ```gcode
-M42 P4  S0       # UV lamp ON       (pin 4,  Bestep active-low)
-M42 P4  S1       # UV lamp OFF
-M42 P42 S0       # solenoid valve OPEN  (pin 42, Bestep active-low)
-M42 P42 S1       # solenoid valve CLOSED
+M42 P4  S1       # UV lamp ON       (pin 4,  active-high)
+M42 P4  S0       # UV lamp OFF
+M42 P42 S1       # solenoid valve OPEN  (pin 42, active-high)
+M42 P42 S0       # solenoid valve CLOSED
 ```
-S0 = energized, S1 = off. Requires `DIRECT_PIN_CONTROL` (enabled in `Configuration_adv.h`).
+Current modules are active-HIGH: S1 = energize, S0 = de-energize. Requires `DIRECT_PIN_CONTROL` (enabled in `Configuration_adv.h`). Note: the original Bestep JQC3F-03VDC-C modules were active-LOW (S0 = ON, S1 = OFF) — see gotcha #13 for history.
 
 ### Spincoater (ODrive S1 via Serial2)
 ```gcode
@@ -239,9 +243,9 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Y axis arrows** swapped to match physical motion direction
 - **Per-axis auxiliary feed sliders:** A (max 2000), B (max 3000), E (max 500 mm/min)
 - **Acceleration tuning panel** (collapsible) — per-axis M201 sliders with Set/Set All/Save to EEPROM
-- **Gripper servo** — slider (90°–170°), Open/Close quick buttons, override textbox (0–180°)
-- **Lid servo** — slider (0°–180°)
-- **Solenoid** toggle with configurable pin
+- **Gripper servo** — slider (90°-170°), Open/Close quick buttons, override textbox (0-180°)
+- **Lid servo** — slider (0°-180°) with T<ms> timed ramp (default 800ms)
+- **Relay controls** — explicit ON/OFF button pairs for solenoid valve (OPEN/SHUT) and UV lamp (ON/OFF), with configurable pin numbers. Last-pressed button highlights via CSS. No internal state tracking — each button sends a hardcoded S value.
 - **Position readout** with auto-report (1s polling via M114)
 - **E-Stop** button (M112) with **Reset (M999)** button for recovery without USB replug
 - **Raw G-code** input with command history
@@ -255,6 +259,12 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Program Runner** — textarea for G-code programs, Load .gcode button, Run/Pause/Stop controls, line counter, Wait-for-ok checkbox. Sends lines sequentially, waits for Marlin `ok` before sending next line.
 - **Keyboard shortcuts:** Arrow keys = XY, PgUp/PgDn = Z, Esc = E-Stop (disabled when textarea focused)
 
+### Touch UI Layout
+The Touch GUI variant organizes controls into tabs:
+- **Jog tab:** XY pad, Z controls, auxiliary axis controls. Single Home All (G28) button in XY center; per-axis home buttons removed from this tab.
+- **Advanced tab** (formerly "Config"): individual axis homing (Home XY, Home Z, Home A, Home B), acceleration tuning, servo override (M280) with raw angle inputs for Gripper (P0) and Lid (P1) that bypass slider limits and T ramp.
+- **Connect/Disconnect** button in always-visible header ribbon (not inside a drawer).
+
 ## File Inventory
 
 | File | Location in Marlin Tree | Purpose |
@@ -265,7 +275,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 | boards.h | `Marlin/src/core/boards.h` | Needs 1 line added (board ID) |
 | pins.h | `Marlin/src/pins/pins.h` | Needs 2 lines added (routing) |
 | G28.cpp | `Marlin/src/gcode/calibrate/` | Patched for custom homing order + gripper close |
-| M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed |
+| M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed, POLARGRAPH gate on T<ms> removed |
 | SanityCheck.h | `Marlin/src/inc/` | Patched — DEACTIVATE_SERVOS_AFTER_MOVE check bypassed |
 | RMR_Controller.html | repo root | Browser-based Web Serial controller UI |
 | DemoProgram.gcode | repo root | Demo pick-and-place cycle: left/right filters → spincoater → dispose |
@@ -438,7 +448,7 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 | pins.h | `Marlin/src/pins/pins.h` | Board routing |
 | G28.cpp | `Marlin/src/gcode/calibrate/` | Patched for custom homing order + gripper close |
 | M42.cpp | `Marlin/src/gcode/control/` | Patched — early return on S<=1 to skip hal.set_pwm_duty (AVR timer hijack fix) |
-| M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed |
+| M280.cpp | `Marlin/src/gcode/control/` | Patched — firmware servo clamp removed, POLARGRAPH gate on T<ms> removed |
 | M750.cpp | `Marlin/src/gcode/control/` | Spincoater spin cycle handler |
 | M751_M752.cpp | `Marlin/src/gcode/control/` | Spincoater datum set + index home |
 | M753.cpp | `Marlin/src/gcode/control/` | ODrive UART diagnostic (Serial2 probe) |
