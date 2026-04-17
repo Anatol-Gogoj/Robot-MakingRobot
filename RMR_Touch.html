@@ -1185,14 +1185,14 @@ function lidClose() { setServo(1, servoConfig[1].closeVal); }
 
 function toggleSolenoid() {
   solenoidOn = !solenoidOn;
-  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 1 : 0));
+  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 0 : 1));
   document.getElementById('fabSolenoid').classList.toggle('sol-on', solenoidOn);
-  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol Open' : 'Sol Shut';
+  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol OPEN' : 'Sol SHUT';
   buzz(solenoidOn ? 30 : 15);
 }
 function toggleUV() {
   uvOn = !uvOn;
-  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 1 : 0));
+  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 0 : 1));
   document.getElementById('fabUV').classList.toggle('sol-on', uvOn);
   document.getElementById('fabUVLabel').textContent = uvOn ? 'UV ON' : 'UV OFF';
   buzz(uvOn ? 30 : 15);

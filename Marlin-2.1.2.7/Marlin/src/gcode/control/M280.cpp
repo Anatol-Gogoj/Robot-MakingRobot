@@ -53,6 +53,8 @@ void GcodeSuite::M280() {
         //    (e.g. M280 P1 S30 T1500 to open the lid over 1.5 s).
         //    Uses write() in the loop — move() would invoke attach + safe_delay(SERVO_DELAY)
         //    + detach per step, blocking ~2 s per 50 ms iteration with SERVO_DELAY=2000.
+        //    When T is used, skip move() entirely to avoid the extra SERVO_DELAY block.
+        bool did_ramp = false;
         if (parser.seenval('T')) {
           const int16_t t = constrain(parser.value_int(), 0, 10000);
           if (t > 0) {
@@ -65,9 +67,13 @@ void GcodeSuite::M280() {
               now = _MIN(millis(), end);
               servo[servo_index].write(LROUND(aold + (anew - aold) * (float(now - start) / t)));
             }
+            servo[servo_index].write(anew);   // ensure exact final angle
+            safe_delay(250);                  // brief settle before detach
+            TERN_(DEACTIVATE_SERVOS_AFTER_MOVE, servo[servo_index].detach());
+            did_ramp = true;
           }
         }
-        servo[servo_index].move(anew);        // final step — SERVO_DELAY hold + DEACTIVATE detach
+        if (!did_ramp) servo[servo_index].move(anew);  // no T or T=0: normal move with SERVO_DELAY
       }
       else
         servo[servo_index].detach();
