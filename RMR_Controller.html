@@ -550,18 +550,16 @@
       <button class="toggle-btn" onclick="let v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Override</button>
     </div>
 
-    <h2 style="margin-top:14px">Solenoid</h2>
+    <h2 style="margin-top:14px">Solenoid (Pin <input type="number" id="solPin" value="42" min="0" max="70" style="width:42px;font-size:12px">)</h2>
     <div class="servo-row">
-      <label>Pin:</label>
-      <input type="number" id="solPin" value="42" min="0" max="70" style="width:50px">
-      <button class="toggle-btn" id="solBtn" onclick="toggleSolenoid()">OFF</button>
+      <button class="toggle-btn" id="solOnBtn" onclick="relayCmd('sol',1)">OPEN</button>
+      <button class="toggle-btn" id="solOffBtn" onclick="relayCmd('sol',0)">SHUT</button>
     </div>
 
-    <h2 style="margin-top:14px">UV Lamp</h2>
+    <h2 style="margin-top:14px">UV Lamp (Pin <input type="number" id="uvPin" value="4" min="0" max="70" style="width:42px;font-size:12px">)</h2>
     <div class="servo-row">
-      <label>Pin:</label>
-      <input type="number" id="uvPin" value="4" min="0" max="70" style="width:50px">
-      <button class="toggle-btn" id="uvBtn" onclick="toggleUV()">OFF</button>
+      <button class="toggle-btn" id="uvOnBtn" onclick="relayCmd('uv',1)">ON</button>
+      <button class="toggle-btn" id="uvOffBtn" onclick="relayCmd('uv',0)">OFF</button>
     </div>
   </div>
 
@@ -891,8 +889,7 @@ let reader = null;
 let writer = null;
 let isConnected = false;
 let stepSize = 10;
-let solenoidOn = false;
-let uvOn = false;
+// (relay state tracked by button highlighting only)
 let readBuffer = '';
 let autoReportInterval = null;
 let cmdHistory = [];
@@ -1180,22 +1177,13 @@ function setServo(idx) {
   }
 }
 
-function toggleSolenoid() {
-  solenoidOn = !solenoidOn;
-  const pin = document.getElementById('solPin').value;
-  const btn = document.getElementById('solBtn');
-  sendCmd(`M42 P${pin} S${solenoidOn ? 1 : 0}`);
-  btn.textContent = solenoidOn ? 'OPEN' : 'SHUT';
-  btn.classList.toggle('on', solenoidOn);
-}
-
-function toggleUV() {
-  uvOn = !uvOn;
-  const pin = document.getElementById('uvPin').value;
-  const btn = document.getElementById('uvBtn');
-  sendCmd(`M42 P${pin} S${uvOn ? 1 : 0}`);
-  btn.textContent = uvOn ? 'ON' : 'OFF';
-  btn.classList.toggle('on', uvOn);
+function relayCmd(relay, sVal) {
+  const pin = document.getElementById(relay === 'sol' ? 'solPin' : 'uvPin').value;
+  sendCmd(`M42 P${pin} S${sVal}`);
+  const onBtn  = document.getElementById(relay + 'OnBtn');
+  const offBtn = document.getElementById(relay + 'OffBtn');
+  onBtn.classList.toggle('on', sVal === 1);
+  offBtn.classList.toggle('on', sVal === 0);
 }
 
 // ─── Emergency Stop ───

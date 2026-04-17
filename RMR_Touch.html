@@ -839,8 +839,10 @@
   <button class="fab-btn" id="fabGripClose" onclick="gripClose()"><span class="fab-icon">&#9664;</span><span class="fab-label">Grip Close</span></button>
   <button class="fab-btn" id="fabLidOpen" onclick="lidOpen()"><span class="fab-icon">&#9650;</span><span class="fab-label">Lid Open</span></button>
   <button class="fab-btn" id="fabLidClose" onclick="lidClose()"><span class="fab-icon">&#9660;</span><span class="fab-label">Lid Close</span></button>
-  <button class="fab-btn" id="fabSolenoid" onclick="toggleSolenoid()"><span class="fab-icon" id="fabSolIcon">&#9679;</span><span class="fab-label" id="fabSolLabel">Sol Shut</span></button>
-  <button class="fab-btn" id="fabUV" onclick="toggleUV()"><span class="fab-icon" id="fabUVIcon">&#9788;</span><span class="fab-label" id="fabUVLabel">UV OFF</span></button>
+  <button class="fab-btn" id="fabSolOn" onclick="relayCmd('sol',1)"><span class="fab-icon">&#9679;</span><span class="fab-label">Sol OPEN</span></button>
+  <button class="fab-btn" id="fabSolOff" onclick="relayCmd('sol',0)"><span class="fab-icon">&#9675;</span><span class="fab-label">Sol SHUT</span></button>
+  <button class="fab-btn" id="fabUvOn" onclick="relayCmd('uv',1)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV ON</span></button>
+  <button class="fab-btn" id="fabUvOff" onclick="relayCmd('uv',0)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV OFF</span></button>
 </div>
 
 <!-- Servo Sheet Overlay -->
@@ -867,7 +869,7 @@
 <script>
 // ─── State ───
 let port = null, reader = null, writer = null, isConnected = false;
-let stepSize = 10, solenoidOn = false, uvOn = false, readBuffer = '';
+let stepSize = 10, readBuffer = '';
 let autoReportInterval = null, cmdHistory = [], historyIdx = -1;
 let currentTabIndex = 0;
 const tabNames = ['jog','spin','console','prog','config'];
@@ -1183,19 +1185,13 @@ function gripClose() { setServo(0, servoConfig[0].closeVal); }
 function lidOpen() { setServo(1, servoConfig[1].openVal); }
 function lidClose() { setServo(1, servoConfig[1].closeVal); }
 
-function toggleSolenoid() {
-  solenoidOn = !solenoidOn;
-  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 1 : 0));
-  document.getElementById('fabSolenoid').classList.toggle('sol-on', solenoidOn);
-  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol OPEN' : 'Sol SHUT';
-  buzz(solenoidOn ? 30 : 15);
-}
-function toggleUV() {
-  uvOn = !uvOn;
-  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 1 : 0));
-  document.getElementById('fabUV').classList.toggle('sol-on', uvOn);
-  document.getElementById('fabUVLabel').textContent = uvOn ? 'UV ON' : 'UV OFF';
-  buzz(uvOn ? 30 : 15);
+function relayCmd(relay, sVal) {
+  var pin = document.getElementById(relay === 'sol' ? 'solPin' : 'uvPin').value;
+  sendCmd('M42 P' + pin + ' S' + sVal);
+  var prefix = relay === 'sol' ? 'fabSol' : 'fabUv';
+  document.getElementById(prefix + 'On').classList.toggle('sol-on', sVal === 1);
+  document.getElementById(prefix + 'Off').classList.toggle('sol-on', sVal === 0);
+  buzz(sVal ? 30 : 15);
 }
 
 // Servo sheet (long-press via context menu)
