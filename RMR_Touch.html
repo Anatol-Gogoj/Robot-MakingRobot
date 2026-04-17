@@ -533,7 +533,7 @@
   <button class="tab-btn" onclick="switchTab('spin')">Spin</button>
   <button class="tab-btn" onclick="switchTab('console')">Console</button>
   <button class="tab-btn" onclick="switchTab('prog')">Program</button>
-  <button class="tab-btn" onclick="switchTab('config')">Config</button>
+  <button class="tab-btn" onclick="switchTab('config')">Advanced</button>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -816,6 +816,22 @@
       <div class="config-body">
         <div class="setting-row"><label>Move time (ms):</label><input type="number" id="lidMoveMs" value="800" min="0" max="10000" step="100" onchange="localStorage.setItem('rmr.lidMoveMs', this.value)"></div>
         <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">0 = instant. Sent as M280 T parameter for lid servo only.</p>
+      </div>
+    </details>
+    <details class="config-section">
+      <summary>Servo Override (M280)</summary>
+      <div class="config-body">
+        <div class="setting-row" style="gap:6px;flex-wrap:wrap">
+          <label>Gripper (P0):</label>
+          <input type="number" id="servo0Override" min="0" max="180" placeholder="0-180" style="width:65px">
+          <button class="touch-btn" onclick="var v=document.getElementById('servo0Override').value; if(v!=='') sendCmd('M280 P0 S'+v)">Send</button>
+        </div>
+        <div class="setting-row" style="gap:6px;flex-wrap:wrap">
+          <label>Lid (P1):</label>
+          <input type="number" id="servo1Override" min="0" max="180" placeholder="0-180" style="width:65px">
+          <button class="touch-btn" onclick="var v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Send</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">Bypasses slider limits. Sends raw M280 with no T ramp.</p>
       </div>
     </details>
     <details class="config-section">
