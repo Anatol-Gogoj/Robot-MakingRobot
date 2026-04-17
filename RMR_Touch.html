@@ -495,6 +495,7 @@
     <span class="conn-label" id="connLabel">Disconnected</span>
   </div>
   <div class="hdr-right">
+    <button class="hdr-btn" id="connectBtn" onclick="toggleConnection()">Connect</button>
     <button class="hdr-btn" onclick="toggleQcmdDropdown()">Cmds</button>
     <button class="hdr-btn estop" onclick="emergencyStop()">E-STOP</button>
   </div>
@@ -504,7 +505,6 @@
       <option value="115200">115.2k baud</option>
       <option value="57600">57.6k baud</option>
     </select>
-    <button class="hdr-btn" id="connectBtn" onclick="toggleConnection()">Connect</button>
     <button class="hdr-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
     <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px">
       <input type="checkbox" id="hapticToggle" checked style="width:18px;height:18px"> Haptics
@@ -586,7 +586,7 @@
           <button class="jog-btn" data-jog="Y,-1">&#9650;</button>
           <div></div>
           <button class="jog-btn" data-jog="X,-1">&#9664;</button>
-          <button class="jog-btn home-btn" onclick="sendCmd('G28 X Y')">HOME</button>
+          <button class="jog-btn home-btn" onclick="sendCmd('G28')">HOME</button>
           <button class="jog-btn" data-jog="X,1">&#9654;</button>
           <div></div>
           <button class="jog-btn" data-jog="Y,1">&#9660;</button>
@@ -605,7 +605,6 @@
           <span class="aux-lbl">A</span>
           <button class="jog-btn jog-sm" data-jog="A,-1">&#9664;</button>
           <button class="jog-btn jog-sm" data-jog="A,1">&#9654;</button>
-          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G28 A')" style="font-size:16px">HOME</button>
         </div>
         <div class="aux-compact">
           <span class="aux-lbl">E</span>
@@ -617,7 +616,6 @@
           <span class="aux-lbl">B</span>
           <button class="jog-btn jog-sm" data-jog="B,-1">&#9664;</button>
           <button class="jog-btn jog-sm" data-jog="B,1">&#9654;</button>
-          <button class="jog-btn jog-sm home-btn" onclick="sendCmd('G28 B')" style="font-size:16px">HOME</button>
         </div>
       </div>
     </div>
@@ -818,6 +816,17 @@
       <div class="config-body">
         <div class="setting-row"><label>Move time (ms):</label><input type="number" id="lidMoveMs" value="1500" min="0" max="10000" step="100" onchange="localStorage.setItem('rmr.lidMoveMs', this.value)"></div>
         <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">0 = instant. Sent as M280 T parameter for lid servo only.</p>
+      </div>
+    </details>
+    <details class="config-section">
+      <summary>Homing (G28)</summary>
+      <div class="config-body">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="touch-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
+          <button class="touch-btn" onclick="sendCmd('G28 Z')">Home Z</button>
+          <button class="touch-btn" onclick="sendCmd('G28 A')">Home A</button>
+          <button class="touch-btn" onclick="sendCmd('G28 B')">Home B</button>
+        </div>
       </div>
     </details>
   </div>
