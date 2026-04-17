@@ -47,22 +47,27 @@ void GcodeSuite::M280() {
     if (parser.seenval('S')) {
       int anew = parser.value_int();
       if (anew >= 0) {
-        // RMR: Gripper servo (P0) soft limits 90°-170° enforced in HTML slider.
-        // Override textbox allows full 0-180° range — no firmware clamp.
-        #if ENABLED(POLARGRAPH)
-          if (parser.seenval('T')) { // (ms) Total duration of servo move
-            const int16_t t = constrain(parser.value_int(), 0, 10000);
+        // RMR patches:
+        //  - Firmware servo clamp removed; HTML enforces soft limits.
+        //  - POLARGRAPH gate removed so any M280 can use T<ms> for timed ramp
+        //    (e.g. M280 P1 S30 T1500 to open the lid over 1.5 s).
+        //    Uses write() in the loop — move() would invoke attach + safe_delay(SERVO_DELAY)
+        //    + detach per step, blocking ~2 s per 50 ms iteration with SERVO_DELAY=2000.
+        if (parser.seenval('T')) {
+          const int16_t t = constrain(parser.value_int(), 0, 10000);
+          if (t > 0) {
             const int aold = servo[servo_index].read();
+            servo[servo_index].attach(0);     // keep PWM alive across the ramp
             millis_t now = millis();
             const millis_t start = now, end = start + t;
             while (PENDING(now, end)) {
-              safe_delay(50);
+              safe_delay(50);                 // drives thermalManager.task() internally
               now = _MIN(millis(), end);
-              servo[servo_index].move(LROUND(aold + (anew - aold) * (float(now - start) / t)));
+              servo[servo_index].write(LROUND(aold + (anew - aold) * (float(now - start) / t)));
             }
           }
-        #endif // POLARGRAPH
-        servo[servo_index].move(anew);
+        }
+        servo[servo_index].move(anew);        // final step — SERVO_DELAY hold + DEACTIVATE detach
       }
       else
         servo[servo_index].detach();
