@@ -533,7 +533,7 @@
   <button class="tab-btn" onclick="switchTab('spin')">Spin</button>
   <button class="tab-btn" onclick="switchTab('console')">Console</button>
   <button class="tab-btn" onclick="switchTab('prog')">Program</button>
-  <button class="tab-btn" onclick="switchTab('config')">Config</button>
+  <button class="tab-btn" onclick="switchTab('config')">Advanced</button>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -814,8 +814,24 @@
     <details class="config-section">
       <summary>Lid Servo Speed</summary>
       <div class="config-body">
-        <div class="setting-row"><label>Move time (ms):</label><input type="number" id="lidMoveMs" value="1500" min="0" max="10000" step="100" onchange="localStorage.setItem('rmr.lidMoveMs', this.value)"></div>
+        <div class="setting-row"><label>Move time (ms):</label><input type="number" id="lidMoveMs" value="800" min="0" max="10000" step="100" onchange="localStorage.setItem('rmr.lidMoveMs', this.value)"></div>
         <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">0 = instant. Sent as M280 T parameter for lid servo only.</p>
+      </div>
+    </details>
+    <details class="config-section">
+      <summary>Servo Override (M280)</summary>
+      <div class="config-body">
+        <div class="setting-row" style="gap:6px;flex-wrap:wrap">
+          <label>Gripper (P0):</label>
+          <input type="number" id="servo0Override" min="0" max="180" placeholder="0-180" style="width:65px">
+          <button class="touch-btn" onclick="var v=document.getElementById('servo0Override').value; if(v!=='') sendCmd('M280 P0 S'+v)">Send</button>
+        </div>
+        <div class="setting-row" style="gap:6px;flex-wrap:wrap">
+          <label>Lid (P1):</label>
+          <input type="number" id="servo1Override" min="0" max="180" placeholder="0-180" style="width:65px">
+          <button class="touch-btn" onclick="var v=document.getElementById('servo1Override').value; if(v!=='') sendCmd('M280 P1 S'+v)">Send</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">Bypasses slider limits. Sends raw M280 with no T ramp.</p>
       </div>
     </details>
     <details class="config-section">
@@ -839,8 +855,10 @@
   <button class="fab-btn" id="fabGripClose" onclick="gripClose()"><span class="fab-icon">&#9664;</span><span class="fab-label">Grip Close</span></button>
   <button class="fab-btn" id="fabLidOpen" onclick="lidOpen()"><span class="fab-icon">&#9650;</span><span class="fab-label">Lid Open</span></button>
   <button class="fab-btn" id="fabLidClose" onclick="lidClose()"><span class="fab-icon">&#9660;</span><span class="fab-label">Lid Close</span></button>
-  <button class="fab-btn" id="fabSolenoid" onclick="toggleSolenoid()"><span class="fab-icon" id="fabSolIcon">&#9679;</span><span class="fab-label" id="fabSolLabel">Sol OFF</span></button>
-  <button class="fab-btn" id="fabUV" onclick="toggleUV()"><span class="fab-icon" id="fabUVIcon">&#9788;</span><span class="fab-label" id="fabUVLabel">UV OFF</span></button>
+  <button class="fab-btn" id="fabSolOn" onclick="relayCmd('sol',1)"><span class="fab-icon">&#9679;</span><span class="fab-label">Sol OPEN</span></button>
+  <button class="fab-btn" id="fabSolOff" onclick="relayCmd('sol',0)"><span class="fab-icon">&#9675;</span><span class="fab-label">Sol SHUT</span></button>
+  <button class="fab-btn" id="fabUvOn" onclick="relayCmd('uv',1)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV ON</span></button>
+  <button class="fab-btn" id="fabUvOff" onclick="relayCmd('uv',0)"><span class="fab-icon">&#9788;</span><span class="fab-label">UV OFF</span></button>
 </div>
 
 <!-- Servo Sheet Overlay -->
@@ -867,7 +885,7 @@
 <script>
 // ─── State ───
 let port = null, reader = null, writer = null, isConnected = false;
-let stepSize = 10, solenoidOn = false, uvOn = false, readBuffer = '';
+let stepSize = 10, readBuffer = '';
 let autoReportInterval = null, cmdHistory = [], historyIdx = -1;
 let currentTabIndex = 0;
 const tabNames = ['jog','spin','console','prog','config'];
@@ -1171,7 +1189,7 @@ function updateFeedSummary() { document.getElementById('feedDrawerVals').textCon
 // ─── Servo / Solenoid (FAP) ───
 function setServo(idx, angle) {
   if (idx === 1) {
-    const tms = parseInt(document.getElementById('lidMoveMs').value || '1500', 10);
+    const tms = parseInt(document.getElementById('lidMoveMs').value || '800', 10);
     sendCmd('M280 P' + idx + ' S' + angle + ' T' + tms);
   } else {
     sendCmd('M280 P' + idx + ' S' + angle);
@@ -1183,19 +1201,13 @@ function gripClose() { setServo(0, servoConfig[0].closeVal); }
 function lidOpen() { setServo(1, servoConfig[1].openVal); }
 function lidClose() { setServo(1, servoConfig[1].closeVal); }
 
-function toggleSolenoid() {
-  solenoidOn = !solenoidOn;
-  sendCmd('M42 P' + document.getElementById('solPin').value + ' S' + (solenoidOn ? 0 : 1));
-  document.getElementById('fabSolenoid').classList.toggle('sol-on', solenoidOn);
-  document.getElementById('fabSolLabel').textContent = solenoidOn ? 'Sol ON' : 'Sol OFF';
-  buzz(solenoidOn ? 30 : 15);
-}
-function toggleUV() {
-  uvOn = !uvOn;
-  sendCmd('M42 P' + document.getElementById('uvPin').value + ' S' + (uvOn ? 0 : 1));
-  document.getElementById('fabUV').classList.toggle('sol-on', uvOn);
-  document.getElementById('fabUVLabel').textContent = uvOn ? 'UV ON' : 'UV OFF';
-  buzz(uvOn ? 30 : 15);
+function relayCmd(relay, sVal) {
+  var pin = document.getElementById(relay === 'sol' ? 'solPin' : 'uvPin').value;
+  sendCmd('M42 P' + pin + ' S' + sVal);
+  var prefix = relay === 'sol' ? 'fabSol' : 'fabUv';
+  document.getElementById(prefix + 'On').classList.toggle('sol-on', sVal === 1);
+  document.getElementById(prefix + 'Off').classList.toggle('sol-on', sVal === 0);
+  buzz(sVal ? 30 : 15);
 }
 
 // Servo sheet (long-press via context menu)
