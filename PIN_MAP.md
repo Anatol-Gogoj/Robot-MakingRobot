@@ -4,7 +4,7 @@
 
 **Authoritative source:** `Marlin-2.1.2.7/Marlin/src/pins/ramps/pins_RAMPS_14_RMR.h` (plus inherited assignments from stock `pins_RAMPS.h`). This document consolidates and mirrors those headers for bench/wiring use. If the two disagree, the `.h` file wins — update this document.
 
-**Last updated:** 2026-04-10 (lid servo pin 6 enabled)
+**Last updated:** 2026-04-16 (relay modules changed to active-HIGH, M280 T parameter documented)
 
 ---
 
@@ -13,7 +13,7 @@
 - 6 stepper drivers (DM556T externals): X, Y (1 driver / 2 motors), Z, Filter Feed (I), Syringe Height (J), Syringe (E0)
 - 5 homing endstops: X, Y, Z, I, J (E0 has no endstop)
 - 2 servos: gripper (pin 5), lid (pin 6)
-- 2 opto-isolated relays: UV lamp, solenoid valve (Bestep JQC3F-03VDC-C, active-low, 3.3 V buck rail)
+- 2 opto-isolated relays: UV lamp, solenoid valve (current modules: active-HIGH; original Bestep JQC3F-03VDC-C were active-LOW; 3.3 V buck rail)
 - 1 spincoater: ODrive S1 on Serial2 (115200 baud raw ASCII)
 
 ---
@@ -62,20 +62,24 @@ Homing order (`G28`, via patched `G28.cpp`): **lid open (servo 1 → 30°) → Z
 
 `NUM_SERVOS 2`, `DEACTIVATE_SERVOS_AFTER_MOVE` enabled with 2-second hold (`SERVO_DELAY { 2000, 2000 }`) to prevent PWM jitter. Servo goes limp 2 s after each `M280` — gripper must be mechanically self-holding.
 
-**Important:** In G-code programs, place `M400` before `M280` to drain the motion planner queue first. `G4` (dwell) alone is not a reliable substitute.
+**T parameter (timed ramp):** `M280 Px S<angle> T<ms>` performs a linear interpolation from the current angle to the target over T milliseconds (plus 250ms settle). Available on all servos (POLARGRAPH gate removed). When T=0 or omitted, falls through to normal `move()` with full SERVO_DELAY. Default lid ramp in the HTML UIs is 800ms.
+
+**Important:** In G-code programs, place `M400` before `M280` to drain the motion planner queue first. `G4` (dwell) alone is not a reliable substitute. When using `T<ms>`, the ramp itself is blocking (T + 250ms), so a `G4` after `M280` may not be necessary.
 
 ---
 
-## Relay outputs (Bestep JQC3F-03VDC-C, active-low)
+## Relay outputs
 
 Both modules share a dedicated 3.3 V buck converter rail (grounded to the Mega). `DIRECT_PIN_CONTROL` enabled in `Configuration_adv.h`. `M42.cpp` patched with `pin_status <= 1` early return to prevent AVR timer hijack — see gotcha #12 in `claude.md`.
 
 | Function    | Pin | AVR Port | Timer Unit | Command (ON)    | Command (OFF)   | Notes |
 |-------------|-----|----------|------------|-----------------|-----------------|-------|
-| UV lamp     | 4   | PG5      | OC0B (Timer0) | `M42 P4 S0`  | `M42 P4 S1`  | RAMPS SERVO3 slot. Only safe with the M42.cpp patch because OC0B shares Timer0 with `millis()`. |
-| Solenoid valve | 42 | PL7      | **none**      | `M42 P42 S0` | `M42 P42 S1` | AUX2_08 header. Pure GPIO — no timer compare unit. Preferred for future relay expansion. |
+| UV lamp     | 4   | PG5      | OC0B (Timer0) | `M42 P4 S1`  | `M42 P4 S0`  | RAMPS SERVO3 slot. Only safe with the M42.cpp patch because OC0B shares Timer0 with `millis()`. |
+| Solenoid valve | 42 | PL7      | **none**      | `M42 P42 S1` | `M42 P42 S0` | AUX2_08 header. Pure GPIO — no timer compare unit. Preferred for future relay expansion. |
 
-**Active-low convention:** The opto LED cathode ties to the IN pin with anode on VCC, so pulling IN to GND lights the opto and energizes the coil. `S0` = energized, `S1` = de-energized. Boot-time floating inputs are pulled HIGH by the module's internal pullup → safe de-energized state → no chatter on Mega reset.
+**Current modules (active-HIGH):** `S1` = energize (ON), `S0` = de-energize (OFF). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values — no internal state tracking.
+
+**Original modules (Bestep JQC3F-03VDC-C, active-LOW, replaced):** The opto LED cathode tied to the IN pin with anode on VCC, so pulling IN to GND lit the opto and energized the coil. `S0` = energized, `S1` = de-energized. Boot-time floating inputs were pulled HIGH by the module's internal pullup (safe de-energized state, no chatter on Mega reset).
 
 **Why not pin 11 or pin 28:** Pin 11 = OC1A, used by Marlin's stepper ISR (Timer1) — continuous fighting. Pin 28 = `E0_DIR_PIN`, actively driven by the stepper subsystem on every syringe move.
 
