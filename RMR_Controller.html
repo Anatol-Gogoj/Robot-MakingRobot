@@ -798,6 +798,14 @@
       <button class="toggle-btn" onclick="toggleAdvanced()">Advanced Settings</button>
     </div>
     <div class="adv-panel" id="advPanel">
+      <h2 style="margin-top:10px">Lid Servo Speed</h2>
+      <div class="setting-row">
+        <label>Move time (ms):</label>
+        <input type="number" id="lidMoveMs" value="1500" min="0" max="10000" step="100" style="width:80px"
+               onchange="localStorage.setItem('rmr.lidMoveMs', this.value)">
+        <span style="font-size:11px;color:var(--text-dim);margin-left:8px">0 = instant. Sent as M280 T parameter for lid servo only.</span>
+      </div>
+
       <h2 style="margin-top:10px">Steps/mm Override (M92)</h2>
       <div class="setting-row">
         <label>X steps/mm:</label><input type="number" id="stepsX" value="57.1425">
@@ -1083,6 +1091,10 @@ function sendManual() {
 
 // Command history navigation
 document.addEventListener('DOMContentLoaded', () => {
+  // Restore lid move time from localStorage
+  const savedLidMs = localStorage.getItem('rmr.lidMoveMs');
+  if (savedLidMs !== null) document.getElementById('lidMoveMs').value = savedLidMs;
+
   document.getElementById('cmdInput').addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -1152,7 +1164,12 @@ function homeXY() {
 // ─── Servo / Solenoid ───
 function setServo(idx) {
   const angle = document.getElementById(`servo${idx}`).value;
-  sendCmd(`M280 P${idx} S${angle}`);
+  if (idx === 1) {
+    const tms = parseInt(document.getElementById('lidMoveMs').value || '1500', 10);
+    sendCmd(`M280 P${idx} S${angle} T${tms}`);
+  } else {
+    sendCmd(`M280 P${idx} S${angle}`);
+  }
 }
 
 function toggleSolenoid() {

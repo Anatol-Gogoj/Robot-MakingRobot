@@ -807,6 +807,13 @@
         <div class="setting-row"><label>Pin number:</label><input type="number" id="solPin" value="4" min="0" max="70"></div>
       </div>
     </details>
+    <details class="config-section">
+      <summary>Lid Servo Speed</summary>
+      <div class="config-body">
+        <div class="setting-row"><label>Move time (ms):</label><input type="number" id="lidMoveMs" value="1500" min="0" max="10000" step="100" onchange="localStorage.setItem('rmr.lidMoveMs', this.value)"></div>
+        <p style="font-size:11px;color:var(--text-dim);margin:4px 0 0 0">0 = instant. Sent as M280 T parameter for lid servo only.</p>
+      </div>
+    </details>
   </div>
 
 </div><!-- /tab-content -->
@@ -865,6 +872,8 @@ const servoConfig = {
     const s1 = localStorage.getItem('servo1');
     if (s0 !== null) servoPositions[0] = parseInt(s0);
     if (s1 !== null) servoPositions[1] = parseInt(s1);
+    const savedLidMs = localStorage.getItem('rmr.lidMoveMs');
+    if (savedLidMs !== null) document.getElementById('lidMoveMs').value = savedLidMs;
   } catch(e) {}
 })();
 
@@ -1144,7 +1153,15 @@ function syncFeedFromConfig() {
 function updateFeedSummary() { document.getElementById('feedDrawerVals').textContent = 'XY:' + document.getElementById('xyFeed').value + ' Z:' + document.getElementById('zFeed').value; }
 
 // ─── Servo / Solenoid (FAP) ───
-function setServo(idx, angle) { sendCmd('M280 P' + idx + ' S' + angle); servoPositions[idx] = angle; try { localStorage.setItem('servo'+idx, angle); } catch(e) {} buzz(15); }
+function setServo(idx, angle) {
+  if (idx === 1) {
+    const tms = parseInt(document.getElementById('lidMoveMs').value || '1500', 10);
+    sendCmd('M280 P' + idx + ' S' + angle + ' T' + tms);
+  } else {
+    sendCmd('M280 P' + idx + ' S' + angle);
+  }
+  servoPositions[idx] = angle; try { localStorage.setItem('servo'+idx, angle); } catch(e) {} buzz(15);
+}
 function gripOpen() { setServo(0, servoConfig[0].openVal); }
 function gripClose() { setServo(0, servoConfig[0].closeVal); }
 function lidOpen() { setServo(1, servoConfig[1].openVal); }
