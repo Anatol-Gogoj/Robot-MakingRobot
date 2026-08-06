@@ -580,32 +580,43 @@ bool Spincoater::doIndexHome() {
     SERIAL_ECHOLNPGM("echo:SPIN DATA: HomeSettle timeout (8s)");
     homed = false;   // the axis did not reach the datum — say so
 
-    // Owner-accepted fallback: adopt the current position as the datum so the
-    // machine keeps a usable reference. Refuses to datum a MOVING axis (#41):
-    // a datum captured mid-rotation is meaningless, and the caller must not be
-    // told this succeeded.
+    // An EXISTING datum is never moved by a failed settle. The original
+    // VanVersion fallback adopted the stop position unconditionally, which
+    // silently re-zeroed the machine on whatever angle the rotor happened to
+    // reach — destroying layer-to-layer registration on the most common
+    // failure path. A datum is only ESTABLISHED here when none exists yet, so
+    // the machine still ends up with a usable reference from a cold start.
+    // Refuses a MOVING axis either way: a datum captured mid-rotation is
+    // meaningless. Issue #41.
     float fallback_pos, fallback_vel;
-    if (!feedback(fallback_pos, fallback_vel)) {
+    if (_datumSet) {
+      if (feedback(fallback_pos, fallback_vel)) {
+        float off = fmod((fallback_pos - _homePos) * 360.0f, 360.0f);
+        if (off < 0) off += 360.0f;
+        SERIAL_ECHOPGM("echo:SPIN WARN: Settle failed — datum PRESERVED at ");
+        SERIAL_ECHO(_homePos);
+        SERIAL_ECHOPGM(" turns; rotor stopped ");
+        SERIAL_ECHO(off);
+        SERIAL_ECHOLNPGM(" deg away");
+      }
+      else {
+        SERIAL_ECHOLNPGM("echo:SPIN WARN: Settle failed — datum PRESERVED (rotor position unreadable)");
+      }
+    }
+    else if (!feedback(fallback_pos, fallback_vel)) {
       SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not read ODrive position after settle failure");
     }
     else if (fabs(fallback_vel) > 0.05f) {
-      SERIAL_ECHOPGM("echo:SPIN ERR: Refusing to adopt datum, axis still moving at ");
+      SERIAL_ECHOPGM("echo:SPIN ERR: Refusing to establish datum, axis still moving at ");
       SERIAL_ECHO(fallback_vel * 60.0f);
       SERIAL_ECHOLNPGM(" RPM");
     }
     else {
-      const float prevHomePos = _homePos;   // capture before overwrite
       _homePos = fallback_pos;
       _datumSet = true;
-      SERIAL_ECHOPGM("echo:SPIN WARN: Settling failed — adopting pos=");
+      SERIAL_ECHOPGM("echo:SPIN WARN: Settle failed and no datum existed — establishing one at pos=");
       SERIAL_ECHOLN(fallback_pos);
-      SERIAL_ECHOPGM("echo:SPIN WARN: datum moved by DEG=");
-      {
-        // Offset of the newly adopted datum from the previous one.
-        float deg = fmod((fallback_pos - prevHomePos) * 360.0f, 360.0f);
-        if (deg < 0) deg += 360.0f;
-        SERIAL_ECHOLN(deg);
-      }
+      SERIAL_ECHOLNPGM("echo:SPIN WARN: run M751 to set your intended zero");
     }
   }
 

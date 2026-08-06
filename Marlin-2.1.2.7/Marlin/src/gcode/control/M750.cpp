@@ -289,10 +289,11 @@ void GcodeSuite::M750() {
       const float datumAfter = Spincoater::getHomePos();
 
       if (datumAfter != datumBefore) {
-        // doIndexHome()'s settle fallback adopted a new datum in place.
-        SERIAL_ECHOPGM("echo:SPIN WARN: Index homing failed and the settle fallback MOVED the datum to ");
+        // doIndexHome() only changes the datum when none existed, so this is
+        // a first datum being established rather than an operator zero moving.
+        SERIAL_ECHOPGM("echo:SPIN WARN: Index homing failed; a first datum was established at ");
         SERIAL_ECHO(datumAfter);
-        SERIAL_ECHOLNPGM(" turns — this is NOT the operator's zero, re-run M751");
+        SERIAL_ECHOLNPGM(" turns — run M751 to set your intended zero");
       }
       else if (Spincoater::isDatumValid()) {
         // Re-datuming here would silently re-zero the machine on wherever the
