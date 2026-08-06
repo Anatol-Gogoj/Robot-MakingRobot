@@ -373,20 +373,59 @@ static void idleAndRestoreVelocityMode() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 bool Spincoater::ensureClosedLoop() {
-  int attempts = 0;
+  int attempts = 0, calAttempts = 0;
+  // Wall-clock bound on the OUTER retry loop. The attempt counter alone was
+  // not a real bound once the inner calibration wait could take ~60 s: 50
+  // attempts x ~60 s is ~50 minutes of blocked Marlin, indistinguishable from
+  // the hang #42 describes. Issue #42.
+  const millis_t clStart = millis();
   while (getState() != ODRIVE_STATE_CLOSED_LOOP_CONTROL) {
     idle();
-    if (++attempts > 50) return false;
+    if (++attempts > 50) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not enter closed loop (50 attempts)");
+      forceIdle();
+      return false;
+    }
+    if (millis() - clStart > 90000) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: Closed-loop entry timeout (90s)");
+      reportFault("closed-loop entry timeout");
+      forceIdle();
+      return false;
+    }
 
     clearErrors();
     setState(ODRIVE_STATE_CLOSED_LOOP_CONTROL);
     safe_delay(100);
 
     if (getState() == ODRIVE_STATE_IDLE) {
+      // A full calibration physically energises and rotates the motor. If one
+      // completes and the axis still refuses to arm, that is a hard fault --
+      // do not re-run it up to 50 times (the clearErrors() above also wipes
+      // the evidence each round). Issue #42.
+      if (calAttempts >= 2) {
+        SERIAL_ECHOLNPGM("echo:SPIN ERR: Axis will not arm after 2 full calibrations");
+        reportFault("closed-loop refused after full calibration");
+        forceIdle();
+        return false;
+      }
+      calAttempts++;
       SERIAL_ECHOLNPGM("echo:SPIN STATE:FULL_CALIBRATION");
       setState(ODRIVE_STATE_FULL_CALIBRATION_SEQUENCE);
+
+      // Bounded wait. This was unbounded: after a comms loss getState()
+      // returns ODRIVE_STATE_UNDEFINED forever, which never equals IDLE, so
+      // Marlin hung here indefinitely with the watchdog fed by idle() and no
+      // error emitted. Motor + encoder calibration takes tens of seconds;
+      // 60 s is generous. Issue #42.
+      const millis_t calStart = millis();
       while (getState() != ODRIVE_STATE_IDLE) {
         idle();
+        if (millis() - calStart > 60000) {
+          SERIAL_ECHOLNPGM("echo:SPIN ERR: Full calibration timeout (60s)");
+          reportFault("full calibration timeout");
+          forceIdle();
+          return false;
+        }
         safe_delay(100);
       }
     }

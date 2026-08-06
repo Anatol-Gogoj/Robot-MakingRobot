@@ -40,6 +40,11 @@
  */
 static float lastTelemRPM = 0.0f;
 static millis_t lastTelemTime = 0;
+// Timestamp of the last SUCCESSFUL feedback(). lastTelemTime above is only a
+// rate-limit marker and is updated even when the read fails, so it cannot be
+// used to detect a dead link. Loops whose exit condition depends on the
+// lastTelemRPM cache must check this instead. Issue #42.
+static millis_t lastTelemOkTime = 0;
 
 static void spinTelemetry() {
   const millis_t now = millis();
@@ -50,6 +55,7 @@ static void spinTelemetry() {
   if (Spincoater::feedback(pos, vel)) {
     const float rpm = vel * 60.0f;
     lastTelemRPM = rpm;
+    lastTelemOkTime = now;
 
     const float relTurns = pos - Spincoater::getHomePos();
     float deg = fmod(relTurns * 360.0f, 360.0f);
@@ -69,11 +75,12 @@ static void spinTelemetry() {
  * Samples at 100ms intervals for dur_s seconds.
  * Reports stats via echo:SPIN DATA: lines.
  */
-static void measureSpeed(const int dur_s) {
+static bool measureSpeed(const int dur_s) {
   const millis_t sampleInterval = 100;
   const millis_t duration = (millis_t)dur_s * 1000UL;
 
   const millis_t startTime = millis();
+  lastTelemOkTime = startTime;      // start the liveness window fresh
   millis_t lastSample = startTime;
   long   n      = 0;
   float  mean   = 0.0f;
@@ -83,6 +90,15 @@ static void measureSpeed(const int dur_s) {
 
   while (millis() - startTime < duration) {
     idle();  // CRITICAL: feed watchdog, process M112, send keepalive
+
+    // Report a dead link when it happens rather than after the full dwell.
+    // Without this, a mid-measure comms loss produced D seconds of silence and
+    // then a statistics block built from zero samples. Issue #42.
+    if (millis() - lastTelemOkTime > 3000) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: No ODrive telemetry for 3s during measure -- link lost");
+      SERIAL_ECHOLNPGM("echo:SPIN STATE:MEASURE_LINK_LOST");
+      return false;
+    }
 
     const millis_t now = millis();
     if (now - lastSample >= sampleInterval) {
@@ -119,6 +135,14 @@ static void measureSpeed(const int dur_s) {
     }
   }
 
+  // With no samples, minRPM/maxRPM are still their 1e9/-1e9 sentinels. Printing
+  // them fed the UI stat cards a "measurement" with a 2-billion-RPM range.
+  if (n == 0) {
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: No telemetry samples during measure -- statistics unavailable");
+    SERIAL_ECHOLNPGM("echo:SPIN DATA: Samples=0");
+    return false;
+  }
+
   const float variance = (n > 1) ? m2 / (float)n : 0.0f;
   const float stddev   = sqrt(variance);
 
@@ -128,6 +152,7 @@ static void measureSpeed(const int dur_s) {
   SERIAL_ECHOPGM("echo:SPIN DATA: MinRPM=");     SERIAL_ECHOLN(minRPM);
   SERIAL_ECHOPGM("echo:SPIN DATA: MaxRPM=");     SERIAL_ECHOLN(maxRPM);
   SERIAL_ECHOPGM("echo:SPIN DATA: Range=");       SERIAL_ECHOLN(maxRPM - minRPM);
+  return true;
 }
 
 void GcodeSuite::M750() {
@@ -252,16 +277,81 @@ void GcodeSuite::M750() {
 
   // ── Measure ──
   SERIAL_ECHOLNPGM("echo:SPIN STATE:MEASURING");
-  measureSpeed(dur_s);
+  if (!measureSpeed(dur_s)) {
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: Measure phase aborted -- stopping spin");
+    Spincoater::setVelocity(0);
+    return;
+  }
 
   // ── Ramp down ──
   SERIAL_ECHOLNPGM("echo:SPIN STATE:RAMP_DOWN");
   Spincoater::writeRaw("axis0.controller.config.vel_ramp_rate", decel);
   Spincoater::setVelocity(0);
 
+  // Bounded ramp-down. Two distinct failure modes need two distinct
+  // discriminators, and a plain wall-clock cap conflates them:
+  //
+  //  * COMMS LOSS — the actual #42 bug. lastTelemRPM is a cache that only
+  //    updates on a successful feedback(), so it freezes at ~target RPM and
+  //    the old loop never exited. Detected by telemetry liveness.
+  //  * ROTOR NOT DECELERATING — e.g. the drive self-disarmed on regen
+  //    overvoltage (spincoater.h documents that risk) and the chuck is
+  //    coasting. Detected by lack of RPM progress.
+  //
+  // A slow-but-progressing coast-down must NOT abort: comms are alive and the
+  // machine is healthy, it just takes longer than any fixed wall-clock guess.
+  // The ramp-up loop above has both a timeout and a progress check for exactly
+  // this reason; the ramp-down needs the same pair. Issue #42.
+  millis_t noProgressTimeout = (millis_t)(sink_s * 3000.0f);
+  if (noProgressTimeout < 10000) noProgressTimeout = 10000;
+
+  lastTelemOkTime      = millis();               // fresh liveness window
+  millis_t progressMark = millis();              // last meaningful RPM drop
+  float    progressRPM  = fabs(lastTelemRPM);
+  millis_t lastReissue  = millis();
+
   while (fabs(lastTelemRPM) > 6.0f) {
     idle();
     spinTelemetry();
+
+    // ASCII writes are unacknowledged; re-assert the stop in case it was lost.
+    if (millis() - lastReissue > 1000) {
+      Spincoater::setVelocity(0);
+      lastReissue = millis();
+    }
+
+    // (1) Link liveness — the frozen-cache condition #42 is actually about.
+    if (millis() - lastTelemOkTime > 3000) {
+      SERIAL_ECHOPGM("echo:SPIN ERR: Ramp-down aborted, no ODrive telemetry for 3s -- last seen ");
+      SERIAL_ECHO(lastTelemRPM);
+      SERIAL_ECHOLNPGM(" RPM; rotor may still be spinning");
+      SERIAL_ECHOLNPGM("echo:SPIN STATE:DECEL_LINK_LOST");
+      // Do not disarm: with the link down neither command reaches the drive,
+      // and the standing zero-velocity command is the better thing to leave.
+      Spincoater::setVelocity(0);
+      return;
+    }
+
+    // (2) Progress — a decelerating rotor keeps refreshing the deadline, so a
+    //     long but healthy coast-down never trips this.
+    const float nowRPM = fabs(lastTelemRPM);
+    if (progressRPM - nowRPM > 0.5f) {
+      progressRPM  = nowRPM;
+      progressMark = millis();
+    }
+    if (millis() - progressMark > noProgressTimeout) {
+      SERIAL_ECHOPGM("echo:SPIN ERR: Ramp-down stalled at ");
+      SERIAL_ECHO(lastTelemRPM);
+      SERIAL_ECHOLNPGM(" RPM -- not decelerating");
+      SERIAL_ECHOLNPGM("echo:SPIN STATE:DECEL_STALL");
+      // Telemetry is alive on this branch, so the link demonstrably works and
+      // the drive is not responding to the zero-velocity command. Disarm to
+      // freewheel rather than keep commanding it.
+      Spincoater::setVelocity(0);
+      Spincoater::forceIdle();
+      return;
+    }
+
     safe_delay(50);
   }
 
