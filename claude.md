@@ -140,7 +140,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 3. **Gripper closes before X homing:** Servo 0 is commanded to 90° with a 300ms delay before X homing begins, to prevent the gripper from colliding with the frame.
 4. **Filter Feed homes to MAX:** I_HOME_DIR=1, endstop is on the far end (I_MAX, pin 15). All other axes home to MIN.
 5. **Servo jitter prevention:** `DEACTIVATE_SERVOS_AFTER_MOVE` cuts PWM signal 2 seconds after `M280` command. Servo goes limp after that — fine if grip is mechanically self-holding. SanityCheck.h patched to allow this without a Z probe defined.
-6. **E-Stop recovery:** Send `M999` to reset firmware after `M112` emergency stop, instead of unplugging USB.
+6. **E-Stop recovery:** `M112` fully kills the firmware (`kill()` → interrupts off, terminal loop) — it **cannot** be recovered with `M999`. Recover by resetting the board: reconnect USB (DTR toggles a reset) or power-cycle. On reboot the firmware automatically disarms the spincoater ODrive (startup safety disarm). `M999` only recovers from the softer "stopped" state (after `stop()`-class errors). Note: with `EMERGENCY_PARSER` enabled, `M108`/`M112`/`M410` act immediately from the serial RX path (bypassing the queue), and `M0`/`M1` are now compiled in — they pause awaiting `M108`.
 7. **Pin 17 freed for Serial2:** J endstop moved from pin 17 (TX2) to pin 23. Serial2 (pins 16/17) now connects to the ODrive S1 for spincoater control. Pin 16 = TX2 → ODrive RX, Pin 17 = RX2 → ODrive TX.
 8. **Axis name mapping:** G-code uses A/B for the I/J axes (set via AXIS4_NAME/AXIS5_NAME). Marlin restricts these names to A,B,C,U,V,W — 'I' and 'J' are not valid axis names. This affects ALL G-code commands: M201, M203, G28, G1, etc. must use A/B, not I/J.
 9. **Z endstop EMI history:** Pin 18 (Mega TX1) suffered severe false triggers from stepper EMI during homing. Noise threshold, 100nF cap on signal→GND, and external pullup resistor were insufficient. Moved to pin 40 (plain GPIO, no alternate function) using `Z_STOP_PIN` in pins file (not `Z_MIN_PIN`) because `pins_postprocess.h` can override `Z_MIN_PIN`. The `Z_STOP_PIN` approach lets postprocess derive `Z_MIN_PIN` automatically. Hardware: 100nF ceramic cap from pin 40 to GND recommended. Pin 18 is now free.
@@ -211,7 +211,7 @@ M501             # load settings from EEPROM
 M119             # report endstop states (use to verify wiring)
 M503             # report all active firmware settings
 M92              # report steps/mm (M92 X57.14 Y57.14 Z320 A320 B320 E1600 to override)
-M999             # reset firmware after emergency stop (M112)
+M999             # recover from "stopped" state (NOT from M112 — after M112, reset/reconnect the board)
 ```
 
 ## Build & Upload
@@ -247,7 +247,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Lid servo** — slider (0°-180°) with T<ms> timed ramp (default 800ms)
 - **Relay controls** — explicit ON/OFF button pairs for solenoid valve (OPEN/SHUT) and UV lamp (ON/OFF), with configurable pin numbers. Last-pressed button highlights via CSS. No internal state tracking — each button sends a hardcoded S value.
 - **Position readout** with auto-report (1s polling via M114)
-- **E-Stop** button (M112) with **Reset (M999)** button for recovery without USB replug
+- **E-Stop** button (M112) — recovery requires a board reset (disconnect/reconnect USB); the **Reset (M999)** button only clears the softer "stopped" state
 - **Raw G-code** input with command history
 - **Spincoater panel** (collapsible, starts open) — M750/M751/M752 controls:
   - Parameter inputs: RPM, Duration, Rise Time, Sink Time, Encoder homing toggle

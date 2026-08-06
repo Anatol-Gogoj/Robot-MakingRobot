@@ -493,7 +493,7 @@
       <option value="115200">115.2k baud</option>
       <option value="57600">57.6k baud</option>
     </select>
-    <button class="hdr-btn" style="background:var(--yellow);color:#000;font-weight:bold" onclick="resetFirmware()">M999</button>
+    <button class="hdr-btn" style="background:var(--yellow);color:#000;font-weight:bold" onclick="resetFirmware()" title="Clears the 'stopped' state only. Does NOT recover from E-STOP (M112) — disconnect and reconnect instead.">M999</button>
     <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:6px">
       <input type="checkbox" id="hapticToggle" checked style="width:18px;height:18px"> Haptics
     </label>
@@ -1228,7 +1228,7 @@ function servoSheetPreset(type) {
 function servoSheetSendOverride() { if (activeServoSheet !== null) { const v = document.getElementById('servoSheetOverride').value; if (v !== '') sendCmd('M280 P' + activeServoSheet + ' S' + v); } }
 
 // ─── Emergency / Reset ───
-function emergencyStop() { sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 press M999 to recover <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
+function emergencyStop() { sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 firmware halted: disconnect & reconnect to recover (spincoater auto-disarms on reboot). M999 cannot recover from M112. <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
 function resetFirmware() { sendCmd('M999'); logInfo('>>> M999 reset sent <<<'); showToast('Firmware reset sent', 'warn'); }
 
 // ─── Auto Report ───
