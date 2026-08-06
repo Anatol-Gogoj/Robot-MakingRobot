@@ -2451,7 +2451,7 @@
  * Currently handles M108, M112, M410, M876
  * NOTE: Not yet implemented for all platforms.
  */
-//#define EMERGENCY_PARSER
+#define EMERGENCY_PARSER  // RMR: M112 must bypass the 4-slot queue during blocking M750 spin cycles (issue #40)
 
 /**
  * Realtime Reporting (requires EMERGENCY_PARSER)

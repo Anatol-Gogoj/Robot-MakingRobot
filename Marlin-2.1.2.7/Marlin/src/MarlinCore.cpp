@@ -252,6 +252,10 @@
   #include "feature/easythreed_ui.h"
 #endif
 
+#if ENABLED(SPINCOATER)
+  #include "feature/spincoater.h"
+#endif
+
 #if ENABLED(MARLIN_TEST_BUILD)
   #include "tests/marlin_tests.h"
 #endif
@@ -895,6 +899,10 @@ void kill(FSTR_P const lcd_error/*=nullptr*/, FSTR_P const lcd_component/*=nullp
 
   TERN_(HAS_CUTTER, cutter.kill()); // Full cutter shutdown including ISR control
 
+  // Disarm the spincoater ODrive (IDLE → freewheel). Must run before
+  // minkill()'s cli() — Serial2 TX is interrupt-driven. See issue #40.
+  TERN_(SPINCOATER, Spincoater::emergencyStop());
+
   // Echo the LCD message to serial for extra context
   if (lcd_error) { SERIAL_ECHO_START(); SERIAL_ECHOLNF(lcd_error); }
 
@@ -1266,6 +1274,14 @@ void setup() {
 
   #if HAS_STEPPER_RESET
     SETUP_RUN(disableStepperDrivers());
+  #endif
+
+  #if ENABLED(SPINCOATER)
+    // If the Mega was reset mid-spin (host reconnect DTR, watchdog, power
+    // blip), the ODrive keeps spinning at the last commanded velocity.
+    // Disarm it as early as the UART can transmit, so the rotor never
+    // stays running because a later init step hung. Issue #40.
+    SETUP_RUN(Spincoater::startupSafetyDisarm());
   #endif
 
   SETUP_RUN(hal.init_board());

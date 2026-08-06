@@ -4,8 +4,11 @@
  * Direct port of SpincoaterStage/src/main.cpp v2.6 ODrive wrappers.
  * All Serial1 calls → SPINCOATER_SERIAL, all Serial.print → Marlin serial macros.
  *
- * IMPORTANT: Every blocking loop calls idle() to feed the watchdog,
- * process M112 e-stop, and emit HOST_KEEPALIVE busy messages.
+ * IMPORTANT: Every cycle-level blocking loop calls idle()/safe_delay() to
+ * feed the watchdog, dispatch M112, and emit HOST_KEEPALIVE busy messages.
+ * The short reply-wait loops (<= 500 ms) instead poll
+ * emergency_parser.killed_by_M112 directly and bail out early so the
+ * caller's next idle() can dispatch the kill.
  */
 
 #include "../inc/MarlinConfig.h"
@@ -14,6 +17,10 @@
 
 #include "spincoater.h"
 #include "../MarlinCore.h"       // idle()
+
+#if ENABLED(EMERGENCY_PARSER)
+  #include "e_parser.h"          // emergency_parser.killed_by_M112
+#endif
 
 // Shorthand for the ODrive serial port
 #define ODRIVE_SERIAL SPINCOATER_SERIAL
@@ -35,6 +42,25 @@ void Spincoater::init() {
   if (_initialized) return;
   ODRIVE_SERIAL.begin(SPINCOATER_BAUD);
   _initialized = true;
+}
+
+void Spincoater::emergencyStop() {
+  init();
+  // Request IDLE twice — the ASCII link has no acknowledgements, so a single
+  // write can be lost. No replies are read and no idle()/safe_delay is called:
+  // this must be safe from inside kill() (see spincoater.h).
+  for (uint8_t i = 0; i < 2; ++i) {
+    ODRIVE_SERIAL.print("w axis0.requested_state ");
+    ODRIVE_SERIAL.print(ODRIVE_STATE_IDLE);
+    ODRIVE_NEWLINE();
+    ODRIVE_SERIAL.flush();  // Blocks (~2.3 ms) until TX complete. The AVR core
+                            // self-polls if interrupts are off, but run this
+                            // before minkill()'s cli() so TX drains promptly.
+  }
+}
+
+void Spincoater::startupSafetyDisarm() {
+  emergencyStop();
 }
 
 bool Spincoater::boot() {
@@ -185,6 +211,8 @@ String Spincoater::readRaw(const char* property) {
   const millis_t t0 = millis();
   String response = "";
   while (millis() - t0 < 500) {
+    // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
+    if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
     if (ODRIVE_SERIAL.available()) {
       char c = ODRIVE_SERIAL.read();
       if (c == '\n') break;
@@ -212,6 +240,8 @@ bool Spincoater::feedback(float &pos, float &vel) {
   const millis_t t0 = millis();
   String resp = "";
   while (millis() - t0 < 200) {
+    // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
+    if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
     if (ODRIVE_SERIAL.available()) {
       char c = ODRIVE_SERIAL.read();
       if (c == '\n') break;
@@ -490,6 +520,8 @@ bool Spincoater::doSetHome() {
     const millis_t t0 = millis();
     resp = "";
     while (millis() - t0 < 300) {
+      // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
+      if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
       if (ODRIVE_SERIAL.available()) {
         char c = ODRIVE_SERIAL.read();
         if (c == '\n') break;
