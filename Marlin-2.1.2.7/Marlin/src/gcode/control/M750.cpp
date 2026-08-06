@@ -278,19 +278,48 @@ void GcodeSuite::M750() {
   SERIAL_ECHOLNPGM("echo:SPIN STATE:STOPPED");
 
   // ── Homing (optional) ──
+  bool homeFailed = false;
   if (home) {
+    // Snapshot the datum so we can tell truthfully whether it survived:
+    // doIndexHome()'s settle-timeout fallback may adopt a new one internally.
+    const float datumBefore = Spincoater::getHomePos();
     bool ok = Spincoater::doIndexHome();
     if (!ok) {
-      SERIAL_ECHOLNPGM("echo:SPIN WARN: Index homing failed — attempting fallback set-home");
-      if (Spincoater::doSetHome()) {
-        SERIAL_ECHOLNPGM("echo:SPIN WARN: Fallback home set OK");
-      } else {
-        SERIAL_ECHOLNPGM("echo:SPIN ERR: Fallback home failed — manual intervention required");
+      homeFailed = true;
+      const float datumAfter = Spincoater::getHomePos();
+
+      if (datumAfter != datumBefore) {
+        // doIndexHome()'s settle fallback adopted a new datum in place.
+        SERIAL_ECHOPGM("echo:SPIN WARN: Index homing failed and the settle fallback MOVED the datum to ");
+        SERIAL_ECHO(datumAfter);
+        SERIAL_ECHOLNPGM(" turns — this is NOT the operator's zero, re-run M751");
+      }
+      else if (Spincoater::isDatumValid()) {
+        // Re-datuming here would silently re-zero the machine on wherever the
+        // rotor stopped — typically the index mark, up to a full turn from the
+        // operator's M751 datum — destroying layer registration. Issue #41.
+        SERIAL_ECHOPGM("echo:SPIN WARN: Index homing failed — datum PRESERVED at ");
+        SERIAL_ECHO(datumAfter);
+        SERIAL_ECHOLNPGM(" turns (not re-datuming)");
+      }
+      else {
+        SERIAL_ECHOLNPGM("echo:SPIN WARN: Index homing failed and no datum set — attempting fallback set-home");
+        if (Spincoater::doSetHome()) {
+          SERIAL_ECHOLNPGM("echo:SPIN WARN: Fallback home set OK");
+        } else {
+          SERIAL_ECHOLNPGM("echo:SPIN ERR: Fallback home failed — manual intervention required");
+        }
       }
     }
   }
 
-  SERIAL_ECHOLNPGM("echo:SPIN OK: CYCLE_COMPLETE");
+  // Terminal line must not claim success when the rotor never reached the
+  // datum. The token still contains CYCLE_COMPLETE so existing UI handlers
+  // still close out the phase; rendering it as an error is tracked in #47.
+  if (homeFailed)
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: CYCLE_COMPLETE_NO_HOME — rotor parked off datum, angular registration unverified");
+  else
+    SERIAL_ECHOLNPGM("echo:SPIN OK: CYCLE_COMPLETE");
 }
 
 #endif // SPINCOATER

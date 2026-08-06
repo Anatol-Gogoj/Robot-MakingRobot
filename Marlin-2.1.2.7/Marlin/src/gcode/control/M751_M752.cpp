@@ -30,9 +30,10 @@ void GcodeSuite::M751() {
     }
   }
 
-  if (Spincoater::doSetHome()) {
-    // doSetHome() already emits DATA and TELEM lines
-  }
+  // doSetHome() emits its own DATA/TELEM/ERR detail; add a terminal marker so
+  // a failed M751 is visible to the UIs and to program runners. Issue #41.
+  if (!Spincoater::doSetHome())
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: HOME_SET_FAILED");
 }
 
 void GcodeSuite::M752() {
@@ -45,9 +46,13 @@ void GcodeSuite::M752() {
     }
   }
 
-  if (Spincoater::doIndexHome()) {
-    // doIndexHome() already emits STATE, DATA, and TELEM lines
-  }
+  // doIndexHome() emits its own STATE/DATA/TELEM detail. Its return value is
+  // now meaningful (issues #41/#43), so a failure must produce a terminal
+  // marker rather than being silently discarded — fullcode.gcode runs M752
+  // before M751, and a silent failure there means every layer is coated
+  // against a datum that was never index-referenced.
+  if (!Spincoater::doIndexHome())
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: INDEX_HOME_FAILED");
 }
 
 #endif // SPINCOATER

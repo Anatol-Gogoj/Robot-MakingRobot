@@ -75,8 +75,33 @@ namespace Spincoater {
 
   /**
    * Clear ODrive errors: "sc\n"
+   * NOTE: this wipes active_errors and disarm_reason — always call
+   * reportFault() BEFORE this if you need to know why something failed.
    */
   void clearErrors();
+
+  /**
+   * Read axis0.procedure_result (ODrive 0.6.x). 0 == SUCCESS.
+   * Returns -1 if the value could not be read or was not numeric — callers
+   * must treat -1 as "unverified", NOT as failure, so an older firmware that
+   * lacks the property cannot brick a working machine. Issue #43.
+   */
+  int getProcedureResult();
+
+  /**
+   * Dump axis0.procedure_result / active_errors / disarm_reason to serial.
+   * MUST be called before any clearErrors(). Issue #43.
+   */
+  void reportFault(const char* context);
+
+  /**
+   * Command IDLE and verify the axis actually reached it, re-issuing the
+   * request (ASCII writes are unacknowledged). Called on every failure exit
+   * so a bailing routine never leaves the ODrive executing a procedure —
+   * e.g. still rotating in ENCODER_INDEX_SEARCH. Issue #41.
+   * Returns true if IDLE was confirmed within timeout_ms.
+   */
+  bool forceIdle(uint16_t timeout_ms = 3000);
 
   /**
    * Emergency stop: request ODrive IDLE (disarm → freewheel).
@@ -126,6 +151,18 @@ namespace Spincoater {
    * Get the home position reference (turns).
    */
   float getHomePos();
+
+  /**
+   * True once a real 0° datum has been established (M751, boot, or an adopted
+   * fallback). False means getHomePos() is only its 0.0f initial value.
+   *
+   * A failed doIndexHome() leaves any EXISTING datum untouched, so callers
+   * must not re-datum on failure unless this returns false — otherwise a
+   * failed home silently re-zeroes the machine on wherever the rotor stopped
+   * (typically the index mark, up to a full turn from the operator's datum).
+   * Issue #41.
+   */
+  bool isDatumValid();
 
 } // namespace Spincoater
 
