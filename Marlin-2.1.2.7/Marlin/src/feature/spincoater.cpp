@@ -370,6 +370,24 @@ bool Spincoater::doIndexHome() {
 
   safe_delay(300);  // encoder settle
 
+  // Guard: if the reported position is more than one turn from the datum,
+  // the position estimate was not re-referenced by the index search (e.g.
+  // multi-turn accumulation left over from a spin cycle). A trap-traj move
+  // to _homePos would then crawl for thousands of turns at vel_limit and be
+  // killed mid-move by the 8s settle watchdog. Refuse it and fail loudly
+  // so the caller's fallback can run without commanding a doomed move.
+  {
+    float guard_pos, guard_vel;
+    if (feedback(guard_pos, guard_vel) && fabs(guard_pos - _homePos) > 1.0f) {
+      SERIAL_ECHOPGM("echo:SPIN ERR: Position ");
+      SERIAL_ECHO(guard_pos);
+      SERIAL_ECHOPGM(" is >1 turn from home datum ");
+      SERIAL_ECHO(_homePos);
+      SERIAL_ECHOLNPGM(" -- refusing settle (encoder not index-referenced?)");
+      return false;
+    }
+  }
+
   // Step 3: Re-enter position mode and return to the saved home datum.
   SERIAL_ECHOLNPGM("echo:SPIN STATE:HOME_SETTLE");
 
@@ -414,12 +432,14 @@ bool Spincoater::doIndexHome() {
       // and allows Marlin to continue using a consistent home datum.
       float fallback_pos, fallback_vel;
       if (feedback(fallback_pos, fallback_vel)) {
+        const float prevHomePos = _homePos;   // capture before overwrite
         _homePos = fallback_pos;
         SERIAL_ECHOPGM("echo:SPIN WARN: Settling failed — accepting pos=");
         SERIAL_ECHOLN(fallback_pos);
         SERIAL_ECHOPGM("echo:SPIN WARN: DEG=");
         {
-          float deg = fmod((fallback_pos - _homePos) * 360.0f, 360.0f);
+          // Offset of the newly adopted datum from the previous one.
+          float deg = fmod((fallback_pos - prevHomePos) * 360.0f, 360.0f);
           if (deg < 0) deg += 360.0f;
           SERIAL_ECHOLN(deg);
         }
