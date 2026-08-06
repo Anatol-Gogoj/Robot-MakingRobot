@@ -79,6 +79,26 @@ namespace Spincoater {
   void clearErrors();
 
   /**
+   * Emergency stop: request ODrive IDLE (disarm → freewheel).
+   * Fire-and-forget by design — callable from kill(), where blocking on a
+   * reply is not allowed. Never calls idle()/safe_delay: kill() is reached
+   * from idle(), so re-entering idle() here would recurse. Run before
+   * minkill()'s cli() so TX drains promptly (the AVR core self-polls if
+   * interrupts are off, so even a late call completes).
+   * Freewheel was chosen over commanded decel: no confirmed brake resistor,
+   * so regen from a high-RPM chuck could overvolt the DC bus (issue #40).
+   */
+  void emergencyStop();
+
+  /**
+   * Startup safety disarm, called once from setup(): if the Mega was reset
+   * mid-spin (host reconnect DTR, watchdog, power blip), the ODrive keeps
+   * spinning at the last commanded velocity. Request IDLE so a reboot never
+   * leaves the rotor running unattended (issue #40).
+   */
+  void startupSafetyDisarm();
+
+  /**
    * Enter closed-loop control, running full calibration if needed.
    * Calls idle() internally. Returns true on success.
    */

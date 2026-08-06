@@ -237,7 +237,7 @@ M503             ; report all settings
 ```gcode
 M119             ; report endstop states
 M114             ; report current position
-M999             ; reset firmware after emergency stop (M112)
+M999             ; recover from "stopped" errors (NOT from M112 — after M112, reset/reconnect the board)
 ```
 
 ## Web Controller
@@ -249,7 +249,7 @@ M999             ; reset firmware after emergency stop (M112)
 - Collapsible acceleration tuning panel (M201) with per-axis sliders and EEPROM save
 - Gripper servo slider (90°–170°) with Open/Close buttons and full-range override textbox
 - Spincoater panel — RPM/Duration/Rise/Sink inputs, Start/Stop/Set Home/Index Home buttons, live RPM gauge, SVG circular position dial, Welford stats cards, phase indicator
-- E-Stop (M112) with M999 Reset button for recovery without USB replug
+- E-Stop (M112) — recover via board reset (disconnect/reconnect USB); the M999 Reset button only clears the softer "stopped" state
 - Position readout with auto-report polling
 - G-code program runner with Load .gcode, Run/Pause/Stop, and wait-for-ok sequencing
 - Raw G-code input with command history
@@ -261,7 +261,7 @@ M999             ; reset firmware after emergency stop (M112)
 2. **Cold extrusion:** `EXTRUDE_MINTEMP` is 0, so E moves work without temperature checks. `M302 S0` is not compiled in and returns "Unknown command" — it is not needed.
 3. **Filter Feed homes to MAX:** Unlike all other axes which home to MIN, the Filter Feed (A axis) homes to its far-end endstop (I_MAX, pin 15).
 4. **Servo deactivation:** Servos go limp 2 seconds after positioning. If the gripper needs to actively hold force, `DEACTIVATE_SERVOS_AFTER_MOVE` must be disabled (requires rebuild) or an external servo controller used.
-5. **E-Stop recovery:** After sending `M112`, send `M999` to reset firmware instead of unplugging USB.
+5. **E-Stop recovery:** `M112` fully kills the firmware and **cannot** be recovered with `M999` — reset the board (disconnect/reconnect USB or power-cycle). On reboot the firmware automatically disarms the spincoater. `M999` only recovers from the softer "stopped" state.
 6. **Pins 16/17 (Serial2)** are occupied by the ODrive S1 link. **Pins 19/20/21** conflict with Serial1 and I2C. Adding an I2C LCD or additional serial device requires rewiring motors.
 7. **Direction inversions:** Z, I, and J axes all have `INVERT_*_DIR true`. If a new axis is added or a motor is rewired, verify direction during first test.
 8. **AVR `println()` and ODrive:** On AVR, `Serial.println()` sends `\r\n`. The ODrive ASCII protocol expects bare `\n` — the stray `\r` causes "unknown command" errors. All ODrive UART writes use `print()` + `write('\n')` instead.
