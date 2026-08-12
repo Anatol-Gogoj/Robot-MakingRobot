@@ -4,3 +4,7 @@
 # Shell scripts must keep LF endings. A CRLF shebang fails on Linux with
 # "bad interpreter: /bin/bash^M".
 *.sh text eol=lf
+
+# PowerShell scripts are Windows-native; keep CRLF so Notepad and the ISE
+# do not show them as one long line.
+*.ps1 text eol=crlf
