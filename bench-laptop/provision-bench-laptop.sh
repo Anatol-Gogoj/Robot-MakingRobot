@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  RMR BENCH LAPTOP PROVISIONING  --  Ubuntu 24.04 LTS
+#  RMR BENCH LAPTOP PROVISIONING  --  Ubuntu 24.04 and 26.04 LTS
 # =============================================================================
 #
 #  WHAT THIS DOES
@@ -79,8 +79,14 @@ REPO_DEST="$HOME/Robot-MakingRobot"
 # that reason. Do not "improve" this into per-user sessions.
 ENABLE_GUI_REMOTE=true
 
-# x11vnc: the always-works baseline. Set a password both you and the
-# colleagues can be told.
+# PRIMARY PATH: gnome-remote-desktop (RDP, port 3389). Works on Wayland and
+# on Xorg, has real TLS, and no 8-character password limit. This is the
+# password for the RDP login -- set it, and tell the colleagues.
+RDP_PASSWORD="changeme"
+
+# FALLBACK: x11vnc. Only works on an Xorg session; on Wayland it fails with
+# "-auth guess: failed for display ':0'". The VNC protocol truncates the
+# password at 8 characters, which is a protocol limit, not a typo.
 VNC_PASSWORD="changeme"
 
 # false -> x11vnc listens on 127.0.0.1 only; reach it through the SSH
@@ -104,7 +110,9 @@ INSTALL_CHROME=true
 #  END OF CONFIG
 # =============================================================================
 
-SCRIPT_VERSION="1.0"
+SCRIPT_VERSION="1.2"
+RDP_READY=0
+RDP_FINGERPRINT=""
 STAMP="$(date +%Y%m%d-%H%M%S)"
 LOG="/tmp/rmr-provision-${STAMP}.log"
 REPORT="/tmp/rmr-bench-report-${STAMP}.txt"
@@ -558,48 +566,123 @@ EOF
 }
 
 # ========================================================== gui remote ======
+# The laptop is both the local operator console and the owner's remote
+# desktop. Both must attach to the SAME session -- a serial port has exactly
+# one holder, so per-user sessions would fight over /dev/rmr-mega.
+#
+# gnome-remote-desktop shares the EXISTING session on both Wayland and Xorg,
+# so it is the primary path. x11vnc only works on Xorg and is the fallback.
+# Verified against Ubuntu 26.04 / GNOME 50 on the real bench laptop.
 phase_gui() {
   [[ "$ENABLE_GUI_REMOTE" == true ]] || { step "Graphical remote access"; warn "Disabled by config (SSH only)"; return; }
   step "Graphical remote access (for the Web Serial UIs)"
 
-  # Ubuntu 24.04 runs GNOME on Wayland, where x11vnc cannot attach to the
-  # screen. Force an Xorg session. It is less modern but completely
-  # deterministic, and it lets the colleague and the owner see the SAME
-  # screen -- which matters when the owner needs someone to touch the machine.
+  # Autologin: the remote desktop attaches to a session that must ALREADY
+  # exist. Without it, an unattended reboot leaves no desktop at all and the
+  # console is unreachable until somebody walks over to the machine.
   if [[ -f /etc/gdm3/custom.conf ]]; then
-    sudo sed -i 's/^#\?WaylandEnable=.*/WaylandEnable=false/' /etc/gdm3/custom.conf
-    grep -q '^WaylandEnable=false' /etc/gdm3/custom.conf \
-      || echo 'WaylandEnable=false' | sudo tee -a /etc/gdm3/custom.conf >/dev/null
-    # Autologin so the desktop exists after an unattended reboot.
     sudo sed -i "s/^#\?  *AutomaticLoginEnable *=.*/AutomaticLoginEnable=true/" /etc/gdm3/custom.conf
     sudo sed -i "s/^#\?  *AutomaticLogin *=.*/AutomaticLogin=$USER/"           /etc/gdm3/custom.conf
-    ok "Xorg session + autologin configured (takes effect after reboot)"
+    ok "Autologin configured (takes effect after reboot)"
     NOTES+=("Autologin is ON. Anyone with physical access to the laptop gets a logged-in desktop.")
   else
-    warn "/etc/gdm3/custom.conf not found; skipping display manager changes"
+    warn "/etc/gdm3/custom.conf not found; set autologin by hand in Settings > System > Users"
   fi
 
-  # x11vnc SHADOWS the physical display :0. It does not create a second
-  # session. That is deliberate: the serial port has one holder, so the
-  # owner and the colleague must be looking at the same Chrome instance.
+  local sid stype
+  sid="$(loginctl list-sessions --no-legend 2>/dev/null | awk -v u="$USER" '$3==u && $4=="seat0" {print $1; exit}')"
+  stype="$(loginctl show-session "${sid:-1}" -p Type --value 2>/dev/null)"
+  ok "Graphical session type: ${stype:-unknown}"
+
+  if setup_gnome_rdp; then return; fi
+  if [[ "$stype" == "x11" ]]; then
+    warn "Falling back to x11vnc"
+    setup_x11vnc
+  else
+    warn "Session is '${stype:-unknown}', so x11vnc cannot attach to a display. No fallback."
+  fi
+}
+
+# --- primary: gnome-remote-desktop (RDP), works on Wayland and Xorg ---------
+setup_gnome_rdp() {
+  command -v grdctl >/dev/null 2>&1 || \
+    sudo apt-get install -y gnome-remote-desktop >>"$LOG" 2>&1 || \
+    { warn "gnome-remote-desktop is not available"; return 1; }
+
+  # grdctl talks to the user D-Bus session, which an SSH shell does not
+  # inherit. Without these two the calls fail with no useful message.
+  export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+
+  local dir="$HOME/.local/share/gnome-remote-desktop"
+  mkdir -p "$dir"
+  if [[ -f "$dir/rdp-tls.crt" && -f "$dir/rdp-tls.key" ]]; then
+    ok "RDP certificate already present"
+  else
+    # GNOME 50 does NOT generate this by itself. Without a cert the server
+    # answers every connection with "RDP server certificate is invalid".
+    if openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
+         -subj "/CN=$BENCH_HOSTNAME" \
+         -keyout "$dir/rdp-tls.key" -out "$dir/rdp-tls.crt" >>"$LOG" 2>&1; then
+      chmod 600 "$dir/rdp-tls.key"
+      ok "Generated a self-signed RDP certificate"
+    else
+      bad "Could not generate the RDP certificate"; return 1
+    fi
+  fi
+
+  # Set the key BEFORE the cert: validating a cert with no matching key
+  # prints a harmless but alarming "certificate is invalid" error.
+  grdctl rdp set-tls-key  "$dir/rdp-tls.key" >>"$LOG" 2>&1
+  grdctl rdp set-tls-cert "$dir/rdp-tls.crt" >>"$LOG" 2>&1
+
+  # set-credentials writes through libsecret. Under autologin, PAM never
+  # unlocks the login keyring, so this call BLOCKS FOREVER waiting for an
+  # unlock prompt that cannot appear over SSH. Bound it and say what to do.
+  if timeout 15 grdctl rdp set-credentials "$USER" "$RDP_PASSWORD" >>"$LOG" 2>&1; then
+    ok "RDP credentials stored"
+  else
+    bad "RDP credentials rejected or timed out -- the GNOME login keyring is locked"
+    NOTES+=("KEYRING FIX (needs one action at the physical keyboard): open 'Passwords and Keys' (sudo apt install seahorse), right-click the 'Login' keyring, Change Password, leave the new password BLANK. An empty-password keyring auto-unlocks under autologin. Then run this script again.")
+    return 1
+  fi
+
+  grdctl rdp disable-view-only >>"$LOG" 2>&1
+  grdctl rdp enable            >>"$LOG" 2>&1
+  systemctl --user enable --now gnome-remote-desktop >>"$LOG" 2>&1
+  systemctl --user restart     gnome-remote-desktop  >>"$LOG" 2>&1
+
+  sleep 2
+  if ss -tln 2>/dev/null | grep -q ':3389'; then
+    RDP_READY=1
+    RDP_FINGERPRINT="$(grdctl status 2>/dev/null | sed -n 's/.*TLS fingerprint: *//p')"
+    ok "RDP is listening on 3389 and shares the current session"
+    NOTES+=("gnome-remote-desktop listens on ALL interfaces. Reach it over an SSH tunnel, or restrict it if the LAN is not trusted.")
+    return 0
+  fi
+  bad "gnome-remote-desktop is not listening on 3389"
+  return 1
+}
+
+# --- fallback: x11vnc, Xorg sessions only ----------------------------------
+setup_x11vnc() {
+  command -v x11vnc >/dev/null 2>&1 || sudo apt-get install -y x11vnc >>"$LOG" 2>&1
+
   local vncpass="$HOME/.vnc/passwd"
   mkdir -p "$HOME/.vnc"
   if [[ "$VNC_PASSWORD" == "changeme" || -z "$VNC_PASSWORD" ]]; then
     warn "VNC_PASSWORD is still the default. Change it in the CONFIG block."
   fi
-  x11vnc -storepasswd "$VNC_PASSWORD" "$vncpass" >>"$LOG" 2>&1 \
-    && ok "VNC password stored" || bad "Could not store the VNC password"
+  # The VNC protocol truncates passwords at 8 characters. Not a typo.
+  x11vnc -storepasswd "${VNC_PASSWORD:0:8}" "$vncpass" >>"$LOG" 2>&1 \
+    && ok "VNC password stored (8 characters max -- protocol limit)" \
+    || bad "Could not store the VNC password"
   chmod 600 "$vncpass" 2>/dev/null || true
 
-  local bindopt="-localhost"
-  local bindtxt="127.0.0.1:5900 (reach it through the SSH tunnel)"
+  local bindopt="-localhost" bindtxt="127.0.0.1:5900 (reach it through the SSH tunnel)"
   if [[ "$VNC_LAN_ACCESS" == true ]]; then
-    bindopt=""
-    bindtxt="0.0.0.0:5900 (open on the LAN -- VNC transport security is weak)"
+    bindopt=""; bindtxt="0.0.0.0:5900 (open on the LAN -- VNC transport security is weak)"
     NOTES+=("x11vnc is listening on the LAN. Anyone on the LAN who knows the password can drive the machine.")
-    if command -v ufw >/dev/null 2>&1 && sudo ufw status 2>/dev/null | grep -q '^Status: active'; then
-      sudo ufw allow 5900/tcp >>"$LOG" 2>&1 || true
-    fi
   fi
 
   sudo tee /etc/systemd/system/rmr-x11vnc.service >/dev/null <<EOF
@@ -612,8 +695,8 @@ Wants=graphical.target
 Type=simple
 User=$USER
 Environment=DISPLAY=:0
-ExecStart=/usr/bin/x11vnc -display :0 -auth guess $bindopt \\
-  -forever -shared -threads -noxdamage \\
+ExecStart=/usr/bin/x11vnc -display :0 -auth guess $bindopt \
+  -forever -shared -threads -noxdamage \
   -rfbport 5900 -rfbauth $vncpass
 Restart=always
 RestartSec=5
@@ -625,7 +708,6 @@ EOF
   ok "After the reboot x11vnc listens on $bindtxt"
   NOTES+=("If VNC does not come up after the reboot, check: journalctl -u rmr-x11vnc -b")
 }
-
 # =========================================================== nomachine ======
 # VNC is the baseline that always works. NoMachine is markedly better over a
 # WAN link, and it shadows the physical desktop by default -- same session,
@@ -762,10 +844,22 @@ phase_report() {
     echo
     echo "-- GRAPHICAL DESKTOP --------------------------------------------------"
     if [[ "$ENABLE_GUI_REMOTE" == true ]]; then
-      echo "  Both paths SHADOW the physical display :0. There is one desktop,"
-      echo "  one Chrome, one holder of the serial port. That is deliberate."
+      echo "  The remote desktop SHARES the session already running on the"
+      echo "  laptop. One desktop, one Chrome, one holder of the serial port."
+      echo "  That is deliberate -- do not switch to per-user sessions."
       echo
-      echo "  x11vnc  (baseline, always works)"
+      if [[ "$RDP_READY" == "1" ]]; then
+        echo "  gnome-remote-desktop (RDP, port 3389)"
+        echo "      ssh -L 13389:${IP}:3389 ${RHEL9_USER:-<you>}@${RHEL9_HOST:-<jump-host>}"
+        echo "      then point an RDP client at localhost:13389"
+        echo "      username: $USER    password: the RDP_PASSWORD from the config"
+        [[ -n "$RDP_FINGERPRINT" ]] && echo "      TLS fingerprint: $RDP_FINGERPRINT"
+        echo "      (local port 13389, because 3389 is often already taken)"
+      else
+        echo "  RDP is NOT running. See the PROBLEMS and NOTES sections."
+      fi
+      echo
+      echo "  x11vnc  (fallback, Xorg sessions only)"
       if [[ "$VNC_LAN_ACCESS" == true ]]; then
         echo "      VNC client -> $(hostname -I | awk '{print $1}'):5900"
       else
