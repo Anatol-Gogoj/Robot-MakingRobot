@@ -22,6 +22,8 @@
   #include "e_parser.h"          // emergency_parser.killed_by_M112
 #endif
 
+#include <limits.h>              // INT_MAX / INT_MIN for strict int parsing
+
 // Shorthand for the ODrive serial port
 #define ODRIVE_SERIAL SPINCOATER_SERIAL
 
@@ -39,6 +41,56 @@ static float    _homePos     = 0.0f;   // encoder position (turns) at last home 
 // re-datum: an existing operator-set datum must never be silently overwritten
 // by whatever position a failed home happened to stop at. Issue #41.
 static bool     _datumSet    = false;
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Strict numeric parsing  (issue #44)
+//
+//  Arduino's String::toFloat()/toInt() silently return 0 for non-numeric
+//  text, and the only gate on an "f 0" reply used to be "contains a space".
+//  One corrupted byte therefore produced a perfectly plausible pos=0/vel=0
+//  reading — and this machine has documented stepper-EMI history while the
+//  ODrive ASCII protocol carries no checksum, so application-level validation
+//  is the only defence. Reject anything that is not a complete, well-formed
+//  number rather than laundering it into a zero.
+// ═══════════════════════════════════════════════════════════════════════════
+
+static bool parseStrictFloat(const String &s, float &out) {
+  const unsigned int len = s.length();
+  if (len == 0) return false;
+  unsigned int i = (s[0] == '+' || s[0] == '-') ? 1 : 0;
+  bool digits = false, dot = false, expSeen = false;
+  for (; i < len; ++i) {
+    const char c = s[i];
+    if (c >= '0' && c <= '9') { digits = true; continue; }
+    if (c == '.' && !dot && !expSeen) { dot = true; continue; }
+    if ((c == 'e' || c == 'E') && digits && !expSeen) {
+      expSeen = true;
+      digits  = false;                      // exponent needs its own digits
+      if (i + 1 < len && (s[i + 1] == '+' || s[i + 1] == '-')) ++i;
+      continue;
+    }
+    return false;                           // any other character invalidates
+  }
+  if (!digits) return false;
+  out = s.toFloat();
+  return true;
+}
+
+static bool parseStrictInt(const String &s, int &out) {
+  const unsigned int len = s.length();
+  if (len == 0 || len > 11) return false;      // 11 = sign + 10 digits (long)
+  unsigned int i = (s[0] == '+' || s[0] == '-') ? 1 : 0;
+  if (i >= len) return false;
+  for (; i < len; ++i) if (s[i] < '0' || s[i] > '9') return false;
+
+  // Range-check before narrowing. int is 16-bit on AVR, so without this a
+  // corrupted all-digit reply could wrap into a valid-looking axis state, or
+  // into procedure_result == 0 (SUCCESS). Issue #44.
+  const long v = s.toInt();
+  if (v > (long)INT_MAX || v < (long)INT_MIN) return false;
+  out = (int)v;
+  return true;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Init / Boot
@@ -85,7 +137,10 @@ bool Spincoater::boot() {
   while (millis() - bootStart < 15000) {
     idle();
     String vb = readRaw("vbus_voltage");
-    if (vb.length() > 0 && vb.toFloat() > 1.0f) {
+    float vbv;
+    // Strict parse: a garbled reply must not be accepted as a live ODrive.
+    // Issue #44.
+    if (parseStrictFloat(vb, vbv) && vbv > 1.0f) {
       SERIAL_ECHOPGM("echo:SPIN DATA: Vbus=");
       SERIAL_ECHO(vb.c_str());
       SERIAL_ECHOLNPGM("V");
@@ -193,7 +248,8 @@ bool Spincoater::boot() {
 
   // Read initial position
   float initPos, initVel;
-  if (feedback(initPos, initVel)) {
+  // Stable read — this writes the datum. Issue #44.
+  if (feedbackStable(initPos, initVel)) {
     _homePos = initPos;
     // Only a MEANINGFUL reference if the boot index search actually completed.
     // Without it the AMT102 frame is anchored to wherever the rotor happened
@@ -206,6 +262,12 @@ bool Spincoater::boot() {
       SERIAL_ECHOLNPGM("echo:SPIN WARN: datum established at the index mark on boot -- re-run M751 if layer registration matters");
     else
       SERIAL_ECHOLNPGM("echo:SPIN WARN: boot index search did not complete -- no valid datum, run M751 before relying on angles");
+  }
+  else {
+    // Never leave a stale datum behind a failed read, and never let OK: READY
+    // be the only thing the operator sees when no datum was captured.
+    _datumSet = false;
+    SERIAL_ECHOLNPGM("echo:SPIN WARN: could not read a consistent initial position -- no datum, run M751 before relying on angles");
   }
 
   SERIAL_ECHOLNPGM("echo:SPIN OK: READY");
@@ -228,15 +290,21 @@ String Spincoater::readRaw(const char* property) {
 
   const millis_t t0 = millis();
   String response = "";
+  bool gotLine = false;
   while (millis() - t0 < 500) {
     // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
     if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
     if (ODRIVE_SERIAL.available()) {
       char c = ODRIVE_SERIAL.read();
-      if (c == '\n') break;
+      if (c == '\n') { gotLine = true; break; }
       if (c != '\r') response += c;
     }
   }
+  // A timeout part-way through a line is a FAILED read, not a short one. The
+  // old code returned whatever bytes had arrived, so a truncated reply became
+  // a truncated *value*. Issue #44.
+  if (!gotLine) return "";
+
   response.trim();
   return response;
 }
@@ -257,22 +325,68 @@ bool Spincoater::feedback(float &pos, float &vel) {
 
   const millis_t t0 = millis();
   String resp = "";
+  bool gotLine = false;
   while (millis() - t0 < 200) {
     // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
     if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
     if (ODRIVE_SERIAL.available()) {
       char c = ODRIVE_SERIAL.read();
-      if (c == '\n') break;
+      if (c == '\n') { gotLine = true; break; }
       if (c != '\r') resp += c;
     }
   }
-  resp.trim();
+  if (!gotLine) return false;          // truncated reply is a failed read
 
-  int sp = resp.indexOf(' ');
-  if (sp > 0) {
-    pos = resp.substring(0, sp).toFloat();
-    vel = resp.substring(sp + 1).toFloat();
-    return true;
+  resp.trim();
+  const int sp = resp.indexOf(' ');
+  if (sp <= 0) return false;
+
+  String tokPos = resp.substring(0, sp);   tokPos.trim();
+  String tokVel = resp.substring(sp + 1);  tokVel.trim();
+
+  float p, v;
+  if (!parseStrictFloat(tokPos, p)) return false;
+  if (!parseStrictFloat(tokVel, v)) return false;
+
+  pos = p;
+  vel = v;
+  return true;
+}
+
+bool Spincoater::feedbackStable(float &pos, float &vel) {
+  // Two consecutive CONSISTENT reads. Strict parsing rejects malformed lines,
+  // but a corrupted line can still be well-formed by chance; requiring two
+  // reads to agree makes a one-off corruption harmless for decisions that move
+  // the datum or judge whether the rotor has stopped.
+  //
+  // The agreement window is derived from the MEASURED velocity rather than
+  // being a fixed position tolerance. A fixed window is really a stationarity
+  // test — at a ~4 ms round trip, 0.01 turns is a hard ~150 RPM ceiling — and
+  // these calls happen right after an index search, when the ODrive has
+  // disarmed and the chuck is freewheeling well above that. Predicting the
+  // expected travel keeps this a pure corruption check that works at any
+  // speed: a chance-well-formed corrupt sample disagrees by orders of
+  // magnitude, while a smoothly coasting rotor agrees. Issue #44.
+  float p1, v1, p2, v2;
+  for (uint8_t attempt = 0; attempt < 3; ++attempt) {
+    idle();
+    const millis_t t1 = millis();
+    if (feedback(p1, v1)) {
+      const millis_t t2 = millis();
+      if (feedback(p2, v2)) {
+        const millis_t t3 = millis();
+        // Generous span: both round trips, plus a floor for millis() coarseness.
+        const float dt     = (float)(t3 - t1) * 0.001f + 0.002f;
+        const float posTol = 0.01f + fabs(v1) * dt * 3.0f;   // 3x slack
+        const float velTol = 0.05f + fabs(v1) * 0.2f;        // allows decel
+        if (fabs(p2 - p1) < posTol && fabs(v2 - v1) < velTol) {
+          pos = p2;
+          vel = v2;
+          return true;
+        }
+      }
+    }
+    safe_delay(50);
   }
   return false;
 }
@@ -287,10 +401,10 @@ void Spincoater::setVelocity(float rps) {
 
 int Spincoater::getState() {
   String resp = readRaw("axis0.current_state");
-  if (resp.length() > 0) {
-    int st = resp.toInt();
-    if (st >= 0 && st <= 20) return st;
-  }
+  int st;
+  // Strict parse: a garbled reply must land on UNDEFINED explicitly rather
+  // than via toInt()'s silent 0-for-garbage. Issue #44.
+  if (parseStrictInt(resp, st) && st >= 0 && st <= 20) return st;
   return ODRIVE_STATE_UNDEFINED;
 }
 
@@ -316,13 +430,9 @@ void Spincoater::clearErrors() {
 int Spincoater::getProcedureResult() {
   String r = readRaw("axis0.procedure_result");
   r.trim();
-  if (r.length() == 0) return -1;
-  for (uint8_t i = 0; i < r.length(); ++i) {
-    const char c = r[i];
-    const bool sign = (i == 0 && (c == '-' || c == '+'));
-    if (!sign && (c < '0' || c > '9')) return -1;   // non-numeric → unverified
-  }
-  return r.toInt();
+  int v;
+  if (!parseStrictInt(r, v)) return -1;   // unreadable/non-numeric → unverified
+  return v;
 }
 
 void Spincoater::reportFault(const char* context) {
@@ -545,7 +655,14 @@ bool Spincoater::doIndexHome() {
   // so the caller's fallback can run without commanding a doomed move.
   {
     float guard_pos, guard_vel;
-    if (feedback(guard_pos, guard_vel) && fabs(guard_pos - _homePos) > 1.0f) {
+    // Fail closed: the old form short-circuited, so a failed read SKIPPED the
+    // guard entirely and let the doomed move proceed. Issue #44.
+    if (!feedbackStable(guard_pos, guard_vel)) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: No stable position read before settle -- refusing to move");
+      forceIdle();
+      return false;
+    }
+    if (fabs(guard_pos - _homePos) > 1.0f) {
       SERIAL_ECHOPGM("echo:SPIN ERR: Position ");
       SERIAL_ECHO(guard_pos);
       SERIAL_ECHOPGM(" is >1 turn from home datum ");
@@ -627,9 +744,14 @@ bool Spincoater::doIndexHome() {
     // the machine still ends up with a usable reference from a cold start.
     // Refuses a MOVING axis either way: a datum captured mid-rotation is
     // meaningless. Issue #41.
+    // Stable read: this branch either writes the datum or reports the miss a
+    // bench operator will use to diagnose the settle, so a single corrupted
+    // line must not decide either. Issue #44.
     float fallback_pos, fallback_vel;
+    const bool haveStable = feedbackStable(fallback_pos, fallback_vel);
+
     if (_datumSet) {
-      if (feedback(fallback_pos, fallback_vel)) {
+      if (haveStable) {
         float off = fmod((fallback_pos - _homePos) * 360.0f, 360.0f);
         if (off < 0) off += 360.0f;
         SERIAL_ECHOPGM("echo:SPIN WARN: Settle failed — datum PRESERVED at ");
@@ -642,7 +764,7 @@ bool Spincoater::doIndexHome() {
         SERIAL_ECHOLNPGM("echo:SPIN WARN: Settle failed — datum PRESERVED (rotor position unreadable)");
       }
     }
-    else if (!feedback(fallback_pos, fallback_vel)) {
+    else if (!haveStable) {
       SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not read ODrive position after settle failure");
     }
     else if (fabs(fallback_vel) > 0.05f) {
@@ -687,63 +809,42 @@ bool Spincoater::doIndexHome() {
 bool Spincoater::doSetHome() {
   init();
 
-  // Try up to 5 times to read position
-  String resp = "";
-  for (int attempt = 0; attempt < 5; attempt++) {
-    while (ODRIVE_SERIAL.available()) ODRIVE_SERIAL.read();
-    ODRIVE_SERIAL.print("f 0"); ODRIVE_NEWLINE();
-    ODRIVE_SERIAL.flush();
-
-    const millis_t t0 = millis();
-    resp = "";
-    while (millis() - t0 < 300) {
-      // Bail on M112 so the caller's next idle() can dispatch kill() (issue #40)
-      if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112)) break;
-      if (ODRIVE_SERIAL.available()) {
-        char c = ODRIVE_SERIAL.read();
-        if (c == '\n') break;
-        if (c != '\r') resp += c;
-      }
-    }
-    resp.trim();
-    if (resp.indexOf(' ') > 0) break;
-    safe_delay(200);
+  // Setting the datum is the single most consequential read in the subsystem:
+  // one bad value silently redefines zero for every layer that follows. Use a
+  // stable double-read rather than the bespoke single-shot parse this used to
+  // carry (which had the same "space means valid" weakness as feedback()).
+  // Issue #44.
+  float pos, vel;
+  if (!feedbackStable(pos, vel)) {
+    SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not obtain a stable ODrive position -- home NOT set");
+    return false;
   }
 
-  int sp = resp.indexOf(' ');
-  if (sp > 0) {
-    float pos = resp.substring(0, sp).toFloat();
-    float vel = resp.substring(sp + 1).toFloat();
-
-    // Refuse to datum a moving axis. M750's H1 fallback calls this right
-    // after a failed index home, where the rotor may still be turning — a
-    // datum captured mid-rotation is meaningless. Issue #41.
-    if (fabs(vel) > 0.05f) {
-      SERIAL_ECHOPGM("echo:SPIN ERR: Refusing to set home, axis moving at ");
-      SERIAL_ECHO(vel * 60.0f);
-      SERIAL_ECHOLNPGM(" RPM");
-      return false;
-    }
-
-    _homePos = pos;
-    _datumSet = true;
-
-    SERIAL_ECHOPGM("echo:SPIN DATA: HomePos=");
-    SERIAL_ECHOLN(pos);
-
-    // Emit telemetry with DEG=0.00
-    SERIAL_ECHOPGM("echo:SPIN TELEM: RPM=");
+  // Refuse to datum a moving axis. M750's H1 fallback calls this right
+  // after a failed index home, where the rotor may still be turning — a
+  // datum captured mid-rotation is meaningless. Issue #41.
+  if (fabs(vel) > 0.05f) {
+    SERIAL_ECHOPGM("echo:SPIN ERR: Refusing to set home, axis moving at ");
     SERIAL_ECHO(vel * 60.0f);
-    SERIAL_ECHOPGM(" POS=");
-    SERIAL_ECHO(pos);
-    SERIAL_ECHOLNPGM(" DEG=0.00");
-
-    SERIAL_ECHOLNPGM("echo:SPIN OK: HOME_SET");
-    return true;
+    SERIAL_ECHOLNPGM(" RPM");
+    return false;
   }
 
-  SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not read ODrive position");
-  return false;
+  _homePos = pos;
+  _datumSet = true;
+
+  SERIAL_ECHOPGM("echo:SPIN DATA: HomePos=");
+  SERIAL_ECHOLN(pos);
+
+  // Emit telemetry with DEG=0.00
+  SERIAL_ECHOPGM("echo:SPIN TELEM: RPM=");
+  SERIAL_ECHO(vel * 60.0f);
+  SERIAL_ECHOPGM(" POS=");
+  SERIAL_ECHO(pos);
+  SERIAL_ECHOLNPGM(" DEG=0.00");
+
+  SERIAL_ECHOLNPGM("echo:SPIN OK: HOME_SET");
+  return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

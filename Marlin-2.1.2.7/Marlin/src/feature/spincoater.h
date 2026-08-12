@@ -54,8 +54,25 @@ namespace Spincoater {
   /**
    * Read position + velocity via "f 0\n" → "<pos> <vel>\n".
    * Returns true on success, fills pos (turns) and vel (turns/s).
+   *
+   * Requires a complete newline-terminated reply and strictly numeric tokens:
+   * a truncated or corrupted line is a FAILED read, never a pos=0/vel=0
+   * reading. Issue #44.
    */
   bool feedback(float &pos, float &vel);
+
+  /**
+   * feedback() twice, requiring the two reads to be CONSISTENT with each
+   * other and with the measured velocity. A pure corruption filter — it works
+   * at any rotor speed, including a freewheeling coast-down, because the
+   * position window is predicted from the velocity rather than fixed.
+   *
+   * For one-shot decisions that move the datum or judge whether the rotor has
+   * stopped; too slow for telemetry loops (up to 6 UART round trips). Retries
+   * three times and calls idle(). Returns false only when no consistent pair
+   * could be obtained, which callers must treat as "refuse to act". Issue #44.
+   */
+  bool feedbackStable(float &pos, float &vel);
 
   /**
    * Command velocity: "v 0 <rps> 0\n"
