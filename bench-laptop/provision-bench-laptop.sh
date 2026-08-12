@@ -40,15 +40,15 @@ OWNER_SSH_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgvdDE8+XdMxxG6I5edNg82Ed
 # --- Identity --------------------------------------------------------------
 BENCH_HOSTNAME="rmr-bench"          # laptop becomes rmr-bench.local via mDNS
 
-# --- The RHEL9 jump host ---------------------------------------------------
-# Used for the reverse tunnel (resilience layer -- see OWNER_RUNBOOK).
-# Leave RHEL9_HOST empty to skip the tunnel entirely.
-# NOTE: if the laptop cannot resolve this name, replace it with the RHEL9
-# box's LAN IP address. Check from the laptop with:  ping -c1 <host>
-RHEL9_HOST="hc18kx2.engr.uconn.edu"
-RHEL9_USER="amg17031"               # your login on the RHEL9 box
-RHEL9_SSH_PORT="22"
-TUNNEL_PORT="2222"                  # port on RHEL9 that maps back to laptop:22
+# --- Reaching this laptop from outside the lab -----------------------------
+# Handled by setup-wireguard.sh, not by this script. The laptop joins the
+# existing WireGuard mesh as 10.20.30.4 and is then addressable directly:
+#     ssh anatol@10.20.30.4        mstsc /v:10.20.30.4
+#
+# This replaced an autossh reverse tunnel to the RHEL9 box. WireGuard does
+# the same job -- surviving DHCP changes and NAT -- and does it better, with
+# one less bespoke moving part and one less machine in the critical path.
+RHEL9_USER="amg17031"               # only used to address you in the report
 
 # --- ShareDrive (SMB/Samba) ------------------------------------------------
 # Used to write the handoff report back. If the mount fails the report is
@@ -242,7 +242,7 @@ phase_packages() {
     htop tree jq
   )
   [[ "$ENABLE_GUI_REMOTE" == true ]] && pkgs+=(x11vnc xdotool)
-  [[ -n "$RHEL9_HOST" ]] && pkgs+=(autossh)
+
 
   soft "Installed base packages" sudo apt-get install -y "${pkgs[@]}"
 
@@ -746,51 +746,6 @@ phase_nomachine() {
   fi
 }
 
-# ============================================================== tunnel ======
-phase_tunnel() {
-  if [[ -z "$RHEL9_HOST" ]]; then
-    step "Reverse tunnel to the RHEL9 box"; warn "Not configured; skipping"; return
-  fi
-  step "Reverse tunnel to the RHEL9 box"
-
-  # WHY: a reverse tunnel means the laptop dials OUT to a host the owner can
-  # already reach. It survives DHCP lease changes, Wi-Fi reconnects and NAT,
-  # and needs no inbound firewall rule anywhere.
-  local key="$HOME/.ssh/id_rmr_tunnel"
-  if [[ ! -f "$key" ]]; then
-    ssh-keygen -t ed25519 -N "" -C "rmr-bench-tunnel" -f "$key" >>"$LOG" 2>&1
-    ok "Generated a dedicated tunnel keypair"
-  else
-    ok "Tunnel keypair already present"
-  fi
-  TUNNEL_PUBKEY="$(cat "${key}.pub")"
-
-  sudo tee /etc/systemd/system/rmr-tunnel.service >/dev/null <<EOF
-[Unit]
-Description=RMR bench reverse SSH tunnel to $RHEL9_HOST
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=$USER
-Environment=AUTOSSH_GATETIME=0
-ExecStart=/usr/bin/autossh -M 0 -N \\
-  -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \\
-  -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=accept-new \\
-  -i $key -p $RHEL9_SSH_PORT \\
-  -R ${TUNNEL_PORT}:localhost:22 \\
-  ${RHEL9_USER}@${RHEL9_HOST}
-Restart=always
-RestartSec=15
-
-[Install]
-WantedBy=multi-user.target
-EOF
-  soft "Enabled the reverse tunnel service" sudo systemctl enable --now rmr-tunnel.service
-  warn "The tunnel stays DOWN until the owner authorizes the key on the RHEL9 box."
-  warn "autossh retries every 15 s, so it connects by itself the moment that is done."
-}
 
 # ============================================================== report ======
 phase_report() {
@@ -850,11 +805,22 @@ phase_report() {
       echo
       if [[ "$RDP_READY" == "1" ]]; then
         echo "  gnome-remote-desktop (RDP, port 3389)"
-        echo "      ssh -L 13389:${IP}:3389 ${RHEL9_USER:-<you>}@${RHEL9_HOST:-<jump-host>}"
-        echo "      then point an RDP client at localhost:13389"
-        echo "      username: $USER    password: the RDP_PASSWORD from the config"
+        echo "      username: $USER"
+        echo "      password: the RDP_PASSWORD from this script's config."
+        echo "                NOT the Linux account password, and NOT any"
+        echo "                AD/SSSD password -- grdctl stores its own."
         [[ -n "$RDP_FINGERPRINT" ]] && echo "      TLS fingerprint: $RDP_FINGERPRINT"
-        echo "      (local port 13389, because 3389 is often already taken)"
+        echo
+        if ip addr show wg0 >/dev/null 2>&1; then
+          echo "      On the mesh:  mstsc /v:$(ip -4 -o addr show wg0 2>/dev/null | awk '{print $4}' | cut -d/ -f1)"
+        else
+          echo "      Not on the mesh yet, so it needs a forward through the"
+          echo "      jump host. From the owner's desktop:"
+          echo "          ssh -L 13389:${IP}:3389 ${RHEL9_USER:-<you>}@<jump-host>"
+          echo "          mstsc /v:localhost:13389"
+          echo "      (local port 13389 because 3389 is usually already in use"
+          echo "       by the jump host's own xrdp)"
+        fi
       else
         echo "  RDP is NOT running. See the PROBLEMS and NOTES sections."
       fi
@@ -879,16 +845,16 @@ phase_report() {
       echo "  Disabled. SSH only. The HTML UIs cannot be used."
     fi
     echo
-    echo "-- REVERSE TUNNEL -----------------------------------------------------"
-    if [[ -n "$RHEL9_HOST" ]]; then
-      echo "  Target      : ${RHEL9_USER}@${RHEL9_HOST}:${RHEL9_SSH_PORT}"
-      echo "  Once authorized, from the RHEL9 box:  ssh -p ${TUNNEL_PORT} ${USER}@localhost"
-      echo
-      echo "  ACTION REQUIRED BY THE OWNER -- on the RHEL9 box, run:"
-      echo "      echo '${TUNNEL_PUBKEY:-<no key generated>}' >> ~/.ssh/authorized_keys"
-      echo "  The tunnel comes up by itself within 15 seconds of that."
+    echo "-- REACHING THIS LAPTOP FROM OUTSIDE THE LAB --------------------------"
+    if ip addr show wg0 >/dev/null 2>&1; then
+      echo "  On the WireGuard mesh: $(ip -4 -o addr show wg0 2>/dev/null | awk '{print $4}')"
+      echo "      ssh ${USER}@$(ip -4 -o addr show wg0 2>/dev/null | awk '{print $4}' | cut -d/ -f1)"
+      echo "      mstsc /v:$(ip -4 -o addr show wg0 2>/dev/null | awk '{print $4}' | cut -d/ -f1)"
+      echo "  No jump host and no port forward needed."
     else
-      echo "  Not configured."
+      echo "  NOT on the WireGuard mesh. Until it is, reaching this laptop means"
+      echo "  going through the RHEL9 box, and it breaks whenever the DHCP"
+      echo "  lease changes. Run:   bash bench-laptop/setup-wireguard.sh"
     fi
     echo
     echo "-- PROBLEMS -----------------------------------------------------------"
@@ -938,7 +904,6 @@ main() {
   phase_browser
   phase_gui
   phase_nomachine
-  phase_tunnel
   phase_report
 
   echo
