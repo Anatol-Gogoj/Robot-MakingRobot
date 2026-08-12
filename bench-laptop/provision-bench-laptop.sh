@@ -643,16 +643,24 @@ phase_nomachine() {
     return
   fi
 
-  if wget -qO /tmp/nomachine.deb "$NOMACHINE_DEB_URL" >>"$LOG" 2>&1; then
-    soft "Installed NoMachine" sudo apt-get install -y /tmp/nomachine.deb
-    ok "NoMachine listens on TCP 4000; it attaches to the physical display"
+  # wget returns 0 even when the server hands back an HTML error page, so the
+  # download must be validated as a real .deb before apt is asked to install
+  # it. Without this check a moved URL produces "Invalid archive signature".
+  if ! wget -qO /tmp/nomachine.deb "$NOMACHINE_DEB_URL" >>"$LOG" 2>&1; then
+    bad "NoMachine download failed -- no network, or the URL is dead"
+    NOTES+=("Get the current .deb link from https://downloads.nomachine.com and install it later. x11vnc still works.")
+  elif ! dpkg-deb --info /tmp/nomachine.deb >>"$LOG" 2>&1; then
+    bad "NoMachine download is not a valid .deb -- the version in the URL has moved"
+    NOTES+=("Get the current .deb link from https://downloads.nomachine.com and install it later. x11vnc still works.")
+  elif sudo apt-get install -y /tmp/nomachine.deb >>"$LOG" 2>&1; then
+    ok "Installed NoMachine -- listens on TCP 4000, attaches to the physical display"
     NOTES+=("NoMachine login uses a normal system account: $USER plus that account's password.")
     if command -v ufw >/dev/null 2>&1 && sudo ufw status 2>/dev/null | grep -q '^Status: active'; then
       sudo ufw allow 4000/tcp >>"$LOG" 2>&1 || true
     fi
   else
-    bad "NoMachine download failed -- the version in the URL has probably moved"
-    NOTES+=("Get the current .deb link from https://downloads.nomachine.com and install it later, or just use VNC.")
+    bad "NoMachine package downloaded but failed to install"
+    NOTES+=("See the log for the apt error. x11vnc still works.")
   fi
 }
 
