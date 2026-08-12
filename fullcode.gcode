@@ -34,7 +34,7 @@ M400                         ; drain planner before servo command
 M280 P1 S116                 ; CLOSE lid before spinning
 G4 P1000                     ; lid settle 1000 ms
 M750 S1000 D50 A3 C3 H1      ; spin: 1000 RPM, 50s dwell, 3s accel, 3s decel, return to saved home
-M42 P4 S255                  ; UV ON  (active-high: S255 = energized)
+M42 P4 S1                    ; UV ON  (active-high: S1 = energized; S255 would bypass the M42 digital-write patch and hijack Timer0 — see CLAUDE.md gotcha #12)
 G4 S480                      ; cure for 8.5 minutes (510 seconds)
 M42 P4 S0                    ; UV OFF (active-high: S0 = de-energized)
 M400                         ; drain planner before servo command
