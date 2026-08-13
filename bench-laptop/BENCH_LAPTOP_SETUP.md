@@ -1,9 +1,12 @@
-# Remote Bench Laptop — Setup Plan
+# Remote Bench Laptop — Setup and Access
 
-**Goal:** the Ubuntu laptop becomes the machine's permanent operator console. Colleagues stand at it and
-drive the robot through the HTML UIs. The owner shadows the same desktop remotely and does firmware work.
+**Status: built and working**, on `rmr-bench` (Ubuntu 26.04, GNOME 50, Wayland).
 
-**Date:** 2026-08-12 · **Script:** `provision-bench-laptop.sh` v1.1 · **Target:** Ubuntu 24.04 LTS
+The laptop is the robot's permanent operator console. Colleagues stand at it and drive the machine
+through the HTML UIs. The owner shares that same desktop remotely and does firmware work.
+
+Everything here was run on the real hardware. Where the first design was wrong, the correction is
+recorded rather than quietly edited out — §7 is the useful part of this document.
 
 ---
 
@@ -11,294 +14,225 @@ drive the robot through the HTML UIs. The owner shadows the same desktop remotel
 
 **A serial port has exactly one holder.**
 
-If the owner opens Chrome in a private remote session while a colleague has the UI open on the console,
-one of them gets `/dev/rmr-mega` and the other gets an error. Two desktops means two browsers means a
-fight over the port.
+If the owner opens Chrome in a private remote session while a colleague has the UI open at the bench,
+one of them gets `/dev/rmr-mega` and the other gets an error.
 
-So the remote desktop must **shadow the physical display `:0`** — one desktop, one Chrome, one serial
-connection, both people looking at it. This is not a convenience choice, and it should not be "improved"
-into per-user sessions later.
+So the remote desktop **shares the session that is already running** rather than creating a second
+one. One desktop, one Chrome, one serial connection, both people looking at it. This is not a
+convenience choice and must not be "improved" into per-user sessions later.
 
-It also happens to be what you want operationally: when the owner is driving and something goes wrong,
-the colleague standing at the machine sees exactly what the owner sees.
+It is also better operationally: when the owner is driving and something goes wrong, the person
+standing at the machine sees exactly what the owner sees, and can reach the power switch.
 
 ```
-   owner  ──(existing remote access)──▶  RHEL9 benchtop
-                                              │
-                                              │  LAN
-                                              ▼
-                                    Ubuntu 24.04 laptop  ──USB──▶  Mega 2560
-                                     (rmr-bench.local)   ──USB──▶  ODrive S1
-                                              │
-                                     ┌────────┴────────┐
-                                colleague          owner
-                              (at the keyboard)  (shadowing :0)
+   owner's desktop ──┐
+                     │  WireGuard mesh (hub-and-spoke via Node0)
+   RHEL9 lab      ───┤
+                     │
+   rmr-bench laptop ─┘   10.20.30.4  ──USB──▶ Mega 2560   (/dev/rmr-mega)
+                                     ──USB──▶ ODrive S1   (/dev/rmr-odrive)
 ```
 
 ### Access paths
 
-| Path | What it is | When it is used |
+| Path | What it is | When |
 |---|---|---|
-| **NoMachine** | Shadows `:0`. TCP 4000. Logs in with a normal system account. | The daily driver. Much better interactivity than VNC over a WAN link. |
-| **x11vnc** | Shadows `:0`. TCP 5900, localhost-bound by default. | The baseline that always works. Reach it through the SSH tunnel. |
-| **Direct SSH** | RHEL9 → laptop by IP | Builds, flashing, logs, anything without a GUI. |
-| **Reverse tunnel** | Laptop dials **out** to RHEL9; connect to `localhost:2222` there | Resilience. Survives DHCP changes, Wi-Fi reconnects and NAT. |
+| **WireGuard mesh** | The laptop is peer `10.20.30.4` | Everything. `ssh anatol@10.20.30.4`, `mstsc /v:10.20.30.4`. No jump host. |
+| **gnome-remote-desktop** | RDP on 3389, shares the running session | The operator console. Wayland-native. |
+| **RHEL9 forward** | `ssh -L 13389:<lan-ip>:3389` via `10.20.30.2` | Fallback only, before the laptop joins the mesh. |
 
-Two remote desktop paths on purpose: NoMachine is better but is a third-party `.deb` whose download URL
-moves between versions. x11vnc comes from the Ubuntu archive and will still be there in five years. If
-NoMachine fails to install, nothing is lost.
+`ConnectBench.ps1` chooses between them automatically.
 
-### Autologin is now load-bearing
+### Autologin is load-bearing
 
-`x11vnc` and NoMachine both attach to a desktop that must already exist. After an unattended reboot with
-nobody in the room, there is no desktop unless the laptop logs itself in. So autologin is not an optional
-convenience any more — without it, a power blip makes the console unreachable until someone walks over.
+The remote desktop attaches to a session that must already exist. After an unattended reboot with
+nobody in the room, there is no desktop unless the laptop logs itself in.
 
-The trade is real and worth stating: **anyone with physical access to the laptop gets a logged-in desktop.**
-On a lab bench next to the machine they are already able to drive, that is an acceptable trade. Say no by
-setting `ENABLE_GUI_REMOTE=false`, and accept that the HTML UIs then cannot be used.
+The trade is real: **anyone with physical access to the laptop gets a logged-in desktop.** On a bench
+next to a machine those people can already drive, that is acceptable. It also has a consequence that
+cost real time — see §7.3.
 
 ---
 
 ## 2. The browser
 
-The HTML UIs need the **Web Serial API**. This is not negotiable and it narrows the field to one option.
+The HTML UIs need the **Web Serial API**, which narrows the field to one option.
 
 | Browser | Web Serial | Verdict |
 |---|---|---|
-| **Google Chrome (`.deb`)** | Native | **Use this.** What the UIs were written and tested against. |
-| Chromium (snap) | Native, but | Snap confinement blocks `/dev/tty*`, so the port list comes back empty. |
-| Firefox (stock) | None | Mozilla has declined to implement it. |
-| Firefox + `WebSerial for Firefox` polyfill | Shimmed | Fallback only — see below. |
+| **Google Chrome (`.deb`)** | Native | **Use this.** What the UIs were written against. |
+| Chromium (snap) | Native, but | Snap confinement blocks `/dev/tty*`; the port list comes back empty. |
+| Firefox (stock) | None | Mozilla declined to implement it. |
+| Firefox + `WebSerial for Firefox` | Shimmed | Fallback only. |
 
-### On the Firefox polyfill
-
-`WebSerial for Firefox` (kuba2k2) exists and does work. WebExtensions has no serial API, so by
-architectural necessity the extension hands off to a **native helper** on the host that opens the port on
-its behalf — it is "Firefox + extension + a native binary", not "Firefox gained Web Serial".
-
-**Do not put it in the critical path here**, for a reason specific to this machine: connecting the browser
-pulses DTR, the ATmega16U2 resets the Mega, and the spincoater datum in RAM is destroyed. That is issue
-**#54**, and gotcha **#6** is built on the same behaviour. Both UIs and the documented M112 recovery
-procedure assume it. A polyfill routing `setSignals()` through a native helper is exactly where DTR timing
-quietly diverges from Chrome's native implementation, and the failure would not be an error message — it
-would be "the datum sometimes survives a reconnect", which costs a day to chase. Same class of risk at
-250000 baud.
-
-It buys nothing: the Chrome install is two lines in the script.
-
-Keep it as the fallback for the case where Chrome is blocked by lab policy or the Google repo is
-unreachable. If anyone does use it, the acceptance test is specifically:
-
-1. Does the Mega reset on connect, as it does under Chrome?
-2. Does 250000 baud stream a full `DemoProgram.gcode` with no lost lines?
-
-Not merely "does it connect".
+**On the Firefox polyfill.** It works, but WebExtensions has no serial API, so the extension hands off
+to a native helper on the host — it is "Firefox + extension + a native binary", not "Firefox gained
+Web Serial". Do not put it in the critical path here: connecting the browser pulses DTR, the
+ATmega16U2 resets the Mega, and the spincoater datum in RAM is destroyed (issue **#54**, gotcha
+**#6**). Both UIs and the M112 recovery procedure depend on that behaviour. A polyfill routing
+`setSignals()` through a native helper is exactly where DTR timing diverges quietly. If anyone must
+use it, the acceptance test is "does the Mega reset on connect" and "does 250000 baud stream
+`DemoProgram.gcode` with no lost lines" — not "does it connect".
 
 ---
 
-## 3. Owner: prepare the ShareDrive (about 10 minutes)
+## 3. The scripts
 
-**Step 1 — get your public key.** On the RHEL9 box:
+| Script | Where it runs | What it does |
+|---|---|---|
+| `setup-ssh.sh` | Laptop, at the keyboard | Installs `openssh-server` (absent on Ubuntu Desktop), authorizes the owner's key, stops suspend on lid close, disables the GNOME screen lock, makes network connections system-wide, adds the user to `dialout`. |
+| `provision-bench-laptop.sh` | Laptop, over SSH | Everything else. Idempotent. |
+| `setup-wireguard.sh` | Laptop, over SSH | Joins the mesh as `10.20.30.4`. Prints the public key and the `[Peer]` stanza for the hub. |
+| `check-sharedrive.sh` | Laptop, any time | Finds and mounts the SMB share, write-tests it, persists with `nofail`. |
+| `ConnectBench.ps1` | Owner's Windows desktop | Connects. Sibling of `ConnectLab.ps1`. |
 
-```bash
-cat ~/.ssh/id_ed25519.pub
-```
+Two design rules in the provisioner worth keeping:
 
-If there is no key, make one: `ssh-keygen -t ed25519`.
-
-**Step 2 — edit the CONFIG block** at the top of `provision-bench-laptop.sh`:
-
-| Field | Value |
-|---|---|
-| `OWNER_SSH_PUBKEY` | The key from Step 1. **Mandatory** — the script refuses to run without it. |
-| `VNC_PASSWORD` | Set it. Both you and the colleagues need to know it. |
-| `VNC_LAN_ACCESS` | `false` (localhost + SSH tunnel) or `true` (open on the LAN, weak transport security). |
-| `NOMACHINE_DEB_URL` | Check the current link at <https://downloads.nomachine.com> — version numbers move. Empty to skip. |
-| `RHEL9_HOST`, `RHEL9_USER` | The benchtop machine, for the reverse tunnel. Empty to skip. |
-| `SHARE_UNC` | `//<ip>/ShareDrive` — where the report gets written back. |
-
-**Step 3 — put a copy of the repo on the ShareDrive.** The laptop has no GitHub credentials, so ship
-history instead of asking it to authenticate:
-
-```bash
-git bundle create Robot-MakingRobot.bundle --all
-```
-
-Drop that at `RMR/Robot-MakingRobot.bundle` on the share. One file, full history, all branches, no secrets.
-The desktop launchers are built from the checkout, so this also decides where the UIs live.
-
-**Step 4 — drop the script on the ShareDrive** next to the bundle, and tell the colleague where it is.
+- **No `set -e`.** It always reaches its report phase. A script that dies silently at step 9 of 15
+  leaves a non-expert colleague with a half-built machine and no information.
+- **It never uploads firmware.** It builds — that build is the acceptance test — but nothing on the
+  robot changes.
 
 ---
 
-## 4. Colleague: run it (about 25 minutes, mostly waiting)
-
-Written in ASD-STE100, to match the run sheet.
-
-> **CAUTION — DAMAGE TO EQUIPMENT**
-> Do not send commands to the robot during this task. This task only prepares the laptop.
-> The script does not change the firmware on the machine.
-
-**Step 1** — Put the laptop near the machine. Connect it to mains power. Connect it to the network.
-A network cable is better than Wi-Fi.
-
-**Step 2** — Connect the USB cable from the laptop to the Mega 2560.
-
-**Step 3** — Connect the USB cable from the laptop to the native USB port of the ODrive.
-
-**Step 4** — Copy the file `provision-bench-laptop.sh` from the ShareDrive to the Desktop.
-
-**Step 5** — Open a terminal. Push `Ctrl` + `Alt` + `T`.
-
-**Step 6** — Type this command and push Enter:
+## 4. Connecting
 
 ```bash
-bash ~/Desktop/provision-bench-laptop.sh
+powershell -ExecutionPolicy Bypass -File ConnectBench.ps1
 ```
 
-**Step 7** — Type your password when the laptop asks for it. Then wait. The script writes `[ ok ]` for
-each part that it completes.
+It prompts for the WireGuard tunnel, checks the hub, then picks DIRECT (mesh) or FORWARD (via RHEL9).
+It writes an `.rdp` file with the username pinned and launches `mstsc`.
 
-**Step 8** — Read the last lines. The script tells you where it put the report.
+Manually, over the mesh:
 
-**Step 9** — Type `sudo reboot` and push Enter. The laptop must restart before the desktop access works.
+```bash
+ssh anatol@10.20.30.4
+mstsc /v:10.20.30.4
+```
 
-**Step 10** — After the restart, make sure that the laptop shows the desktop without a password.
-
-**Step 11** — Find the two icons on the Desktop: **RMR Touch Controller** and **RMR Controller (full)**.
-Push one of them two times. Chrome must open the interface.
-
-**Step 12** — Tell the owner that the report is ready.
-
-**Step 13** — Leave the laptop switched on. Leave it connected to mains power and to the network.
-You can close the lid. The laptop does not go to sleep.
+**The RDP password is its own credential.** Not the Linux account password, not any AD/SSSD password.
+It is what was passed to `grdctl rdp set-credentials`.
 
 ---
 
-## 5. Owner: take over (about 5 minutes)
-
-**Step 1 — read the report** on the ShareDrive at `RMR/bench-laptop/`. It carries the laptop IP, the SSH
-host key fingerprints, the serial devices found, the toolchain versions, the Chrome version, and the test
-build result.
-
-**Step 2 — connect over SSH** from the RHEL9 box, checking the fingerprint against the report:
+## 5. Verifying the bench
 
 ```bash
-ssh <user>@<laptop-ip>
+ssh anatol@10.20.30.4 'ls -l /dev/rmr-mega /dev/rmr-odrive'
+ssh anatol@10.20.30.4 'google-chrome --version'
+ssh anatol@10.20.30.4 'cd ~/Robot-MakingRobot/Marlin-2.1.2.7 && pio run -e mega2560'
 ```
 
-**Step 3 — authorize the tunnel key.** The report contains the line ready to paste, with the real key in
-it. `autossh` retries every 15 s, so the tunnel comes up by itself:
-
-```bash
-echo 'ssh-ed25519 AAAA...  rmr-bench-tunnel' >> ~/.ssh/authorized_keys
-```
-
-**Step 4 — get the desktop.**
-
-NoMachine, if it installed — point the client at `<laptop-ip>:4000` and log in as the colleague's system
-account. It attaches to the physical desktop automatically.
-
-x11vnc, always available:
-
-```bash
-ssh -L 5900:localhost:5900 <user>@<laptop-ip>
-```
-
-Then point a VNC client at `localhost:5900` with the password from `VNC_PASSWORD`.
-
-**Step 5 — confirm the console works end to end:**
-
-```bash
-ls -l /dev/rmr-mega /dev/rmr-odrive
-google-chrome --version
-pio device list
-```
-
-Then, in the remote desktop, open **RMR Controller (full)**, connect at 250000 baud, and send `M119`.
+Then the one that matters: on the remote desktop, open **RMR Controller (full)**, connect at 250000
+baud, send `M119`, and confirm the endstop states come back.
 
 ---
 
-## 6. What the script does
+## 6. Safety
 
-| Phase | Why it is there |
-|---|---|
-| **Power** | Stops suspend on lid close and on idle. A laptop that sleeps is a laptop you cannot reach. Done *first*, so a long install cannot be interrupted by a suspend. |
-| **Packages** | SSH, git, PlatformIO prerequisites, CIFS, `picocom`, `x11vnc`, `autossh`. Also removes **brltty**, which claims CH340 USB serial adapters on Ubuntu and silently breaks Arduino serial. |
-| **Hostname / network** | Sets `rmr-bench`, enables mDNS, and makes every saved network connection **system-wide**. A user-owned Wi-Fi profile only connects after someone logs in — on a headless bench that means unreachable after a reboot. |
-| **Serial** | `udev` rules give stable `/dev/rmr-mega` and `/dev/rmr-odrive` names, and set `ID_MM_DEVICE_IGNORE` so **ModemManager** stops probing them. That probe corrupts the first seconds of a session and can fail an upload. Adds the user to `dialout`. |
-| **SSH** | Installs the owner key, enables sshd at boot, sets keepalives so long sessions survive idle NAT timeouts. |
-| **PlatformIO** | Official installer into its own venv. Ubuntu 24.04 enforces PEP 668, so a system-wide `pip install platformio` is refused. |
-| **odrivetool** | Via `pipx`. **Non-fatal** — see the risks below. |
-| **ShareDrive** | CIFS mount, so the report is delivered without the colleague touching anything. |
-| **Repo + test build** | Clones from the bundle, checks out the stack tip, runs `pio run -e mega2560`. **This is the acceptance test** — it proves the toolchain works while the colleague is still standing there. |
-| **Browser** | Google Chrome from the `.deb`, plus two Desktop launchers that open the UIs in app mode. Without this the laptop cannot be an operator console at all. |
-| **Desktop** | Forces Xorg, enables autologin, runs `x11vnc` shadowing `:0`. |
-| **NoMachine** | Optional high-performance desktop, also shadowing `:0`. |
-| **Tunnel** | Generates a dedicated keypair, installs an `autossh` service, prints the public key into the report. |
-| **Report** | Everything above, written to the ShareDrive. |
-
-Two design choices worth stating plainly:
-
-- **The script does not use `set -e`.** It always reaches its report phase. A provisioning script that dies
-  silently at step 9 of 15 leaves a non-expert colleague with a half-built machine and no information.
-  Anything that matters is wrapped and recorded instead.
-- **The script never uploads firmware.** It builds, but does not flash. Nothing on the robot changes.
-
----
-
-## 7. Risks, and what happens if they land
-
-| Risk | Odds | What you get | Fallback |
-|---|---|---|---|
-| **No internet on the laptop** | Medium | apt, Chrome, PlatformIO and NoMachine all fail | The script says so clearly. Fix the network and re-run — it is idempotent. |
-| **`odrivetool` will not install on Python 3.12** | **High** | Run sheet Task 2 has no CLI tool | Non-fatal by design. Remotely: build a Python 3.11 venv, or do Task 2 through the ODrive web GUI. Task 2 is the highest-value bench task, so fix this first. |
-| **NoMachine URL has moved** | **High** | No NoMachine | x11vnc still works. Get the current link and install it remotely later. |
-| **Chrome fails to install** | Low | No operator console at all | This one is worth stopping for. Re-run once the network is fixed. Firefox + polyfill only as a last resort, with the DTR test in §2. |
-| **Laptop IP changes** | Medium | Direct SSH breaks | The reverse tunnel. Also ask for a DHCP reservation. |
-| **`/dev/rmr-*` symlinks absent** | Low | Unknown USB vendor ID | The report lists every device with its real vid:pid. Send one `udevadm` line and fix the rule remotely. |
-| **Reboot with nobody there** | Medium | — | Autologin restores the desktop; sshd, tunnel, VNC and NoMachine are all `systemctl enable`d. |
-| **VNC does not start after reboot** | Low | No desktop, SSH still fine | `journalctl -u rmr-x11vnc -b`. Usually the X authority path — fixable remotely. |
-
----
-
-## 8. Safety — remote work on a live machine
-
-This is a real machine with a 5000 RPM chuck, a UV lamp, and a solenoid valve. The mechanical E-stop is
-**issue #20 and does not exist yet**. Once this is provisioned, the owner can flash firmware and command
-motion from another building — and now also drive the full operator UI.
+The machine has a 5000 RPM chuck, a UV lamp and a solenoid valve, and the mechanical E-stop is
+**issue #20 and does not exist yet**. The owner can now flash firmware and drive the full operator UI
+from another building.
 
 > **WARNING — INJURY TO PERSONS**
 > Do not command motion when no person is in the room with the machine.
 > Motion commands are `G28`, `G1`, `M280`, `M750`, `M752` and any G-code program.
-> Agree a time with a colleague before you send them.
 
-The shared desktop helps here rather than hurting: the colleague at the keyboard sees every command the
-owner sends, and can hit the physical power switch. Take advantage of that — say what you are about to do
-before you do it.
+Safe alone and remotely: `pio run`, `M114`, `M119`, `M503`, `M753`, reading logs, and all of run sheet
+Task 2 — that is ODrive configuration over USB with the motor idle.
 
-Safe to do alone, remotely: `pio run` (build), `M114`, `M119`, `M503`, `M753`, and reading logs. Everything
-in run sheet Task 2 is also safe — it is ODrive configuration over USB with the motor idle.
+The shared desktop helps rather than hurts: the colleague at the keyboard sees every command the owner
+sends. Say what you are about to do before you do it.
 
-Two cheap additions worth making before the first remote motion test:
-
-1. **A USB webcam** pointed at the gantry and the chuck. Being able to see the machine changes what is
-   reasonable to attempt.
-2. **A switched mains socket** for the machine, within reach of whoever is in the room, so there is a
-   physical way to cut power that does not depend on firmware.
+Two cheap additions still worth making: a **USB webcam** pointed at the gantry and chuck, and a
+**switched mains socket** within reach of whoever is in the room.
 
 ---
 
-## 9. Verifying it worked
+## 7. What went wrong, and what it cost
 
-```bash
-ssh <user>@<laptop-ip> 'ls -l /dev/rmr-mega /dev/rmr-odrive'
-ssh <user>@<laptop-ip> 'google-chrome --version'
-ssh <user>@<laptop-ip> 'cd ~/Robot-MakingRobot/Marlin-2.1.2.7 && pio run -e mega2560'
-ssh -p 2222 <user>@localhost 'hostname'        # reverse tunnel is up
-```
+This section exists because every one of these looked like a working design until it met the hardware.
 
-Then the one that actually matters, in the remote desktop: open **RMR Controller (full)**, connect at
-250000 baud, send `M119`, and confirm the endstop states come back. If that works, the bench is yours and
-run sheet Lane A can start.
+### 7.1 x11vnc cannot work here — the laptop is Wayland
+
+The first design forced `WaylandEnable=false` to get an Xorg session for x11vnc. The laptop turned out
+to be Ubuntu **26.04 / GNOME 50**, not 24.04. x11vnc failed with `-auth guess: failed for display
+':0'` and `/home/anatol/.Xauthority does not exist`, then restart-looped 27 times.
+
+`gnome-remote-desktop` shares the existing session on **both** Wayland and Xorg, so it is now primary
+and the Xorg forcing is gone. x11vnc remains only as a fallback, and is skipped outright on a Wayland
+session rather than enabled to fail.
+
+### 7.2 GNOME 50 does not generate the RDP TLS certificate
+
+Without one, the server answers every connection with `RDP server certificate is invalid`. The script
+generates a self-signed cert, and sets the **key before the cert** — validating a cert with no
+matching key prints an alarming error that means nothing.
+
+`grdctl` also needs `XDG_RUNTIME_DIR` and `DBUS_SESSION_BUS_ADDRESS` exported; an SSH shell does not
+inherit the user D-Bus session.
+
+### 7.3 Autologin means the login keyring is never unlocked
+
+`grdctl rdp set-credentials` writes through libsecret. Under autologin, PAM never unlocks the login
+keyring, so the call **blocks forever** waiting for an unlock prompt that cannot appear over SSH — it
+does not fail, it hangs. Bound it with `timeout`.
+
+The fix needs one action at the physical keyboard: Passwords and Keys (`seahorse`) → right-click
+**Login** → Change Password → leave the new password **blank**. An empty-password keyring auto-unlocks
+under autologin.
+
+### 7.4 The daemon reads credentials only at startup
+
+Setting credentials without `systemctl --user restart gnome-remote-desktop` leaves the running daemon
+holding the old ones. The symptom is an authentication failure that looks like a wrong password.
+
+### 7.5 Windows sends the wrong username
+
+Left to itself the Windows credential picker offers `MicrosoftAccount\<your-email>`. The server log
+says `Could not find user in SAM database` and the client says only "Your credentials did not work".
+`ConnectBench.ps1` writes an `.rdp` with `username:s:anatol` pinned so the picker never gets the
+chance.
+
+### 7.6 WireGuard: `AllowedIPs` means opposite things at each end
+
+On a **spoke**, the hub peer takes `10.20.30.0/24` — "send all mesh traffic to the hub".
+On the **hub**, each peer takes **its own /32**.
+
+Getting it backwards on the hub routes the entire mesh at one peer. A related failure cost an hour: an
+extra `[Peer]` on the Windows side with `AllowedIPs = 10.20.30.4/32` beat the hub's `/24` on
+longest-prefix match, so every packet for the laptop was encrypted for a peer that could not deliver
+it. Route present, traffic sent, nothing back.
+
+Also: **do not assume the hub interface is `wg0`.** Node0 carries more than one tunnel; the mesh is
+`wg1` on port 51847. Identify it by listen port and public key.
+
+Apply hub changes with `wg syncconf`, never `wg-quick down/up` — the owner may be connected through
+the tunnel being torn down, and `wg1` carries `PostUp`/`PostDown` iptables rules.
+
+### 7.7 Smaller ones
+
+- **`brltty`** claims CH340 USB serial adapters on Ubuntu and silently breaks Arduino serial. Removed.
+- **ModemManager** probes every new `ttyACM` for ~10 s, corrupting the start of a session and failing
+  uploads. Suppressed per-device with `ID_MM_DEVICE_IGNORE` rather than masking it globally.
+- Both devices are CDC-ACM, so `ttyACM0` is a coin flip at boot — hence `/dev/rmr-mega` and
+  `/dev/rmr-odrive`.
+- **PEP 668** means a system-wide `pip install platformio` is refused. The official installer builds
+  its own venv.
+- **A user-owned Wi-Fi profile only connects after login**, so on a headless bench it is unreachable
+  after a reboot. All connections are made system-wide.
+- The VNC protocol truncates passwords at **8 characters**. A protocol limit, not a typo.
+- `wg show <iface> dump` prints the **private key** as its first field. Use plain `wg show`.
+- **The ODrive must be powered**, not merely USB-connected, before it enumerates.
+- Clicking **Edit** in the WireGuard GUI for Windows can leave the tunnel service registration stale;
+  activation then fails with "The system cannot find the file specified". Restarting the GUI does not
+  fix it — delete and re-add the tunnel, and save the private key first.
+
+### 7.8 The pattern
+
+Every one of these was a design that was correct in the abstract and wrong against this specific
+hardware, and in most cases the failure mode was **silence or a misleading message** rather than a
+clear error. When something does not work here, find the log before changing anything: the
+`journalctl` line, the WireGuard GUI Log tab, the `wg show` counters. Each of the above was settled by
+one line of log after an hour of guessing.
