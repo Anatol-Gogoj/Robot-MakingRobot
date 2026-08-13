@@ -249,16 +249,23 @@ if ($Route -eq "FORWARD") {
     else {
         Write-Host "  localhost:$LocalPort  ->  $JumpIp  ->  ${BenchLanIp}:3389"
         Write-Host ""
+        Write-Host "  A second window is opening for the SSH forward." -ForegroundColor Yellow
+        Write-Host "  WATCH IT - if it asks for your password or to accept a host" -ForegroundColor Yellow
+        Write-Host "  key, answer it there. This window waits up to 90 seconds." -ForegroundColor Yellow
+        Write-Host ""
 
+        # Deliberately NOT minimized. ssh may prompt for a password or a
+        # host key, and a hidden prompt looks identical to a hang.
         $SshProc = Start-Process ssh `
             -ArgumentList "-N", "-L", "${LocalPort}:${BenchLanIp}:3389", "$JumpUser@$JumpIp" `
-            -WindowStyle Minimized -PassThru
+            -PassThru
 
         Write-Host -NoNewline "  Waiting for the forward to come up... "
         $Ready = $false
-        for ($i = 0; $i -lt 30; $i++) {
+        for ($i = 0; $i -lt 180; $i++) {
             Start-Sleep -Milliseconds 500
             if (-not (Test-LocalPortFree -Port $LocalPort)) { $Ready = $true; break }
+            if ($SshProc.HasExited) { break }
         }
 
         if ($Ready) {
@@ -267,12 +274,28 @@ if ($Route -eq "FORWARD") {
         else {
             Write-Host "FAILED" -ForegroundColor Red
             Write-Host ""
-            Write-Host "  The forward did not open. Most likely the SSH session is" -ForegroundColor Yellow
-            Write-Host "  waiting on a host-key prompt. Run this once by hand to accept it:" -ForegroundColor Yellow
+            if ($SshProc.HasExited) {
+                Write-Host "  The SSH process exited. Read the error in its window." -ForegroundColor Yellow
+            }
+            else {
+                Write-Host "  SSH is still running but no forward opened - it is probably" -ForegroundColor Yellow
+                Write-Host "  still waiting for input in its own window." -ForegroundColor Yellow
+            }
+            Write-Host ""
+            Write-Host "  Run this once by hand to clear any host-key prompt and to" -ForegroundColor Yellow
+            Write-Host "  confirm whether it wants a password:" -ForegroundColor Yellow
             Write-Host ""
             Write-Host "     ssh $JumpUser@$JumpIp" -ForegroundColor White
             Write-Host ""
-            if ($null -ne $SshProc) { Stop-Process -Id $SshProc.Id -ErrorAction SilentlyContinue }
+            Write-Host "  If it asks for a password every time, set up key auth so this" -ForegroundColor DarkGray
+            Write-Host "  script can run unattended:" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "     ssh-keygen -t ed25519" -ForegroundColor White
+            Write-Host "     type `$env:USERPROFILE\.ssh\id_ed25519.pub | ssh $JumpUser@$JumpIp `"cat >> ~/.ssh/authorized_keys`"" -ForegroundColor White
+            Write-Host ""
+            if ($null -ne $SshProc -and -not $SshProc.HasExited) {
+                Stop-Process -Id $SshProc.Id -ErrorAction SilentlyContinue
+            }
             Read-Host "Press Enter to exit"
             exit 3
         }
