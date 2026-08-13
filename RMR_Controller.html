@@ -887,6 +887,7 @@
 let port = null;
 let reader = null;
 let writer = null;
+let readableStreamClosed = null;   // pipeTo promise; must be settled on teardown
 let isConnected = false;
 let stepSize = 10;
 // (relay state tracked by button highlighting only)
@@ -904,7 +905,42 @@ async function toggleConnection() {
   }
 }
 
+// Release every serial resource and, above all, drop the port object.
+//
+// Each step is guarded INDEPENDENTLY. The previous version wrapped all of
+// them in one try block, so a throw from reader.cancel() -- which is exactly
+// what happens when the device vanishes, as it does on every firmware upload
+// -- skipped port.close() and left `port` non-null and open. The next
+// connect() then failed with "The port is already open" about a device that
+// no longer existed, and the only escape was reloading the page. Issue #64.
+async function teardown() {
+  if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+
+  try { if (reader) await reader.cancel(); } catch (e) { /* device already gone */ }
+  try { if (reader) reader.releaseLock(); } catch (e) { /* already released */ }
+  reader = null;
+
+  // releaseLock() only -- writer.close() can hang forever on a device that has
+  // been unplugged, which would defeat the point of this function.
+  try { if (writer) writer.releaseLock(); } catch (e) { /* already released */ }
+  writer = null;
+
+  // The pipeTo promise rejects when the device disappears. Settle it here so
+  // it does not surface later as an unhandled rejection.
+  try { if (readableStreamClosed) await readableStreamClosed; } catch (e) { /* expected */ }
+  readableStreamClosed = null;
+
+  try { if (port) await port.close(); } catch (e) { /* already closed or gone */ }
+  port = null;                        // the critical line: never keep a corpse
+
+  readBuffer = '';
+  setConnected(false);
+}
+
 async function connect() {
+  // Start from a clean slate. A previous session may have died with the device
+  // unplugged, leaving `port` non-null and unopenable.
+  await teardown();
   try {
     port = await navigator.serial.requestPort();
     const baud = parseInt(document.getElementById('baudRate').value);
@@ -915,17 +951,12 @@ async function connect() {
     readLoop();
   } catch (e) {
     logErr('Connection failed: ' + e.message);
+    await teardown();       // never leave a partially-opened port behind
   }
 }
 
 async function disconnect() {
-  try {
-    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
-    if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
-    if (writer) { writer.releaseLock(); writer = null; }
-    if (port) { await port.close(); port = null; }
-  } catch (e) { /* ignore */ }
-  setConnected(false);
+  await teardown();
   logInfo('Disconnected');
 }
 
@@ -939,7 +970,7 @@ function setConnected(state) {
 
 async function readLoop() {
   const decoder = new TextDecoderStream();
-  const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+  readableStreamClosed = port.readable.pipeTo(decoder.writable);
   reader = decoder.readable.getReader();
   try {
     while (true) {
@@ -956,7 +987,36 @@ async function readLoop() {
     }
   } catch (e) {
     if (isConnected) logErr('Read error: ' + e.message);
+  } finally {
+    // A read error means the link is gone -- almost always because the board
+    // re-enumerated after a firmware upload. Tear down completely instead of
+    // leaving a half-open port that blocks the next Connect. Previously this
+    // just logged and returned, and the UI still claimed to be connected.
+    if (isConnected) {
+      await teardown();
+      logInfo('Serial link lost. Press Connect and re-select the port.');
+    }
   }
+}
+
+// Chrome fires this the moment the USB device disappears, which is earlier and
+// more reliable than waiting for a read to fail. Without it the UI can sit
+// "connected" to a board that is mid-reflash.
+//
+// Deliberately NO auto-reconnect here, unlike RMR_Touch.html. This is the
+// debugging UI and it is normally open while firmware is being uploaded. An
+// automatic re-attach would race avrdude for the port the instant the board
+// re-enumerates and break the upload -- the same "GUI was hogging the serial"
+// failure, made automatic. The operator is at the keyboard here; one click on
+// Connect is cheap. The touch UI is the operator console, is not open during
+// uploads, and benefits from re-attaching by itself.
+if (navigator.serial && navigator.serial.addEventListener) {
+  navigator.serial.addEventListener('disconnect', async (e) => {
+    if (isConnected && port && e.target === port) {
+      await teardown();
+      logErr('Device disconnected. Press Connect and re-select the port.');
+    }
+  });
 }
 
 function processLine(line) {
