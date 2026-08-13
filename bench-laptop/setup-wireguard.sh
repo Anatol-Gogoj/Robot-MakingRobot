@@ -190,7 +190,15 @@ else
   echo "      PublicKey = $PUBKEY"
   echo "      AllowedIPs = ${MESH_ADDRESS%%/*}/32"
   echo
-  echo "  Then on the hub:   sudo wg syncconf wg0 <(wg-quick strip wg0)"
+  echo "  Apply it on the hub WITHOUT a restart, so live peers are not dropped:"
+  echo
+  echo "      sudo wg syncconf <iface> <(wg-quick strip <iface>)"
+  echo
+  echo "  Find <iface> on the hub first -- do NOT assume wg0. Node0 carries more"
+  echo "  than one tunnel. The right one is whichever 'wg show' reports with"
+  echo "  listening port ${HUB_ENDPOINT##*:} and public key ${HUB_PUBKEY:0:16}..."
+  echo
+  echo "  On the hub each peer gets its OWN /32. Only the spokes use the /24."
   echo "  Then run this script again to confirm."
 fi
 echo "======================================================================"
