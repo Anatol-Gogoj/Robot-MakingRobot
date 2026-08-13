@@ -1,5 +1,5 @@
 # ConnectBench.ps1
-# Connect to the RMR bench laptop (rmr-bench, Ubuntu) via the WireGuard mesh.
+# Connect to the bench laptop (gogoj-laptop, Ubuntu) via the WireGuard mesh.
 # Companion to ConnectLab.ps1, which connects to the RHEL9 lab desktop.
 #
 # Two routes, chosen automatically:
@@ -32,7 +32,7 @@ $JumpIp       = "10.20.30.2"        # RHEL9 lab desktop, used only as a relay
 $BenchMeshIp  = "10.20.30.4"        # bench laptop, once it joins the mesh
 $BenchLanIp   = "192.168.68.59"     # bench laptop on the lab LAN
 $HubLabel     = "Node0 hub"
-$BenchLabel   = "RMR bench laptop"
+$BenchLabel   = "gogoj-laptop"
 $TunnelName   = "gogoj-mesh"
 $JumpUser     = "amg17031"
 $BenchUser    = "anatol"            # the LAPTOP account, not your UConn login
@@ -309,7 +309,7 @@ Write-Host ""
 # Pinning the username matters. Left to itself the Windows credential picker
 # offers MicrosoftAccount\<your-email>, gnome-remote-desktop cannot find that
 # in its SAM database, and the login fails with no useful message.
-$RdpPath = Join-Path $env:TEMP "rmr-bench.rdp"
+$RdpPath = Join-Path $env:TEMP "gogoj-laptop.rdp"
 
 $RdpLines = @(
     "full address:s:$TargetIp",

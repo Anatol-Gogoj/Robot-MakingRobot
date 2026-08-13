@@ -38,7 +38,7 @@ set -uo pipefail
 OWNER_SSH_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgvdDE8+XdMxxG6I5edNg82Edv71ZflN8r45KK6H4hW amg17031@hc18kx2.engr.uconn.edu"
 
 # --- Identity --------------------------------------------------------------
-BENCH_HOSTNAME="rmr-bench"          # laptop becomes rmr-bench.local via mDNS
+BENCH_HOSTNAME="gogoj-laptop"       # laptop becomes gogoj-laptop.local via mDNS
 
 # --- Reaching this laptop from outside the lab -----------------------------
 # Handled by setup-wireguard.sh, not by this script. The laptop joins the
@@ -115,7 +115,7 @@ RDP_READY=0
 RDP_FINGERPRINT=""
 STAMP="$(date +%Y%m%d-%H%M%S)"
 LOG="/tmp/rmr-provision-${STAMP}.log"
-REPORT="/tmp/rmr-bench-report-${STAMP}.txt"
+REPORT="/tmp/rmr-provision-report-${STAMP}.txt"
 MOUNTPOINT="/mnt/sharedrive"
 FAILURES=()
 NOTES=()
@@ -196,8 +196,9 @@ phase_power() {
   step "Stop the laptop from sleeping"
 
   sudo mkdir -p /etc/systemd/logind.conf.d
-  sudo tee /etc/systemd/logind.conf.d/99-rmr-bench.conf >/dev/null <<'EOF'
-# RMR bench laptop: never suspend. The machine must stay reachable.
+  sudo rm -f /etc/systemd/logind.conf.d/99-rmr-bench.conf   # pre-rename name
+  sudo tee /etc/systemd/logind.conf.d/99-rmr.conf >/dev/null <<'EOF'
+# RMR bench: never suspend. The machine must stay reachable.
 [Login]
 HandleLidSwitch=ignore
 HandleLidSwitchDocked=ignore
@@ -265,7 +266,8 @@ phase_serial() {
   soft "Added $USER to the dialout group" sudo usermod -aG dialout "$USER"
   NOTES+=("The colleague's account was added to 'dialout'. It takes effect after logout or reboot.")
 
-  local rules=/etc/udev/rules.d/99-rmr-bench.rules
+  sudo rm -f /etc/udev/rules.d/99-rmr-bench.rules   # pre-rename name
+  local rules=/etc/udev/rules.d/99-rmr.rules
   sudo tee "$rules" >/dev/null <<'EOF'
 # =====================================================================
 #  RMR bench -- stable serial names + keep ModemManager's hands off
@@ -332,7 +334,8 @@ phase_ssh() {
   soft "Enabled sshd at boot" sudo systemctl enable --now ssh
 
   # Keep long remote sessions alive across NAT/Wi-Fi idle timeouts.
-  sudo tee /etc/ssh/sshd_config.d/99-rmr-bench.conf >/dev/null <<'EOF'
+  sudo rm -f /etc/ssh/sshd_config.d/99-rmr-bench.conf   # pre-rename name
+  sudo tee /etc/ssh/sshd_config.d/99-rmr.conf >/dev/null <<'EOF'
 # RMR bench: keep long firmware sessions alive.
 ClientAliveInterval 30
 ClientAliveCountMax 20

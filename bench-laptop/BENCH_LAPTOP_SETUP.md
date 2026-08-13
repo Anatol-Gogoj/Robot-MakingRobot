@@ -1,6 +1,6 @@
 # Remote Bench Laptop — Setup and Access
 
-**Status: built and working**, on `rmr-bench` (Ubuntu 26.04, GNOME 50, Wayland).
+**Status: built and working**, on `gogoj-laptop` (Ubuntu 26.04, GNOME 50, Wayland).
 
 The laptop is the robot's permanent operator console. Colleagues stand at it and drive the machine
 through the HTML UIs. The owner shares that same desktop remotely and does firmware work.
@@ -29,7 +29,7 @@ standing at the machine sees exactly what the owner sees, and can reach the powe
                      │  WireGuard mesh (hub-and-spoke via Node0)
    RHEL9 lab      ───┤
                      │
-   rmr-bench laptop ─┘   10.20.30.4  ──USB──▶ Mega 2560   (/dev/rmr-mega)
+   gogoj-laptop     ─┘   10.20.30.4  ──USB──▶ Mega 2560   (/dev/rmr-mega)
                                      ──USB──▶ ODrive S1   (/dev/rmr-odrive)
 ```
 
