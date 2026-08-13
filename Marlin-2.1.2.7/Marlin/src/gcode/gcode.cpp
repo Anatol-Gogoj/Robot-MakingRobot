@@ -973,6 +973,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 751: M751(); break;                                  // M751: Spincoater set home datum
         case 752: M752(); break;                                  // M752: Spincoater encoder index search
         case 753: M753(); break;                                  // M753: Spincoater UART diagnostic
+        case 754: M754(); break;                                  // M754: Spincoater encoder config dump
       #endif
 
       #if ENABLED(GCODE_MACROS)
