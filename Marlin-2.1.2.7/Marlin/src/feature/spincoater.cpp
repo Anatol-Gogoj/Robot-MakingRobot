@@ -647,12 +647,7 @@ bool Spincoater::doIndexHome() {
 
   safe_delay(300);  // encoder settle
 
-  // Guard: if the reported position is more than one turn from the datum,
-  // the position estimate was not re-referenced by the index search (e.g.
-  // multi-turn accumulation left over from a spin cycle). A trap-traj move
-  // to _homePos would then crawl for thousands of turns at vel_limit and be
-  // killed mid-move by the 8s settle watchdog. Refuse it and fail loudly
-  // so the caller's fallback can run without commanding a doomed move.
+  // Bring the datum into the current encoder frame before settling to it.
   {
     float guard_pos, guard_vel;
     // Fail closed: the old form short-circuited, so a failed read SKIPPED the
@@ -662,19 +657,53 @@ bool Spincoater::doIndexHome() {
       forceIdle();
       return false;
     }
-    if (fabs(guard_pos - _homePos) > 1.0f) {
-      SERIAL_ECHOPGM("echo:SPIN ERR: Position ");
-      SERIAL_ECHO(guard_pos);
-      SERIAL_ECHOPGM(" is >1 turn from home datum ");
-      SERIAL_ECHO(_homePos);
-      SERIAL_ECHOLNPGM(" -- refusing settle (encoder not index-referenced?)");
-      // This condition latches: nothing re-normalises _homePos into the
-      // current encoder frame automatically (that used to happen only by
-      // silently destroying the operator's datum). Tell them the way out.
-      SERIAL_ECHOLNPGM("echo:SPIN WARN: datum lies >1 turn outside the current encoder frame -- run M751 (Set Home) to re-establish it");
+
+    // Settling to a datum that does not exist would invent one from wherever
+    // the rotor happens to be sitting -- precisely the destructive behaviour
+    // issue #41 removed. Refuse instead.
+    if (!isDatumValid()) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: No valid home datum -- refusing settle. Run M751 (Set Home).");
       forceIdle();
       return false;
     }
+
+    // The index search references position MODULO ONE TURN. It corrects the
+    // fractional position within a revolution and leaves the integer turn
+    // count accumulating, because pos_estimate is a continuous multi-turn
+    // value (pos_vel_mapper.config.circular == false).
+    //
+    // Measured on the bench 2026-08-13: two index searches, several hand
+    // turns apart, both landed at fractional position 0.38 -- 0.38 and
+    // 0.3757, agreeing within 1.8 deg against a measured settle error of
+    // 0.86 deg.
+    //
+    // So an ABSOLUTE multi-turn comparison against the datum is meaningless.
+    // fullcode.gcode:36 spins ~833 turns, after which the datum is always
+    // hundreds of turns away in absolute terms and a fraction of a turn away
+    // in the only sense that matters. The old >1-turn guard therefore refused
+    // every post-spin home on a completely healthy machine. Issue #55.
+    //
+    // Normalise the datum into the current frame by dropping whole turns.
+    // This is NOT the destructive auto-re-datuming that #41 removed: the
+    // angular meaning is preserved EXACTLY. Only the accumulated turn count
+    // changes, and fmod((pos - _homePos) * 360, 360) -- what DEG reports --
+    // is invariant under it.
+    //
+    // Relaxing only the COMPARISON would have been wrong. 't 0 <_homePos>'
+    // would still command a trapezoidal move to a position hundreds of turns
+    // away at vel_limit 0.25 turns/s: the doomed multi-thousand-turn crawl
+    // the original guard existed to prevent. Normalising fixes the comparison
+    // AND the target.
+    const float whole_turns = roundf(_homePos - guard_pos);
+    if (whole_turns != 0.0f) {
+      _homePos -= whole_turns;
+      SERIAL_ECHOPGM("echo:SPIN DATA: DatumNormalised turns=");
+      SERIAL_ECHO((int)whole_turns);
+      SERIAL_ECHOPGM(" newHomePos=");
+      SERIAL_ECHOLN(_homePos);
+    }
+    // After this, |_homePos - guard_pos| <= 0.5 by construction, so the
+    // settle below is always a sub-turn move.
   }
 
   // Step 3: Re-enter position mode and return to the saved home datum.
