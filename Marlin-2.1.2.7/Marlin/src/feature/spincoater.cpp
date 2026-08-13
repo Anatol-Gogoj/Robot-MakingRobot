@@ -222,7 +222,7 @@ bool Spincoater::boot() {
       else {
         SERIAL_ECHOPGM("echo:SPIN ERR: Boot index search failed, procedure_result=");
         SERIAL_ECHOLN(pr);
-        reportFault();
+        reportFault("boot index search procedure_result != 0");
         forceIdle();
       }
     }
@@ -260,7 +260,7 @@ bool Spincoater::boot() {
 
     if (!armed) {
       SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not arm for boot settle -- no datum established");
-      reportFault();
+      reportFault("closed-loop arm refused before boot settle");
       forceIdle();
     }
     else {
