@@ -100,7 +100,8 @@ sudo systemctl enable --now ssh.socket >/dev/null 2>&1 || true
 
 # Keep long remote sessions alive across idle NAT and Wi-Fi timeouts.
 sudo mkdir -p /etc/ssh/sshd_config.d
-sudo tee /etc/ssh/sshd_config.d/99-rmr-bench.conf >/dev/null <<'EOF'
+sudo rm -f /etc/ssh/sshd_config.d/99-rmr-bench.conf   # pre-rename name
+sudo tee /etc/ssh/sshd_config.d/99-rmr.conf >/dev/null <<'EOF'
 # RMR bench: keep long firmware sessions alive.
 ClientAliveInterval 30
 ClientAliveCountMax 20
@@ -134,7 +135,8 @@ step "Stopping the laptop from going to sleep"
 # If the laptop suspends when the lid closes, the owner loses the machine and
 # somebody has to walk back over. This is the most important part after SSH.
 sudo mkdir -p /etc/systemd/logind.conf.d
-sudo tee /etc/systemd/logind.conf.d/99-rmr-bench.conf >/dev/null <<'EOF'
+sudo rm -f /etc/systemd/logind.conf.d/99-rmr-bench.conf   # pre-rename name
+sudo tee /etc/systemd/logind.conf.d/99-rmr.conf >/dev/null <<'EOF'
 [Login]
 HandleLidSwitch=ignore
 HandleLidSwitchDocked=ignore
