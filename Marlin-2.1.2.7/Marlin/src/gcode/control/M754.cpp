@@ -60,11 +60,12 @@ static const char P08[] PROGMEM = "axis0.pos_vel_mapper.config.index_offset";
 static const char P09[] PROGMEM = "axis0.pos_vel_mapper.config.index_offset_valid";
 static const char P10[] PROGMEM = "axis0.config.startup_encoder_index_search";
 static const char P11[] PROGMEM = "inc_encoder0.config.cpr";
-static const char P12[] PROGMEM = "axis0.pos_vel_mapper.pos_estimate";
-static const char P13[] PROGMEM = "axis0.current_state";
+static const char P12[] PROGMEM = "axis0.pos_estimate";
+static const char P13[] PROGMEM = "axis0.vel_estimate";
+static const char P14[] PROGMEM = "axis0.current_state";
 
 static const char* const SPIN_CFG_PROPS[] PROGMEM = {
-  P00, P01, P02, P03, P04, P05, P06, P07, P08, P09, P10, P11, P12, P13
+  P00, P01, P02, P03, P04, P05, P06, P07, P08, P09, P10, P11, P12, P13, P14
 };
 
 // Longest name above is 45 characters; 64 leaves headroom without being
