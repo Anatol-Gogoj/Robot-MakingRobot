@@ -186,17 +186,45 @@ bool Spincoater::boot() {
 
   bool bootHomed = false;
   if (searching) {
-    // Wait for completion (returns to IDLE)
-    bootHomed = true;
+    bool reachedIdle = false;
     const millis_t homeWait = millis();
-    while (getState() != ODRIVE_STATE_IDLE) {
+    while (millis() - homeWait < 30000) {
       idle();
-      if (millis() - homeWait > 30000) {
-        SERIAL_ECHOLNPGM("echo:SPIN ERR: Index search timeout (30s)");
-        bootHomed = false;
-        break;
-      }
+      if (getState() == ODRIVE_STATE_IDLE) { reachedIdle = true; break; }
       safe_delay(100);
+    }
+
+    if (!reachedIdle) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: Index search timeout (30s)");
+      forceIdle();
+    }
+    else {
+      // Reaching IDLE proves NOTHING. The axis returns to IDLE after both
+      // success and failure; procedure_result is the only discriminator.
+      // This is the #43 trap. doIndexHome() was hardened against it in
+      // PR #56 and boot() was not.
+      //
+      // Observed 2026-08-13: a floating thermistor input disarmed the axis
+      // mid-search, the axis duly returned to IDLE, and boot() announced
+      // "datum established at the index mark" over a search that never
+      // happened. Issue #69.
+      const int pr = getProcedureResult();
+      if (pr == 0) {
+        bootHomed = true;
+      }
+      else if (pr < 0) {
+        // Unreadable means UNVERIFIED, not failed: an ODrive firmware
+        // lacking the property must not brick a working machine.
+        // HANDOFF decision 7.
+        SERIAL_ECHOLNPGM("echo:SPIN WARN: procedure_result unreadable -- boot index search UNVERIFIED");
+        bootHomed = true;
+      }
+      else {
+        SERIAL_ECHOPGM("echo:SPIN ERR: Boot index search failed, procedure_result=");
+        SERIAL_ECHOLN(pr);
+        reportFault("boot index search procedure_result != 0");
+        forceIdle();
+      }
     }
   } else {
     SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not start index search");
@@ -204,38 +232,74 @@ bool Spincoater::boot() {
 
   safe_delay(300);  // let encoder settle
 
-  // ── Trapezoidal settle to index position ──
-  SERIAL_ECHOLNPGM("echo:SPIN STATE:INDEX_SETTLE_BOOT");
+  // ── Trapezoidal settle to the nearest index-equivalent position ──
+  bool bootSettled = false;
+  if (bootHomed) {
+    SERIAL_ECHOLNPGM("echo:SPIN STATE:INDEX_SETTLE_BOOT");
 
-  writeRaw("axis0.controller.config.control_mode", 3.0f);  // POSITION
-  writeRaw("axis0.controller.config.input_mode", 5.0f);    // TRAP_TRAJ
-  writeRaw("axis0.trap_traj.config.vel_limit", 0.25f);     // 15 RPM
-  writeRaw("axis0.trap_traj.config.accel_limit", 0.5f);
-  writeRaw("axis0.trap_traj.config.decel_limit", 0.5f);
-  safe_delay(10);
+    writeRaw("axis0.controller.config.control_mode", 3.0f);  // POSITION
+    writeRaw("axis0.controller.config.input_mode", 5.0f);    // TRAP_TRAJ
+    writeRaw("axis0.trap_traj.config.vel_limit", 0.25f);     // 15 RPM
+    writeRaw("axis0.trap_traj.config.accel_limit", 0.5f);
+    writeRaw("axis0.trap_traj.config.decel_limit", 0.5f);
+    safe_delay(10);
 
-  setState(ODRIVE_STATE_CLOSED_LOOP_CONTROL);
-  safe_delay(100);
+    setState(ODRIVE_STATE_CLOSED_LOOP_CONTROL);
 
-  if (getState() == ODRIVE_STATE_CLOSED_LOOP_CONTROL) {
-    // Command move to position 0 (index mark)
-    while (ODRIVE_SERIAL.available()) ODRIVE_SERIAL.read();
-    ODRIVE_SERIAL.print("t 0 0.0"); ODRIVE_NEWLINE();
-    ODRIVE_SERIAL.flush();
-
-    const millis_t settleStart = millis();
-    while (millis() - settleStart < 8000) {
+    // Bounded arm poll WITH an else. Previously a single sample 100 ms after
+    // the request and no failure branch, so a refused arm silently skipped
+    // the entire settle and boot() still declared a datum. Same shape as the
+    // bug PR #56 fixed in doIndexHome(). Issue #69.
+    bool armed = false;
+    const millis_t armStart = millis();
+    while (millis() - armStart < 2000) {
       idle();
-      float pos, vel;
-      if (feedback(pos, vel)) {
-        if (fabs(pos) < 0.003f && fabs(vel) < 0.05f) {
-          SERIAL_ECHOPGM("echo:SPIN DATA: BootSettleErr=");
-          SERIAL_ECHO(fabs(pos) * 360.0f);
-          SERIAL_ECHOLNPGM(" deg");
-          break;
-        }
-      }
+      if (getState() == ODRIVE_STATE_CLOSED_LOOP_CONTROL) { armed = true; break; }
       safe_delay(50);
+    }
+
+    if (!armed) {
+      SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not arm for boot settle -- no datum established");
+      reportFault("closed-loop arm refused before boot settle");
+      forceIdle();
+    }
+    else {
+      // Target the NEAREST index-equivalent position, not absolute zero.
+      // The index search references position modulo one turn, and
+      // pos_estimate keeps accumulating turns (issue #55). After a spin the
+      // rotor can sit hundreds of turns from zero, so 't 0 0.0' would command
+      // a move of that many turns at vel_limit 0.25 turns/s -- minutes of
+      // crawling, guaranteed to be cut off by the 8 s watchdog below.
+      // With index_offset 0.0 the index marks sit at integer positions, so
+      // the nearest one is simply roundf(current).
+      float p0, v0;
+      float target = 0.0f;
+      if (feedbackStable(p0, v0)) target = roundf(p0);
+
+      while (ODRIVE_SERIAL.available()) ODRIVE_SERIAL.read();
+      ODRIVE_SERIAL.print("t 0 "); ODRIVE_SERIAL.print(target, 4); ODRIVE_NEWLINE();
+      ODRIVE_SERIAL.flush();
+
+      const millis_t settleStart = millis();
+      while (millis() - settleStart < 8000) {
+        idle();
+        float pos, vel;
+        if (feedback(pos, vel)) {
+          if (fabs(pos - target) < 0.003f && fabs(vel) < 0.05f) {
+            bootSettled = true;
+            SERIAL_ECHOPGM("echo:SPIN DATA: BootSettleErr=");
+            SERIAL_ECHO(fabs(pos - target) * 360.0f);
+            SERIAL_ECHOLNPGM(" deg");
+            break;
+          }
+        }
+        safe_delay(50);
+      }
+
+      // The 8 s timeout previously had no else at all: a settle that never
+      // converged fell straight through to "datum established". Issue #69.
+      if (!bootSettled)
+        SERIAL_ECHOLNPGM("echo:SPIN ERR: Boot settle did not converge in 8s -- no datum established");
     }
   }
 
@@ -251,15 +315,18 @@ bool Spincoater::boot() {
   // Stable read — this writes the datum. Issue #44.
   if (feedbackStable(initPos, initVel)) {
     _homePos = initPos;
-    // Only a MEANINGFUL reference if the boot index search actually completed.
-    // Without it the AMT102 frame is anchored to wherever the rotor happened
-    // to sit at ODrive power-up, so initPos is an arbitrary shaft angle and
-    // must not masquerade as an operator datum. Issue #41.
-    _datumSet = bootHomed;
+    // A datum is meaningful only if the index search completed AND the rotor
+    // actually reached the index mark. Either alone is not enough: without
+    // the search the AMT102 frame is anchored to wherever the rotor sat at
+    // ODrive power-up (#41), and without the settle the rotor is parked at
+    // an arbitrary angle no matter how good the reference is (#69).
+    _datumSet = bootHomed && bootSettled;
     SERIAL_ECHOPGM("echo:SPIN DATA: InitialPos=");
     SERIAL_ECHOLN(initPos);
-    if (bootHomed)
+    if (_datumSet)
       SERIAL_ECHOLNPGM("echo:SPIN WARN: datum established at the index mark on boot -- re-run M751 if layer registration matters");
+    else if (bootHomed)
+      SERIAL_ECHOLNPGM("echo:SPIN WARN: boot settle did not reach the index mark -- no valid datum, run M751 before relying on angles");
     else
       SERIAL_ECHOLNPGM("echo:SPIN WARN: boot index search did not complete -- no valid datum, run M751 before relying on angles");
   }
