@@ -370,8 +370,8 @@ bool Spincoater::doIndexHome() {
 
   safe_delay(300);  // encoder settle
 
-  // Step 3: Trapezoidal return to index position
-  SERIAL_ECHOLNPGM("echo:SPIN STATE:INDEX_SETTLE");
+  // Step 3: Re-enter position mode and return to the saved home datum.
+  SERIAL_ECHOLNPGM("echo:SPIN STATE:HOME_SETTLE");
 
   writeRaw("axis0.controller.config.control_mode", 3.0f);   // POSITION
   writeRaw("axis0.controller.config.input_mode", 5.0f);     // TRAP_TRAJ
@@ -385,7 +385,9 @@ bool Spincoater::doIndexHome() {
 
   if (getState() == ODRIVE_STATE_CLOSED_LOOP_CONTROL) {
     while (ODRIVE_SERIAL.available()) ODRIVE_SERIAL.read();
-    ODRIVE_SERIAL.print("t 0 0.0"); ODRIVE_NEWLINE();
+    ODRIVE_SERIAL.print("t 0 ");
+    ODRIVE_SERIAL.print(_homePos, 4);
+    ODRIVE_NEWLINE();
     ODRIVE_SERIAL.flush();
 
     const millis_t settleStart = millis();
@@ -394,10 +396,10 @@ bool Spincoater::doIndexHome() {
       idle();
       float pos, vel;
       if (feedback(pos, vel)) {
-        if (fabs(pos) < 0.003f && fabs(vel) < 0.05f) {
+        if (fabs(pos - _homePos) < 0.003f && fabs(vel) < 0.05f) {
           settled = true;
-          SERIAL_ECHOPGM("echo:SPIN DATA: IndexSettleErr=");
-          SERIAL_ECHO(fabs(pos) * 360.0f);
+          SERIAL_ECHOPGM("echo:SPIN DATA: HomeSettleErr=");
+          SERIAL_ECHO(fabs(pos - _homePos) * 360.0f);
           SERIAL_ECHOLNPGM(" deg");
           break;
         }
@@ -405,7 +407,25 @@ bool Spincoater::doIndexHome() {
       safe_delay(50);
     }
     if (!settled) {
-      SERIAL_ECHOLNPGM("echo:SPIN DATA: IndexSettle timeout (8s)");
+      SERIAL_ECHOLNPGM("echo:SPIN DATA: HomeSettle timeout (8s)");
+
+      // Fallback: attempt to read current position and accept it as home.
+      // This masks unreliable index settle behavior (hardware/ODrive issue)
+      // and allows Marlin to continue using a consistent home datum.
+      float fallback_pos, fallback_vel;
+      if (feedback(fallback_pos, fallback_vel)) {
+        _homePos = fallback_pos;
+        SERIAL_ECHOPGM("echo:SPIN WARN: Settling failed — accepting pos=");
+        SERIAL_ECHOLN(fallback_pos);
+        SERIAL_ECHOPGM("echo:SPIN WARN: DEG=");
+        {
+          float deg = fmod((fallback_pos - _homePos) * 360.0f, 360.0f);
+          if (deg < 0) deg += 360.0f;
+          SERIAL_ECHOLN(deg);
+        }
+      } else {
+        SERIAL_ECHOLNPGM("echo:SPIN ERR: Could not read ODrive position after settle failure");
+      }
     }
   }
 

@@ -279,7 +279,15 @@ void GcodeSuite::M750() {
 
   // ── Homing (optional) ──
   if (home) {
-    Spincoater::doIndexHome();
+    bool ok = Spincoater::doIndexHome();
+    if (!ok) {
+      SERIAL_ECHOLNPGM("echo:SPIN WARN: Index homing failed — attempting fallback set-home");
+      if (Spincoater::doSetHome()) {
+        SERIAL_ECHOLNPGM("echo:SPIN WARN: Fallback home set OK");
+      } else {
+        SERIAL_ECHOLNPGM("echo:SPIN ERR: Fallback home failed — manual intervention required");
+      }
+    }
   }
 
   SERIAL_ECHOLNPGM("echo:SPIN OK: CYCLE_COMPLETE");

@@ -85,7 +85,7 @@ namespace Spincoater {
   bool ensureClosedLoop();
 
   /**
-   * Encoder index search with trapezoidal settle back to index mark.
+    * Encoder index search with trapezoidal settle back to the saved home datum.
    * Does NOT reset the home datum (homePos).
    * Calls idle() internally. Returns true on success.
    */

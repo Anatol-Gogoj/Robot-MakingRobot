@@ -8,7 +8,7 @@
  *
  * M752: Encoder index search (Index Home)
  *   - Runs ODrive ENCODER_INDEX_SEARCH
- *   - Trapezoidal settle back to index mark
+ *   - Trapezoidal settle back to the saved home datum
  *   - Does NOT reset home datum
  *   - Preserves the existing 0° reference from last M751
  */
