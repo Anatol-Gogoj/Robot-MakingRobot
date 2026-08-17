@@ -108,6 +108,16 @@ static bool measureSpeed(const int dur_s) {
       if (Spincoater::feedback(pos, vel)) {
         const float rpm = vel * 60.0f;
         lastTelemRPM = rpm;
+        // Refresh the liveness window on every GOOD read. Without this the
+        // window was armed once at :83 and never touched again, because this
+        // loop does its own feedback() calls and never reaches spinTelemetry()
+        // -- the only other place that refreshes it. The watchdog above then
+        // fired exactly 3000 ms into MEASURING on a perfectly healthy link,
+        // so no spin with D > 3 could ever complete. Observed on the bench
+        // 2026-08-17: three consecutive aborts at the 3 s mark, at both
+        // D10/1000 RPM and D30/5000 RPM, while the same UART carried a clean
+        // M752 seconds later. Regression introduced with the watchdog itself.
+        lastTelemOkTime = now;
 
         n++;
         const float delta  = rpm - mean;
