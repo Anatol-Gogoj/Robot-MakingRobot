@@ -915,6 +915,7 @@ async function toggleConnection() {
 // no longer existed, and the only escape was reloading the page. Issue #64.
 async function teardown() {
   if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  if (identityTimer) { clearTimeout(identityTimer); identityTimer = null; }
 
   try { if (reader) await reader.cancel(); } catch (e) { /* device already gone */ }
   try { if (reader) reader.releaseLock(); } catch (e) { /* already released */ }
@@ -949,10 +950,39 @@ async function connect() {
     setConnected(true);
     logInfo(`Connected at ${baud} baud`);
     readLoop();
+    verifyIdentity();
   } catch (e) {
     logErr('Connection failed: ' + e.message);
     await teardown();       // never leave a partially-opened port behind
   }
+}
+
+// Confirm we are actually talking to the Mega, and say so loudly if not.
+//
+// Both USB devices on this rig are CDC-ACM and swap /dev/ttyACM numbers freely
+// on re-enumeration. Observed 2026-08-17: a power cycle exchanged them, the
+// ODrive vacated ttyACM0 and the Mega claimed it, and Chrome's remembered port
+// then pointed at the ODrive. Every G-code came back "unknown command" -- the
+// ODrive's ASCII protocol answering, not Marlin refusing. Without an identity
+// check that reads as "the firmware lost its commands", and it cost most of a
+// bench session before anyone suspected the port.
+//
+// M115 is read-only and moves nothing, so this is safe to fire on every
+// connect. Marlin answers with a FIRMWARE_NAME line; the ODrive does not.
+let identityOk = false;
+let identityTimer = null;
+
+function verifyIdentity() {
+  identityOk = false;
+  if (identityTimer) clearTimeout(identityTimer);
+  sendCmd('M115');
+  identityTimer = setTimeout(() => {
+    if (!identityOk && isConnected) {
+      logErr('WARNING: no FIRMWARE_NAME in reply to M115.');
+      logErr('This is probably NOT the Mega — the ODrive answers G-code with "unknown command".');
+      logErr('Disconnect, then re-select the Arduino (USB 2341:0042).');
+    }
+  }, 2500);
 }
 
 async function disconnect() {
@@ -1023,6 +1053,9 @@ function processLine(line) {
   if (!line) return;
   const verbose = document.getElementById('verboseMode').checked;
 
+  // Only Marlin emits this. Clears the wrong-device warning armed in connect().
+  if (line.startsWith('FIRMWARE_NAME:')) identityOk = true;
+
 
   // ── Spincoater telemetry and data (from echo:SPIN lines) ──
   if (line.startsWith('echo:SPIN ')) {
@@ -1091,8 +1124,15 @@ function processLine(line) {
     const vbusAlt = spinMsg.match(/Vbus=([\d.]+)/);
     if (vbusAlt) document.getElementById('spinValVbus').textContent = parseFloat(vbusAlt[1]).toFixed(1);
 
-    // Log it (non-telem lines)
-    if (!spinMsg.startsWith('TELEM:')) {
+    // Log it. Telemetry is logged ONLY when Verbose is on -- it arrives at 5 Hz
+    // and would bury everything else. Previously TELEM was excluded here
+    // unconditionally, which silently defeated the Verbose checkbox above: the
+    // checkbox stopped suppressing the line, and then this filter dropped it
+    // anyway. There was no setting anywhere in the UI that would print a DEG=
+    // value, so the circular dial was the only angle readout and it cannot be
+    // read to better than a few degrees. Found 2026-08-17 while trying to
+    // measure datum-normalisation invariance, which needs 2° resolution.
+    if (verbose || !spinMsg.startsWith('TELEM:')) {
       logRx(line);
     }
     return;
