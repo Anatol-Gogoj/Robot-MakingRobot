@@ -1116,15 +1116,60 @@ function processLine(line) {
         'MEASURING':['active','Measuring speed...'],'RAMP_DOWN':['warn','Decelerating...'],
         'SETTLING':['warn','Settling...'],'STOPPED':['active','Motor stopped'],
         'HOMING':['warn','Homing...'],'ENTERING_IDLE':['warn','Entering idle...'],
-        'INDEX_FOUND_INSTANT':['active','Index found'],'RAMP_TIMEOUT':['error','Ramp-up timeout!'],
-        'RAMP_STALL':['error','RPM stall detected!'],
+        'INDEX_FOUND_INSTANT':['active','Index found'],'HOME_SETTLE':['warn','Settling to datum...'],
+        'RAMP_TIMEOUT':['error','Ramp-up timeout!'],'RAMP_STALL':['error','RPM stall detected!'],
+        'MEASURE_LINK_LOST':['error','Telemetry lost while measuring!'],
+        'DECEL_LINK_LOST':['error','Telemetry lost while decelerating!'],
+        'DECEL_STALL':['error','Ramp-down stalled!'],
       };
-      for (const [key, [phase, label]] of Object.entries(stateMap)) { if (state.includes(key)) { spinSetPhase(phase, label); break; } }
+      // Longest match wins, so a token can never be claimed by a shorter one it
+      // begins with. The old loop took the first `includes` hit in insertion
+      // order, which is why INDEX_SETTLE_BOOT had to be listed above
+      // INDEX_SETTLE and why nobody noticed HOME_SET was doing the same thing to
+      // HOME_SETTLE one block down (#47).
+      const hit = Object.keys(stateMap).filter(k => state.startsWith(k)).sort((a,b) => b.length - a.length)[0];
+      // An unmapped state still says something. Falling through silently left
+      // the previous phase on screen, which reads as "still running".
+      if (hit) spinSetPhase(...stateMap[hit]);
+      else     spinSetPhase('warn', 'State: ' + state);
     }
-    if (spinMsg.includes('CYCLE_COMPLETE')) { spinSetPhase('idle','Cycle complete'); showToast('Spin cycle complete', 'success'); }
-    if (spinMsg.includes('INDEX_COMPLETE')) spinSetPhase('idle','Index search done');
-    if (spinMsg.includes('HOME_SET'))       spinSetPhase('idle','Home datum set');
-    if (spinMsg.includes('READY'))          spinSetPhase('idle','ODrive ready');
+
+    // ── Terminal markers: OK: / ERR: ──
+    //
+    // `ok` from Marlin says the line was parsed, not that it worked. The
+    // spincoater's verdict is this line, and it has to be read by message class
+    // rather than by searching the whole line for a token (#47):
+    //
+    //   - `.includes('HOME_SET')` also matched STATE:HOME_SETTLE, so the UI
+    //     latched a green "Home datum set" at the START of the settle step.
+    //   - `ERR: CYCLE_COMPLETE_NO_HOME` matched `.includes('CYCLE_COMPLETE')`,
+    //     so a cycle whose rotor never reached the datum closed out green AND
+    //     raised a green "Spin cycle complete" toast.
+    //   - Nothing mapped `ERR:` at all, so every failure the firmware reports
+    //     was invisible.
+    if (spinMsg.startsWith('ERR:')) {
+      const err = spinMsg.substring(4).trim();
+      const errMap = {
+        'CYCLE_COMPLETE_NO_HOME': 'Cycle finished WITHOUT homing',
+        'INDEX_HOME_FAILED':      'Index homing failed',
+        'INDEX_INCOMPLETE':       'Index search incomplete — datum not reached',
+        'HOME_SET_FAILED':        'Could not set home datum',
+      };
+      const key = Object.keys(errMap).find(k => err.startsWith(k));
+      // Catch-all: any ERR: is an error phase, mapped token or not.
+      const label = key ? errMap[key] : (err.length > 58 ? err.slice(0, 57) + '…' : err);
+      spinSetPhase('error', label);
+      showToast(label, 'error');
+    }
+    else if (spinMsg.startsWith('OK:')) {
+      const tok = spinMsg.substring(3).trim();
+      if      (tok.startsWith('CYCLE_COMPLETE')) { spinSetPhase('idle','Cycle complete'); showToast('Spin cycle complete', 'success'); }
+      else if (tok.startsWith('INDEX_COMPLETE')) spinSetPhase('idle','Index search done');
+      else if (tok.startsWith('HOME_SET'))       spinSetPhase('idle','Home datum set');
+      else if (tok.startsWith('READY'))          spinSetPhase('idle','ODrive ready');
+      // "OK: Cycle — RPM=..." is a summary line, not a terminal marker. It falls
+      // through on purpose; CYCLE_COMPLETE is what closes the phase.
+    }
     const dataM = spinMsg.match(/DATA:\s*(\w+)=(.*)/);
     if (dataM) {
       const key = dataM[1], num = parseFloat(dataM[2]);
@@ -1135,6 +1180,10 @@ function processLine(line) {
       if (key==='Samples')    document.getElementById('spinValSamples').textContent=Math.round(num);
       if (key==='Vbus')       document.getElementById('spinValVbus').textContent=num.toFixed(1);
       if (key==='HomePos')    document.getElementById('spinValHome').textContent=(num*360).toFixed(1);
+      // boot() re-datums to wherever the rotor is and announces it as InitialPos.
+      // Neither UI displayed it, so the Home card kept showing a datum that no
+      // longer existed after any Mega reset (#47).
+      if (key==='InitialPos') document.getElementById('spinValHome').textContent=(num*360).toFixed(1);
       if (key==='DegFromHome')document.getElementById('spinValHome').textContent=num.toFixed(1);
       if (key==='Range')      document.getElementById('spinValRange').textContent=num.toFixed(1);
     }
