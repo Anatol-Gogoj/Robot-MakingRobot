@@ -45,6 +45,7 @@ reproductions. Expected results:
 | `fix/48-program-runner-ok-attribution` | `#48` passes, `#47` still fails |
 | `fix/47-ui-error-markers` | `#48` and `#47` pass |
 | `feature/62-segment-runner` | `#62` passes; it is based on `#82`, so the `#48`/`#47` checks run against the unfixed UIs and fail |
+| `feature/62-recipes` | same, with the recipe checks included |
 
 A check whose target file is not on the branch is skipped, not failed.
 
@@ -55,7 +56,7 @@ A check whose target file is not on the branch is skipped, not failed.
 | `ok-attribution.test.mjs` | #48 | Only a program line's own `ok` advances the Program Runner. Covers foreign traffic mid-program, pause/resume in both orderings, a write that throws, ledger overflow halting the run, and E-stop clearing the ledger. |
 | `homing-indicator.test.mjs` | #48 | `RMR_Touch`'s homing indicator clears on `G28`'s own `ok`, not on whichever arrives first. |
 | `spin-markers.test.mjs` | #47 | `OK:`/`ERR:` are read by message class. `STATE:HOME_SETTLE` does not latch "Home datum set"; `ERR: HOME_SET_FAILED` does not read as success; `ERR: CYCLE_COMPLETE_NO_HOME` is not green; an unmapped `ERR:` still shows as an error. Marker text is taken verbatim from the firmware sources. |
-| `segment-runner.test.mjs` | #62 | Load-time validation, parameter substitution and bounds, layer expansion, execution and pausing, `ERR:` failing a segment, the four guards, preview, session split/merge, and that the plan cannot be rebuilt under a running program. |
+| `segment-runner.test.mjs` | #62 | Load-time validation, parameter substitution and bounds, layer expansion, execution and pausing, `ERR:` failing a segment, the four guards, preview, session split/merge, the plan-rebuild guards, and recipes — save/load/delete, export/import round trip, clamping a saved value against tightened bounds, the modified flag, and the provenance block each run writes to the log. |
 | `layercycle-equivalence.test.mjs` | #62 | At default parameters and one layer, `LayerCycle.segments.gcode` sends the same executable lines, in the same order, as `LayerCycle.gcode`. This is what makes the annotated copy trustworthy. |
 | `syntax-check.mjs` | — | Every `<script>` block parses. Cheap, and catches the edit that broke a 1700-line file. |
 

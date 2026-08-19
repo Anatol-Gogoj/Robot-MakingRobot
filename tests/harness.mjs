@@ -51,7 +51,14 @@ export function loadUI(file) {
 
   const document = {
     getElementById(id) { if (!els.has(id)) mkEl(id); return els.get(id); },
-    querySelectorAll() { return []; },
+    // Only the one selector shape the UIs actually use: [id^="prefix"]. The
+    // layer table is built with innerHTML, so this is the only way its cells are
+    // reachable, and both renderLayerTable() and clearLayerCells() depend on it.
+    querySelectorAll(sel) {
+      const m = /^\[id\^=["']?([^"'\]]+)["']?\]$/.exec(String(sel || '').trim());
+      if (!m) return [];
+      return [...els.entries()].filter(([id]) => id.startsWith(m[1])).map(([, el]) => el);
+    },
     querySelector() { return null; },
     createElement(t) { const e = mkEl(''); e.tag = t; return e; },
     createElementNS(ns, t) { const e = mkEl(''); e.tag = t; return e; },
@@ -85,7 +92,14 @@ export function loadUI(file) {
     Date, Math, JSON, Promise, Set, Map,
     alert() {}, confirm: () => true, prompt: () => null,
     requestAnimationFrame: cb => setTimeout(cb, 0),
-    FileReader: class { readAsText() {} },
+    // Delivers the text a test attached to the fake file, so an import path can
+    // be driven end to end. Synchronous on purpose: no timing to wait on.
+    FileReader: class {
+      readAsText(file) {
+        const result = file && file.__text !== undefined ? file.__text : '';
+        if (this.onload) this.onload({ target: { result } });
+      }
+    },
     performance,
     getComputedStyle: () => ({ lineHeight: '16px' }),
     Event: class {}, CustomEvent: class {},

@@ -303,5 +303,168 @@ u.el('layerCount').value = '3';
 u.ev('onLayerCountChange')();
 ok('layer count works again once the run has ended', u.ev('planLayerCount') === 3, u.ev('planLayerCount'));
 
+// ════════════════════════════════════════════════════════════════════════
+head('K  Recipes - a named parameter set per elastomer');
+
+u = boot(PROG);
+u.el('layerCount').value = '3';
+u.ev('onLayerCountChange')();
+u.el('gp_push').value = '8';
+u.el('lp_rpm_2').value = '2500';
+u.el('recipeName').value = 'Sylgard 184 10:1';
+u.ev('recipeSave')();
+ok('the recipe is stored under its name',
+   Object.keys(u.ev('recipeStore')()).includes('Sylgard 184 10:1'), Object.keys(u.ev('recipeStore')()));
+
+let saved = u.ev('recipeStore')()['Sylgard 184 10:1'];
+ok('it captures the layer count', saved.layerCount === 3, saved.layerCount);
+ok('it captures the globals', saved.globals.push === 8, saved.globals);
+ok('it captures only the filled layer cells',
+   saved.layers['2'].rpm === 2500 && saved.layers['1'] === undefined, saved.layers);
+ok('it records the parameters it was saved against',
+   JSON.stringify(saved.savedFor) === JSON.stringify(['push', 'rpm']), saved.savedFor);
+ok('a saved recipe reads as unmodified', u.el('lblRecipe').textContent === 'Sylgard 184 10:1',
+   u.el('lblRecipe').textContent);
+
+u.el('gp_push').value = '12';
+u.ev('updateRecipeStatus')();
+ok('changing a box marks it modified', /\(modified\)/.test(u.el('lblRecipe').textContent),
+   u.el('lblRecipe').textContent);
+
+// a second recipe, then load the first back
+u.el('gp_push').value = '3';
+u.el('lp_rpm_2').value = '';
+u.el('lp_rpm_3').value = '900';
+u.el('layerCount').value = '2';
+u.ev('onLayerCountChange')();
+u.el('recipeName').value = 'Ecoflex 00-30';
+u.ev('recipeSave')();
+ok('two recipes coexist', Object.keys(u.ev('recipeStore')()).length === 2, Object.keys(u.ev('recipeStore')()));
+
+u.el('recipeSelect').value = 'Sylgard 184 10:1';
+u.ev('recipeLoad')();
+ok('loading restores the layer count', u.el('layerCount').value === '3', u.el('layerCount').value);
+ok('loading restores the globals', u.el('gp_push').value === '8', u.el('gp_push').value);
+ok('loading restores the layer cell', u.el('lp_rpm_2').value === '2500', u.el('lp_rpm_2').value);
+ok('a loaded recipe reads as unmodified', u.el('lblRecipe').textContent === 'Sylgard 184 10:1',
+   u.el('lblRecipe').textContent);
+
+// The cell that belonged to the OTHER recipe must not survive the load.
+ok('loading replaces the table rather than merging into it', u.el('lp_rpm_3').value === '',
+   u.el('lp_rpm_3').value);
+
+// bounds are re-checked on load, never trusted
+const store = u.ev('recipeStore')();
+store['Sylgard 184 10:1'].globals.push = 999;          // max is 20
+u.ev('recipeStoreWrite')(store);
+u.ev('recipeLoad')();
+ok('an out-of-bounds saved value is clamped, not smuggled in', u.el('gp_push').value === '20',
+   u.el('gp_push').value);
+
+// a recipe naming a parameter this program does not declare
+store['Stale'] = { kind: 'rmr-segment-runner-recipe', version: 1, name: 'Stale',
+                   savedFor: ['gone_param'], layerCount: 1, globals: { gone_param: 5 }, layers: {} };
+u.ev('recipeStoreWrite')(store);
+u.ev('renderRecipeList')();
+u.el('recipeSelect').value = 'Stale';
+u.ev('recipeLoad')();
+ok('an undeclared parameter in a recipe does not throw', u.ev('activeRecipe') === 'Stale', u.ev('activeRecipe'));
+
+// export / import round trip
+u = boot(PROG);
+u.el('gp_push').value = '7';
+u.el('recipeName').value = 'RoundTrip';
+u.ev('recipeSave')();
+u.ev('globalThis.__dl = null');
+u.ev('downloadJSON = (fn, obj) => { globalThis.__dl = { fn, obj }; }');
+u.el('recipeSelect').value = 'RoundTrip';
+u.ev('recipeExport')();
+const dl = u.ev('__dl');
+ok('export names the file after the recipe', dl.fn === 'RoundTrip.recipe.json', dl && dl.fn);
+ok('export writes the recipe itself', dl.obj.globals.push === 7, dl && dl.obj);
+
+const u3 = boot(PROG);
+ok('a fresh browser has no recipes', Object.keys(u3.ev('recipeStore')()).length === 0);
+u3.el('recipeFile').files = [{ name: 'RoundTrip.recipe.json', __text: JSON.stringify(dl.obj) }];
+u3.ev('recipeImport')({ target: u3.el('recipeFile') });
+ok('import restores it', Object.keys(u3.ev('recipeStore')()).includes('RoundTrip'),
+   Object.keys(u3.ev('recipeStore')()));
+u3.el('recipeSelect').value = 'RoundTrip';
+u3.ev('recipeLoad')();
+ok('the round trip preserves the value', u3.el('gp_push').value === '7', u3.el('gp_push').value);
+
+const u4 = boot(PROG);
+u4.el('recipeFile').files = [{ name: 'notes.json', __text: JSON.stringify({ hello: 'world' }) }];
+u4.ev('recipeImport')({ target: u4.el('recipeFile') });
+ok('a file that is not a recipe imports nothing', Object.keys(u4.ev('recipeStore')()).length === 0,
+   Object.keys(u4.ev('recipeStore')()));
+
+// Export must still work when localStorage does not -- otherwise a locked-down
+// profile leaves no way at all to get a parameter set off the machine.
+const u5 = boot(PROG);
+u5.ev('localStorage.setItem = () => { throw new Error("Storage is disabled"); }');
+u5.el('gp_push').value = '13';
+u5.el('recipeName').value = 'No Storage';
+u5.ev('recipeSave')();
+ok('Save reports failure when storage is blocked', u5.ev('activeRecipe') === null, u5.ev('activeRecipe'));
+u5.ev('globalThis.__dl = null');
+u5.ev('downloadJSON = (fn, obj) => { globalThis.__dl = { fn, obj }; }');
+u5.ev('recipeExport')();
+const dl5 = u5.ev('__dl');
+ok('Export still writes the current parameter set', dl5 && dl5.obj.globals.push === 13, dl5 && dl5.obj);
+ok('...under the typed name', dl5 && dl5.fn === 'No_Storage.recipe.json', dl5 && dl5.fn);
+
+// the run log has to say what was actually used
+u = boot(PROG);
+u.el('recipeName').value = 'Logged';
+u.ev('recipeSave')();
+u.ev('globalThis.__log = []');
+u.ev('append = (cls, msg) => { globalThis.__log.push(msg); }');
+u.ev('runAll')();
+await flush();
+const logged = u.ev('__log').join('\n');
+ok('the run log names the recipe', /Recipe: Logged/.test(logged), logged.slice(0, 200));
+ok('the run log lists the values used', /push = 6 mm/.test(logged), logged.slice(0, 400));
+
+u = boot(PROG);
+u.ev('globalThis.__log = []');
+u.ev('append = (cls, msg) => { globalThis.__log.push(msg); }');
+u.ev('runAll')();
+await flush();
+ok('with no recipe the log says so', /values entered by hand/.test(u.ev('__log').join('\n')),
+   u.ev('__log').join('\n').slice(0, 200));
+
+// a run is not blocked, but a modified recipe must be visible in the record
+u = boot(PROG);
+u.el('recipeName').value = 'Tweaked';
+u.ev('recipeSave')();
+u.el('gp_push').value = '9';
+u.ev('globalThis.__log = []');
+u.ev('append = (cls, msg) => { globalThis.__log.push(msg); }');
+u.ev('runAll')();
+await flush();
+ok('a modified recipe is flagged in the run log', /MODIFIED since it was loaded/.test(u.ev('__log').join('\n')),
+   u.ev('__log').join('\n').slice(0, 200));
+
+// re-parsing rebuilds the boxes from stickiness, so the recipe is no longer in effect
+u = boot(PROG);
+u.el('recipeName').value = 'Dropped';
+u.ev('recipeSave')();
+u.ev('parseProgram')();
+ok('a re-parse clears the active recipe', u.ev('activeRecipe') === null, u.ev('activeRecipe'));
+ok('...but does not delete it', Object.keys(u.ev('recipeStore')()).includes('Dropped'),
+   Object.keys(u.ev('recipeStore')()));
+
+// and it cannot be swapped underneath a run
+u = boot(PROG);
+u.el('recipeName').value = 'Held';
+u.ev('recipeSave')();
+u.el('gp_push').value = '11';
+u.ev('runAll')();
+await flush();
+u.el('recipeSelect').value = 'Held';
+u.ev('recipeLoad')();
+ok('a recipe cannot be loaded mid-run', u.el('gp_push').value === '11', u.el('gp_push').value);
+
 console.log(fails ? '\n' + fails + '/' + total + ' FAILED' : '\nall ' + total + ' passed');
 process.exit(fails ? 1 : 0);
