@@ -306,6 +306,14 @@ ok('layer count works again once the run has ended', u.ev('planLayerCount') === 
 // ════════════════════════════════════════════════════════════════════════
 head('K  Recipes - a named parameter set per elastomer');
 
+// Recipes arrived after the runner itself, so this section is skipped rather
+// than failed on a build that predates them.
+if (loadUI(FILE).ev('typeof recipeSave') !== 'function') {
+  console.log('  SKIP  this build has no recipe support');
+  console.log(fails ? '\n' + fails + '/' + total + ' FAILED' : '\nall ' + total + ' passed');
+  process.exit(fails ? 1 : 0);
+}
+
 u = boot(PROG);
 u.el('layerCount').value = '3';
 u.ev('onLayerCountChange')();

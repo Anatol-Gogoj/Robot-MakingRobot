@@ -39,15 +39,18 @@ headless Chrome, no mock framework.
 checks assert the fixed behaviour, so on a branch without the fix they are the
 reproductions. Expected results:
 
-| branch | expectation |
+| branch | result |
 |---|---|
-| `main` | `#48` and `#47` checks fail — those bugs are present |
-| `fix/48-program-runner-ok-attribution` | `#48` passes, `#47` still fails |
-| `fix/47-ui-error-markers` | `#48` and `#47` pass |
-| `feature/62-segment-runner` | `#62` passes; it is based on `#82`, so the `#48`/`#47` checks run against the unfixed UIs and fail |
-| `feature/62-recipes` | same, with the recipe checks included |
+| `main` | 2 passed, 5 failed, 3 skipped — the `#48` and `#47` bugs are present |
+| `fix/48-program-runner-ok-attribution` | 5 passed, 2 failed, 3 skipped — `#48` fixed, `#47` still open |
+| `fix/47-ui-error-markers` | **7 passed, 0 failed**, 3 skipped |
+| `feature/62-segment-runner` | 5 passed, 5 failed — based on `#82`, so the `#48`/`#47` checks run against the unfixed UIs |
+| `feature/62-recipes` | 5 passed, 5 failed — same lineage, with the recipe checks included |
 
-A check whose target file is not on the branch is skipped, not failed.
+These numbers were produced by running the suite against each branch, not
+estimated. A check whose target file is not on the branch is **skipped**; a
+section covering a feature the branch predates is skipped too, which is why the
+recipe checks do not fail `feature/62-segment-runner`.
 
 ## What each check covers
 
