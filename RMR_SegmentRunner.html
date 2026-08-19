@@ -163,6 +163,9 @@
   <button id="btnConnect" onclick="toggleConnection()">Connect</button>
   <span class="pill"><span class="dot" id="dotLink"></span><span id="lblLink">Disconnected</span></span>
   <span class="pill"><span class="dot" id="dotRun"></span><span id="lblRun">Idle</span></span>
+  <span class="pill" title="The parameter set in effect. (modified) means the boxes no longer match what was saved.">
+    <span class="dot" id="dotRecipe"></span><span id="lblRecipe">No recipe</span>
+  </span>
   <span class="pill" title="Raw ODrive position accumulator — issue #80">
     <span class="dot" id="dotAccum"></span>Accumulator:&nbsp;<span id="lblAccum">—</span>&nbsp;turns
   </span>
@@ -241,6 +244,33 @@
     </div>
 
     <div>
+      <div class="panel">
+        <h2>Recipe</h2>
+        <div class="row">
+          <select id="recipeSelect" style="flex:1;min-width:150px;background:#0b1020;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:6px">
+            <option value="">— none —</option>
+          </select>
+          <button class="small" onclick="recipeLoad()">Load</button>
+          <button class="small" onclick="recipeDelete()">Delete</button>
+        </div>
+        <div class="row">
+          <input type="text" id="recipeName" placeholder="Elastomer, e.g. Sylgard 184 10:1" style="flex:1">
+          <button class="small primary" onclick="recipeSave()">Save</button>
+        </div>
+        <div class="row">
+          <button class="small" onclick="recipeExport()">Export</button>
+          <button class="small" onclick="recipeExportAll()">Export all</button>
+          <button class="small" onclick="document.getElementById('recipeFile').click()">Import…</button>
+          <input type="file" id="recipeFile" accept=".json,application/json" style="display:none" onchange="recipeImport(event)">
+        </div>
+        <p class="hint">
+          A recipe is the whole operator-settable state: every parameter, the layer count, and each
+          filled cell of the layer table. <b>Saved recipes live in this browser only.</b> Export them
+          and commit the .json — a bench-only copy is one wiped home directory away from being the
+          only one.
+        </p>
+      </div>
+
       <div class="panel">
         <h2>Parameters</h2>
         <div id="paramBox"><p class="hint">No parameters declared.</p></div>
@@ -642,10 +672,17 @@ function parseProgram() {
   provided = new Set();
   lastFinishedStep = -1;
   selectedStep = 0;
+  // A re-parse rebuilds every box from the last-used values, not from the
+  // recipe, so the recipe is no longer in effect. Load it again if you want it.
+  if (activeRecipe) logWarn('Recipe "' + activeRecipe + '" is no longer in effect — the program was re-parsed. Load it again.');
+  activeRecipe = null;
+  activeSnapshot = null;
   document.getElementById('src').readOnly = false;
   renderParams();
   renderLayerTable();
   buildPlan();
+  renderRecipeList();
+  updateRecipeStatus();
   logInfo('Parsed: ' + segments.length + ' segment(s), ' + params.size + ' parameter(s), ' +
           segments.reduce((a, s) => a + s.lines.length, 0) + ' executable line(s).');
   setRunState(IDLE);
@@ -744,6 +781,7 @@ function onLayerCountChange() {
   }
   renderLayerTable();
   buildPlan();
+  updateRecipeStatus();   // the layer count is part of the recipe
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -787,6 +825,7 @@ function renderParams() {
       const bad = !isFinite(parseFloat(inp.value)) || parseFloat(inp.value) < p.min || parseFloat(inp.value) > p.max;
       inp.classList.toggle('bad', bad);
       if (!bad) storeParam(p.name, inp.value);
+      updateRecipeStatus();   // the boxes no longer match what was saved
     });
     const unit = document.createElement('span');
     unit.className = 'unit'; unit.textContent = p.unit;
@@ -822,13 +861,295 @@ function renderLayerTable() {
       const id = 'lp_' + p.name + '_' + L;
       const val = prev[id] !== undefined ? esc(prev[id]) : '';
       html += '<td><input type="number" id="' + id + '" step="any" min="' + p.min + '" max="' + p.max +
-              '" value="' + val + '" placeholder="' + p.default + '"></td>';
+              '" value="' + val + '" placeholder="' + p.default + '" oninput="updateRecipeStatus()"></td>';
     });
     html += '</tr>';
   }
   box.innerHTML = html + '</tbody></table>';
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// Recipes — a named parameter set per elastomer (#62 open question 2)
+//
+// A recipe is the WHOLE operator-settable state: every global parameter, the
+// layer count, and each filled cell of the layer table. Anything less and
+// "load recipe" would not reproduce a run, which is the only reason to have it.
+//
+// Saved recipes live in localStorage, which means they live on one laptop. The
+// export/import pair is not a convenience: this project has already been bitten
+// by a process program that existed only on the bench machine, and a recipe is
+// the same kind of artefact. Export it and commit the .json.
+//
+// Values are re-validated against the current bounds on load, never trusted: a
+// recipe saved while cure_s allowed 600 s must not smuggle 600 back in after the
+// declaration has been tightened to 60.
+// ══════════════════════════════════════════════════════════════════════════
+const LS_RECIPES = 'rmr.segrunner.recipes';
+const RECIPE_KIND = 'rmr-segment-runner-recipe';
+const RECIPE_VERSION = 1;
+
+let activeRecipe = null;     // name of the recipe loaded, or null
+let activeSnapshot = null;   // its state as applied, for the modified check
+
+function recipeStore() {
+  try { return JSON.parse(localStorage.getItem(LS_RECIPES) || '{}'); } catch (e) { return {}; }
+}
+function recipeStoreWrite(all) {
+  try { localStorage.setItem(LS_RECIPES, JSON.stringify(all)); return true; }
+  catch (e) {
+    logErr('Could not write recipes: ' + e.message);
+    logErr('Nothing was saved. Use Export instead — it works without storage and writes a file.');
+    return false;
+  }
+}
+
+// Everything the operator can set. Only filled layer cells are recorded, so a
+// blank cell stays blank on reload and goes on inheriting the global.
+function currentRecipeState() {
+  const globals = {}, layers = {};
+  if (program) {
+    const n = layerCount();
+    program.params.forEach(p => {
+      const g = document.getElementById('gp_' + p.name);
+      if (g && String(g.value).trim() !== '') globals[p.name] = Number(g.value);
+      if (p.scope !== 'layer') return;
+      for (let L = 1; L <= n; L++) {
+        const c = document.getElementById('lp_' + p.name + '_' + L);
+        if (c && String(c.value).trim() !== '') {
+          if (!layers[L]) layers[L] = {};
+          layers[L][p.name] = Number(c.value);
+        }
+      }
+    });
+  }
+  return { layerCount: layerCount(), globals, layers };
+}
+
+function clampToParam(p, raw, where, warnings) {
+  const at = p.name + (where ? ' (' + where + ')' : '');
+  const v = parseFloat(raw);
+  if (!isFinite(v)) { warnings.push(at + ' was not a number — using the declared default ' + p.default); return p.default; }
+  if (v < p.min) { warnings.push(at + ' ' + v + ' is below the current minimum — clamped to ' + p.min); return p.min; }
+  if (v > p.max) { warnings.push(at + ' ' + v + ' is above the current maximum — clamped to ' + p.max); return p.max; }
+  return v;
+}
+
+function clearLayerCells() {
+  document.querySelectorAll('[id^="lp_"]').forEach(el => { el.value = ''; });
+}
+
+// Returns its warnings rather than logging them, so the caller decides whether
+// this was a load worth announcing or a silent restore.
+function applyRecipeState(state) {
+  const warnings = [];
+  if (!program) return ['No program is parsed, so there is nothing to apply a recipe to.'];
+
+  const n = Math.max(1, Math.min(99, parseInt(state.layerCount, 10) || 1));
+  document.getElementById('layerCount').value = String(n);
+  renderLayerTable();
+  buildPlan();
+  // Loading a recipe REPLACES the layer table. renderLayerTable() deliberately
+  // preserves whatever was typed, which is right for a re-render and wrong here.
+  clearLayerCells();
+
+  const globals = state.globals || {};
+  Object.keys(globals).forEach(name => {
+    const p = program.params.get(name);
+    if (!p) { warnings.push(name + ' is not declared by this program — ignored'); return; }
+    const el = document.getElementById('gp_' + name);
+    if (el) el.value = String(clampToParam(p, globals[name], null, warnings));
+  });
+  program.params.forEach(p => {
+    if (globals[p.name] === undefined) {
+      warnings.push(p.name + ' is declared by this program but absent from the recipe — left at its current value');
+    }
+  });
+
+  const layers = state.layers || {};
+  Object.keys(layers).forEach(L => {
+    if (Number(L) > n) { warnings.push('layer ' + L + ' is beyond the layer count of ' + n + ' — ignored'); return; }
+    Object.keys(layers[L]).forEach(name => {
+      const p = program.params.get(name);
+      if (!p) { warnings.push(name + ' (layer ' + L + ') is not declared by this program — ignored'); return; }
+      if (p.scope !== 'layer') { warnings.push(name + ' is no longer scope=layer — its layer ' + L + ' value ignored'); return; }
+      const el = document.getElementById('lp_' + name + '_' + L);
+      if (el) el.value = String(clampToParam(p, layers[L][name], 'layer ' + L, warnings));
+    });
+  });
+  return warnings;
+}
+
+function declaredParamNames() {
+  return program ? [...program.params.keys()].sort() : [];
+}
+
+function recipeSave() {
+  if (!program || program.errors.length) { logErr('Parse a program without errors before saving a recipe.'); return; }
+  const name = String(document.getElementById('recipeName').value).trim();
+  if (!name) { logErr('Give the recipe a name — the elastomer it is for.'); return; }
+  const all = recipeStore();
+  if (all[name] && !confirm('Overwrite the saved recipe "' + name + '"?')) return;
+
+  all[name] = recipeFromCurrentState(name);
+  if (!recipeStoreWrite(all)) return;
+  activeRecipe = name;
+  activeSnapshot = JSON.stringify(currentRecipeState());
+  renderRecipeList();
+  logInfo('Recipe saved: ' + name + ' — export it and commit the .json. localStorage is one laptop.');
+  updateRecipeStatus();
+}
+
+function recipeLoad() {
+  if (isRunning() || runState === SEGPAUSE) { logWarn('Not while a run is in progress.'); return; }
+  const name = document.getElementById('recipeSelect').value;
+  if (!name) { logErr('Pick a recipe first.'); return; }
+  const r = recipeStore()[name];
+  if (!r) { logErr('No recipe called "' + name + '".'); return; }
+
+  const warnings = applyRecipeState(r);
+  const now = declaredParamNames();
+  const then = (r.savedFor || []).slice().sort();
+  if (then.length && JSON.stringify(now) !== JSON.stringify(then)) {
+    const added = now.filter(x => !then.includes(x));
+    const gone = then.filter(x => !now.includes(x));
+    logWarn('This recipe was saved against a different set of parameters.' +
+            (added.length ? ' New here: ' + added.join(', ') + '.' : '') +
+            (gone.length ? ' Gone since: ' + gone.join(', ') + '.' : ''));
+  }
+  warnings.forEach(w => logWarn('  ' + w));
+  activeRecipe = name;
+  activeSnapshot = JSON.stringify(currentRecipeState());
+  document.getElementById('recipeName').value = name;
+  logInfo('Recipe loaded: ' + name + (r.savedAt ? '  (saved ' + r.savedAt + ')' : ''));
+  updateRecipeStatus();
+}
+
+function recipeDelete() {
+  const name = document.getElementById('recipeSelect').value;
+  if (!name) { logErr('Pick a recipe first.'); return; }
+  if (!confirm('Delete the saved recipe "' + name + '"?\n\nIf it was never exported, this is the only copy.')) return;
+  const all = recipeStore();
+  delete all[name];
+  if (!recipeStoreWrite(all)) return;
+  if (activeRecipe === name) { activeRecipe = null; activeSnapshot = null; }
+  renderRecipeList();
+  logWarn('Recipe deleted: ' + name);
+  updateRecipeStatus();
+}
+
+function renderRecipeList() {
+  const sel = document.getElementById('recipeSelect');
+  const keep = sel.value;
+  const names = Object.keys(recipeStore()).sort();
+  sel.innerHTML = '<option value="">— none —</option>' +
+    names.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+  if (names.includes(keep)) sel.value = keep;
+  else if (activeRecipe && names.includes(activeRecipe)) sel.value = activeRecipe;
+}
+
+function updateRecipeStatus() {
+  const dot = document.getElementById('dotRecipe');
+  const lbl = document.getElementById('lblRecipe');
+  if (!activeRecipe) { dot.className = 'dot'; lbl.textContent = 'No recipe'; return; }
+  const modified = JSON.stringify(currentRecipeState()) !== activeSnapshot;
+  dot.className = 'dot ' + (modified ? 'warn' : 'ok');
+  lbl.textContent = activeRecipe + (modified ? ' (modified)' : '');
+}
+
+// ── export / import ──
+function downloadJSON(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const safeName = s => String(s).replace(/[^A-Za-z0-9._-]+/g, '_');
+
+// Builds a recipe object out of whatever is in the boxes right now, saved or not.
+function recipeFromCurrentState(name) {
+  const state = currentRecipeState();
+  return {
+    kind: RECIPE_KIND, version: RECIPE_VERSION, name,
+    savedAt: new Date().toISOString(),
+    savedFor: declaredParamNames(),
+    layerCount: state.layerCount, globals: state.globals, layers: state.layers,
+  };
+}
+
+// Falls back to the current boxes when nothing saved is selected. That is not
+// just convenience: if localStorage is unavailable — a locked-down profile, a
+// page served from an opaque origin — Save fails and this would otherwise be a
+// dead end, leaving no way at all to get a parameter set off the machine.
+function recipeExport() {
+  if (!program || program.errors.length) { logErr('Parse a program without errors first.'); return; }
+  const picked = document.getElementById('recipeSelect').value || activeRecipe;
+  const saved = picked && recipeStore()[picked];
+  if (saved) {
+    downloadJSON(safeName(picked) + '.recipe.json', saved);
+    logInfo('Exported the saved recipe "' + picked + '" — commit it.');
+    return;
+  }
+  const name = String(document.getElementById('recipeName').value).trim() || 'untitled';
+  downloadJSON(safeName(name) + '.recipe.json', recipeFromCurrentState(name));
+  logInfo('Exported the current parameter set as "' + name + '" — it was not saved in this browser, ' +
+          'so the file you just downloaded is the only copy. Commit it.');
+}
+
+function recipeExportAll() {
+  const all = Object.keys(recipeStore()).sort().map(k => recipeStore()[k]);
+  if (!all.length) { logErr('There are no saved recipes.'); return; }
+  downloadJSON('rmr-recipes.json', all);
+  logInfo('Exported ' + all.length + ' recipe(s) — commit the file.');
+}
+
+function recipeImport(ev) {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = e => {
+    let parsed;
+    try { parsed = JSON.parse(e.target.result); }
+    catch (err) { logErr('Not valid JSON: ' + err.message); return; }
+    const list = Array.isArray(parsed) ? parsed : [parsed];
+    const all = recipeStore();
+    let added = 0, skipped = 0;
+    for (const r of list) {
+      if (!r || r.kind !== RECIPE_KIND || !r.name) { skipped++; continue; }
+      if (all[r.name] && !confirm('"' + r.name + '" already exists. Overwrite it?')) { skipped++; continue; }
+      all[r.name] = r;
+      added++;
+    }
+    if (added && !recipeStoreWrite(all)) return;
+    renderRecipeList();
+    logInfo('Imported ' + added + ' recipe(s)' + (skipped ? ', skipped ' + skipped : '') + ' from ' + f.name);
+    if (skipped && !added) logErr('Nothing imported — is this a recipe file? Expected kind "' + RECIPE_KIND + '".');
+  };
+  rd.readAsText(f);
+}
+
+// Written to the console at the start of every run, so the log records what was
+// actually run rather than what happened to be saved at some point.
+function logRecipeProvenance() {
+  const st = currentRecipeState();
+  const modified = activeRecipe && JSON.stringify(st) !== activeSnapshot;
+  logInfo('Recipe: ' + (activeRecipe
+    ? activeRecipe + (modified ? '   ** MODIFIED since it was loaded **' : '')
+    : '(none — values entered by hand)'));
+  program.params.forEach(p => {
+    if (!p.used) return;
+    const g = st.globals[p.name] !== undefined ? st.globals[p.name] : p.default;
+    const over = Object.keys(st.layers)
+      .filter(L => st.layers[L][p.name] !== undefined)
+      .map(L => 'L' + L + '=' + st.layers[L][p.name]);
+    logInfo('    ' + p.name + ' = ' + g + (p.unit ? ' ' + p.unit : '') +
+            (over.length ? '   [' + over.join(' ') + ']' : ''));
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
 // Resolve at send time, not at parse time: the operator may change a box between
 // segments, and that is the whole point of the page.
 function resolveParam(name, layer) {
@@ -1062,6 +1383,7 @@ function startRun(from, until) {
   plan.forEach((st, i) => { if (i >= from) st.status = 'pending'; });
   planIdx = from; lineIdx = 0; stopBefore = until; pending = null;
   logInfo('── Run: segments ' + (from + 1) + '–' + until + ' of ' + plan.length + ' ──');
+  logRecipeProvenance();
   setRunState(RUNNING);
   startStep();
 }
@@ -1363,6 +1685,8 @@ window.addEventListener('beforeunload', e => {
 });
 
 setRunState(IDLE);
+renderRecipeList();
+updateRecipeStatus();
 logInfo('Segment Runner ready. Load a program, press Parse, then Connect.');
 </script>
 </body>
