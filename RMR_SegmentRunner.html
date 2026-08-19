@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMR Segment Runner</title>
+<style>
+  /* Paul Tol Bright palette — colour-blind safe, matching RMR_Touch.html */
+  :root {
+    --bg: #000000;
+    --surface: #16213e;
+    --surface2: #1c2f54;
+    --text: #ffffff;
+    --text-dim: #bbbbbb;
+    --green: #228833;
+    --yellow: #CCBB44;
+    --red: #EE6677;
+    --blue: #4477AA;
+    --cyan: #66CCEE;
+    --purple: #AA3377;
+    --border: #BBBBBB;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+  }
+  code, pre, textarea, .mono { font-family: "Cascadia Mono", Consolas, "Courier New", monospace; }
+
+  /* ── header ribbon ── */
+  header {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 12px; background: var(--surface); border-bottom: 2px solid var(--border);
+    position: sticky; top: 0; z-index: 20;
+  }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; white-space: nowrap; }
+  .spacer { flex: 1; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 12px; background: var(--surface2);
+    border: 1px solid var(--border); font-size: 12px; white-space: nowrap;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-dim); flex: none; }
+  .dot.ok { background: var(--green); } .dot.warn { background: var(--yellow); }
+  .dot.err { background: var(--red); }  .dot.busy { background: var(--cyan); }
+
+  button {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: var(--blue); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.primary { background: var(--green); border-color: var(--green); font-weight: 600; }
+  button.warn    { background: var(--yellow); border-color: var(--yellow); color: #000; font-weight: 600; }
+  button.danger  { background: var(--red); border-color: var(--red); font-weight: 700; }
+  button.small   { padding: 3px 8px; font-size: 11.5px; }
+
+  /* ── view switch ── */
+  .views { display: flex; gap: 4px; }
+  .views button.on { background: var(--blue); border-color: var(--cyan); }
+  .view { display: none; padding: 12px; }
+  .view.on { display: block; }
+
+  /* ── panels ── */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; margin-bottom: 12px;
+  }
+  .panel > h2 {
+    margin: 0 0 10px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--cyan);
+  }
+  .grid { display: grid; grid-template-columns: minmax(340px,1fr) minmax(320px,430px); gap: 12px; align-items: start; }
+  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ── program editor ── */
+  textarea#src {
+    width: 100%; height: 55vh; min-height: 280px; resize: vertical;
+    background: #0b1020; color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px; font-size: 12.5px; line-height: 1.45;
+    white-space: pre; overflow-wrap: normal; overflow-x: auto;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row + .row { margin-top: 8px; }
+
+  /* ── diagnostics ── */
+  .diag { margin-top: 10px; font-size: 12.5px; }
+  .diag div { padding: 4px 8px; border-left: 3px solid; margin-bottom: 4px; border-radius: 0 4px 4px 0; }
+  .diag .e { border-color: var(--red);    background: rgba(238,102,119,.14); }
+  .diag .w { border-color: var(--yellow); background: rgba(204,187,68,.13); }
+  .diag .i { border-color: var(--blue);   background: rgba(68,119,170,.16); }
+
+  /* ── parameters ── */
+  .param { display: grid; grid-template-columns: 1fr 100px 46px; gap: 8px; align-items: center; margin-bottom: 7px; }
+  .param label { font-size: 13px; }
+  .param .lim { display: block; font-size: 11px; color: var(--text-dim); }
+  .param .unit { font-size: 12px; color: var(--text-dim); }
+  input[type=number], input[type=text] {
+    background: #0b1020; color: var(--text); border: 1px solid var(--border);
+    border-radius: 5px; padding: 6px; width: 100%; font-size: 13px;
+  }
+  input.bad { border-color: var(--red); background: rgba(238,102,119,.18); }
+  .tag {
+    font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 6px;
+    vertical-align: middle; white-space: nowrap;
+  }
+  .tag.layer   { background: var(--purple); }
+  .tag.session { background: var(--yellow); color: #000; }
+
+  /* ── layer table ── */
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { border: 1px solid var(--border); padding: 4px 6px; text-align: left; }
+  th { background: var(--surface2); font-weight: 600; }
+  td input { padding: 4px; font-size: 12.5px; }
+  .tbl-wrap { overflow-x: auto; }
+
+  /* ── segment list ── */
+  ol.segs { list-style: none; margin: 0; padding: 0; }
+  ol.segs li {
+    border: 1px solid var(--border); border-radius: 6px; margin-bottom: 5px;
+    background: var(--surface2);
+  }
+  ol.segs li .hdr { display: flex; align-items: center; gap: 8px; padding: 7px 8px; cursor: pointer; }
+  ol.segs li.sel { outline: 2px solid var(--cyan); }
+  ol.segs li .nm { flex: 1; }
+  ol.segs li .meta { font-size: 11px; color: var(--text-dim); }
+  ol.segs li.running .hdr { background: rgba(68,119,170,.45); border-radius: 5px; }
+  ol.segs li.done    .hdr { background: rgba(34,136,51,.32);  border-radius: 5px; }
+  ol.segs li.failed  .hdr { background: rgba(238,102,119,.32); border-radius: 5px; }
+  ol.segs li .edit { display: none; padding: 6px 8px; border-top: 1px dashed var(--border); }
+  ol.segs li.open .edit { display: block; }
+  .badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 8px;
+    border: 1px solid var(--border); white-space: nowrap;
+  }
+  .badge.layer { background: var(--purple); }
+  .badge.req   { background: var(--surface); color: var(--yellow); border-color: var(--yellow); }
+  .curline { font-size: 11.5px; color: var(--cyan); padding: 0 8px 6px; }
+
+  /* ── console ── */
+  #log {
+    height: 250px; overflow-y: auto; background: #05070f; border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px; font-size: 12px; line-height: 1.4;
+  }
+  #log div { white-space: pre-wrap; word-break: break-word; }
+  .tx { color: var(--cyan); } .rx { color: var(--text-dim); }
+  .ev { color: var(--green); } .er { color: var(--red); font-weight: 600; }
+  .wn { color: var(--yellow); }
+
+  #preview {
+    max-height: 55vh; overflow: auto; background: #05070f; border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px; font-size: 12px; line-height: 1.45; white-space: pre;
+  }
+  .hint { font-size: 12px; color: var(--text-dim); margin: 6px 0 0; }
+  .nowrap { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RMR Segment Runner</h1>
+  <button id="btnConnect" onclick="toggleConnection()">Connect</button>
+  <span class="pill"><span class="dot" id="dotLink"></span><span id="lblLink">Disconnected</span></span>
+  <span class="pill"><span class="dot" id="dotRun"></span><span id="lblRun">Idle</span></span>
+  <span class="pill" title="Raw ODrive position accumulator — issue #80">
+    <span class="dot" id="dotAccum"></span>Accumulator:&nbsp;<span id="lblAccum">—</span>&nbsp;turns
+  </span>
+  <span class="spacer"></span>
+  <div class="views">
+    <button id="tabProgram" class="on" onclick="showView('program')">Program</button>
+    <button id="tabRun" onclick="showView('run')">Run</button>
+  </div>
+  <button class="danger" onclick="emergencyStop()">STOP (M112)</button>
+</header>
+
+<!-- ════════════════════ PROGRAM VIEW ════════════════════ -->
+<section id="viewProgram" class="view on">
+  <div class="grid">
+    <div class="panel">
+      <h2>Program</h2>
+      <div class="row">
+        <button onclick="document.getElementById('file').click()">Load .gcode</button>
+        <input type="file" id="file" accept=".gcode,.nc,.txt" style="display:none" onchange="loadFile(event)">
+        <button onclick="saveFile()">Save as…</button>
+        <button class="primary" onclick="parseProgram()">Parse</button>
+        <button onclick="loadReference()">Load marker reference</button>
+      </div>
+      <div class="row"><textarea id="src" spellcheck="false" placeholder="Load a .gcode file, or paste one here, then press Parse."></textarea></div>
+      <div id="diag" class="diag"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Preview — what will actually be sent</h2>
+      <p class="hint">
+        Expands the whole run plan with the current parameter values substituted. Opens no
+        serial port and touches nothing on the machine.
+      </p>
+      <div class="row"><button onclick="renderPreview()">Build preview</button></div>
+      <div id="preview" class="mono" style="margin-top:8px">—</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ RUN VIEW ════════════════════ -->
+<section id="viewRun" class="view">
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2>Execution</h2>
+        <div class="row">
+          <button class="primary" id="btnRunAll" onclick="runAll()">Run All</button>
+          <button id="btnRunFrom" onclick="runFromSelected()">Run From Here</button>
+          <button id="btnRunOne"  onclick="runSelectedOnly()">Run This Segment Only</button>
+          <button id="btnRerun"   onclick="rerunLast()">Re-run Last Segment</button>
+        </div>
+        <div class="row">
+          <button class="warn" id="btnContinue" onclick="continueRun()" disabled>Continue</button>
+          <button id="btnPause" onclick="togglePause()" disabled>Pause</button>
+          <label class="pill"><input type="checkbox" id="pauseEachSeg" checked> Pause after each segment</label>
+        </div>
+        <p class="hint" id="runHint">Load and parse a program first.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Segments</h2>
+        <ol class="segs" id="segList"><li><div class="hdr"><span class="nm">No program parsed.</span></div></li></ol>
+        <div class="row" style="margin-top:8px">
+          <button class="small" onclick="resetOverrides()">Reset segments to the file</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Console</h2>
+        <div class="row">
+          <label class="pill"><input type="checkbox" id="verbose"> Verbose (show telemetry)</label>
+          <button onclick="document.getElementById('log').innerHTML=''">Clear</button>
+        </div>
+        <div id="log" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>Parameters</h2>
+        <div id="paramBox"><p class="hint">No parameters declared.</p></div>
+      </div>
+
+      <div class="panel">
+        <h2>Layers</h2>
+        <div class="row">
+          <label class="nowrap">Layer count</label>
+          <input type="number" id="layerCount" min="1" max="99" value="1" style="width:80px" onchange="onLayerCountChange()">
+        </div>
+        <div class="tbl-wrap" id="layerBox" style="margin-top:8px"><p class="hint">No <code>;LAYER-SEGMENT</code> in this program.</p></div>
+        <p class="hint">A blank cell inherits the global value shown in Parameters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// RMR Segment Runner — issue #62
+//
+// A standalone operator page: one program, its segments, and bounded parameter
+// boxes. Deliberately not a tab in either existing UI -- RMR_Controller.html is
+// open during flashing and carries the Chrome serial problems, and the touch UI
+// works today.
+//
+// Two things this page must get right, both of them found the hard way in the
+// existing UIs:
+//
+//   #48  `ok` is not a completion signal unless you know which command it
+//        belongs to. Marlin answers exactly one `ok` per accepted command, in
+//        order, so every command written is recorded and each `ok` consumes
+//        exactly one record. Without that, any other traffic on the port
+//        advances the program.
+//
+//   #47  `ok` from Marlin means the line was parsed, not that it worked. The
+//        spincoater's verdict is its `echo:SPIN OK:` / `echo:SPIN ERR:` line.
+//        A runner that cannot see `ERR:` cannot fail a segment, and would walk
+//        past a failed spin into a step that presses a filter onto a chuck.
+// ══════════════════════════════════════════════════════════════════════════
+
+// ─── serial state ───
+let port = null, reader = null, writer = null, readableStreamClosed = null;
+let readBuffer = '', isConnected = false;
+let identityOk = false, identityTimer = null;
+
+// ─── program + plan ───
+let program = null;        // { params:Map, segments:[], errors:[], warnings:[] }
+let plan = [];             // expanded steps: { seg, layer, key }
+let planLayerCount = 1;    // the layer count `plan` was built with
+let selectedStep = 0;
+let lastFinishedStep = -1;
+let accumTurns = null;     // raw ODrive accumulator, issue #80
+
+// ─── run engine ───
+const IDLE = 'idle', RUNNING = 'running', PAUSED = 'paused',
+      SEGPAUSE = 'segPause', FAILED = 'failed', DONE = 'done';
+let runState = IDLE;
+let planIdx = 0, lineIdx = 0;
+let stopBefore = -1;       // exclusive upper bound, for "Run This Segment Only"
+let provided = new Set();  // ;PROVIDES: tokens established this session
+let pending = null;        // the program line awaiting its `ok`
+
+// Accumulator thresholds (#80). pos_estimate is a continuous multi-turn float;
+// above ~32768 turns its step size exceeds the 0.003-turn settle tolerance and
+// index homing can only pass on a bit-identical match. Warn well before that,
+// and refuse a batch that would plausibly reach it.
+const ACCUM_WARN = 8000, ACCUM_BLOCK = 16000;
+
+// ══════════════════════════════════════════════════════════════════════════
+// Logging
+// ══════════════════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+}
+function append(cls, msg) {
+  const box = document.getElementById('log');
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = msg;
+  box.appendChild(d);
+  while (box.childElementCount > 800) box.removeChild(box.firstChild);
+  if (atBottom) box.scrollTop = box.scrollHeight;
+}
+const logTx   = m => append('tx', '>> ' + m);
+const logRx   = m => append('rx', '<< ' + m);
+const logInfo = m => append('ev', m);
+const logWarn = m => append('wn', m);
+const logErr  = m => append('er', m);
+
+// ══════════════════════════════════════════════════════════════════════════
+// ok attribution (#48)
+//
+// One record per command written. Each `ok` consumes the oldest. Only a record
+// tagged 'prog' advances the program, so a manual command, a reconnect probe or
+// anything else on the port cannot drive the run.
+// ══════════════════════════════════════════════════════════════════════════
+let okLedger = [];
+const OK_LEDGER_MAX = 64;
+
+function okLedgerReset() { okLedger = []; }
+
+function onOkReceived() {
+  const token = okLedger.shift();
+  // An `ok` we never accounted for. Ignoring it is the safe direction: a missed
+  // advance stalls the run visibly, a spurious one moves the machine.
+  if (!token) return;
+  if (token.tag === 'prog') programLineAcked();
+}
+
+async function sendCmd(cmd, tag = 'ui') {
+  if (!isConnected || !writer) { logErr('Not connected — ' + cmd + ' not sent'); return false; }
+  // Recorded BEFORE the await so ledger order is call order, which is the order
+  // the bytes reach Marlin.
+  const token = { tag, cmd };
+  okLedger.push(token);
+  if (okLedger.length > OK_LEDGER_MAX) {
+    logErr('ok ledger overflow (' + okLedger.length + ' unanswered) — serial sequence lost');
+    okLedgerReset();
+    if (isRunning()) failRun('Lost track of which ok belongs to which command.');
+  }
+  try {
+    await writer.write(new TextEncoder().encode(cmd + '\n'));
+    logTx(cmd);
+    return true;
+  } catch (e) {
+    const i = okLedger.indexOf(token);
+    if (i !== -1) okLedger.splice(i, 1);
+    logErr('Send error: ' + e.message);
+    if (isRunning()) failRun('Write failed: ' + e.message);
+    return false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Serial connection
+// ══════════════════════════════════════════════════════════════════════════
+async function toggleConnection() { isConnected ? await disconnect() : await connect(); }
+
+async function connect() {
+  if (!('serial' in navigator)) {
+    logErr('Web Serial is unavailable — this page needs Chrome or Edge. Firefox and Safari do not implement it.');
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 250000 });
+    writer = port.writable.getWriter();
+    readBuffer = '';
+    okLedgerReset();
+    isConnected = true;
+    setLink('busy', 'Checking board…');
+    document.getElementById('btnConnect').textContent = 'Disconnect';
+    logInfo('Connected at 250000 baud');
+    readLoop();
+    verifyIdentity();
+  } catch (e) {
+    logErr('Connection failed: ' + e.message);
+    await teardown();
+  }
+}
+
+// Both USB devices on this rig are CDC-ACM and swap /dev/ttyACM numbers freely.
+// A wrong-port connection is indistinguishable from broken firmware: the ODrive
+// answers G-code with "unknown command", which reads exactly like Marlin losing
+// its command set. M115 is read-only and moves nothing.
+function verifyIdentity() {
+  identityOk = false;
+  if (identityTimer) clearTimeout(identityTimer);
+  sendCmd('M115');
+  identityTimer = setTimeout(() => {
+    if (identityOk || !isConnected) return;
+    setLink('err', 'Wrong device?');
+    logErr('No FIRMWARE_NAME in reply to M115 — this is probably NOT the Mega.');
+    logErr('The ODrive answers G-code with "unknown command". Disconnect and re-select the Arduino (USB 2341:0042).');
+  }, 2500);
+}
+
+async function readLoop() {
+  const decoder = new TextDecoderStream();
+  readableStreamClosed = port.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      readBuffer += value;
+      const lines = readBuffer.split('\n');
+      readBuffer = lines.pop();
+      for (const l of lines) processLine(l.trim());
+    }
+  } catch (e) {
+    if (isConnected) logErr('Read error: ' + e.message);
+  } finally {
+    if (isConnected || port) {
+      const was = isConnected;
+      await teardown();
+      if (was) {
+        logErr('Serial device lost.');
+        if (isRunning() || runState === SEGPAUSE) failRun('The serial device disappeared mid-run.');
+      }
+    }
+  }
+}
+
+async function teardown() {
+  if (identityTimer) { clearTimeout(identityTimer); identityTimer = null; }
+  okLedgerReset();
+  try { if (reader) await reader.cancel(); } catch (e) { /* already gone */ }
+  try { if (reader) reader.releaseLock(); } catch (e) { /* already released */ }
+  reader = null;
+  // releaseLock() only — writer.close() can hang forever on an unplugged device.
+  try { if (writer) writer.releaseLock(); } catch (e) { /* already released */ }
+  writer = null;
+  try { if (readableStreamClosed) await readableStreamClosed; } catch (e) { /* expected */ }
+  readableStreamClosed = null;
+  try { if (port) await port.close(); } catch (e) { /* already closed */ }
+  port = null;
+  isConnected = false;
+  identityOk = false;
+  setLink('', 'Disconnected');
+  document.getElementById('btnConnect').textContent = 'Connect';
+}
+
+async function disconnect() {
+  await teardown();
+  logInfo('Disconnected');
+}
+
+function setLink(cls, text) {
+  document.getElementById('dotLink').className = 'dot ' + cls;
+  document.getElementById('lblLink').textContent = text;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Incoming lines
+// ══════════════════════════════════════════════════════════════════════════
+function processLine(line) {
+  if (!line) return;
+  const verbose = document.getElementById('verbose').checked;
+
+  if (line.startsWith('FIRMWARE_NAME:')) {
+    identityOk = true;
+    setLink('ok', 'Marlin');
+  }
+
+  if (line.startsWith('echo:SPIN ')) {
+    const msg = line.substring(10);
+
+    if (msg.startsWith('TELEM:')) { if (verbose) logRx(line); return; }
+
+    // The accumulator, from whichever field carries it (#80).
+    const acc = msg.match(/DATA:\s*(?:HomePos|InitialPos)=([-\d.]+)/);
+    if (acc) setAccum(parseFloat(acc[1]));
+
+    // #47: the spincoater's verdict is read by message class. An ERR: fails the
+    // line that is in flight, whatever its token; `ok` alone would not.
+    if (msg.startsWith('ERR:')) {
+      const text = msg.substring(4).trim();
+      logErr('SPIN ERR: ' + text);
+      if (pending) { pending.sawErr = true; pending.errText = text; }
+      else if (runState === SEGPAUSE) logWarn('That error arrived between segments — check before continuing.');
+      return;
+    }
+    if (msg.startsWith('OK:')) {
+      if (pending) pending.markers.push(msg.substring(3).trim());
+      logInfo('SPIN ' + msg);
+      return;
+    }
+    logRx(line);
+    return;
+  }
+
+  if (line === 'ok' || (line.startsWith('ok') && line.length < 5)) {
+    onOkReceived();
+    if (!verbose) return;
+  }
+
+  // Marlin's own errors are terminal for the line in flight too.
+  if (/^(Error|!!)/i.test(line)) {
+    logErr(line);
+    if (pending) { pending.sawErr = true; pending.errText = line; }
+    return;
+  }
+
+  if (!verbose && (/^T:\d/.test(line) || line.startsWith('echo:busy'))) return;
+  logRx(line);
+}
+
+function setAccum(turns) {
+  accumTurns = turns;
+  const abs = Math.abs(turns);
+  document.getElementById('lblAccum').textContent = turns.toFixed(0);
+  document.getElementById('dotAccum').className =
+    'dot ' + (abs >= ACCUM_BLOCK ? 'err' : abs >= ACCUM_WARN ? 'warn' : 'ok');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Parsing
+//
+// Markers are the source of truth. A marker starts a segment that runs to the
+// next marker or to end of file, so the operator cannot accidentally split a G1
+// from the M400 that must precede its servo command.
+//
+//   ;SEGMENT: <name>          start a segment
+//   ;LAYER-SEGMENT: <name>    start a segment that belongs to the repeated
+//                             per-layer block. Layer segments must be contiguous.
+//   ;REQUIRES: a, b           preconditions, checked when run out of sequence
+//   ;PROVIDES: a, b           what this segment establishes once it has run
+//   ;PARAM: name label="…" default=N min=N max=N [unit=X] [scope=layer]
+//
+// A {name} placeholder in an executable line is substituted at send time. An
+// undeclared placeholder is a load-time error, not a run-time surprise.
+// ══════════════════════════════════════════════════════════════════════════
+const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+
+function parseProgram() {
+  // Re-parsing rebuilds the plan and resets every status, which would leave a
+  // run in progress pointing at segments that no longer exist.
+  if (isRunning() || runState === SEGPAUSE) {
+    logWarn('Not while a run is in progress — Stop it first.');
+    return false;
+  }
+  const raw = document.getElementById('src').value;
+  const errors = [], warnings = [], info = [];
+  const params = new Map();
+  const segments = [];
+  let cur = null;
+
+  const startSegment = (name, isLayer, lineNo) => {
+    cur = { name, isLayer, lineNo, requires: [], provides: [], lines: [], fromFile: true };
+    segments.push(cur);
+  };
+  // Anything before the first marker is still a segment; the operator should be
+  // able to step through a homing prelude like everything else.
+  startSegment('Prelude', false, 1);
+
+  raw.split(/\r?\n/).forEach((text, i) => {
+    const n = i + 1, t = text.trim();
+    let m;
+    if ((m = t.match(/^;\s*PARAM:\s*(.+)$/i)))          { parseParamDecl(m[1], n, params, errors); return; }
+    if ((m = t.match(/^;\s*(LAYER-)?SEGMENT:\s*(.+)$/i))) { startSegment(m[2].trim(), !!m[1], n); return; }
+    if ((m = t.match(/^;\s*REQUIRES:\s*(.+)$/i)))       { cur.requires.push(...tokens(m[1])); return; }
+    if ((m = t.match(/^;\s*PROVIDES:\s*(.+)$/i)))       { cur.provides.push(...tokens(m[1])); return; }
+
+    const code = text.replace(/;.*$/, '').trim();
+    if (code) cur.lines.push({ n, code });
+  });
+
+  if (segments.length > 1 && segments[0].lines.length === 0) segments.shift();
+
+  // ── validation ──
+  const layerIdx = segments.map((s, i) => s.isLayer ? i : -1).filter(i => i >= 0);
+  if (layerIdx.length) {
+    const span = layerIdx[layerIdx.length - 1] - layerIdx[0] + 1;
+    if (span !== layerIdx.length) {
+      errors.push('The ;LAYER-SEGMENT segments are not contiguous. The repeated block must be one unbroken run, ' +
+                  'otherwise "layer 2" would mean interleaving segments that were never written to interleave.');
+    }
+  }
+
+  for (const s of segments) {
+    for (const l of s.lines) {
+      for (const m of l.code.matchAll(PLACEHOLDER)) {
+        const p = params.get(m[1]);
+        if (!p) errors.push('line ' + l.n + ': {' + m[1] + '} is not declared by any ;PARAM:');
+        else p.used = true;
+      }
+      // A lone brace is a typo that would otherwise be sent to the machine verbatim.
+      if (/[{}]/.test(l.code.replace(PLACEHOLDER, ''))) {
+        errors.push('line ' + l.n + ': stray { or } — a placeholder is malformed: ' + l.code);
+      }
+    }
+  }
+  params.forEach(p => { if (!p.used) warnings.push(';PARAM: ' + p.name + ' is declared but never used.'); });
+
+  const empty = segments.filter(s => s.lines.length === 0).map(s => s.name);
+  if (empty.length) warnings.push('Segment(s) with no executable lines: ' + empty.join(', '));
+
+  if (!segments.length || segments.every(s => s.lines.length === 0)) {
+    errors.push('No executable lines found.');
+  }
+
+  // ── commit ──
+  program = { params, segments, errors, warnings };
+  renderDiagnostics(errors, warnings, info);
+
+  if (errors.length) {
+    plan = [];
+    logErr('Program NOT loaded — ' + errors.length + ' error(s). Nothing can be run until they are fixed.');
+    renderSegments(); renderParams(); renderLayerTable();
+    setRunState(IDLE);
+    return false;
+  }
+
+  provided = new Set();
+  lastFinishedStep = -1;
+  selectedStep = 0;
+  document.getElementById('src').readOnly = false;
+  renderParams();
+  renderLayerTable();
+  buildPlan();
+  logInfo('Parsed: ' + segments.length + ' segment(s), ' + params.size + ' parameter(s), ' +
+          segments.reduce((a, s) => a + s.lines.length, 0) + ' executable line(s).');
+  setRunState(IDLE);
+  showView('run');
+  return true;
+}
+
+function tokens(s) {
+  return s.split(/[,\s]+/).map(x => x.trim()).filter(Boolean);
+}
+
+function parseParamDecl(rest, n, params, errors) {
+  const head = rest.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(.*)$/);
+  if (!head) { errors.push('line ' + n + ': ;PARAM: needs a name'); return; }
+  const name = head[1];
+  if (params.has(name)) { errors.push('line ' + n + ': ;PARAM: ' + name + ' is declared twice'); return; }
+
+  const attrs = {};
+  const re = /([A-Za-z_]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))/g;
+  let a;
+  while ((a = re.exec(head[2]))) attrs[a[1].toLowerCase()] = a[2] !== undefined ? a[2] : (a[3] !== undefined ? a[3] : a[4]);
+
+  const need = ['default', 'min', 'max'].filter(k => attrs[k] === undefined);
+  if (need.length) {
+    errors.push('line ' + n + ': ;PARAM: ' + name + ' is missing ' + need.join(', ') +
+                '. Bounds are not optional — an unbounded cure-time box proves nothing.');
+    return;
+  }
+  const num = k => { const v = parseFloat(attrs[k]); return isFinite(v) ? v : null; };
+  const def = num('default'), min = num('min'), max = num('max');
+  if (def === null || min === null || max === null) {
+    errors.push('line ' + n + ': ;PARAM: ' + name + ' has a non-numeric default/min/max'); return;
+  }
+  if (min >= max)             { errors.push('line ' + n + ': ;PARAM: ' + name + ' has min >= max'); return; }
+  if (def < min || def > max) { errors.push('line ' + n + ': ;PARAM: ' + name + ' default ' + def + ' is outside ' + min + '..' + max); return; }
+
+  const scope = (attrs.scope || 'global').toLowerCase();
+  if (scope !== 'global' && scope !== 'layer') {
+    errors.push('line ' + n + ': ;PARAM: ' + name + ' scope must be global or layer'); return;
+  }
+  params.set(name, {
+    name, label: attrs.label || name, unit: attrs.unit || '',
+    default: def, min, max, scope, used: false, line: n,
+  });
+}
+
+function renderDiagnostics(errors, warnings, info) {
+  const box = document.getElementById('diag');
+  box.innerHTML = '';
+  const add = (cls, text) => { const d = document.createElement('div'); d.className = cls; d.textContent = text; box.appendChild(d); };
+  errors.forEach(e => add('e', 'ERROR  ' + e));
+  warnings.forEach(w => add('w', 'warn   ' + w));
+  info.forEach(i => add('i', i));
+  if (!errors.length && !warnings.length) add('i', 'Program parsed cleanly.');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// The run plan
+//
+// The layer block is expanded here rather than at run time, so the segment list
+// shows exactly what will execute and "Run From Here" can point at layer 3 of a
+// five-layer block.
+// ══════════════════════════════════════════════════════════════════════════
+function buildPlan() {
+  plan = [];
+  if (!program) { renderSegments(); return; }
+  const segs = program.segments;
+  const layers = layerCount();
+  planLayerCount = layers;   // what the plan was actually built with
+  let i = 0;
+  while (i < segs.length) {
+    if (!segs[i].isLayer) { plan.push({ seg: segs[i], layer: null }); i++; continue; }
+    let j = i;
+    while (j < segs.length && segs[j].isLayer) j++;
+    for (let L = 1; L <= layers; L++) {
+      for (let k = i; k < j; k++) plan.push({ seg: segs[k], layer: L });
+    }
+    i = j;
+  }
+  plan.forEach((st, idx) => { st.idx = idx; st.status = 'pending'; });
+  if (selectedStep >= plan.length) selectedStep = 0;
+  renderSegments();
+  updateRunHint();
+}
+
+function hasLayerSegments() { return !!program && program.segments.some(s => s.isLayer); }
+function layerCount() { return Math.max(1, parseInt(document.getElementById('layerCount').value, 10) || 1); }
+
+function onLayerCountChange() {
+  // Changing the layer count rebuilds the plan, so a run in progress would find
+  // itself indexing into a different list of steps.
+  if (isRunning() || runState === SEGPAUSE) {
+    logWarn('Layer count cannot change during a run.');
+    document.getElementById('layerCount').value = String(planLayerCount);
+    return;
+  }
+  renderLayerTable();
+  buildPlan();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Parameters and the layer table
+// ══════════════════════════════════════════════════════════════════════════
+const LS_KEY = 'rmr.segrunner.params';
+
+function storedParams() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; }
+}
+function storeParam(name, value) {
+  const all = storedParams();
+  all[name] = value;
+  try { localStorage.setItem(LS_KEY, JSON.stringify(all)); } catch (e) { /* private mode */ }
+}
+
+function renderParams() {
+  const box = document.getElementById('paramBox');
+  box.innerHTML = '';
+  if (!program || !program.params.size) {
+    box.innerHTML = '<p class="hint">No parameters declared.</p>';
+    return;
+  }
+  const saved = storedParams();
+  program.params.forEach(p => {
+    // A stored value from a previous session is clamped, never trusted: the
+    // program's bounds may have tightened since it was saved.
+    let v = saved[p.name] !== undefined ? parseFloat(saved[p.name]) : p.default;
+    if (!isFinite(v) || v < p.min || v > p.max) v = p.default;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'param';
+    const lab = document.createElement('label');
+    lab.htmlFor = 'gp_' + p.name;
+    lab.innerHTML = esc(p.label) + (p.scope === 'layer' ? '<span class="tag layer">per layer</span>' : '') +
+                    '<span class="lim">' + esc(p.name) + ' — ' + p.min + ' to ' + p.max + '</span>';
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.id = 'gp_' + p.name;
+    inp.min = p.min; inp.max = p.max; inp.step = 'any'; inp.value = v;
+    inp.addEventListener('input', () => {
+      const bad = !isFinite(parseFloat(inp.value)) || parseFloat(inp.value) < p.min || parseFloat(inp.value) > p.max;
+      inp.classList.toggle('bad', bad);
+      if (!bad) storeParam(p.name, inp.value);
+    });
+    const unit = document.createElement('span');
+    unit.className = 'unit'; unit.textContent = p.unit;
+    wrap.append(lab, inp, unit);
+    box.appendChild(wrap);
+  });
+}
+
+function renderLayerTable() {
+  const box = document.getElementById('layerBox');
+  if (!program) { box.innerHTML = '<p class="hint">No program parsed.</p>'; return; }
+  const layerParams = [...program.params.values()].filter(p => p.scope === 'layer');
+  if (!hasLayerSegments()) {
+    box.innerHTML = '<p class="hint">No <code>;LAYER-SEGMENT</code> in this program.</p>';
+    return;
+  }
+  if (!layerParams.length) {
+    box.innerHTML = '<p class="hint">The layer block will repeat, but no parameter declares ' +
+                    '<code>scope=layer</code>, so every layer runs identically.</p>';
+    return;
+  }
+  // Keep whatever the operator has already typed across a re-render.
+  const prev = {};
+  document.querySelectorAll('[id^="lp_"]').forEach(el => { prev[el.id] = el.value; });
+
+  const n = layerCount();
+  let html = '<table><thead><tr><th>Layer</th>';
+  layerParams.forEach(p => { html += '<th>' + esc(p.label) + (p.unit ? ' <span class="unit">(' + esc(p.unit) + ')</span>' : '') + '</th>'; });
+  html += '</tr></thead><tbody>';
+  for (let L = 1; L <= n; L++) {
+    html += '<tr><th>' + L + '</th>';
+    layerParams.forEach(p => {
+      const id = 'lp_' + p.name + '_' + L;
+      const val = prev[id] !== undefined ? esc(prev[id]) : '';
+      html += '<td><input type="number" id="' + id + '" step="any" min="' + p.min + '" max="' + p.max +
+              '" value="' + val + '" placeholder="' + p.default + '"></td>';
+    });
+    html += '</tr>';
+  }
+  box.innerHTML = html + '</tbody></table>';
+}
+
+// Resolve at send time, not at parse time: the operator may change a box between
+// segments, and that is the whole point of the page.
+function resolveParam(name, layer) {
+  const p = program.params.get(name);
+  if (!p) throw new Error('{' + name + '} is not declared');
+  if (p.scope === 'layer' && layer !== null) {
+    const cell = document.getElementById('lp_' + name + '_' + layer);
+    if (cell && cell.value.trim() !== '') return checkBound(p, cell.value, 'layer ' + layer);
+  }
+  const g = document.getElementById('gp_' + name);
+  return checkBound(p, g ? g.value : String(p.default), 'global');
+}
+
+function checkBound(p, raw, where) {
+  const v = parseFloat(raw);
+  if (!isFinite(v)) throw new Error(p.name + ' (' + where + ') is not a number: "' + raw + '"');
+  if (v < p.min || v > p.max) {
+    throw new Error(p.name + ' (' + where + ') = ' + v + ' is outside its declared range ' + p.min + '..' + p.max);
+  }
+  return String(v);
+}
+
+function substitute(code, layer) {
+  return code.replace(PLACEHOLDER, (_, name) => resolveParam(name, layer));
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Segment list
+// ══════════════════════════════════════════════════════════════════════════
+function renderSegments() {
+  const list = document.getElementById('segList');
+  list.innerHTML = '';
+  if (!plan.length) {
+    list.innerHTML = '<li><div class="hdr"><span class="nm">No program parsed.</span></div></li>';
+    return;
+  }
+  plan.forEach((st, idx) => {
+    const li = document.createElement('li');
+    li.className = (st.status || 'pending') + (idx === selectedStep ? ' sel' : '');
+
+    const hdr = document.createElement('div');
+    hdr.className = 'hdr';
+    hdr.onclick = () => { selectedStep = idx; renderSegments(); updateRunHint(); };
+
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.innerHTML = '<b>' + (idx + 1) + '.</b> ' + esc(st.seg.name) +
+      (st.seg.fromFile ? '' : '<span class="tag session">session</span>') +
+      '<span class="meta"> — ' + st.seg.lines.length + ' line' + (st.seg.lines.length === 1 ? '' : 's') + '</span>';
+    hdr.appendChild(nm);
+
+    if (st.layer !== null) {
+      const b = document.createElement('span');
+      b.className = 'badge layer'; b.textContent = 'layer ' + st.layer + '/' + planLayerCount;
+      hdr.appendChild(b);
+    }
+    st.seg.requires.forEach(r => {
+      const b = document.createElement('span');
+      b.className = 'badge req'; b.textContent = 'needs ' + r;
+      hdr.appendChild(b);
+    });
+    const status = document.createElement('span');
+    status.className = 'badge';
+    status.textContent = st.status || 'pending';
+    hdr.appendChild(status);
+
+    const more = document.createElement('button');
+    more.className = 'small';
+    more.textContent = '⋯';
+    more.title = 'Session-only split / merge';
+    more.onclick = ev => { ev.stopPropagation(); li.classList.toggle('open'); };
+    hdr.appendChild(more);
+
+    li.appendChild(hdr);
+    li.appendChild(buildEditRow(st, idx));
+
+    if (idx === planIdx && (runState === RUNNING || runState === PAUSED) && st.seg.lines[lineIdx]) {
+      const cl = document.createElement('div');
+      cl.className = 'curline mono';
+      cl.textContent = '→ line ' + st.seg.lines[lineIdx].n + ': ' + st.seg.lines[lineIdx].code;
+      li.appendChild(cl);
+    }
+    list.appendChild(li);
+  });
+}
+
+// Session-only overrides (#62 §2). Markers stay the source of truth: these are
+// marked "session", are wiped by a re-parse, and are never written to the file.
+function buildEditRow(st, idx) {
+  const div = document.createElement('div');
+  div.className = 'edit';
+  if (isRunning()) {
+    div.innerHTML = '<span class="hint">Not while a run is in progress.</span>';
+    return div;
+  }
+  const sel = document.createElement('select');
+  sel.style.cssText = 'background:#0b1020;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:5px';
+  st.seg.lines.forEach((l, i) => {
+    if (i === 0) return;                       // splitting before line 1 is a no-op
+    const o = document.createElement('option');
+    o.value = i; o.textContent = 'line ' + l.n + ': ' + l.code.slice(0, 40);
+    sel.appendChild(o);
+  });
+  const splitBtn = document.createElement('button');
+  splitBtn.className = 'small'; splitBtn.textContent = 'Split before';
+  splitBtn.disabled = st.seg.lines.length < 2;
+  splitBtn.onclick = () => splitSegment(st.seg, parseInt(sel.value, 10));
+
+  const mergeBtn = document.createElement('button');
+  mergeBtn.className = 'small'; mergeBtn.textContent = 'Merge with next';
+  mergeBtn.onclick = () => mergeSegment(st.seg);
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.append(sel, splitBtn, mergeBtn);
+  div.appendChild(row);
+  const note = document.createElement('p');
+  note.className = 'hint';
+  note.textContent = 'Session-only, for a one-off run. Re-parsing restores the file\u2019s markers.';
+  div.appendChild(note);
+  return div;
+}
+
+function splitSegment(seg, at) {
+  const segs = program.segments;
+  const i = segs.indexOf(seg);
+  if (i < 0 || !(at > 0 && at < seg.lines.length)) return;
+  const tail = {
+    name: seg.name + ' (part 2)', isLayer: seg.isLayer, lineNo: seg.lines[at].n,
+    requires: [], provides: seg.provides.slice(), lines: seg.lines.slice(at), fromFile: false,
+  };
+  seg.lines = seg.lines.slice(0, at);
+  seg.provides = [];                 // whatever it established now happens in the tail
+  seg.name += ' (part 1)';
+  seg.fromFile = false;
+  segs.splice(i + 1, 0, tail);
+  logWarn('Session-only: split "' + tail.name + '" out of "' + seg.name + '". Re-parse to undo.');
+  buildPlan();
+}
+
+function mergeSegment(seg) {
+  const segs = program.segments;
+  const i = segs.indexOf(seg);
+  if (i < 0 || i + 1 >= segs.length) { logWarn('Nothing after that segment to merge with.'); return; }
+  const next = segs[i + 1];
+  if (next.isLayer !== seg.isLayer) {
+    logErr('Refusing to merge a layer segment with a non-layer one — the merged block could not be repeated coherently.');
+    return;
+  }
+  seg.lines = seg.lines.concat(next.lines);
+  seg.provides = [...new Set(seg.provides.concat(next.provides))];
+  seg.name = seg.name + ' + ' + next.name;
+  seg.fromFile = false;
+  segs.splice(i + 1, 1);
+  logWarn('Session-only: merged into "' + seg.name + '". Re-parse to undo.');
+  buildPlan();
+}
+
+function resetOverrides() {
+  if (isRunning()) { logWarn('Not while a run is in progress.'); return; }
+  parseProgram();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Execution
+// ══════════════════════════════════════════════════════════════════════════
+function isRunning() { return runState === RUNNING || runState === PAUSED; }
+
+function setRunState(s, text) {
+  runState = s;
+  const map = {
+    idle:     ['',     'Idle'],
+    running:  ['busy', 'Running'],
+    paused:   ['warn', 'Paused'],
+    segPause: ['warn', 'Paused between segments'],
+    failed:   ['err',  'FAILED'],
+    done:     ['ok',   'Complete'],
+  };
+  const [cls, label] = map[s] || ['', s];
+  document.getElementById('dotRun').className = 'dot ' + cls;
+  document.getElementById('lblRun').textContent = text || label;
+
+  const busy = s === RUNNING || s === PAUSED || s === SEGPAUSE;
+  ['btnRunAll', 'btnRunFrom', 'btnRunOne', 'btnRerun'].forEach(id => document.getElementById(id).disabled = busy);
+  document.getElementById('btnContinue').disabled = s !== SEGPAUSE;
+  document.getElementById('btnPause').disabled = !isRunning();
+  document.getElementById('btnPause').textContent = s === PAUSED ? 'Resume' : 'Pause';
+  document.getElementById('src').readOnly = busy;
+  document.getElementById('layerCount').disabled = busy;
+  renderSegments();
+  updateRunHint();
+}
+
+function updateRunHint() {
+  const h = document.getElementById('runHint');
+  if (!program) { h.textContent = 'Load and parse a program first.'; return; }
+  if (program.errors.length) { h.textContent = 'Fix the parse errors before running.'; return; }
+  if (!plan.length) { h.textContent = 'Nothing to run.'; return; }
+  const st = plan[selectedStep];
+  if (runState === SEGPAUSE) {
+    const next = plan[planIdx];
+    h.textContent = 'Finished segment ' + (planIdx) + '. Next: ' + (next ? next.seg.name : '—') + '. Press Continue.';
+    return;
+  }
+  if (isRunning()) {
+    h.textContent = 'Segment ' + (planIdx + 1) + '/' + plan.length + ', line ' + (lineIdx + 1) +
+                    '/' + plan[planIdx].seg.lines.length + '.';
+    return;
+  }
+  h.textContent = 'Selected: ' + (selectedStep + 1) + '. ' + st.seg.name +
+                  (st.layer !== null ? ' (layer ' + st.layer + ')' : '') + '.';
+}
+
+// ── entry points ──
+function runAll()          { startRun(0, plan.length); }
+function runFromSelected() { startRun(selectedStep, plan.length); }
+function runSelectedOnly() { startRun(selectedStep, selectedStep + 1); }
+function rerunLast() {
+  if (lastFinishedStep < 0) { logWarn('No segment has finished yet.'); return; }
+  startRun(lastFinishedStep, lastFinishedStep + 1);
+}
+
+function startRun(from, until) {
+  if (!program || program.errors.length || !plan.length) { logErr('No runnable program.'); return; }
+  if (!isConnected) { logErr('Not connected.'); return; }
+  if (!identityOk && !confirm('The board has not confirmed it is Marlin (no FIRMWARE_NAME reply to M115).\n\nRun anyway?')) return;
+  if (!accumulatorAllows(from, until)) return;
+  if (!preconditionsAllow(from, until)) return;
+  if (!datumGuardAllows(from, until)) return;
+
+  plan.forEach((st, i) => { if (i >= from) st.status = 'pending'; });
+  planIdx = from; lineIdx = 0; stopBefore = until; pending = null;
+  logInfo('── Run: segments ' + (from + 1) + '–' + until + ' of ' + plan.length + ' ──');
+  setRunState(RUNNING);
+  startStep();
+}
+
+function startStep() {
+  const st = plan[planIdx];
+  st.status = 'running';
+  lineIdx = 0;
+  logInfo('▶ Segment ' + (planIdx + 1) + '/' + plan.length + ': ' + st.seg.name +
+          (st.layer !== null ? ' (layer ' + st.layer + ')' : ''));
+  if (!st.seg.lines.length) { finishSegment(); return; }
+  sendNextLine();
+}
+
+function sendNextLine() {
+  const st = plan[planIdx];
+  const src = st.seg.lines[lineIdx];
+  let cmd;
+  try {
+    cmd = substitute(src.code, st.layer);
+  } catch (e) {
+    failRun('Line ' + src.n + ': ' + e.message);
+    return;
+  }
+  // No client-side timeout. M750, G28 and G4 S50 block for minutes by design;
+  // Task 8.4 bounds M750 in firmware. A timeout here could only ever abort a
+  // healthy run.
+  pending = { stepIdx: planIdx, lineIdx, sawErr: false, errText: '', markers: [] };
+  renderSegments();
+  updateRunHint();
+  sendCmd(cmd, 'prog');
+}
+
+// Called only for an `ok` the ledger attributed to a program line.
+function programLineAcked() {
+  const p = pending;
+  pending = null;
+  if (!p) return;
+  if (runState !== RUNNING && runState !== PAUSED) return;
+
+  if (p.sawErr) {
+    failRun('Segment "' + plan[p.stepIdx].seg.name + '" reported: ' + p.errText);
+    return;
+  }
+  const cmd = plan[p.stepIdx].seg.lines[p.lineIdx].code;
+  // A spincoater command that returns without its own terminal marker did
+  // something we cannot vouch for. `ok` says Marlin parsed it, nothing more.
+  if (/^M75[012]\b/i.test(cmd) && !p.markers.length) {
+    logWarn('“' + cmd + '” finished with no echo:SPIN OK: marker. Check the log before continuing.');
+  }
+  lineIdx++;
+  if (runState === PAUSED) { updateRunHint(); return; }   // Resume continues
+  advance();
+}
+
+function advance() {
+  const st = plan[planIdx];
+  if (lineIdx >= st.seg.lines.length) { finishSegment(); return; }
+  sendNextLine();
+}
+
+function finishSegment() {
+  const st = plan[planIdx];
+  st.status = 'done';
+  st.seg.provides.forEach(t => provided.add(t));
+  if (st.seg.lines.some(l => /^G28\b/i.test(l.code) && !/^G28\s+[A-Z]/i.test(l.code))) provided.add('homed');
+  lastFinishedStep = planIdx;
+  logInfo('✔ Segment ' + (planIdx + 1) + ' complete: ' + st.seg.name);
+
+  planIdx++; lineIdx = 0;
+  if (planIdx >= plan.length || planIdx >= stopBefore) { completeRun(); return; }
+  if (document.getElementById('pauseEachSeg').checked) {
+    setRunState(SEGPAUSE);
+    logInfo('Paused. Next: ' + plan[planIdx].seg.name + ' — press Continue.');
+    return;
+  }
+  startStep();
+}
+
+function continueRun() {
+  if (runState !== SEGPAUSE) return;
+  if (!preconditionsAllow(planIdx, stopBefore)) return;
+  setRunState(RUNNING);
+  startStep();
+}
+
+function togglePause() {
+  if (runState === RUNNING) {
+    setRunState(PAUSED);
+    logWarn('Pausing after the line now in flight. The machine finishes it either way.');
+  } else if (runState === PAUSED) {
+    setRunState(RUNNING);
+    // Only send if the line we paused on has already been answered. If it has
+    // not, its `ok` is still outstanding and programLineAcked() continues for us;
+    // sending here would put a second line on the wire while the first is running.
+    if (!pending) advance();
+  }
+}
+
+function completeRun() {
+  setRunState(DONE);
+  pending = null;
+  logInfo('── Run complete ──');
+}
+
+function failRun(why) {
+  if (plan[planIdx]) plan[planIdx].status = 'failed';
+  pending = null;
+  setRunState(FAILED, 'FAILED');
+  logErr('✖ Run halted: ' + why);
+  logErr('No further lines will be sent. The machine has NOT been stopped — press STOP (M112) if it is still moving.');
+}
+
+// ── the emergency path ──
+function emergencyStop() {
+  sendCmd('M112');
+  // M112 reaches kill(), which never answers `ok`, so its ledger entry would be
+  // stranded and offset every attribution after it.
+  okLedgerReset();
+  pending = null;
+  if (plan[planIdx]) plan[planIdx].status = 'failed';
+  setRunState(FAILED, 'E-STOPPED');
+  logErr('>>> M112 EMERGENCY STOP SENT <<<');
+  logErr('Recovery: disconnect and reconnect this page (that toggles DTR and resets the Mega).');
+  logErr('The in-RAM home datum is gone — send M751 again before any M750 that homes.');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Guards
+// ══════════════════════════════════════════════════════════════════════════
+
+// #80. pos_estimate never wraps and is a 32-bit float, so its step size grows
+// with magnitude. Above ~32768 turns the step exceeds the 0.003-turn settle
+// tolerance and index homing can only pass on a bit-identical match.
+function accumulatorAllows(from, until) {
+  if (accumTurns === null) return true;
+  const abs = Math.abs(accumTurns);
+  const spins = plan.slice(from, until)
+    .reduce((a, st) => a + st.seg.lines.filter(l => /^M750\b/i.test(l.code)).length, 0);
+  if (abs >= ACCUM_BLOCK) {
+    alert('The ODrive accumulator is at ' + accumTurns.toFixed(0) + ' turns.\n\n' +
+          'Power-cycle the ODrive before running a batch — that zeroes pos_estimate. ' +
+          'Above ~32768 turns index homing cannot converge (issue #80).');
+    logErr('Run refused: accumulator ' + accumTurns.toFixed(0) + ' turns ≥ ' + ACCUM_BLOCK + '.');
+    return false;
+  }
+  if (abs >= ACCUM_WARN && spins > 0) {
+    return confirm('The ODrive accumulator is at ' + accumTurns.toFixed(0) + ' turns and this run contains ' +
+                   spins + ' spin(s), roughly ' + (spins * 217) + ' more turns.\n\n' +
+                   'Power-cycling the ODrive resets it and costs nothing. Continue anyway?');
+  }
+  return true;
+}
+
+// #62 §7. Re-running a segment out of order can be unsafe — "press filter onto
+// spincoater" without a filter in the gripper, or a Z move that assumes a prior
+// G1 Z0.
+function preconditionsAllow(from, until) {
+  const satisfied = new Set(provided);
+  const missing = new Map();
+  for (let i = from; i < Math.min(until, plan.length); i++) {
+    const s = plan[i].seg;
+    s.requires.forEach(r => { if (!satisfied.has(r) && !missing.has(r)) missing.set(r, s.name); });
+    s.provides.forEach(p => satisfied.add(p));
+    if (s.lines.some(l => /^G28\b/i.test(l.code) && !/^G28\s+[A-Z]/i.test(l.code))) satisfied.add('homed');
+  }
+  if (!missing.size) return true;
+  const list = [...missing.entries()].map(([tok, seg]) => '  • ' + tok + '  (needed by "' + seg + '")').join('\n');
+  logWarn('Unmet preconditions: ' + [...missing.keys()].join(', '));
+  return confirm('This run starts at a segment whose preconditions have not been established ' +
+                 'in this session:\n\n' + list + '\n\nThat is the out-of-sequence case: a press step ' +
+                 'with nothing in the gripper, or a Z move that assumes an earlier one.\n\nRun anyway?');
+}
+
+// M751 redefines the angular datum. Running it again mid-process silently moves
+// the frame every later angle is measured against.
+function datumGuardAllows(from, until) {
+  if (from === 0) return true;
+  const hits = [];
+  for (let i = from; i < Math.min(until, plan.length); i++) {
+    if (plan[i].seg.lines.some(l => /^M751\b/i.test(l.code))) hits.push(plan[i].seg.name);
+  }
+  if (!hits.length) return true;
+  return confirm('This partial run contains M751 (set home datum) in: ' + hits.join(', ') + '.\n\n' +
+                 'M751 redefines the zero every later angle is measured against. Run it anyway?');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Preview / dry run
+// ══════════════════════════════════════════════════════════════════════════
+function renderPreview() {
+  const box = document.getElementById('preview');
+  if (!program || program.errors.length) { box.textContent = 'Parse a program without errors first.'; return; }
+  const out = [];
+  let total = 0;
+  plan.forEach((st, i) => {
+    out.push('── ' + (i + 1) + '. ' + st.seg.name + (st.layer !== null ? '   [layer ' + st.layer + ']' : '') +
+             (st.seg.requires.length ? '   needs: ' + st.seg.requires.join(', ') : ''));
+    st.seg.lines.forEach(l => {
+      total++;
+      try {
+        const sub = substitute(l.code, st.layer);
+        out.push('   ' + String(l.n).padStart(4) + '  ' + sub + (sub !== l.code ? '        (was: ' + l.code + ')' : ''));
+      } catch (e) {
+        out.push('   ' + String(l.n).padStart(4) + '  !! ' + e.message);
+      }
+    });
+  });
+  out.push('', plan.length + ' segment(s), ' + total + ' line(s) would be sent.');
+  box.textContent = out.join('\n');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Files
+// ══════════════════════════════════════════════════════════════════════════
+function loadFile(ev) {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    document.getElementById('src').value = e.target.result;
+    logInfo('Loaded ' + f.name);
+    parseProgram();
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+
+function saveFile() {
+  const blob = new Blob([document.getElementById('src').value], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'program.gcode';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+const REFERENCE = [
+  '; Marker reference for the Segment Runner (issue #62).',
+  '; Nothing here is a process program — it exists to show the syntax.',
+  '',
+  ';PARAM: spin_rpm   label="Spin RPM"      default=1000 min=100 max=5000 unit=RPM scope=layer',
+  ';PARAM: spin_dwell label="Spin dwell"    default=50   min=1   max=600  unit=s   scope=layer',
+  ';PARAM: cure_s     label="UV cure"       default=5    min=1   max=600  unit=s   scope=layer',
+  ';PARAM: push_mm    label="Dispense push" default=6    min=0.5 max=20   unit=mm',
+  ';PARAM: adhere_s   label="Adhesion hold" default=50   min=5   max=300  unit=s',
+  '',
+  ';SEGMENT: Home everything',
+  ';PROVIDES: homed',
+  'G28',
+  '',
+  ';LAYER-SEGMENT: Dispense',
+  ';REQUIRES: homed',
+  'G92 E0',
+  'G1 E-{push_mm} F300',
+  'G4 P300',
+  '',
+  ';LAYER-SEGMENT: Spin and cure',
+  ';REQUIRES: homed',
+  'M400',
+  'M750 S{spin_rpm} D{spin_dwell} A3 C3 H1',
+  'M42 P4 S1                    ; UV_ON  (active-high)',
+  'G4 S{cure_s}',
+  'M42 P4 S0                    ; UV_OFF',
+  '',
+  ';SEGMENT: Press filter',
+  ';REQUIRES: homed gripper-loaded',
+  'G1 Z165 F300',
+  'G4 S{adhere_s}',
+  '',
+].join('\n');
+
+function loadReference() {
+  document.getElementById('src').value = REFERENCE;
+  parseProgram();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// View switching
+// ══════════════════════════════════════════════════════════════════════════
+function showView(which) {
+  const prog = which === 'program';
+  document.getElementById('viewProgram').classList.toggle('on', prog);
+  document.getElementById('viewRun').classList.toggle('on', !prog);
+  document.getElementById('tabProgram').classList.toggle('on', prog);
+  document.getElementById('tabRun').classList.toggle('on', !prog);
+}
+
+document.addEventListener('keydown', e => {
+  // Not while typing. Escape is a natural "get me out of this field" reflex, and
+  // an accidental M112 costs a reconnect, the in-RAM datum and a fresh M751.
+  const t = e.target && e.target.tagName;
+  if (t === 'TEXTAREA' || t === 'INPUT' || t === 'SELECT') return;
+  if (e.key === 'Escape') { e.preventDefault(); emergencyStop(); }
+});
+
+window.addEventListener('beforeunload', e => {
+  if (isRunning() || runState === SEGPAUSE) { e.preventDefault(); e.returnValue = ''; }
+});
+
+setRunState(IDLE);
+logInfo('Segment Runner ready. Load a program, press Parse, then Connect.');
+</script>
+</body>
+</html>
