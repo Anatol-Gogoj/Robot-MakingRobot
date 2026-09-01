@@ -1,0 +1,29 @@
+{
+  "_comment": "Pi GPIO config for rmr_bridge.py (pass with --io). Copy to rmr_io.json and edit. All sections are OPTIONAL — omit any you don't have. Pins are BCM GPIO numbers. SAFETY: the estop entries below act in SOFTWARE (send/echo M112) and are NOT a safety interlock — also fit a hardware E-stop that physically cuts stepper/ODrive motor power.",
+
+  "_comment_buttons": "Momentary buttons → G-code. 'pull':'up' (default) = wire button between the GPIO pin and GND (internal pull-up, active-low). 'bounce' = debounce seconds.",
+  "buttons": [
+    { "pin": 17, "name": "estop",      "cmd": "M112",       "pull": "up", "bounce": 0.03 },
+    { "pin": 27, "name": "reset",      "cmd": "M999",       "pull": "up", "bounce": 0.05 },
+    { "pin": 22, "name": "home_all",   "cmd": "G28",        "pull": "up", "bounce": 0.05 },
+    { "pin": 23, "name": "uv_off",     "cmd": "M42 P4 S0",  "pull": "up", "bounce": 0.05 },
+    { "pin": 24, "name": "valve_shut", "cmd": "M42 P42 S0", "pull": "up", "bounce": 0.05 }
+  ],
+
+  "_comment_tower": "Status tower + buzzer, driven from machine state: green=ready/idle, amber=active (command sent in last ~1.5 s), red+buzzer=error or E-stop, red steady=serial down. Omit any channel you don't have. 'active_high':false for active-LOW relay/driver boards.",
+  "tower": {
+    "red": 5,
+    "amber": 6,
+    "green": 13,
+    "buzzer": 26,
+    "active_high": true
+  },
+
+  "_comment_estop": "OPTIONAL auxiliary contact of the hardware E-stop wired to a GPIO input, so the software knows it was hit (turns the tower red + buzzer, tells the UI, and — if 'cmd' is set — also sends it). Match 'pull' to your contact: default active-low (button/contact to GND). 'cmd':null to only annunciate.",
+  "estop": {
+    "pin": 20,
+    "pull": "up",
+    "cmd": "M112",
+    "name": "estop"
+  }
+}

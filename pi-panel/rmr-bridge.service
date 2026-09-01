@@ -1,0 +1,31 @@
+# systemd unit for the RMR Pi touch-panel bridge.
+# Install (adjust User/paths to match your Pi):
+#   sudo cp rmr-bridge.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now rmr-bridge.service
+#   journalctl -u rmr-bridge -f      # watch logs
+#
+# Assumes the repo is at /home/pi/Robot-MakingRobot and a venv at
+# pi-panel/.venv (see README). The bridge serves the UI over HTTP :8000 and
+# the WebSocket on :8765, and reads the GPIO config (buttons + status tower +
+# e-stop sense) if present.
+
+[Unit]
+Description=RMR serial <-> WebSocket bridge (touch panel)
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Robot-MakingRobot
+ExecStart=/home/pi/Robot-MakingRobot/pi-panel/.venv/bin/python \
+    /home/pi/Robot-MakingRobot/pi-panel/rmr_bridge.py \
+    --port /dev/rmr-mega --baud 250000 \
+    --ws-port 8765 \
+    --serve-dir /home/pi/Robot-MakingRobot --http-port 8000 \
+    --io /home/pi/Robot-MakingRobot/pi-panel/rmr_io.json
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+# Stable /dev names for the RMR USB serial devices.
+# Install:  sudo cp 99-rmr-serial.rules /etc/udev/rules.d/
+#           sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# Both the Mega and the ODrive enumerate as /dev/ttyACM* and can swap order on
+# reboot, so pin them by USB VID:PID (and serial, if two identical boards).
+# Find yours with:   udevadm info -a -n /dev/ttyACM0 | grep -E 'idVendor|idProduct|serial'
+# or:                lsusb
+# then replace the idVendor/idProduct below.
+#
+# --- Arduino Mega 2560 (Marlin) -> /dev/rmr-mega ---
+# Genuine Arduino Mega (ATmega16U2):        2341:0042  (older R3: 2341:0010)
+# CH340 clone:                              1a86:7523
+# FTDI clone:                               0403:6001
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0042", SYMLINK+="rmr-mega"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="rmr-mega"
+
+# --- ODrive S1 (USB, for odrivetool / debugging only) -> /dev/rmr-odrive ---
+# ODrive uses the pid.codes vendor id 0x1209; PID varies by firmware (e.g. 0d31/0d32).
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0d32", SYMLINK+="rmr-odrive"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0d31", SYMLINK+="rmr-odrive"
