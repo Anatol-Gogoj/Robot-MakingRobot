@@ -235,9 +235,9 @@ Connect via the included `RMR_Controller.html` web UI, Pronterface, or any seria
 
 ## Web Controller (RMR_Controller.html)
 
-Browser-based unified control interface using Web Serial API (Chrome/Edge required). Controls both the gantry and spincoater over a single serial connection.
+Browser-based unified control interface using Web Serial API (Chrome/Edge required). Controls both the gantry and spincoater over a single serial connection. Organized into two top-level tabs — **Manual Control** (all the direct jog/servo/relay/spincoater/console panels below) and **Process Sequencer** (block-based recipe runner, see below).
 
-### Features
+### Manual Control tab — Features
 - **XY jog pad** with configurable step sizes (0.1–50 mm) and feed slider (max 24000 mm/min)
 - **Z jog** with feed slider (max 3000 mm/min), arrows inverted to match physical reality (up arrow = platform down)
 - **Y axis arrows** swapped to match physical motion direction
@@ -259,11 +259,37 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Program Runner** — textarea for G-code programs, Load .gcode button, Run/Pause/Stop controls, line counter, Wait-for-ok checkbox. Sends lines sequentially, waits for Marlin `ok` before sending next line.
 - **Keyboard shortcuts:** Arrow keys = XY, PgUp/PgDn = Z, Esc = E-Stop (disabled when textarea focused)
 
+### Process Sequencer tab
+A recipe-style runner that breaks the workflow into five collapsible `<details>` blocks, each with its own settings, a bottom-row **Run** button (runs that block alone), and an **Enabled** checkbox (governs inclusion in Run All only — per-block Run always works). The toolbar has **Run All** (executes enabled blocks top-to-bottom), **Stop** (soft-aborts the JS command chain; use E-Stop for a hardware halt), and a **Repeat + cycles** control (0 cycles = loop until Stop). A live status line shows the current cycle/block.
+
+- **Engine:** async command chain built on a wait-for-`ok` promise (`seqCmd`/`seqAwaitOk`/`seqOnOk`, hooked into `processLine`'s `ok` detector alongside the Program Runner). One command in flight at a time; blocking G-code (`G28`, `M750`, `M280` with SERVO_DELAY) naturally serializes because Marlin withholds `ok` until done. Browser-side timed waits (`seqSleep`) are used for UV cure and stamp dwells, and are abortable. Auto-report (M114) is paused during a run so stray `ok`s don't advance the chain. `M400` is emitted before servo commands / dwells that depend on physical move completion (`ok` on a `G1` only means "queued", not "arrived").
+- **Homing block:** "All axes" → `G28`; otherwise ticked axes → `G28 X Z …`.
+- **Syringe block:** vertical slider sets Syringe-Height (B) absolute target (0–304 mm) with a **Move** button; dispense amount entered in µL with a µL/mm **factor** (volume = distance × factor) → `G92 E0` + `G1 E<mm>`; **pullback** (µL) retracts after dispense like 3D-printer retraction.
+- **Spin Coater block:** RPM / spin time / rise / sink → `M750 S… D… A… C… H…` (live preview shown); named **presets** saved to `localStorage` (`rmr.spinPresets`) with Save/Load/Delete.
+- **UV block:** cure time + relay pin → optional lid close (`M280 P1`), `M42 P<pin> S1`, browser countdown with elapsed/total progress bar, then `M42 P<pin> S0` (fired even on abort), optional lid reopen.
+- **Stamp block:** full pick→transit→press→dispose cycle (defaults from `DemoProgram.gcode`, exposed under "Advanced positions & feeds"). Tunables: stack height (relative A advance per cycle), grab→move delay, press hold time, and press force (final Z press depth — deeper = more force). Feeder side selectable Left / Right / Alternating (alternating flips each cycle; "next pick" indicator shows which side is next).
+
 ### Touch UI Layout
-The Touch GUI variant organizes controls into tabs:
+The Touch GUI variant (`RMR_Touch.html`) organizes controls into tabs — Jog, **Recipe**, Spin, Console, Program, Advanced:
 - **Jog tab:** XY pad, Z controls, auxiliary axis controls. Single Home All (G28) button in XY center; per-axis home buttons removed from this tab.
+- **Recipe tab:** the Process Sequencer (same block set/engine/IDs as `RMR_Controller.html`, touch-sized) — Homing / Syringe / Spin Coater / UV / Stamp blocks with per-block Run, Enabled checkboxes, Run All, and Repeat.
 - **Advanced tab** (formerly "Config"): individual axis homing (Home XY, Home Z, Home A, Home B), acceleration tuning, servo override (M280) with raw angle inputs for Gripper (P0) and Lid (P1) that bypass slider limits and T ramp.
 - **Connect/Disconnect** button in always-visible header ribbon (not inside a drawer).
+- Same swappable Web Serial / Pi-bridge transport as the controller (see below).
+
+### Transport: Web Serial or Pi bridge
+Both `RMR_Controller.html` and `RMR_Touch.html` support two transports behind one UI, auto-selected by how the page is loaded:
+- **Web Serial** (default when opened as a `file://` on a dev laptop) — the browser opens the USB port directly. Requires Chrome/Edge.
+- **WebSocket bridge** (default when served over `http(s)://`, i.e. from the Pi panel) — a Raspberry Pi backend (`pi-panel/rmr_bridge.py`) owns the serial port and the browser is just a display, so **any browser works** (Firefox, `cog`). Override with `?transport=serial|ws` or `?ws=ws://host:port`.
+- In bridge mode the page auto-connects and auto-reconnects; the baud selector is hidden (the bridge sets baud). TX is logged from the bridge's echo so multiple clients (panel + phone/laptop on the LAN) and physical-button presses stay mirrored across every console. `sendCmd()`/`processLine()` are transport-agnostic — only connect/disconnect and the send path branch on transport.
+
+## Integrated Touch Panel (Raspberry Pi)
+A Pi + generic 10″ HDMI/USB-touch screen builds the web UI into the machine (see `pi-panel/README.md`). The Pi runs `rmr_bridge.py` (serial↔WebSocket + optional static file server), the ODrive stays Mega-mediated (its USB is only for `odrivetool` tuning), and the browser connects over WebSocket — no Chromium requirement. `rmr_bridge.py` holds the port open (Mega DTR-resets once at bridge start, not per UI connect), auto-reconnects serial on USB drop, broadcasts serial RX to all clients, and echoes every TX. Optional Pi-GPIO I/O is configured in `pi-panel/rmr_io.json` (`--io`, copy from `rmr_io.example.json`), all off by default:
+- **Physical buttons** (gloves/dirty hands) → G-code, same write path as the UI.
+- **Status tower + buzzer** (red/amber/green) driven from state the bridge infers off the serial stream: green = idle/ready, amber = active (command in the last ~1.5 s), red+buzzer = Marlin error / E-stop, red = serial down. `active_high:false` for active-low boards; switch 12/24 V lamps via a transistor/relay, not directly off GPIO.
+- **E-stop sense** input (aux contact of the hardware E-stop) → tower red+buzzer + `{"_rmr":"estop"}` to the UI, and optionally sends `M112`.
+
+**Safety:** the GPIO E-stop (button *or* sense) sends/echoes `M112` in software and is a convenience only — fit a separate hardware E-stop that physically cuts stepper/ODrive motor power, and wire its aux contact to the sense input so the panel annunciates it.
 
 ## File Inventory
 
@@ -466,6 +492,12 @@ This deferred boot avoids blocking Marlin startup if the ODrive isn't powered.
 | SpincoaterStage/INTEGRATION_PLAN.md | `SpincoaterStage/` | Marlin/Mega integration design doc |
 | SpincoaterStage.ino | repo root | Original Arduino IDE sketch (reference only, superseded) |
 | SpincoaterPinMap.jfif | repo root | ODrive S1 J11 connector pinout image |
+| pi-panel/rmr_bridge.py | `pi-panel/` | Pi touch-panel serial↔WebSocket bridge (+ optional static server, GPIO buttons, status tower, e-stop sense) |
+| pi-panel/rmr_io.example.json | `pi-panel/` | Example GPIO config: buttons + status tower/buzzer + e-stop sense (copy to `rmr_io.json`) |
+| pi-panel/rmr-bridge.service | `pi-panel/` | systemd unit to run the bridge on boot |
+| pi-panel/99-rmr-serial.rules | `pi-panel/` | udev rule for stable `/dev/rmr-mega` / `/dev/rmr-odrive` names |
+| pi-panel/requirements.txt | `pi-panel/` | Bridge Python deps (pyserial, websockets) |
+| pi-panel/README.md | `pi-panel/` | Pi panel setup guide (OS, venv, udev, kiosk, systemd, buttons, safety) |
 
 ## What's Left To Do
 

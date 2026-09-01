@@ -1,0 +1,9 @@
+# Python build artifacts
+__pycache__/
+*.pyc
+# Local virtualenv
+.venv/
+venv/
+# Local GPIO config (copy from rmr_io.example.json; not committed by default)
+rmr_io.json
+rmr_buttons.json

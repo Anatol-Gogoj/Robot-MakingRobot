@@ -17,6 +17,7 @@
     --yellow: #f0c040;
     --red: #e94560;
     --blue: #6ec6ff;
+    --purple: #b06be0;
     --border: #2a2a4a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -428,6 +429,158 @@
   .spin-phase-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
   .spin-phase-label { font-size: 13px; font-weight: 600; }
 
+  /* ─── Tab System ─── */
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    padding: 12px 26px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+  #tab-manual.tab-page.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+  /* ─── Process Sequencer ─── */
+  .seq-wrap { max-width: 940px; width: 100%; margin: 0 auto; padding: 16px; }
+  .seq-toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    position: sticky; top: 8px; z-index: 5;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .seq-title-main { font-size: 15px; font-weight: 700; margin-right: auto; }
+  .seq-title-main small { display: block; font-size: 11px; font-weight: 400; color: var(--text-dim); }
+  .seq-btn {
+    padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 700;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .seq-btn.run { border-color: var(--green); color: var(--green); background: transparent; }
+  .seq-btn.run:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-btn.stop { border-color: var(--red); color: var(--red); background: transparent; }
+  .seq-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .seq-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .seq-repeat { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+  .seq-repeat input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); }
+  .seq-repeat input[type=number] {
+    width: 58px; padding: 5px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); text-align: center; font-size: 13px;
+  }
+  .seq-status-line { width: 100%; font-size: 12px; color: var(--text-dim); font-family: 'Consolas', monospace; margin-top: 2px; }
+  .seq-status-line b { color: var(--blue); }
+
+  details.seq-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--accent2); border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  details.seq-block[open] { border-left-color: var(--accent); }
+  details.seq-block.disabled { opacity: 0.5; border-left-color: var(--text-dim); }
+  details.seq-block.running { border-left-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+  details.seq-block.done { border-left-color: var(--green); }
+  details.seq-block > summary {
+    cursor: pointer; list-style: none; padding: 13px 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; user-select: none;
+  }
+  details.seq-block > summary::-webkit-details-marker { display: none; }
+  details.seq-block > summary::before {
+    content: '\25B8'; color: var(--text-dim); font-size: 13px; transition: transform 0.15s; display: inline-block;
+  }
+  details.seq-block[open] > summary::before { transform: rotate(90deg); }
+  .seq-badge {
+    margin-left: auto; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; padding: 3px 9px; border-radius: 10px;
+    border: 1px solid var(--border); color: var(--text-dim);
+  }
+  .seq-badge.on  { color: var(--green); border-color: var(--green); }
+  .seq-badge.off { color: var(--text-dim); border-color: var(--text-dim); }
+  .seq-badge.run { color: #000; background: var(--green); border-color: var(--green); }
+  .seq-body { padding: 0 16px 14px 16px; }
+  .seq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
+  .seq-field { display: flex; flex-direction: column; gap: 4px; }
+  .seq-field.full { grid-column: 1 / -1; }
+  .seq-field > label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+  .seq-field input[type=number], .seq-field input[type=text], .seq-field select {
+    padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 14px; font-family: 'Consolas', monospace;
+    width: 100%;
+  }
+  .seq-field input:focus, .seq-field select:focus { outline: none; border-color: var(--accent); }
+  .seq-hint { font-size: 11px; color: var(--text-dim); }
+  .seq-hint b { color: var(--blue); font-family: 'Consolas', monospace; }
+  .seq-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .seq-enable-lbl { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; user-select: none; }
+  .seq-enable-lbl input { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
+  .seq-run-btn {
+    padding: 8px 24px; border-radius: 6px; border: 1px solid var(--green);
+    background: transparent; color: var(--green); font-weight: 700; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1px; cursor: pointer; white-space: nowrap;
+  }
+  .seq-run-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .seq-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .seq-check {
+    display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--surface2);
+    font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .seq-check input { accent-color: var(--accent); }
+  .seq-check.checked { border-color: var(--accent); }
+
+  .seq-radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seq-radio {
+    display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border: 1px solid var(--border); border-radius: 20px; background: var(--surface2);
+    font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .seq-radio input { accent-color: var(--accent); }
+  .seq-radio.checked { border-color: var(--accent); }
+
+  .vslider-wrap { display: flex; align-items: flex-start; gap: 14px; }
+  input[type=range].v-slider {
+    writing-mode: vertical-lr; direction: rtl;
+    width: 34px; height: 210px; accent-color: var(--accent); cursor: pointer;
+  }
+  .vslider-scale { display: flex; flex-direction: column; justify-content: space-between; height: 210px; font-size: 10px; color: var(--text-dim); text-align: right; }
+  .vslider-track { display: flex; flex-direction: column; gap: 10px; }
+  .vslider-readout { font-size: 26px; font-weight: 700; font-family: 'Consolas', monospace; color: var(--blue); }
+  .vslider-readout small { font-size: 12px; color: var(--text-dim); }
+
+  .uv-progress-wrap { margin-top: 12px; }
+  .uv-progress-bar-bg { height: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .uv-progress-bar { height: 100%; width: 0%; background: var(--purple); transition: width 0.2s; }
+  .uv-time-readout { display: flex; justify-content: space-between; font-size: 14px; margin-top: 5px; font-family: 'Consolas', monospace; }
+  .uv-time-readout .elapsed { color: var(--yellow); font-weight: 700; }
+
+  @media (max-width: 640px) {
+    .seq-grid { grid-template-columns: 1fr; }
+  }
+
 </style>
 </head>
 <body>
@@ -447,6 +600,12 @@
   </div>
 </header>
 
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabbtn-manual" onclick="switchTab('manual')">Manual Control</button>
+  <button class="tab-btn" id="tabbtn-sequencer" onclick="switchTab('sequencer')">Process Sequencer</button>
+</div>
+
+<div id="tab-manual" class="tab-page active">
 <div class="main">
 
   <!-- Jog Controls -->
@@ -881,6 +1040,204 @@
     </div>
   </div>
 </div>
+</div><!-- /tab-manual -->
+
+<!-- ═══════════════ Process Sequencer Tab ═══════════════ -->
+<div id="tab-sequencer" class="tab-page">
+  <div class="seq-wrap">
+
+    <!-- Toolbar -->
+    <div class="seq-toolbar">
+      <div class="seq-title-main">Process Sequencer
+        <small>Run any block on its own, or Run All to execute the enabled blocks top-to-bottom.</small>
+      </div>
+      <label class="seq-repeat" title="Loop the whole Run All sequence">
+        <input type="checkbox" id="seqRepeat"> Repeat
+        <input type="number" id="seqCycles" value="1" min="0" max="9999" title="Number of cycles (0 = repeat until Stop)">
+        cycles
+      </label>
+      <button class="seq-btn run" id="seqRunAllBtn" onclick="seqRunAll()">&#9654; Run All</button>
+      <button class="seq-btn stop" id="seqStopBtn" onclick="seqStop()" disabled>&#9632; Stop</button>
+      <div class="seq-status-line" id="seqStatus">Idle.</div>
+    </div>
+
+    <!-- 1 ─── Homing ─── -->
+    <details class="seq-block" id="seqBlock-homing" open>
+      <summary>Homing <span class="seq-badge on" id="badge-homing">enabled</span></summary>
+      <div class="seq-body">
+        <p class="seq-hint">Home all axes with <b>G28</b>, or tick individual axes to home only those (e.g. <b>G28 X Z</b>).</p>
+        <div class="seq-checks" style="margin-top:10px" id="homeChecks">
+          <label class="seq-check checked"><input type="checkbox" id="homeAll" checked onchange="homeAllToggle()"> All axes</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="X" disabled> X</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="Y" disabled> Y</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="Z" disabled> Z</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="A" disabled> A &middot; Filter Feed</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="B" disabled> B &middot; Syringe Ht</label>
+        </div>
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="homing" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('homing')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 2 ─── Syringe ─── -->
+    <details class="seq-block" id="seqBlock-syringe">
+      <summary>Syringe &middot; Dispense <span class="seq-badge on" id="badge-syringe">enabled</span></summary>
+      <div class="seq-body">
+        <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start">
+          <!-- Vertical position slider (B axis) -->
+          <div class="vslider-wrap">
+            <div class="vslider-scale"><span>304<br>top</span><span>0<br>btm</span></div>
+            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5" orient="vertical"
+                   oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
+            <div class="vslider-track">
+              <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B)</small></div>
+              <div class="seq-field" style="width:120px">
+                <label>Move feed mm/min</label>
+                <input type="number" id="syrPosFeed" value="1500" min="10" max="3000" step="10">
+              </div>
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="syrMove()">Move &#8597;</button>
+            </div>
+          </div>
+          <!-- Dispense parameters -->
+          <div class="seq-grid" style="flex:1; min-width:270px; align-content:start">
+            <div class="seq-field">
+              <label>Dispense amount (&micro;L)</label>
+              <input type="number" id="syrVol" value="50" min="0" step="1" oninput="syrCalc()">
+              <span class="seq-hint">&rarr; <b id="syrVolMm">&mdash;</b> mm of plunger travel</span>
+            </div>
+            <div class="seq-field">
+              <label>Factor (&micro;L per mm)</label>
+              <input type="number" id="syrFactor" value="10" min="0.0001" step="0.1" oninput="syrCalc()">
+              <span class="seq-hint">volume = distance &times; factor</span>
+            </div>
+            <div class="seq-field">
+              <label>Pullback / retract (&micro;L)</label>
+              <input type="number" id="syrPull" value="5" min="0" step="1" oninput="syrCalc()">
+              <span class="seq-hint">&rarr; <b id="syrPullMm">&mdash;</b> mm retract after dispense</span>
+            </div>
+            <div class="seq-field">
+              <label>Dispense feed (mm/min)</label>
+              <input type="number" id="syrFeed" value="300" min="10" max="480" step="10">
+            </div>
+          </div>
+        </div>
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="syringe" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('syringe')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 3 ─── Spin Coater ─── -->
+    <details class="seq-block" id="seqBlock-spin">
+      <summary>Spin Coater <span class="seq-badge on" id="badge-spin">enabled</span></summary>
+      <div class="seq-body">
+        <div class="seq-grid">
+          <div class="seq-field"><label>Spin rate (RPM)</label><input type="number" id="seqSpinRPM" value="5000" min="100" max="10000" step="100" oninput="spinPreview()"></div>
+          <div class="seq-field"><label>Spin time (s)</label><input type="number" id="seqSpinDur" value="30" min="1" max="600" step="1" oninput="spinPreview()"></div>
+          <div class="seq-field"><label>Rise time (s)</label><input type="number" id="seqSpinRise" value="5" min="0.1" max="60" step="0.1" oninput="spinPreview()"></div>
+          <div class="seq-field"><label>Sink time (s)</label><input type="number" id="seqSpinSink" value="1" min="0.1" max="60" step="0.1" oninput="spinPreview()"></div>
+          <div class="seq-field full">
+            <label>Presets</label>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
+              <select id="seqSpinPreset" style="flex:1; min-width:150px"></select>
+              <input type="text" id="seqSpinPresetName" placeholder="new preset name" style="width:150px; padding:7px 9px; border-radius:5px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:13px">
+              <button class="seq-btn" style="padding:7px 12px" onclick="spinPresetSave()">Save</button>
+              <button class="seq-btn" style="padding:7px 12px" onclick="spinPresetLoad()">Load</button>
+              <button class="seq-btn" style="padding:7px 12px" onclick="spinPresetDelete()">Delete</button>
+            </div>
+          </div>
+          <div class="seq-field full">
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="seqSpinHome" checked onchange="spinPreview()"> Encoder-home after spin (H1)</label>
+          </div>
+        </div>
+        <p class="seq-hint" style="margin-top:8px">Sends <b id="seqSpinPreview">M750 S5000 D30 A5 C1 H1</b> &mdash; blocks until the spin cycle completes.</p>
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="spin" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('spin')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 4 ─── UV lid & light ─── -->
+    <details class="seq-block" id="seqBlock-uv">
+      <summary>UV &middot; Lid &amp; Light <span class="seq-badge on" id="badge-uv">enabled</span></summary>
+      <div class="seq-body">
+        <div class="seq-grid">
+          <div class="seq-field"><label>UV cure time (s)</label><input type="number" id="uvTime" value="60" min="1" max="3600" step="1" oninput="uvResetReadout()"></div>
+          <div class="seq-field"><label>UV relay pin</label><input type="number" id="uvSeqPin" value="4" min="0" max="70"></div>
+          <div class="seq-field full">
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvLid" checked> Close lid during cure, reopen after</label>
+          </div>
+          <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="110" min="0" max="180"></div>
+          <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
+        </div>
+        <div class="uv-progress-wrap">
+          <div class="uv-progress-bar-bg"><div class="uv-progress-bar" id="uvBar"></div></div>
+          <div class="uv-time-readout"><span class="elapsed" id="uvElapsed">0.0 s</span><span id="uvTotal">/ 60.0 s</span></div>
+        </div>
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="uv" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('uv')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 5 ─── Stamp ─── -->
+    <details class="seq-block" id="seqBlock-stamp">
+      <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
+      <div class="seq-body">
+        <div class="seq-grid">
+          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this each cycle</span></div>
+          <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
+          <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
+          <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="180" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
+          <div class="seq-field full">
+            <label>Filter feeder side</label>
+            <div class="seq-radio-row" id="stampSideRow">
+              <label class="seq-radio checked"><input type="radio" name="stampSide" value="alt" checked> Alternating L / R</label>
+              <label class="seq-radio"><input type="radio" name="stampSide" value="left"> Left only</label>
+              <label class="seq-radio"><input type="radio" name="stampSide" value="right"> Right only</label>
+              <span class="seq-hint" style="align-self:center">next pick: <b id="stampNext">Left</b></span>
+            </div>
+          </div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary style="cursor:pointer; font-size:12px; color:var(--text-dim); user-select:none">Advanced positions &amp; feeds (defaults from DemoProgram.gcode)</summary>
+          <div class="seq-grid" style="margin-top:10px">
+            <div class="seq-field"><label>Left pick X</label><input type="number" id="stLX" value="607"></div>
+            <div class="seq-field"><label>Left pick Y</label><input type="number" id="stLY" value="143"></div>
+            <div class="seq-field"><label>Left grab Z</label><input type="number" id="stLZ" value="41"></div>
+            <div class="seq-field"><label>Right pick X</label><input type="number" id="stRX" value="747"></div>
+            <div class="seq-field"><label>Right pick Y</label><input type="number" id="stRY" value="143"></div>
+            <div class="seq-field"><label>Right grab Z</label><input type="number" id="stRZ" value="43"></div>
+            <div class="seq-field"><label>Spincoater X</label><input type="number" id="stSX" value="117"></div>
+            <div class="seq-field"><label>Spincoater Y</label><input type="number" id="stSY" value="24"></div>
+            <div class="seq-field"><label>Approach Z (fast)</label><input type="number" id="stApproachZ" value="150"></div>
+            <div class="seq-field"><label>Dispose X</label><input type="number" id="stDX" value="674"></div>
+            <div class="seq-field"><label>Dispose Z</label><input type="number" id="stDZ" value="15"></div>
+            <div class="seq-field"><label>Safe Z</label><input type="number" id="stSafeZ" value="0"></div>
+            <div class="seq-field"><label>Gripper open (&deg;)</label><input type="number" id="stGOpen" value="170"></div>
+            <div class="seq-field"><label>Gripper close (&deg;)</label><input type="number" id="stGClose" value="90"></div>
+            <div class="seq-field"><label>XY feed (mm/min)</label><input type="number" id="stXYF" value="24000"></div>
+            <div class="seq-field"><label>Z feed (mm/min)</label><input type="number" id="stZF" value="3000"></div>
+            <div class="seq-field"><label>Press feed (mm/min)</label><input type="number" id="stPF" value="300"></div>
+            <div class="seq-field"><label>Feeder A feed (mm/min)</label><input type="number" id="stAF" value="2000"></div>
+          </div>
+        </details>
+
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="stamp" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('stamp')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+  </div>
+</div><!-- /tab-sequencer -->
 
 <script>
 // ─── State ───
@@ -895,9 +1252,37 @@ let autoReportInterval = null;
 let cmdHistory = [];
 let historyIdx = -1;
 
+// ─── Transport (Web Serial  OR  Pi WebSocket bridge) ───
+// The same UI drives the machine two ways:
+//   • Web Serial  — browser opens the USB port directly (Chrome/Edge, file://).
+//   • WebSocket   — a Raspberry Pi bridge (pi-panel/rmr_bridge.py) owns the
+//                   port; the browser is just a display. Works in ANY browser.
+// Mode is auto-selected: served over http(s) → bridge/WebSocket; opened as a
+// local file → Web Serial. Override with ?transport=serial|ws or ?ws=ws://host:port
+let useWS = false;
+let ws = null;
+let wsShouldReconnect = false;
+
+function transportMode() {
+  const p = new URLSearchParams(location.search);
+  const forced = p.get('transport');
+  if (forced === 'ws' || forced === 'serial') return forced;
+  if (p.get('ws')) return 'ws';
+  return (location.protocol === 'http:' || location.protocol === 'https:') ? 'ws' : 'serial';
+}
+
+function wsUrlFromConfig() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('ws')) return p.get('ws');
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = location.hostname || 'localhost';
+  const wsPort = p.get('wsport') || '8765';
+  return `${proto}//${host}:${wsPort}`;
+}
+
 // ─── Serial Connection ───
 async function toggleConnection() {
-  if (isConnected) {
+  if (isConnected || (useWS && ws)) {
     await disconnect();
   } else {
     await connect();
@@ -905,25 +1290,83 @@ async function toggleConnection() {
 }
 
 async function connect() {
+  if (transportMode() === 'ws') return connectWS();
+  return connectSerial();
+}
+
+async function connectSerial() {
   try {
+    useWS = false;
     port = await navigator.serial.requestPort();
     const baud = parseInt(document.getElementById('baudRate').value);
     await port.open({ baudRate: baud });
     writer = port.writable.getWriter();
     setConnected(true);
-    logInfo(`Connected at ${baud} baud`);
+    logInfo(`Connected at ${baud} baud (Web Serial)`);
     readLoop();
   } catch (e) {
     logErr('Connection failed: ' + e.message);
   }
 }
 
+function connectWS() {
+  useWS = true;
+  wsShouldReconnect = true;
+  const url = wsUrlFromConfig();
+  try {
+    logInfo('Connecting to Pi bridge ' + url + ' …');
+    ws = new WebSocket(url);
+    ws.onopen = () => { setConnected(true); logInfo('Bridge connected (' + url + ')'); };
+    ws.onmessage = (ev) => handleWSMessage(ev.data);
+    ws.onerror = () => { logErr('Bridge connection error (' + url + ')'); };
+    ws.onclose = () => {
+      const was = isConnected;
+      setConnected(false);
+      ws = null;
+      if (was) logInfo('Bridge disconnected');
+      if (wsShouldReconnect) setTimeout(() => { if (wsShouldReconnect && !ws) connectWS(); }, 2000);
+    };
+  } catch (e) {
+    logErr('WS connect failed: ' + e.message);
+  }
+}
+
+// Messages from the bridge: JSON meta ('{'…) or a raw serial line.
+function handleWSMessage(data) {
+  const s = '' + data;
+  if (s.length && s[0] === '{') {
+    let m = null;
+    try { m = JSON.parse(s); } catch (e) { m = null; }
+    if (m && m._rmr) {
+      if (m._rmr === 'tx') {
+        logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : ''));
+      } else if (m._rmr === 'status') {
+        logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : '') + (m.error ? ' — ' + m.error : ''));
+      } else if (m._rmr === 'button') {
+        logInfo('Physical button: ' + m.name + ' → ' + m.cmd);
+      } else if (m._rmr === 'estop') {
+        if (m.pressed) logErr('*** PHYSICAL E-STOP PRESSED ***');
+        else logInfo('Physical E-stop released');
+      } else if (m._rmr === 'error') {
+        logErr('Bridge: ' + m.msg);
+      }
+      return;
+    }
+  }
+  processLine(s.trim());   // raw serial line
+}
+
 async function disconnect() {
   try {
     if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
-    if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
-    if (writer) { writer.releaseLock(); writer = null; }
-    if (port) { await port.close(); port = null; }
+    if (useWS) {
+      wsShouldReconnect = false;
+      if (ws) { ws.onclose = null; ws.close(); ws = null; }
+    } else {
+      if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
+      if (writer) { writer.releaseLock(); writer = null; }
+      if (port) { await port.close(); port = null; }
+    }
   } catch (e) { /* ignore */ }
   setConnected(false);
   logInfo('Disconnected');
@@ -1053,9 +1496,10 @@ function processLine(line) {
     if (eMatch) document.getElementById('posE').textContent = parseFloat(eMatch[1]).toFixed(1);
   }
 
-  // Detect 'ok' for program runner sequencing
+  // Detect 'ok' for program runner + sequencer sequencing
   if (line === 'ok' || (line.startsWith('ok') && line.length < 5)) {
     progOnOk();
+    seqOnOk();
     if (!verbose) return;
   }
 
@@ -1070,14 +1514,18 @@ function processLine(line) {
 
 // ─── Command Sending ───
 async function sendCmd(cmd) {
-  if (!isConnected || !writer) {
-    logErr('Not connected');
-    return;
-  }
+  if (!isConnected) { logErr('Not connected'); return; }
   try {
-    const encoder = new TextEncoder();
-    await writer.write(encoder.encode(cmd + '\n'));
-    logTx(cmd);
+    if (useWS) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) { logErr('Bridge not connected'); return; }
+      ws.send(cmd);
+      // TX is logged when the bridge echoes it back ({_rmr:'tx'}), so every UI
+      // and every physical-button press stays visible in all consoles.
+    } else {
+      if (!writer) { logErr('Not connected'); return; }
+      await writer.write(new TextEncoder().encode(cmd + '\n'));
+      logTx(cmd);
+    }
   } catch (e) {
     logErr('Send error: ' + e.message);
   }
@@ -1521,11 +1969,471 @@ function spinSetPhase(state, text) {
   document.getElementById('spinPhaseLabel').textContent = text;
 }
 
+// ═══════════════ Tab Switching ═══════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  const btn = document.getElementById('tabbtn-' + name);
+  const page = document.getElementById('tab-' + name);
+  if (btn) btn.classList.add('active');
+  if (page) page.classList.add('active');
+}
+
+// ═══════════════ Process Sequencer ═══════════════
+let seqRunning = false;
+let seqAbort = false;
+let seqWaiter = null;            // {resolve, reject} armed while awaiting an 'ok'
+let seqAutoReportWasOn = false;
+
+// Called from processLine() whenever Marlin sends 'ok'
+function seqOnOk() {
+  if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.resolve(); }
+}
+
+function seqAwaitOk() {
+  return new Promise((resolve, reject) => { seqWaiter = { resolve, reject }; });
+}
+
+// Abortable sleep; onTick(elapsedMs) fires ~every 100ms
+function seqSleep(ms, onTick) {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    if (onTick) onTick(0);
+    const iv = setInterval(() => {
+      if (seqAbort) { clearInterval(iv); reject(new Error('aborted')); return; }
+      const el = performance.now() - start;
+      if (onTick) onTick(Math.min(el, ms));
+      if (el >= ms) { clearInterval(iv); resolve(); }
+    }, 100);
+  });
+}
+
+// Send one command; optionally wait for its 'ok' before resolving
+async function seqCmd(cmd, waitOk = true) {
+  if (seqAbort) throw new Error('aborted');
+  if (!isConnected) throw new Error('not connected');
+  sendCmd(cmd);
+  if (waitOk) await seqAwaitOk();
+  if (seqAbort) throw new Error('aborted');
+}
+
+function seqSetStatus(html) { document.getElementById('seqStatus').innerHTML = html; }
+
+// Safe numeric read from an input id
+function numv(id, def) {
+  const el = document.getElementById(id);
+  if (!el) return def;
+  const v = parseFloat(el.value);
+  return isNaN(v) ? def : v;
+}
+
+// Block registry — order defines Run All execution order
+const SEQ_BLOCKS = [
+  { id: 'homing',  name: 'Homing',      run: runHomingBlock  },
+  { id: 'syringe', name: 'Syringe',     run: runSyringeBlock },
+  { id: 'spin',    name: 'Spin Coater', run: runSpinBlock    },
+  { id: 'uv',      name: 'UV',          run: runUvBlock      },
+  { id: 'stamp',   name: 'Stamp',       run: runStampBlock   },
+];
+
+function seqBlockEl(id) { return document.getElementById('seqBlock-' + id); }
+function seqIsEnabled(id) {
+  const cb = document.querySelector('.seq-enable[data-block="' + id + '"]');
+  return !!(cb && cb.checked);
+}
+
+function setBadge(id, cls, text) {
+  const b = document.getElementById('badge-' + id);
+  if (!b) return;
+  b.className = 'seq-badge ' + cls;
+  b.textContent = text;
+}
+function restoreBadge(id) {
+  const en = seqIsEnabled(id);
+  setBadge(id, en ? 'on' : 'off', en ? 'enabled' : 'disabled');
+}
+function seqEnableToggle(cb) {
+  const id = cb.dataset.block;
+  seqBlockEl(id).classList.toggle('disabled', !cb.checked);
+  restoreBadge(id);
+}
+
+function seqBegin() {
+  seqRunning = true;
+  seqAbort = false;
+  document.getElementById('seqRunAllBtn').disabled = true;
+  document.getElementById('seqStopBtn').disabled = false;
+  document.querySelectorAll('.seq-run-btn').forEach(b => b.disabled = true);
+  // Pause auto position report so stray M114 'ok's don't advance the sequence
+  seqAutoReportWasOn = !!autoReportInterval;
+  if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+}
+
+function seqEnd(statusHtml) {
+  seqRunning = false;
+  seqWaiter = null;
+  document.getElementById('seqRunAllBtn').disabled = false;
+  document.getElementById('seqStopBtn').disabled = true;
+  document.querySelectorAll('.seq-run-btn').forEach(b => b.disabled = false);
+  document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
+  SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
+  if (seqAutoReportWasOn && document.getElementById('autoReport').checked) {
+    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+  }
+  if (statusHtml) seqSetStatus(statusHtml);
+}
+
+function seqStop() {
+  if (!seqRunning) return;
+  seqAbort = true;
+  if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
+  logInfo('Sequencer: STOP requested — the command chain will halt. Use E-STOP for an immediate hardware halt.');
+  seqSetStatus('<b>Stopping…</b>');
+}
+
+// Run a single block by id
+async function seqRunBlock(id) {
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!isConnected) { logErr('Not connected — connect a serial port first'); return; }
+  const blk = SEQ_BLOCKS.find(b => b.id === id);
+  if (!blk) return;
+  seqBegin();
+  const el = seqBlockEl(id);
+  el.classList.add('running'); el.classList.remove('done');
+  setBadge(id, 'run', 'running');
+  seqSetStatus('Running <b>' + blk.name + '</b>…');
+  logInfo('Sequencer: running ' + blk.name);
+  try {
+    await blk.run();
+    el.classList.remove('running'); el.classList.add('done');
+    seqEnd('<b>' + blk.name + '</b> complete.');
+    logInfo('Sequencer: ' + blk.name + ' complete');
+  } catch (e) {
+    el.classList.remove('running');
+    seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message));
+    if (!seqAbort) logErr('Sequencer: ' + blk.name + ' failed — ' + e.message);
+  }
+}
+
+// Run all enabled blocks in order, optionally repeating
+async function seqRunAll() {
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!isConnected) { logErr('Not connected — connect a serial port first'); return; }
+  const enabled = SEQ_BLOCKS.filter(b => seqIsEnabled(b.id));
+  if (enabled.length === 0) { logErr('No blocks are enabled'); return; }
+
+  const repeat = document.getElementById('seqRepeat').checked;
+  let cycles = parseInt(document.getElementById('seqCycles').value, 10);
+  if (!repeat) cycles = 1;
+  const infinite = repeat && (!cycles || cycles < 1);
+
+  seqBegin();
+  document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('done'));
+  logInfo('Sequencer: Run All started (' + enabled.length + ' block(s)' +
+          (repeat ? (infinite ? ', repeating until Stop' : ', ' + cycles + ' cycles') : '') + ')');
+  try {
+    let cycle = 0;
+    while (!seqAbort && (infinite || cycle < cycles)) {
+      cycle++;
+      const cycTxt = infinite ? ('cycle ' + cycle + ' / ∞') : ('cycle ' + cycle + ' / ' + cycles);
+      for (const blk of enabled) {
+        if (seqAbort) break;
+        const el = seqBlockEl(blk.id);
+        el.classList.add('running'); el.classList.remove('done');
+        setBadge(blk.id, 'run', 'running');
+        seqSetStatus(cycTxt + ' — running <b>' + blk.name + '</b>…');
+        await blk.run();
+        el.classList.remove('running'); el.classList.add('done');
+        restoreBadge(blk.id);
+      }
+    }
+    seqEnd(seqAbort ? 'Stopped.' : 'Run All complete.');
+    logInfo('Sequencer: Run All ' + (seqAbort ? 'stopped' : 'complete'));
+  } catch (e) {
+    seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message));
+    if (!seqAbort) logErr('Sequencer: Run All failed — ' + e.message);
+  }
+}
+
+// ─── Block: Homing ───
+async function runHomingBlock() {
+  if (document.getElementById('homeAll').checked) {
+    await seqCmd('G28');
+    return;
+  }
+  const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
+  await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
+}
+
+// ─── Block: Syringe ───
+async function runSyringeBlock() {
+  const factor = numv('syrFactor', 10) || 1;
+  const dispMm = numv('syrVol', 0) / factor;
+  const pullMm = numv('syrPull', 0) / factor;
+  const pos = numv('syrPos', 0);
+  const posFeed = Math.round(numv('syrPosFeed', 1500));
+  const eFeed = Math.round(numv('syrFeed', 300));
+  await seqCmd('G90');
+  await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);   // position syringe height (B)
+  await seqCmd('M400');
+  await seqCmd('G92 E0');                                    // zero syringe
+  await seqCmd('G1 E' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense
+  await seqCmd('M400');
+  if (pullMm > 0) {
+    await seqCmd('G1 E' + (dispMm - pullMm).toFixed(4) + ' F' + eFeed); // retract
+    await seqCmd('M400');
+  }
+}
+
+// ─── Block: Spin Coater ───
+async function runSpinBlock() {
+  const rpm  = Math.round(numv('seqSpinRPM', 5000));
+  const dur  = numv('seqSpinDur', 30);
+  const rise = numv('seqSpinRise', 5);
+  const sink = numv('seqSpinSink', 1);
+  const home = document.getElementById('seqSpinHome').checked ? 1 : 0;
+  spinTargetRPM = rpm;
+  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home); // blocking full cycle
+}
+
+// ─── Block: UV lid & light ───
+function uvResetReadout() {
+  const t = numv('uvTime', 60);
+  document.getElementById('uvTotal').textContent = '/ ' + t.toFixed(1) + ' s';
+  document.getElementById('uvElapsed').textContent = '0.0 s';
+  document.getElementById('uvBar').style.width = '0%';
+}
+async function runUvBlock() {
+  const t = numv('uvTime', 60);
+  const pin = Math.round(numv('uvSeqPin', 4));
+  const manageLid = document.getElementById('uvLid').checked;
+  const lidClose = Math.round(numv('uvLidClose', 110));
+  const lidOpen  = Math.round(numv('uvLidOpen', 30));
+  const lidMs = parseInt(localStorage.getItem('rmr.lidMoveMs') || '800', 10);
+  const bar = document.getElementById('uvBar');
+  const elEl = document.getElementById('uvElapsed');
+  document.getElementById('uvTotal').textContent = '/ ' + t.toFixed(1) + ' s';
+  bar.style.width = '0%'; elEl.textContent = '0.0 s';
+
+  if (manageLid) {
+    await seqCmd('M400');
+    await seqCmd('M280 P1 S' + lidClose + ' T' + lidMs);   // close lid (T ramp is blocking)
+  }
+  await seqCmd('M42 P' + pin + ' S1');                      // UV ON
+  logInfo('UV: curing ' + t + ' s (pin ' + pin + ')');
+  try {
+    await seqSleep(t * 1000, (elapsed) => {
+      const s = elapsed / 1000;
+      bar.style.width = Math.min(100, (s / t) * 100) + '%';
+      elEl.textContent = s.toFixed(1) + ' s';
+    });
+    bar.style.width = '100%';
+    elEl.textContent = t.toFixed(1) + ' s';
+  } finally {
+    sendCmd('M42 P' + pin + ' S0');                         // UV OFF — fire even on abort
+  }
+  if (manageLid && !seqAbort) {
+    await seqCmd('M280 P1 S' + lidOpen + ' T' + lidMs);     // reopen lid
+  }
+}
+
+// ─── Block: Stamp (filter pick & press) ───
+let stampAltNext = 'left';   // side used on the next 'alternating' cycle
+
+function updateStampNext() {
+  const sel = document.querySelector('input[name="stampSide"]:checked');
+  const el = document.getElementById('stampNext');
+  if (!sel || !el) return;
+  if (sel.value === 'left') el.textContent = 'Left';
+  else if (sel.value === 'right') el.textContent = 'Right';
+  else el.textContent = (stampAltNext === 'left') ? 'Left' : 'Right';
+}
+function stampResolveSide() {
+  const mode = document.querySelector('input[name="stampSide"]:checked').value;
+  if (mode === 'left' || mode === 'right') return mode;
+  const s = stampAltNext;
+  stampAltNext = (s === 'left') ? 'right' : 'left';
+  updateStampNext();
+  return s;
+}
+
+async function runStampBlock() {
+  const side   = stampResolveSide();
+  const gOpen  = Math.round(numv('stGOpen', 170));
+  const gClose = Math.round(numv('stGClose', 90));
+  const safeZ  = numv('stSafeZ', 0);
+  const xyF = Math.round(numv('stXYF', 24000));
+  const zF  = Math.round(numv('stZF', 3000));
+  const pF  = Math.round(numv('stPF', 300));
+  const aF  = Math.round(numv('stAF', 2000));
+  const stack = numv('stampStack', 0);
+  const grabDelay = numv('stampGrabDelay', 0);
+  const hold = numv('stampHold', 0);
+  const pressZ = numv('stampForce', 180);
+  const approachZ = numv('stApproachZ', 150);
+  const spinX = numv('stSX', 117), spinY = numv('stSY', 24);
+  const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
+  const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
+  const pickY = side === 'left' ? numv('stLY', 143) : numv('stRY', 143);
+  const grabZ = side === 'left' ? numv('stLZ', 41) : numv('stRZ', 43);
+
+  logInfo('Stamp: picking from ' + side.toUpperCase() + ' feeder');
+  await seqCmd('G90');
+  // Approach pick position (gripper open)
+  await seqCmd('M400');
+  await seqCmd('M280 P0 S' + gOpen);
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+  await seqCmd('G1 X' + pickX + ' F' + xyF);
+  await seqCmd('G1 Y' + pickY + ' F' + xyF);
+  // Advance feeder by one stack height (relative)
+  if (stack > 0) {
+    await seqCmd('G91');
+    await seqCmd('G1 A' + stack.toFixed(3) + ' F' + aF);
+    await seqCmd('G90');
+  }
+  await seqCmd('M400');
+  // Descend & grab
+  await seqCmd('G1 Z' + grabZ + ' F' + zF);
+  await seqCmd('M400');
+  await seqCmd('M280 P0 S' + gClose);
+  if (grabDelay > 0) { seqSetStatus('Stamp — grab delay ' + grabDelay + ' s'); await seqSleep(grabDelay * 1000); }
+  // Raise & transit to spincoater
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+  await seqCmd('G1 Y0 F' + xyF);
+  await seqCmd('G1 X' + spinX + ' F' + xyF);
+  await seqCmd('G1 Y' + spinY + ' F' + xyF);
+  // Press onto elastomer (fast approach, slow press)
+  await seqCmd('G1 Z' + approachZ + ' F' + zF);
+  await seqCmd('G1 Z' + pressZ + ' F' + pF);
+  await seqCmd('M400');
+  if (hold > 0) { seqSetStatus('Stamp — pressing ' + hold + ' s'); await seqSleep(hold * 1000); }
+  // Release & dispose used filter
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+  await seqCmd('G1 Y0 F' + xyF);
+  await seqCmd('G1 X' + disX + ' F' + xyF);
+  await seqCmd('G1 Z' + disZ + ' F' + zF);
+  await seqCmd('M400');
+  await seqCmd('M280 P0 S' + gOpen);
+  await seqSleep(500);
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+}
+
+// ─── Sequencer UI helpers ───
+function homeAllToggle() {
+  const all = document.getElementById('homeAll').checked;
+  document.getElementById('homeAll').closest('.seq-check').classList.toggle('checked', all);
+  document.querySelectorAll('.home-axis').forEach(c => {
+    c.disabled = all;
+    if (all) c.checked = false;
+    const lbl = c.closest('.seq-check');
+    lbl.classList.toggle('checked', c.checked);
+    lbl.style.opacity = all ? '0.45' : '1';
+  });
+}
+function syrMove() {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  const pos = numv('syrPos', 0), feed = Math.round(numv('syrPosFeed', 1500));
+  sendCmd('G90');
+  sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);
+}
+function syrCalc() {
+  const factor = numv('syrFactor', 10) || 1;
+  document.getElementById('syrVolMm').textContent  = (numv('syrVol', 0) / factor).toFixed(3);
+  document.getElementById('syrPullMm').textContent = (numv('syrPull', 0) / factor).toFixed(3);
+}
+function spinPreview() {
+  const rpm  = Math.round(numv('seqSpinRPM', 5000));
+  const dur  = numv('seqSpinDur', 30), rise = numv('seqSpinRise', 5), sink = numv('seqSpinSink', 1);
+  const home = document.getElementById('seqSpinHome').checked ? 1 : 0;
+  document.getElementById('seqSpinPreview').textContent = 'M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home;
+}
+
+// ─── Spin presets (localStorage) ───
+const SPIN_PRESETS_KEY = 'rmr.spinPresets';
+function spinPresetsGet() { try { return JSON.parse(localStorage.getItem(SPIN_PRESETS_KEY) || '{}'); } catch (e) { return {}; } }
+function spinPresetsPut(o) { localStorage.setItem(SPIN_PRESETS_KEY, JSON.stringify(o)); }
+function spinPresetsRefresh() {
+  const sel = document.getElementById('seqSpinPreset');
+  const names = Object.keys(spinPresetsGet()).sort();
+  sel.innerHTML = names.length
+    ? names.map(n => '<option>' + esc(n) + '</option>').join('')
+    : '<option value="">(no presets saved)</option>';
+}
+function spinPresetSave() {
+  let name = (document.getElementById('seqSpinPresetName').value || '').trim() || document.getElementById('seqSpinPreset').value;
+  if (!name) { logErr('Enter a preset name to save'); return; }
+  const p = spinPresetsGet();
+  p[name] = {
+    rpm: numv('seqSpinRPM', 5000), dur: numv('seqSpinDur', 30),
+    rise: numv('seqSpinRise', 5), sink: numv('seqSpinSink', 1),
+    home: document.getElementById('seqSpinHome').checked
+  };
+  spinPresetsPut(p);
+  spinPresetsRefresh();
+  document.getElementById('seqSpinPreset').value = name;
+  document.getElementById('seqSpinPresetName').value = '';
+  logInfo('Spin preset saved: ' + name);
+}
+function spinPresetLoad() {
+  const name = document.getElementById('seqSpinPreset').value;
+  const p = spinPresetsGet()[name];
+  if (!p) { logErr('No preset selected'); return; }
+  document.getElementById('seqSpinRPM').value  = p.rpm;
+  document.getElementById('seqSpinDur').value  = p.dur;
+  document.getElementById('seqSpinRise').value = p.rise;
+  document.getElementById('seqSpinSink').value = p.sink;
+  document.getElementById('seqSpinHome').checked = !!p.home;
+  spinPreview();
+  logInfo('Spin preset loaded: ' + name);
+}
+function spinPresetDelete() {
+  const name = document.getElementById('seqSpinPreset').value;
+  if (!name) return;
+  const p = spinPresetsGet();
+  delete p[name];
+  spinPresetsPut(p);
+  spinPresetsRefresh();
+  logInfo('Spin preset deleted: ' + name);
+}
+
+// ─── Sequencer init ───
+(function seqInit() {
+  spinPresetsRefresh();
+  syrCalc();
+  spinPreview();
+  updateStampNext();
+  uvResetReadout();
+  // Visual selected-state for pill checkboxes / radios
+  document.querySelectorAll('.seq-check input, .seq-radio input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      if (inp.type === 'radio') {
+        document.querySelectorAll('input[name="' + inp.name + '"]').forEach(r => {
+          const l = r.closest('.seq-radio'); if (l) l.classList.toggle('checked', r.checked);
+        });
+        if (inp.name === 'stampSide') updateStampNext();
+      } else {
+        const l = inp.closest('.seq-check'); if (l) l.classList.toggle('checked', inp.checked);
+      }
+    });
+  });
+})();
+
 // ─── Init ───
 logInfo('RMR Gantry Controller ready.');
-logInfo('Click "Connect" and select your serial port (250000 baud).');
 logInfo('Keyboard: Arrow keys = XY jog, PgUp/PgDn = Z jog, Esc = E-STOP');
-logInfo('NOTE: Requires Chrome/Edge with Web Serial API support.');
+if (transportMode() === 'ws') {
+  // Pi bridge mode — the browser is a display; the Pi owns the serial port.
+  const baudSel = document.getElementById('baudRate');
+  if (baudSel) { baudSel.style.display = 'none'; }   // baud is set by the bridge
+  const btn = document.getElementById('connectBtn');
+  if (btn) btn.textContent = 'Connect (bridge)';
+  logInfo('Bridge mode: connecting to ' + wsUrlFromConfig() + ' — any browser works, no Web Serial needed.');
+  setTimeout(() => { if (!isConnected) connect(); }, 400);   // auto-connect the panel
+} else {
+  logInfo('Click "Connect" and select your serial port (250000 baud).');
+  logInfo('Web Serial mode: requires Chrome/Edge. (Serve via the Pi bridge to use any browser.)');
+}
 </script>
 </body>
 </html>

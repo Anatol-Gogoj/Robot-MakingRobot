@@ -1,0 +1,6 @@
+# RMR Pi touch-panel bridge dependencies
+pyserial>=3.5
+websockets>=11.0
+# gpiozero is preinstalled on Raspberry Pi OS and is ONLY needed for physical
+# GPIO buttons. Install it explicitly on non-Pi systems if you want to test
+# button config there: pip install gpiozero
