@@ -171,11 +171,11 @@
 //#define Z4_DRIVER_TYPE A4988
 #define I_DRIVER_TYPE  A4988   // Filter Feed (Motor 1) — homeable linear axis
 #define J_DRIVER_TYPE  A4988   // Syringe Height (Motor 3) — homeable linear axis
-//#define K_DRIVER_TYPE  A4988
+#define K_DRIVER_TYPE  A4988   // Syringe (Motor 2) — homeable linear axis 'C' (was E0 extruder)
 //#define U_DRIVER_TYPE  A4988
 //#define V_DRIVER_TYPE  A4988
 //#define W_DRIVER_TYPE  A4988
-#define E0_DRIVER_TYPE A4988   // Syringe (Motor 2) — sole extruder
+//#define E0_DRIVER_TYPE A4988  // Disabled — Syringe is now the K axis; no extruder
 //#define E1_DRIVER_TYPE A4988  // Unused — was Syringe, now E0
 //#define E2_DRIVER_TYPE A4988  // Unused — Syringe Height is now J-axis
 //#define E3_DRIVER_TYPE A4988
@@ -210,8 +210,8 @@
   //#define AXIS5_ROTATES   // Linear axis (Syringe Height lead screw)
 #endif
 #ifdef K_DRIVER_TYPE
-  #define AXIS6_NAME 'C' // :['C', 'U', 'V', 'W']
-  #define AXIS6_ROTATES
+  #define AXIS6_NAME 'C' // :['C', 'U', 'V', 'W'] — Syringe (G1 C_ in G-code)
+  //#define AXIS6_ROTATES   // Linear axis (Syringe lead screw, mm) — NOT rotational
 #endif
 #ifdef U_DRIVER_TYPE
   #define AXIS7_NAME 'U' // :['U', 'V', 'W']
@@ -230,7 +230,7 @@
 
 // This defines the number of extruders
 // :[0, 1, 2, 3, 4, 5, 6, 7, 8]
-#define EXTRUDERS 1   // Syringe only; Filter Feed and Syringe Height are now I/J axes
+#define EXTRUDERS 0   // No extruder — Syringe is now the homeable K axis (G-code letter 'C')
 
 // Generally expected filament diameter (1.75, 2.85, 3.0, ...). Used for Volumetric, Filament Width Sensor, etc.
 #define DEFAULT_NOMINAL_FILAMENT_DIA 1.75
@@ -1065,7 +1065,7 @@
 #define USE_ZMIN_PLUG
 //#define USE_IMIN_PLUG     // Filter Feed endstop moved to MAX side
 #define USE_JMIN_PLUG     // Syringe Height (Motor 3) endstop on pin 17
-//#define USE_KMIN_PLUG
+#define USE_KMIN_PLUG     // Syringe (K) endstop at fully-open end — pin 63 (A9)
 //#define USE_UMIN_PLUG
 //#define USE_VMIN_PLUG
 //#define USE_WMIN_PLUG
@@ -1135,7 +1135,7 @@
 #define Z_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
 #define I_MIN_ENDSTOP_INVERTING true // NO switch, internal pullup: HIGH=untriggered, LOW=triggered
 #define J_MIN_ENDSTOP_INVERTING true // NO switch, internal pullup: HIGH=untriggered, LOW=triggered
-#define K_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
+#define K_MIN_ENDSTOP_INVERTING true // Syringe NO switch, internal pullup: HIGH=untriggered, LOW=triggered
 #define U_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define V_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
 #define W_MIN_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
@@ -1196,7 +1196,7 @@
  * Override with M92
  * X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-//                                        X        Y       Z     I(FiltFeed) J(SyrHt)  E0(Syringe)
+//                                        X        Y       Z     I(FiltFeed) J(SyrHt)  K(Syringe 'C')
 #define DEFAULT_AXIS_STEPS_PER_UNIT   { 57.1425, 57.1425, 320,  320,        320,      1600 }
 
 /**
@@ -1204,8 +1204,8 @@
  * Override with M203
  * X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-//                                        X    Y    Z   I   J   E0
-// Values in mm/s.  mm/min equivalents: X=24000 Y=20000 Z=3000 I=2000 J=3000 E=500
+//                                        X    Y    Z   I   J   K
+// Values in mm/s.  mm/min equivalents: X=24000 Y=20000 Z=3000 I=2000 J=3000 K=480
 #define DEFAULT_MAX_FEEDRATE          { 400, 333, 50, 33, 50, 8 }
 
 //#define LIMITED_MAX_FR_EDITING        // Limit edit via M203 or LCD to DEFAULT_MAX_FEEDRATE * 2
@@ -1219,8 +1219,8 @@
  * Override with M201
  * X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-//                                        X     Y     Z    I    J    E0
-//                                        X    Y    Z    I(A)  J(B)  E0
+//                                        X     Y     Z    I    J    K
+//                                        X    Y    Z    I(A)  J(B)  K(C)
 #define DEFAULT_MAX_ACCELERATION      { 500, 200, 100, 150,  50,   500 }
 
 //#define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
@@ -1647,7 +1647,7 @@
 #define E_ENABLE_ON 0 // For all extruders
 #define I_ENABLE_ON 0   // Active-low enable (DM556T)
 #define J_ENABLE_ON 0   // Active-low enable (DM556T)
-//#define K_ENABLE_ON 0
+#define K_ENABLE_ON 0   // Active-low enable (DM556T) — Syringe
 //#define U_ENABLE_ON 0
 //#define V_ENABLE_ON 0
 //#define W_ENABLE_ON 0
@@ -1680,7 +1680,9 @@
 #define INVERT_Z_DIR true   // Verified: was moving away from endstop during homing
 #define INVERT_I_DIR true   // Verified: was moving away from endstop during homing
 #define INVERT_J_DIR true   // Verified: was moving away from endstop during homing
-//#define INVERT_K_DIR false
+#define INVERT_K_DIR true    // Syringe: flipped vs old INVERT_E0_DIR(false) so -C homes toward OPEN switch
+                             // (DispenseCureDemo1 shows -E=push/close; matches I/J which also needed true).
+                             // Still VERIFY on first test: `G1 C-5` must move toward fully-open.
 //#define INVERT_U_DIR false
 //#define INVERT_V_DIR false
 //#define INVERT_W_DIR false
@@ -1721,7 +1723,7 @@
 #define Z_HOME_DIR -1 // Home to Z_MIN endstop (pin 18)
 #define I_HOME_DIR 1    // Filter Feed homes to I_MAX (pin 15) — endstop moved to far end
 #define J_HOME_DIR -1   // Syringe Height homes to J_MIN (pin 17)
-//#define K_HOME_DIR -1
+#define K_HOME_DIR -1   // Syringe homes to K_MIN (fully-open / retracted end)
 //#define U_HOME_DIR -1
 //#define V_HOME_DIR -1
 //#define W_HOME_DIR -1
@@ -1743,8 +1745,9 @@
 #define I_MAX_POS 343    // Filter Feed measured travel limit (mm)
 #define J_MIN_POS 0
 #define J_MAX_POS 304    // Syringe Height measured travel limit (mm)
-//#define K_MIN_POS 0
-//#define K_MAX_POS 50
+#define K_MIN_POS 0
+#define K_MAX_POS 135   // Syringe plunger stroke (mm), measured ~135 full open→closed (1 mm/rev screw).
+                        // Soft-endstop-enforced. Drop to ~133 if you want margin against the hard stop.
 //#define U_MIN_POS 0
 //#define U_MAX_POS 50
 //#define V_MIN_POS 0
@@ -2136,7 +2139,7 @@
 
 // Homing speeds (linear=mm/min, rotational=°/min)
 //                                X        Y        Z        I(A)      J(B)
-#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (15*60), (25*60), (25*60) }
+#define HOMING_FEEDRATE_MM_M { (50*60), (50*60), (15*60), (25*60), (25*60), (5*60) }
 
 // Validate that endstops are triggered on homing moves
 #define VALIDATE_HOMING_ENDSTOPS

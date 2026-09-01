@@ -4,14 +4,14 @@
 
 **Authoritative source:** `Marlin-2.1.2.7/Marlin/src/pins/ramps/pins_RAMPS_14_RMR.h` (plus inherited assignments from stock `pins_RAMPS.h`). This document consolidates and mirrors those headers for bench/wiring use. If the two disagree, the `.h` file wins — update this document.
 
-**Last updated:** 2026-04-16 (relay modules changed to active-HIGH, M280 T parameter documented)
+**Last updated:** 2026-09-01 (Syringe converted from E0 extruder → K homeable linear axis, G-code letter 'C', endstop on pin 63)
 
 ---
 
 ## Quick physical summary
 
-- 6 stepper drivers (DM556T externals): X, Y (1 driver / 2 motors), Z, Filter Feed (I), Syringe Height (J), Syringe (E0)
-- 5 homing endstops: X, Y, Z, I, J (E0 has no endstop)
+- 6 stepper drivers (DM556T externals): X, Y (1 driver / 2 motors), Z, Filter Feed (I), Syringe Height (J), Syringe (K)
+- 6 homing endstops: X, Y, Z, I, J, K (Syringe converted E0 extruder → homeable K axis; endstop at fully-open end, pin 63)
 - 2 servos: gripper (pin 5), lid (pin 6)
 - 2 opto-isolated relays: UV lamp, solenoid valve (current modules: active-HIGH; original Bestep JQC3F-03VDC-C were active-LOW; 3.3 V buck rail)
 - 1 spincoater: ODrive S1 on Serial2 (115200 baud raw ASCII)
@@ -30,7 +30,7 @@ Pin columns show the Mega GPIO number in decimal. For analog pins, the `Ax` alia
 | Z           | Z             | Gantry Z        | DM556T #3  | 46        | 48        | A8 (62)   | 320      | 186         | 5 mm/rev lead screw. `INVERT_Z_DIR true`. |
 | I           | A             | Filter Feed     | DM556T #4  | 2         | 9         | 12        | 320      | 343         | 5 mm/rev lead screw. `AXIS4_NAME='A'`. Homes to MAX. `INVERT_I_DIR true`. |
 | J           | B             | Syringe Height  | DM556T #5  | 21        | 22        | 31        | 320      | 304         | 5 mm/rev lead screw. `AXIS5_NAME='B'`. `INVERT_J_DIR true`. |
-| E0          | E             | Syringe (sole extruder) | DM556T #6 | 13 | 19        | 20        | 1600     | —           | 1 mm/rev lead screw. `EXTRUDERS 1`, `EXTRUDE_MINTEMP 0` (cold extrusion allowed). |
+| K           | C             | Syringe         | DM556T #6  | 13        | 19        | 20        | 1600     | 135         | 1 mm/rev lead screw (→ 1600 steps/mm). `AXIS6_NAME='C'`, `EXTRUDERS 0`. Homeable linear axis (was E0 extruder). `INVERT_K_DIR true`, homes to MIN. Stroke ~135 mm. Pins unchanged (13/19/20). |
 
 Steps/mm derivation: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_rev` = `(200 × 8) ÷ travel_per_rev`.
 
@@ -47,9 +47,11 @@ All endstops are NO (normally-open), wired **COM → Mega GND, NO → signal pin
 | Z    | Z      | 40  | `Z_STOP_PIN`    | MIN (-1)       | **Moved from pin 18 (TX1) due to EMI false triggers.** Uses `Z_STOP_PIN` (not `Z_MIN_PIN`) so `pins_postprocess.h` can't override. 100 nF cap from pin 40 to GND recommended. `ENDSTOP_NOISE_THRESHOLD 7`. |
 | I    | A      | 15  | `I_MAX_PIN`     | **MAX (+1)**   | Filter Feed homes to the far end. RAMPS Y+ header. |
 | J    | B      | 23  | `J_MIN_PIN`     | MIN (-1)       | **Moved from pin 17 (TX2) to free Serial2 for ODrive.** |
-| E0   | E      | —   | —               | (no endstop)   | Syringe has no endstop. |
+| K    | C      | 63  | `K_MIN_PIN`     | MIN (-1)       | **Syringe fully-open (retracted) switch.** Pin 63 (A9, AUX-2 header). Converted from E0 extruder. `INVERT_K_DIR true` (flipped vs old E0 so `-C` homes toward the switch). |
 
-Homing order (`G28`, via patched `G28.cpp`): **lid open (servo 1 → 30°) → Z → Y → J → gripper close (servo 0 → 90°) → X → I**. `HOME_Z_FIRST` enabled, `Z_SAFE_HOMING` disabled.
+Homing order (`G28`, via patched `G28.cpp`): **lid open (servo 1 → 30°) → Z → Y → J → gripper close (servo 0 → 90°) → X → I → K (Syringe)**. `HOME_Z_FIRST` enabled, `Z_SAFE_HOMING` disabled.
+
+**Note:** bare `G28` now homes the syringe (K) too, retracting the plunger fully open. To home the gantry *without* touching the syringe, use `G28 X Y Z A B`. The pin-63 switch must be wired before any bare `G28`, or K homing runs to its full soft-travel and halts.
 
 ---
 
@@ -109,12 +111,13 @@ Several stock RAMPS 1.4 pin assignments had to be freed for our auxiliary axes a
 | 2   | X_MAX_PIN           | I STEP (Filter Feed)     | `X_MAX_PIN → -1`                           |
 | 9   | FAN (MOSFET_B)      | I DIR (Filter Feed)      | `MOSFET_B_PIN → -1`                        |
 | 12  | PS_ON_PIN           | I ENABLE (Filter Feed)   | `PS_ON_PIN → -1`                           |
-| 13  | LED_PIN             | E0 STEP (Syringe)        | `LED_PIN → -1`                             |
+| 13  | LED_PIN             | K STEP (Syringe)         | `LED_PIN → -1`                             |
 | 15  | Y_MAX_PIN           | I_MAX endstop (Filter Feed) | `Y_MAX_PIN → -1`                        |
 | 16  | Serial2 TX          | ODrive S1 UART TX        | Repurposed for spincoater link             |
 | 17  | Serial2 RX / J_MIN  | ODrive S1 UART RX        | J endstop relocated from pin 17 → pin 23   |
-| 19  | Serial1 RX / Z_MAX  | E0 DIR (Syringe)         | `Z_MAX_PIN → -1`, OK if Serial1 unused     |
-| 20  | I2C SDA             | E0 ENABLE (Syringe)      | OK if I2C unused                           |
+| 19  | Serial1 RX / Z_MAX  | K DIR (Syringe)          | `Z_MAX_PIN → -1`, OK if Serial1 unused     |
+| 20  | I2C SDA             | K ENABLE (Syringe)       | OK if I2C unused                           |
+| 63  | (free / AUX2_04)    | K_MIN endstop (Syringe)  | New — Syringe fully-open switch             |
 | 21  | I2C SCL             | J STEP (Syringe Height)  | OK if I2C unused                           |
 | 23  | (free)              | J endstop (Syringe Height) | New assignment, ex-pin-17                |
 | 40  | (free)              | Z endstop                | Moved from pin 18 (TX1) due to EMI         |
@@ -154,7 +157,7 @@ Pins below are verified free in the current build (`pins_RAMPS.h` + custom `pins
 | 57  | PF3 (A3) | none          | AUX1_05        | Free                 | — (label only in stock RAMPS) |
 | 58  | PF4 (A4) | none          | AUX1_07        | Free                 | — (label only in stock RAMPS) |
 | 59  | PF5 (A5) | none          | AUX2_03        | Free                 | — (label only in stock RAMPS) |
-| 63  | PK1 (A9) | none          | AUX2_04        | Free                 | — (label only in stock RAMPS) |
+| 63  | PK1 (A9) | none          | AUX2_04        | **Used: Syringe (K) endstop** | — |
 | 64  | PK2 (A10)| none          | AUX2_05        | Free                 | — (label only in stock RAMPS) |
 | 65  | PK3 (A11)| none          | AUX2_10        | Free                 | LCD defined with software-controllable backlight (stock RAMPS defines `LCD_BACKLIGHT_PIN -1` anyway) |
 | 66  | PK4 (A12)| none          | AUX2_09        | Free                 | `TEMP_SENSOR_0` set to a Max6675/Max31855 thermocouple type (becomes `TEMP_0_CS_PIN`) |
