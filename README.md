@@ -1,5 +1,7 @@
 # Robot-Making Robot (RMR)
 
+Associated with https://arxiv.org/abs/2608.00369
+
 A custom 3-axis gantry robot driven by Marlin firmware on an Arduino Mega 2560. This is **not** a 3D printer — it's a pick-and-place / dispensing system with three auxiliary linear actuators, two servos, and a solenoid valve. Marlin is repurposed here purely as a motion controller because it provides production-grade G-code parsing, trapezoidal motion planning, and multi-axis stepper coordination out of the box.
 
 ## Repository Structure
