@@ -666,7 +666,7 @@
       <span class="feed-val" id="aFeedVal">2000</span><span class="feed-val"> mm/min</span>
     </div>
     <div class="ext-row">
-      <label>E - Syringe</label>
+      <label>C - Syringe</label>
       <button class="jog-btn" onclick="jogSyringe(-1)">&#9664;</button>
       <button class="jog-btn" onclick="jogSyringe(1)">&#9654;</button>
       <input type="range" id="eFeed" min="10" max="480" value="480" step="10"
@@ -758,14 +758,14 @@
       <span class="feed-val" id="accelBVal">50</span>
       <button class="toggle-btn" onclick="sendCmd('M201 B'+document.getElementById('accelB').value)">Set</button>
 
-      <label>E - Syringe</label>
+      <label>C - Syringe</label>
       <input type="range" id="accelE" min="50" max="5000" value="500" step="50"
              oninput="document.getElementById('accelEVal').textContent=this.value">
       <span class="feed-val" id="accelEVal">500</span>
-      <button class="toggle-btn" onclick="sendCmd('M201 E'+document.getElementById('accelE').value)">Set</button>
+      <button class="toggle-btn" onclick="sendCmd('M201 C'+document.getElementById('accelE').value)">Set</button>
     </div>
     <div style="margin-top:10px;display:flex;gap:8px">
-      <button class="toggle-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' E'+document.getElementById('accelE').value)">Set All</button>
+      <button class="toggle-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' C'+document.getElementById('accelE').value)">Set All</button>
       <button class="toggle-btn" onclick="sendCmd('M500')">Save to EEPROM (M500)</button>
       <button class="toggle-btn" onclick="sendCmd('M503')">Report Settings (M503)</button>
     </div>
@@ -913,7 +913,7 @@
       <div class="pos-cell"><div class="axis-label">Y (mm)</div><div class="axis-val" id="posY">---</div></div>
       <div class="pos-cell"><div class="axis-label">Z (mm)</div><div class="axis-val" id="posZ">---</div></div>
       <div class="pos-cell"><div class="axis-label">A Filter</div><div class="axis-val" id="posA">---</div></div>
-      <div class="pos-cell"><div class="axis-label">E Syringe</div><div class="axis-val" id="posE">---</div></div>
+      <div class="pos-cell"><div class="axis-label">C Syringe</div><div class="axis-val" id="posE">---</div></div>
       <div class="pos-cell"><div class="axis-label">B Syr.Ht</div><div class="axis-val" id="posB">---</div></div>
     </div>
     <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
@@ -946,7 +946,7 @@
       <button class="quick-btn" onclick="sendCmd('G28')">Home All</button>
       <button class="quick-btn" onclick="sendCmd('G28 X Y')">Home XY</button>
       <button class="quick-btn" onclick="sendCmd('G28 Z')">Home Z</button>
-      <button class="quick-btn" onclick="sendCmd('G92 E0')">Reset E</button>
+      <button class="quick-btn" onclick="sendCmd('G28 C')">Home C (Syr)</button>
       <button class="quick-btn" onclick="sendCmd('M114')">Position</button>
       <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
       <button class="quick-btn" onclick="sendCmd('M503')">Settings</button>
@@ -978,7 +978,7 @@
       </div>
       <div class="setting-row">
         <label>A(FiltFeed):</label><input type="number" id="stepsA" value="320">
-        <label>E(Syringe):</label><input type="number" id="stepsE" value="1600">
+        <label>C(Syringe):</label><input type="number" id="stepsE" value="1600">
         <label>B(SyrHt):</label><input type="number" id="stepsB" value="320">
         <button onclick="applySteps()">Apply M92</button>
       </div>
@@ -991,7 +991,7 @@
       </div>
       <div class="setting-row">
         <label>A:</label><input type="number" id="frA" value="33">
-        <label>E:</label><input type="number" id="frE" value="8">
+        <label>C:</label><input type="number" id="frE" value="8">
         <label>B:</label><input type="number" id="frB" value="50">
         <button onclick="applyFeedrates()">Apply M203</button>
       </div>
@@ -1004,7 +1004,7 @@
       </div>
       <div class="setting-row">
         <label>A:</label><input type="number" id="accA" value="150">
-        <label>E:</label><input type="number" id="accE" value="500">
+        <label>C:</label><input type="number" id="accE" value="500">
         <label>B:</label><input type="number" id="accB" value="50">
         <button onclick="applyAccel()">Apply M201</button>
       </div>
@@ -1482,7 +1482,7 @@ function processLine(line) {
   }
 
   // Parse position from M114 response
-  // Format with I/J axes: X:0.00 Y:0.00 Z:0.00 A:0.00 B:0.00 E:0.00 Count ...
+  // Format with I/J/K axes: X:0.00 Y:0.00 Z:0.00 A:0.00 B:0.00 C:0.00 Count ...
   const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)/);
   if (posMatch) {
     document.getElementById('posX').textContent = parseFloat(posMatch[1]).toFixed(1);
@@ -1490,10 +1490,10 @@ function processLine(line) {
     document.getElementById('posZ').textContent = parseFloat(posMatch[3]).toFixed(1);
     const aMatch = line.match(/A:([\d.-]+)/);
     const bMatch = line.match(/B:([\d.-]+)/);
-    const eMatch = line.match(/E:([\d.-]+)/);
+    const cMatch = line.match(/C:([\d.-]+)/);  // Syringe is now the C (K) axis, not E
     if (aMatch) document.getElementById('posA').textContent = parseFloat(aMatch[1]).toFixed(1);
     if (bMatch) document.getElementById('posB').textContent = parseFloat(bMatch[1]).toFixed(1);
-    if (eMatch) document.getElementById('posE').textContent = parseFloat(eMatch[1]).toFixed(1);
+    if (cMatch) document.getElementById('posE').textContent = parseFloat(cMatch[1]).toFixed(1);
   }
 
   // Detect 'ok' for program runner + sequencer sequencing
@@ -1599,15 +1599,14 @@ function jogAxis(axis, dir) {
   sendCmd('G90'); // back to absolute
 }
 
-// Jog E (Syringe) — extruder axis, needs relative E reset
+// Jog C (Syringe) — now a homeable linear axis. Relative move, NO G92 reset
+// (G92 would wipe the homed position and defeat the soft endstops).
 function jogSyringe(dir) {
   const dist = stepSize * dir;
   const feed = document.getElementById('eFeed').value;
-  sendCmd('G92 E0');
   sendCmd('G91');
-  sendCmd(`G1 E${dist} F${feed}`);
+  sendCmd(`G1 C${dist} F${feed}`);
   sendCmd('G90');
-  sendCmd('G92 E0');
 }
 
 function homeXY() {
@@ -1667,7 +1666,7 @@ function applySteps() {
   const a = document.getElementById('stepsA').value;
   const e = document.getElementById('stepsE').value;
   const b = document.getElementById('stepsB').value;
-  sendCmd(`M92 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
+  sendCmd(`M92 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
   logInfo('Steps/mm updated. Use M500 to save to EEPROM.');
 }
 
@@ -1678,7 +1677,7 @@ function applyFeedrates() {
   const a = document.getElementById('frA').value;
   const e = document.getElementById('frE').value;
   const b = document.getElementById('frB').value;
-  sendCmd(`M203 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
+  sendCmd(`M203 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
   logInfo('Max feedrates updated. Use M500 to save to EEPROM.');
 }
 
@@ -1689,7 +1688,7 @@ function applyAccel() {
   const a = document.getElementById('accA').value;
   const e = document.getElementById('accE').value;
   const b = document.getElementById('accB').value;
-  sendCmd(`M201 X${x} Y${y} Z${z} A${a} B${b} E${e}`);
+  sendCmd(`M201 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
   logInfo('Max acceleration updated. Use M500 to save to EEPROM.');
 }
 
@@ -2176,13 +2175,16 @@ async function runSyringeBlock() {
   await seqCmd('G90');
   await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);   // position syringe height (B)
   await seqCmd('M400');
-  await seqCmd('G92 E0');                                    // zero syringe
-  await seqCmd('G1 E' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense
+  // Syringe is the homeable C (K) axis. Dispense/retract as RELATIVE moves
+  // (+C = push/dispense); no G92 on a homed axis, so soft limits [0, K_MAX_POS] hold.
+  await seqCmd('G91');
+  await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense (push plunger)
   await seqCmd('M400');
   if (pullMm > 0) {
-    await seqCmd('G1 E' + (dispMm - pullMm).toFixed(4) + ' F' + eFeed); // retract
+    await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // pullback / retract
     await seqCmd('M400');
   }
+  await seqCmd('G90');                                       // restore absolute mode
 }
 
 // ─── Block: Spin Coater ───
