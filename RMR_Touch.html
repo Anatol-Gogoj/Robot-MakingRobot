@@ -504,7 +504,7 @@
     <button class="quick-btn" onclick="sendCmd('G28 Z');closeQcmd()">Home Z</button>
     <button class="quick-btn" onclick="sendCmd('G28 A');closeQcmd()">Home A</button>
     <button class="quick-btn" onclick="sendCmd('G28 B');closeQcmd()">Home B</button>
-    <button class="quick-btn" onclick="sendCmd('G92 E0');closeQcmd()">Reset E</button>
+    <button class="quick-btn" onclick="sendCmd('G28 C');closeQcmd()">Home C</button>
     <button class="quick-btn" onclick="sendCmd('M119');closeQcmd()">Endstops</button>
     <button class="quick-btn" onclick="sendCmd('M114');closeQcmd()">Position</button>
     <button class="quick-btn" onclick="sendCmd('M503');closeQcmd()">Settings</button>
@@ -537,7 +537,7 @@
         <div class="pos-chip"><span class="pos-lbl">Y</span><span class="axis-val" id="posY">---</span></div>
         <div class="pos-chip"><span class="pos-lbl">Z</span><span class="axis-val" id="posZ">---</span></div>
         <div class="pos-chip"><span class="pos-lbl">A</span><span class="axis-val" id="posA">---</span></div>
-        <div class="pos-chip"><span class="pos-lbl">E</span><span class="axis-val" id="posE">---</span></div>
+        <div class="pos-chip"><span class="pos-lbl">C</span><span class="axis-val" id="posE">---</span></div>
         <div class="pos-chip"><span class="pos-lbl">B</span><span class="axis-val" id="posB">---</span></div>
         <button class="touch-btn" style="padding:6px 10px;font-size:13px" onclick="sendCmd('M114')">M114</button>
         <label style="font-size:14px;color:var(--text-dim);display:flex;align-items:center;gap:4px">
@@ -594,9 +594,9 @@
           <button class="jog-btn jog-sm" data-jog="A,1">&#9660;</button>
         </div>
         <div class="aux-compact">
-          <span class="aux-lbl">E<br><span style="font-size:12px;font-weight:400">Syringe</span></span>
-          <button class="jog-btn jog-sm" data-jog="E,1">&#9650;</button>
-          <button class="jog-btn jog-sm" data-jog="E,-1">&#9660;</button>
+          <span class="aux-lbl">C<br><span style="font-size:12px;font-weight:400">Syringe</span></span>
+          <button class="jog-btn jog-sm" data-jog="C,1">&#9650;</button>
+          <button class="jog-btn jog-sm" data-jog="C,-1">&#9660;</button>
         </div>
         <div class="aux-compact">
           <span class="aux-lbl">B<br><span style="font-size:12px;font-weight:400">Syr.Ht</span></span>
@@ -766,7 +766,7 @@
         <div class="setting-row"><label>Y:</label><input type="number" id="stepsY" value="57.1425"></div>
         <div class="setting-row"><label>Z:</label><input type="number" id="stepsZ" value="1280"></div>
         <div class="setting-row"><label>A (Filter):</label><input type="number" id="stepsA" value="320"></div>
-        <div class="setting-row"><label>E (Syringe):</label><input type="number" id="stepsE" value="1600"></div>
+        <div class="setting-row"><label>C (Syringe):</label><input type="number" id="stepsE" value="1600"></div>
         <div class="setting-row"><label>B (Syr.Ht):</label><input type="number" id="stepsB" value="320"></div>
         <button class="touch-btn" onclick="applySteps()" style="margin-top:6px">Apply M92</button>
       </div>
@@ -791,9 +791,9 @@
         <div class="accel-row"><label>Z:</label><input type="range" id="accelZ" min="50" max="2000" value="100" step="50" oninput="document.getElementById('accelZVal').textContent=this.value"><span class="accel-val" id="accelZVal">100</span><button class="touch-btn" onclick="sendCmd('M201 Z'+document.getElementById('accelZ').value)">Set</button></div>
         <div class="accel-row"><label>A (Filter):</label><input type="range" id="accelA" min="50" max="5000" value="150" step="50" oninput="document.getElementById('accelAVal').textContent=this.value"><span class="accel-val" id="accelAVal">150</span><button class="touch-btn" onclick="sendCmd('M201 A'+document.getElementById('accelA').value)">Set</button></div>
         <div class="accel-row"><label>B (Syr.Ht):</label><input type="range" id="accelB" min="50" max="5000" value="50" step="50" oninput="document.getElementById('accelBVal').textContent=this.value"><span class="accel-val" id="accelBVal">50</span><button class="touch-btn" onclick="sendCmd('M201 B'+document.getElementById('accelB').value)">Set</button></div>
-        <div class="accel-row"><label>E (Syringe):</label><input type="range" id="accelE" min="50" max="5000" value="500" step="50" oninput="document.getElementById('accelEVal').textContent=this.value"><span class="accel-val" id="accelEVal">500</span><button class="touch-btn" onclick="sendCmd('M201 E'+document.getElementById('accelE').value)">Set</button></div>
+        <div class="accel-row"><label>C (Syringe):</label><input type="range" id="accelE" min="50" max="5000" value="500" step="50" oninput="document.getElementById('accelEVal').textContent=this.value"><span class="accel-val" id="accelEVal">500</span><button class="touch-btn" onclick="sendCmd('M201 C'+document.getElementById('accelE').value)">Set</button></div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-          <button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' E'+document.getElementById('accelE').value)">Set All Accel</button>
+          <button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' C'+document.getElementById('accelE').value)">Set All Accel</button>
           <button class="touch-btn" onclick="sendCmd('M500')">Save EEPROM</button>
           <button class="touch-btn" onclick="sendCmd('M503')">Report (M503)</button>
           <button class="touch-btn" onclick="loadFromEEPROM()">Load from EEPROM</button>
@@ -1067,10 +1067,10 @@ function processLine(line) {
     document.getElementById('posX').textContent=parseFloat(posMatch[1]).toFixed(1);
     document.getElementById('posY').textContent=parseFloat(posMatch[2]).toFixed(1);
     document.getElementById('posZ').textContent=parseFloat(posMatch[3]).toFixed(1);
-    const aM=line.match(/A:([\d.-]+)/), bM=line.match(/B:([\d.-]+)/), eM=line.match(/E:([\d.-]+)/);
+    const aM=line.match(/A:([\d.-]+)/), bM=line.match(/B:([\d.-]+)/), cM=line.match(/C:([\d.-]+)/);
     if (aM) document.getElementById('posA').textContent=parseFloat(aM[1]).toFixed(1);
     if (bM) document.getElementById('posB').textContent=parseFloat(bM[1]).toFixed(1);
-    if (eM) document.getElementById('posE').textContent=parseFloat(eM[1]).toFixed(1);
+    if (cM) document.getElementById('posE').textContent=parseFloat(cM[1]).toFixed(1);  // Syringe = C (K) axis
   }
   if (line.match(/echo:\s*M92/)) parseM503(line, 'M92');
   if (line.match(/echo:\s*M203/)) parseM503(line, 'M203');
@@ -1087,17 +1087,17 @@ function processLine(line) {
 function parseM503(line, type) {
   const ex = (l) => { const m = line.match(new RegExp(l + '([\\d.]+)')); return m ? parseFloat(m[1]) : null; };
   if (type === 'M92') {
-    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('E'),b=ex('B');
+    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('C'),b=ex('B');
     if(x!==null) document.getElementById('stepsX').value=x; if(y!==null) document.getElementById('stepsY').value=y;
     if(z!==null) document.getElementById('stepsZ').value=z; if(a!==null) document.getElementById('stepsA').value=a;
     if(e!==null) document.getElementById('stepsE').value=e; if(b!==null) document.getElementById('stepsB').value=b;
   } else if (type === 'M203') {
-    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('E'),b=ex('B');
+    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('C'),b=ex('B');
     if(x!==null) document.getElementById('frX').value=x; if(y!==null) document.getElementById('frY').value=y;
     if(z!==null) document.getElementById('frZ').value=z; if(a!==null) document.getElementById('frA').value=a;
     if(e!==null) document.getElementById('frE').value=e; if(b!==null) document.getElementById('frB').value=b;
   } else if (type === 'M201') {
-    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('E'),b=ex('B');
+    const x=ex('X'),y=ex('Y'),z=ex('Z'),a=ex('A'),e=ex('C'),b=ex('B');
     if(x!==null){document.getElementById('accelX').value=x;document.getElementById('accelXVal').textContent=x;}
     if(y!==null){document.getElementById('accelY').value=y;document.getElementById('accelYVal').textContent=y;}
     if(z!==null){document.getElementById('accelZ').value=z;document.getElementById('accelZVal').textContent=z;}
@@ -1139,8 +1139,9 @@ function setStep(size) { stepSize = size; buzz(30); document.querySelectorAll('.
 
 function jogOnce(axis, dir) {
   const dist = stepSize * dir;
-  if (axis === 'E') {
-    sendCmd('G92 E0'); sendCmd('G91'); sendCmd('G1 E' + dist + ' F' + document.getElementById('eFeed').value); sendCmd('G90'); sendCmd('G92 E0');
+  if (axis === 'C') {
+    // Syringe is now a homeable linear axis — relative move, no G92 reset
+    sendCmd('G91'); sendCmd('G1 C' + dist + ' F' + document.getElementById('eFeed').value); sendCmd('G90');
   } else {
     const feedMap = { X:'xyFeed', Y:'xyFeed', Z:'zFeed', A:'aFeed', B:'bFeed' };
     sendCmd('G91'); sendCmd('G1 ' + axis + dist + ' F' + document.getElementById(feedMap[axis]).value); sendCmd('G90');
@@ -1239,12 +1240,12 @@ function toggleAutoReport() {
 
 // ─── Settings Apply ───
 function applySteps() {
-  const ids = ['stepsX','stepsY','stepsZ','stepsA','stepsE','stepsB'], axes = ['X','Y','Z','A','E','B'];
+  const ids = ['stepsX','stepsY','stepsZ','stepsA','stepsE','stepsB'], axes = ['X','Y','Z','A','C','B'];
   sendCmd('M92 ' + axes.map((a,i) => a + document.getElementById(ids[i]).value).join(' '));
   showToast('Steps/mm updated. M500 to save.', 'info');
 }
 function applyFeedrates() {
-  sendCmd('M203 X'+document.getElementById('frX').value+' Y'+document.getElementById('frY').value+' Z'+document.getElementById('frZ').value+' A'+document.getElementById('frA').value+' B'+document.getElementById('frB').value+' E'+document.getElementById('frE').value);
+  sendCmd('M203 X'+document.getElementById('frX').value+' Y'+document.getElementById('frY').value+' Z'+document.getElementById('frZ').value+' A'+document.getElementById('frA').value+' B'+document.getElementById('frB').value+' C'+document.getElementById('frE').value);
   showToast('Max feedrates updated. M500 to save.', 'info');
 }
 

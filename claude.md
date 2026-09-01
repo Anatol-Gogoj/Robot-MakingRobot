@@ -20,7 +20,7 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 | Y2 | — | Gantry Y2 | 36 | 34 | 30 | (follows Y) | Second Y motor on its own DM556T; `Y2_DRIVER_TYPE` makes Marlin pulse this pin set in lockstep with Y |
 | Z | Z | Gantry Z | 46 | 48 | A8 (62) | 320 | 5 mm/rev lead screw, 1600 steps/rev (1/8 µstep) |
 | I | A | Filter Feed | 2 | 9 | 12 | 320 | 5 mm/rev lead screw — homeable linear axis (AXIS4_NAME='A') |
-| E0 | E | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw — sole extruder |
+| K | C | Syringe | 13 | 19 | 20 | 1600 | 1 mm/rev lead screw — homeable linear axis (AXIS6_NAME='C', was E0 extruder). Homes to MIN, `INVERT_K_DIR true` |
 | J | B | Syringe Height | 21 | 22 | 31 | 320 | 5 mm/rev lead screw — homeable linear axis (AXIS5_NAME='B') |
 | — | — | Spincoater | — | — | — | — | ODrive S1 on Serial2 (pins 16/17) — M750/M751/M752 |
 
@@ -35,7 +35,7 @@ All drivers are DM556T-style (external, optoisolated PUL/DIR/ENA inputs). They a
 - Z endstop: pin 40 (Z_MIN — moved from pin 18/TX1 due to EMI sensitivity)
 - I endstop (Filter Feed): pin 15 (I_MAX, RAMPS Y+ header) — homes to MAX (far end)
 - J endstop (Syringe Height): pin 23 (J_MIN, moved from pin 17/TX2 to free Serial2 for ODrive)
-- Syringe (E0): **no endstop**
+- K endstop (Syringe): pin 63 (A9, AUX-2 header) — homes to MIN (fully-open / retracted end). Converted from E0 extruder; NO switch, `K_MIN_ENDSTOP_INVERTING true`, `INVERT_K_DIR true`.
 
 Switch type: normally-open, wired common→GND, NO→signal pin. Internal pullups enabled via `ENDSTOPPULLUPS`. Logic: untriggered=HIGH, triggered=LOW, `*_ENDSTOP_INVERTING true`.
 
@@ -90,13 +90,15 @@ Custom board `BOARD_RAMPS_14_RMR` (ID 1020) inherits from stock RAMPS 1.4 and ov
 ### Key Configuration.h Settings
 ```
 MOTHERBOARD              BOARD_RAMPS_14_RMR
-EXTRUDERS                1           (syringe only; filter feed & syringe height are I/J axes)
+EXTRUDERS                0           (no extruder — syringe is now the K linear axis)
 AXIS4_NAME               'A'         (G-code letter for I axis — Filter Feed)
 AXIS5_NAME               'B'         (G-code letter for J axis — Syringe Height)
+AXIS6_NAME               'C'         (G-code letter for K axis — Syringe; AXIS6_ROTATES OFF = linear)
 I_DRIVER_TYPE            A4988       (Filter Feed — linear axis)
 J_DRIVER_TYPE            A4988       (Syringe Height — linear axis)
+K_DRIVER_TYPE            A4988       (Syringe — linear axis, was E0 extruder)
 TEMP_SENSOR_0            0           (disabled — no heaters)
-EXTRUDE_MINTEMP          0           (allows E moves without hotend — M302 not needed)
+EXTRUDE_MINTEMP          0           (moot with EXTRUDERS 0 — auto-undef'd, no E axis)
 NUM_SERVOS               2
 DEACTIVATE_SERVOS_AFTER_MOVE  enabled (anti-jitter, 2s hold)
 SERVO_DELAY              { 2000, 2000 }
@@ -104,12 +106,15 @@ X_HOME_DIR / Y_HOME_DIR  -1          (home to min endstop)
 Z_HOME_DIR               -1          (home to Z_MIN endstop, pin 40)
 I_HOME_DIR                1          (home to I_MAX endstop, pin 15 — far end)
 J_HOME_DIR               -1          (home to J_MIN endstop, pin 23 — moved from 17 to free Serial2)
+K_HOME_DIR               -1          (Syringe homes to K_MIN endstop, pin 63 — fully-open end)
+K_MIN_POS / K_MAX_POS    0 / 135     (measured ~135 mm plunger stroke; 1 mm/rev lead screw)
 Z_SAFE_HOMING            disabled    (Z homes first via HOME_Z_FIRST)
 HOME_Z_FIRST             enabled     (in Configuration_adv.h)
-Homing order             [lid open] → Z → Y → J → [gripper close] → X → I  (G28.cpp patched)
+Homing order             [lid open] → Z → Y → J → [gripper close] → X → I → K(Syringe)  (G28.cpp patched)
 INVERT_Z_DIR             true        (verified by physical test)
 INVERT_I_DIR             true        (verified by physical test)
 INVERT_J_DIR             true        (verified by physical test)
+INVERT_K_DIR             true        (Syringe — flipped vs old E0 so -C homes toward open; VERIFY on first test)
 ```
 
 ### Motion Parameters
@@ -135,7 +140,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 | `src/inc/SanityCheck.h` | Sanity check for DEACTIVATE_SERVOS_AFTER_MOVE commented out — stock Marlin requires Z_PROBE_SERVO_NR or switching toolhead, which don't apply here. |
 
 ### Critical Gotchas
-1. **Cold extrusion:** `EXTRUDE_MINTEMP` is set to 0, so E-axis moves work without temperature checks. `M302 S0` is **not compiled in** (returns "Unknown command") and is not needed.
+1. **Syringe is the K axis (G-code 'C'), not an extruder:** Converted from the E0 extruder to a homeable linear axis (`EXTRUDERS 0`, `K_DRIVER_TYPE A4988`, `AXIS6_NAME 'C'`, `AXIS6_ROTATES` off). Dispense with `G1 C<mm>` (**+C = push/dispense**, since `INVERT_K_DIR true`); zero = fully open (plunger retracted). **The old `G1 E…` / `G92 E0` idioms are now SILENTLY IGNORED** (no E axis, no error) — all syringe G-code must use `C`. Home with `G28 C`; a **bare `G28` now homes the syringe too** (last in the order) and retracts the plunger — use `G28 X Y Z A B` to home the gantry only. The pin-63 switch must be wired before any bare `G28`. Cold-extrusion checks (`EXTRUDE_MINTEMP`, `M302`) no longer apply. `K_MAX_POS` is 135 mm (measured stroke; 1 mm/rev screw → 1600 steps/mm), soft-endstop-enforced. On first bring-up, VERIFY `INVERT_K_DIR` (jog `G1 C-5` must move toward fully-open) before trusting `G28 C`.
 2. **Custom homing order (G28.cpp patched):** A bare `G28` homes in order: [lid servo opens to 30°] → Z → Y → J(Syr.Ht) → [gripper servo closes to 90°] → X → I(Filter Feed). HOME_Z_FIRST is enabled, Z_SAFE_HOMING is disabled.
 3. **Gripper closes before X homing:** Servo 0 is commanded to 90° with a 300ms delay before X homing begins, to prevent the gripper from colliding with the frame.
 4. **Filter Feed homes to MAX:** I_HOME_DIR=1, endstop is on the far end (I_MAX, pin 15). All other axes home to MIN.
@@ -154,22 +159,24 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 
 ### Homing & Positioning
 ```gcode
-G28              # home all axes (Z → Y → J → X → I) — safe, all have endstops
+G28              # home ALL axes (Z → Y → J → X → I → K/Syringe) — homes the syringe too!
+G28 X Y Z A B    # home gantry + aux WITHOUT retracting the syringe (K)
 G28 X Y          # home gantry XY only
 G28 Z            # home Z only
 G28 A            # home Filter Feed only (homes to MAX end)
 G28 B            # home Syringe Height only
-G92 E0           # reset extruder (syringe) position counter
+G28 C            # home Syringe only (K axis) — to fully-open (C0)
 G1 X_ Y_ F_     # move gantry (F in mm/min: F3000 = 50mm/s)
 G1 Z_ F_         # move Z
 ```
 
-### Aux Motors (I/J linear axes + E0 extruder)
+### Aux Motors (I/J/K linear axes)
 ```gcode
 G1 A_ F_         # move Filter Feed
-G1 E_ F_         # move Syringe — sole extruder, no T-switch needed
+G1 C_ F_         # move Syringe (K axis) — +C = push/dispense, homed at C0 = fully open
 G1 B_ F_         # move Syringe Height
-G92 E0           # reset syringe position
+# NOTE: syringe is now an absolute homed axis — do NOT use G92 C0. For a relative
+#       "dispense N mm" nudge, use:  G91 / G1 C<N> F300 / G90
 ```
 
 ### Servos
@@ -200,8 +207,8 @@ M753                       # UART diagnostic — probes ODrive Serial2 link, rep
 
 ### Motion Tuning (runtime, no rebuild needed)
 ```gcode
-M201 X500 Y200 Z100 A150 B50 E500   # set max acceleration (mm/s²)
-M203 X400 Y333 Z50 A33 B50 E8       # set max feedrate (mm/s)
+M201 X500 Y200 Z100 A150 B50 C500   # set max acceleration (mm/s²) — C = Syringe
+M203 X400 Y333 Z50 A33 B50 C8       # set max feedrate (mm/s) — C = Syringe
 M500             # save settings to EEPROM
 M501             # load settings from EEPROM
 ```
@@ -210,7 +217,7 @@ M501             # load settings from EEPROM
 ```gcode
 M119             # report endstop states (use to verify wiring)
 M503             # report all active firmware settings
-M92              # report steps/mm (M92 X57.14 Y57.14 Z320 A320 B320 E1600 to override)
+M92              # report steps/mm (M92 X57.14 Y57.14 Z320 A320 B320 C1600 to override — C = Syringe)
 M999             # reset firmware after emergency stop (M112)
 ```
 

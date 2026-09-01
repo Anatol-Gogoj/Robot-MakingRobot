@@ -37,11 +37,10 @@
 // Pull in base RAMPS 1.4 pin definitions
 #include "pins_RAMPS.h"
 
-// Marlin sanity check requires HEATER_0_PIN >= 0 when EXTRUDERS > 0,
-// even though we have no heaters. Assign to an unconnected pin.
-// With TEMP_SENSOR_0 = 0 the firmware will never drive this pin.
-#undef  HEATER_0_PIN
-#define HEATER_0_PIN    7   // RAMPS SERVO3 slot — not physically connected
+// No HEATER_0_PIN override needed: with EXTRUDERS 0 there is no hotend
+// (HOTENDS 0), so Marlin never requires or drives a heater pin. The old
+// dummy assignment to pin 7 was only there to satisfy the EXTRUDERS>0
+// sanity check, which no longer applies after the syringe→K conversion.
 
 // ==========================================================
 //  Y2 dual-stepper pins (explicit — prevent auto-assignment
@@ -63,15 +62,24 @@
 #define I_ENABLE_PIN   12    // ENA  (stock RAMPS: PS_ON — conflict resolved below)
 
 // ==========================================================
-//  E0: Syringe (Motor 2)
-//  Formerly E1 — now the sole extruder
+//  K-axis: Syringe (Motor 2)
+//  Formerly E0 extruder — now a homeable linear axis (G-code letter 'C')
 // ==========================================================
+// Disable the (now unused) E0 extruder pins
 #undef  E0_STEP_PIN
 #undef  E0_DIR_PIN
 #undef  E0_ENABLE_PIN
-#define E0_STEP_PIN    13    // PUL  (also Mega onboard LED — will flicker during moves)
-#define E0_DIR_PIN     19    // DIR  (Mega RX1 — OK if Serial1 unused)
-#define E0_ENABLE_PIN  20    // ENA  (Mega SDA — OK if I2C unused)
+#define E0_STEP_PIN    -1
+#define E0_DIR_PIN     -1
+#define E0_ENABLE_PIN  -1
+// Syringe now drives the K axis on the same physical pins (13/19/20).
+// #undef guards prevent pins_RAMPS.h / pins_postprocess.h auto-assignment from winning.
+#undef  K_STEP_PIN
+#undef  K_DIR_PIN
+#undef  K_ENABLE_PIN
+#define K_STEP_PIN     13    // PUL  (also Mega onboard LED — will flicker during moves)
+#define K_DIR_PIN      19    // DIR  (Mega RX1 — OK if Serial1 unused)
+#define K_ENABLE_PIN   20    // ENA  (Mega SDA — OK if I2C unused)
 
 // ==========================================================
 //  J-axis: Syringe Height (Motor 3)
@@ -142,6 +150,13 @@
 // J-axis (Syringe Height) endstop: moved from pin 17 (TX2) to free Serial2 for ODrive
 // Pin 17 is now Serial2 RX for spincoater ODrive S1 UART link
 #define J_MIN_PIN      23
+
+// K-axis (Syringe) endstop: NO limit switch at the fully-open (retracted) end.
+// Pin 63 (A9, AUX-2 header) — plain GPIO, no timer unit, PCINT-capable (port K).
+// Wire COM -> Mega GND, NO -> pin 63, NC unused; internal pullup via ENDSTOPPULLUPS.
+// Logic: untriggered = HIGH, triggered = LOW (K_MIN_ENDSTOP_INVERTING true).
+#undef  K_MIN_PIN
+#define K_MIN_PIN      63
 
 // ==========================================================
 //  Servo pins

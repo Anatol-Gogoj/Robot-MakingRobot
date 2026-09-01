@@ -10,10 +10,11 @@ G1 B304 F3000                ; lower syringe height to dispensing position
 ; 2000 RPM — layer 1 of 5
 ; =========================
 ; First layer: push 3 mm, pause, retract 2 mm, pause
-G92 E0                       ; reset syringe position
-G1 E-3 F300                  ; push syringe 3 mm
+G91                          ; relative dispense (+C = push plunger)
+G1 C3 F300                  ; push (dispense) 3 mm
 G4 P300                      ; 300 ms pause
-G1 E-1 F300                  ; retract 2 mm (E goes from -3 to -1)
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2                        ; 2 s pause
 M400                         ; drain planner before servo command
 M280 P1 S110                 ; CLOSE lid before spinning
@@ -27,10 +28,11 @@ M280 P1 S30                  ; OPEN lid after cure
 
 ; 2000 RPM — layer 2 of 5
 ; Subsequent layers: push 5 mm (2 mm re-cover + 3 mm new), retract 2 mm
-G92 E0
-G1 E-5 F300                  ; push syringe 5 mm
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P300
-G1 E-3 F300                  ; retract 2 mm (E goes from -5 to -3)
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -43,10 +45,11 @@ M400
 M280 P1 S30
 
 ; 2000 RPM — layer 3 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -59,10 +62,11 @@ M400
 M280 P1 S30
 
 ; 2000 RPM — layer 4 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -75,10 +79,11 @@ M400
 M280 P1 S30
 
 ; 2000 RPM — layer 5 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -93,10 +98,11 @@ M280 P1 S30
 ; =========================
 ; 3000 RPM — layer 1 of 5
 ; =========================
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -109,10 +115,11 @@ M400
 M280 P1 S30
 
 ; 3000 RPM — layer 2 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -125,10 +132,11 @@ M400
 M280 P1 S30
 
 ; 3000 RPM — layer 3 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -141,10 +149,11 @@ M400
 M280 P1 S30
 
 ; 3000 RPM — layer 4 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -157,10 +166,11 @@ M400
 M280 P1 S30
 
 ; 3000 RPM — layer 5 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -175,10 +185,11 @@ M280 P1 S30
 ; =========================
 ; 4000 RPM — layer 1 of 5
 ; =========================
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -191,10 +202,11 @@ M400
 M280 P1 S30
 
 ; 4000 RPM — layer 2 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -207,10 +219,11 @@ M400
 M280 P1 S30
 
 ; 4000 RPM — layer 3 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -223,10 +236,11 @@ M400
 M280 P1 S30
 
 ; 4000 RPM — layer 4 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -239,10 +253,11 @@ M400
 M280 P1 S30
 
 ; 4000 RPM — layer 5 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -257,10 +272,11 @@ M280 P1 S30
 ; =========================
 ; 5000 RPM — layer 1 of 5
 ; =========================
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -273,10 +289,11 @@ M400
 M280 P1 S30
 
 ; 5000 RPM — layer 2 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -289,10 +306,11 @@ M400
 M280 P1 S30
 
 ; 5000 RPM — layer 3 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -305,10 +323,11 @@ M400
 M280 P1 S30
 
 ; 5000 RPM — layer 4 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
@@ -321,10 +340,11 @@ M400
 M280 P1 S30
 
 ; 5000 RPM — layer 5 of 5
-G92 E0
-G1 E-5 F300
+G91                          ; relative dispense (+C = push plunger)
+G1 C5 F300                  ; push (dispense) 5 mm
 G4 P1000
-G1 E-3 F300
+G1 C-2 F300                 ; retract 2 mm
+G90                          ; back to absolute positioning
 G4 S2
 M400
 M280 P1 S110
