@@ -2481,6 +2481,11 @@ logInfo('Keyboard: Arrow keys = XY jog, PgUp/PgDn = Z jog, Esc = E-STOP');
     sel.value = seed;
   }
   applyTransportUI();
+  if (!serialOk) {
+    // Loud, unmissable banner: the #1 "can't see my ports" cause is the wrong browser.
+    logErr('=== This browser has NO Web Serial support (Firefox / Safari). ===');
+    logErr('For direct USB, open this page in Chrome or Edge. Otherwise set the header dropdown to "Pi Bridge" to drive the machine over the network.');
+  }
 })();
 
 if (transportMode() === 'ws') {
