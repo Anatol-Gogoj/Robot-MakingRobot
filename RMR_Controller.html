@@ -563,7 +563,7 @@
 
   .vslider-wrap { display: flex; align-items: flex-start; gap: 14px; }
   input[type=range].v-slider {
-    writing-mode: vertical-lr; direction: rtl;
+    writing-mode: vertical-lr;   /* min (0) at top, max at bottom */
     width: 34px; height: 210px; accent-color: var(--accent); cursor: pointer;
   }
   .vslider-scale { display: flex; flex-direction: column; justify-content: space-between; height: 210px; font-size: 10px; color: var(--text-dim); text-align: right; }
@@ -1073,6 +1073,7 @@
           <label class="seq-check"><input type="checkbox" class="home-axis" value="Z" disabled> Z</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="A" disabled> A &middot; Filter Feed</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="B" disabled> B &middot; Syringe Ht</label>
+          <label class="seq-check"><input type="checkbox" class="home-axis" value="C" disabled> C &middot; Syringe</label>
         </div>
         <div class="seq-footer">
           <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="homing" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
@@ -1081,56 +1082,90 @@
       </div>
     </details>
 
-    <!-- 2 ─── Syringe ─── -->
-    <details class="seq-block" id="seqBlock-syringe">
-      <summary>Syringe &middot; Dispense <span class="seq-badge on" id="badge-syringe">enabled</span></summary>
+    <!-- 2 ─── Syringe Height ─── -->
+    <details class="seq-block" id="seqBlock-syrheight">
+      <summary>Syringe Height <span class="seq-badge on" id="badge-syrheight">enabled</span></summary>
       <div class="seq-body">
-        <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start">
-          <!-- Vertical position slider (B axis) -->
+        <p class="seq-hint">Raise or lower the syringe nozzle (axis <b>B</b>). Home (B&nbsp;0) is fully <b>up</b>; a larger B <b>lowers</b> the nozzle toward the substrate.</p>
+        <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
+          <!-- Height slider (B axis): top = 0 = up/home, bottom = 304 = down -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>304<br>top</span><span>0<br>btm</span></div>
-            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5" orient="vertical"
-                   oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
+            <div class="vslider-scale"><span>0<br>up</span><span>304<br>down</span></div>
+            <input type="range" class="v-slider" id="heightPos" min="0" max="304" value="0" step="0.5"
+                   oninput="document.getElementById('heightPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
-              <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B)</small></div>
+              <div><span class="vslider-readout" id="heightPosVal">0.0</span><small> mm (B)</small></div>
               <div class="seq-field" style="width:120px">
                 <label>Move feed mm/min</label>
-                <input type="number" id="syrPosFeed" value="1500" min="10" max="3000" step="10">
+                <input type="number" id="heightFeed" value="1500" min="10" max="3000" step="10">
               </div>
-              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="syrMove()">Move &#8597;</button>
-            </div>
-          </div>
-          <!-- Dispense parameters -->
-          <div class="seq-grid" style="flex:1; min-width:270px; align-content:start">
-            <div class="seq-field">
-              <label>Dispense amount (&micro;L)</label>
-              <input type="number" id="syrVol" value="50" min="0" step="1" oninput="syrCalc()">
-              <span class="seq-hint">&rarr; <b id="syrVolMm">&mdash;</b> mm of plunger travel</span>
-            </div>
-            <div class="seq-field">
-              <label>Factor (&micro;L per mm)</label>
-              <input type="number" id="syrFactor" value="10" min="0.0001" step="0.1" oninput="syrCalc()">
-              <span class="seq-hint">volume = distance &times; factor</span>
-            </div>
-            <div class="seq-field">
-              <label>Pullback / retract (&micro;L)</label>
-              <input type="number" id="syrPull" value="5" min="0" step="1" oninput="syrCalc()">
-              <span class="seq-hint">&rarr; <b id="syrPullMm">&mdash;</b> mm retract after dispense</span>
-            </div>
-            <div class="seq-field">
-              <label>Dispense feed (mm/min)</label>
-              <input type="number" id="syrFeed" value="300" min="10" max="480" step="10">
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="heightMove()">Move &#8597;</button>
             </div>
           </div>
         </div>
         <div class="seq-footer">
-          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="syringe" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
-          <button class="seq-run-btn" onclick="seqRunBlock('syringe')">Run &#9654;</button>
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="syrheight" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('syrheight')">Run &#9654;</button>
         </div>
       </div>
     </details>
 
-    <!-- 3 ─── Spin Coater ─── -->
+    <!-- 3 ─── Dispense ─── -->
+    <details class="seq-block" id="seqBlock-dispense">
+      <summary>Dispense <span class="seq-badge on" id="badge-dispense">enabled</span></summary>
+      <div class="seq-body">
+        <p class="seq-hint">Push the plunger (axis <b>C</b>; +C dispenses). Jog the plunger with the slider, or dispense a hand-calibrated volume.</p>
+        <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
+          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 135 = pushed -->
+          <div class="vslider-wrap">
+            <div class="vslider-scale"><span>0<br>open</span><span>135<br>pushed</span></div>
+            <input type="range" class="v-slider" id="plungerPos" min="0" max="135" value="0" step="0.5"
+                   oninput="document.getElementById('plungerPosVal').textContent=(+this.value).toFixed(1)">
+            <div class="vslider-track">
+              <div><span class="vslider-readout" id="plungerPosVal">0.0</span><small> mm (C)</small></div>
+              <div class="seq-field" style="width:120px">
+                <label>Jog feed mm/min</label>
+                <input type="number" id="plungerFeed" value="300" min="10" max="480" step="10">
+              </div>
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="plungerMove()">Jog &#8597;</button>
+            </div>
+          </div>
+          <!-- Dispense parameters -->
+          <div class="seq-grid" style="flex:1; min-width:270px; align-content:start">
+            <div class="seq-field full">
+              <label>Syringe calibration (measure by hand)</label>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+                <input type="number" id="calMm" value="100" min="0.01" step="0.1" style="width:78px" oninput="dispCalc()">
+                <span class="seq-hint">mm of plunger&nbsp;=</span>
+                <input type="number" id="calMl" value="1" min="0.0001" step="0.1" style="width:78px" oninput="dispCalc()">
+                <span class="seq-hint">mL</span>
+              </div>
+              <span class="seq-hint">&rarr; <b id="calFactor">&mdash;</b> mm per mL (from your measurement)</span>
+            </div>
+            <div class="seq-field">
+              <label>Dispense amount (mL)</label>
+              <input type="number" id="dispVol" value="0.05" min="0" step="0.01" oninput="dispCalc()">
+              <span class="seq-hint">&rarr; <b id="dispVolMm">&mdash;</b> mm of plunger travel</span>
+            </div>
+            <div class="seq-field">
+              <label>Pullback / retract (mL)</label>
+              <input type="number" id="dispPull" value="0.005" min="0" step="0.001" oninput="dispCalc()">
+              <span class="seq-hint">&rarr; <b id="dispPullMm">&mdash;</b> mm retract after dispense</span>
+            </div>
+            <div class="seq-field">
+              <label>Dispense feed (mm/min)</label>
+              <input type="number" id="dispFeed" value="300" min="10" max="480" step="10">
+            </div>
+          </div>
+        </div>
+        <div class="seq-footer">
+          <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="dispense" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
+          <button class="seq-run-btn" onclick="seqRunBlock('dispense')">Run &#9654;</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 4 ─── Spin Coater ─── -->
     <details class="seq-block" id="seqBlock-spin">
       <summary>Spin Coater <span class="seq-badge on" id="badge-spin">enabled</span></summary>
       <div class="seq-body">
@@ -1161,7 +1196,7 @@
       </div>
     </details>
 
-    <!-- 4 ─── UV lid & light ─── -->
+    <!-- 5 ─── UV lid & light ─── -->
     <details class="seq-block" id="seqBlock-uv">
       <summary>UV &middot; Lid &amp; Light <span class="seq-badge on" id="badge-uv">enabled</span></summary>
       <div class="seq-body">
@@ -1185,7 +1220,7 @@
       </div>
     </details>
 
-    <!-- 5 ─── Stamp ─── -->
+    <!-- 6 ─── Stamp ─── -->
     <details class="seq-block" id="seqBlock-stamp">
       <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
       <div class="seq-body">
@@ -2029,7 +2064,8 @@ function numv(id, def) {
 // Block registry — order defines Run All execution order
 const SEQ_BLOCKS = [
   { id: 'homing',  name: 'Homing',      run: runHomingBlock  },
-  { id: 'syringe', name: 'Syringe',     run: runSyringeBlock },
+  { id: 'syrheight', name: 'Syringe Height', run: runHeightBlock   },
+  { id: 'dispense',  name: 'Dispense',       run: runDispenseBlock },
   { id: 'spin',    name: 'Spin Coater', run: runSpinBlock    },
   { id: 'uv',      name: 'UV',          run: runUvBlock      },
   { id: 'stamp',   name: 'Stamp',       run: runStampBlock   },
@@ -2164,18 +2200,23 @@ async function runHomingBlock() {
   await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
 }
 
-// ─── Block: Syringe ───
-async function runSyringeBlock() {
-  const factor = numv('syrFactor', 10) || 1;
-  const dispMm = numv('syrVol', 0) / factor;
-  const pullMm = numv('syrPull', 0) / factor;
-  const pos = numv('syrPos', 0);
-  const posFeed = Math.round(numv('syrPosFeed', 1500));
-  const eFeed = Math.round(numv('syrFeed', 300));
+// ─── Block: Syringe Height ───
+async function runHeightBlock() {
+  const pos = numv('heightPos', 0);
+  const posFeed = Math.round(numv('heightFeed', 1500));
   await seqCmd('G90');
   await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);   // position syringe height (B)
   await seqCmd('M400');
-  // Syringe is the homeable C (K) axis. Dispense/retract as RELATIVE moves
+}
+
+// ─── Block: Dispense ───
+async function runDispenseBlock() {
+  const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1;
+  const mmPerMl = calMm / calMl;                            // hand-measured mm per mL
+  const dispMm = numv('dispVol', 0)  * mmPerMl;
+  const pullMm = numv('dispPull', 0) * mmPerMl;
+  const eFeed  = Math.round(numv('dispFeed', 300));
+  // Plunger is the homeable C (K) axis. Dispense/retract as RELATIVE moves
   // (+C = push/dispense); no G92 on a homed axis, so soft limits [0, K_MAX_POS] hold.
   await seqCmd('G91');
   await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense (push plunger)
@@ -2184,7 +2225,7 @@ async function runSyringeBlock() {
     await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // pullback / retract
     await seqCmd('M400');
   }
-  await seqCmd('G90');                                       // restore absolute mode
+  await seqCmd('G90');                                        // restore absolute mode
 }
 
 // ─── Block: Spin Coater ───
@@ -2332,17 +2373,27 @@ function homeAllToggle() {
     lbl.style.opacity = all ? '0.45' : '1';
   });
 }
-function syrMove() {
+function heightMove() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
-  const pos = numv('syrPos', 0), feed = Math.round(numv('syrPosFeed', 1500));
+  const pos = numv('heightPos', 0), feed = Math.round(numv('heightFeed', 1500));
   sendCmd('G90');
   sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);
 }
-function syrCalc() {
-  const factor = numv('syrFactor', 10) || 1;
-  document.getElementById('syrVolMm').textContent  = (numv('syrVol', 0) / factor).toFixed(3);
-  document.getElementById('syrPullMm').textContent = (numv('syrPull', 0) / factor).toFixed(3);
+function plungerMove() {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  const pos = numv('plungerPos', 0), feed = Math.round(numv('plungerFeed', 300));
+  sendCmd('G90');
+  sendCmd('G1 C' + pos.toFixed(3) + ' F' + feed);
+}
+// Convert the hand-measured mm-per-mL into the read-only mm displays.
+function dispCalc() {
+  const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1;
+  const mmPerMl = calMm / calMl;
+  document.getElementById('calFactor').textContent  = mmPerMl.toFixed(2);
+  document.getElementById('dispVolMm').textContent  = (numv('dispVol', 0)  * mmPerMl).toFixed(3);
+  document.getElementById('dispPullMm').textContent = (numv('dispPull', 0) * mmPerMl).toFixed(3);
 }
 function spinPreview() {
   const rpm  = Math.round(numv('seqSpinRPM', 5000));
@@ -2402,7 +2453,7 @@ function spinPresetDelete() {
 // ─── Sequencer init ───
 (function seqInit() {
   spinPresetsRefresh();
-  syrCalc();
+  dispCalc();
   spinPreview();
   updateStampNext();
   uvResetReadout();
