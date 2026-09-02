@@ -2175,13 +2175,16 @@ async function runSyringeBlock() {
   await seqCmd('G90');
   await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);   // position syringe height (B)
   await seqCmd('M400');
-  await seqCmd('G92 E0');                                    // zero syringe
-  await seqCmd('G1 E' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense
+  // Syringe is the homeable C (K) axis. Dispense/retract as RELATIVE moves
+  // (+C = push/dispense); no G92 on a homed axis, so soft limits [0, K_MAX_POS] hold.
+  await seqCmd('G91');
+  await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense (push plunger)
   await seqCmd('M400');
   if (pullMm > 0) {
-    await seqCmd('G1 E' + (dispMm - pullMm).toFixed(4) + ' F' + eFeed); // retract
+    await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // pullback / retract
     await seqCmd('M400');
   }
+  await seqCmd('G90');                                       // restore absolute mode
 }
 
 // ─── Block: Spin Coater ───
