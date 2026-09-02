@@ -589,6 +589,10 @@
   <h1><span>RMR</span> Gantry Controller</h1>
   <div class="conn-bar">
     <span class="status-dot" id="statusDot"></span>
+    <select id="transportSel" title="How this browser reaches the machine — Web Serial (USB, this browser only) or the Raspberry Pi bridge (WebSocket, any browser)." onchange="onTransportChange()">
+      <option value="serial">Web Serial</option>
+      <option value="ws">Pi Bridge</option>
+    </select>
     <select id="baudRate">
       <option value="250000" selected>250000 baud</option>
       <option value="115200">115200 baud</option>
@@ -1263,12 +1267,26 @@ let useWS = false;
 let ws = null;
 let wsShouldReconnect = false;
 
-function transportMode() {
+// Seed value used before the user touches the toggle: an explicit URL override
+// wins, then a remembered choice, then the protocol default (http(s)→bridge,
+// file://→Web Serial).
+function defaultTransport() {
   const p = new URLSearchParams(location.search);
   const forced = p.get('transport');
   if (forced === 'ws' || forced === 'serial') return forced;
   if (p.get('ws')) return 'ws';
+  let saved = null;
+  try { saved = localStorage.getItem('rmr.transport'); } catch (e) {}
+  if (saved === 'ws' || saved === 'serial') return saved;
   return (location.protocol === 'http:' || location.protocol === 'https:') ? 'ws' : 'serial';
+}
+
+// The header toggle is the live source of truth once the page has loaded;
+// fall back to the seed if it isn't in the DOM yet.
+function transportMode() {
+  const sel = document.getElementById('transportSel');
+  if (sel && sel.value) return sel.value;
+  return defaultTransport();
 }
 
 function wsUrlFromConfig() {
@@ -1278,6 +1296,29 @@ function wsUrlFromConfig() {
   const host = location.hostname || 'localhost';
   const wsPort = p.get('wsport') || '8765';
   return `${proto}//${host}:${wsPort}`;
+}
+
+// Reflect the selected transport in the header (baud visibility, button label).
+// Does not open a connection.
+function applyTransportUI() {
+  const mode = transportMode();
+  const baudSel = document.getElementById('baudRate');
+  if (baudSel) baudSel.style.display = (mode === 'ws') ? 'none' : '';   // baud is owned by the bridge
+  const btn = document.getElementById('connectBtn');
+  if (btn && !isConnected) btn.textContent = (mode === 'ws') ? 'Connect (bridge)' : 'Connect';
+}
+
+// User flipped the Serial/Bridge toggle: remember it and update the UI.
+function onTransportChange() {
+  const sel = document.getElementById('transportSel');
+  if (!sel) return;
+  try { localStorage.setItem('rmr.transport', sel.value); } catch (e) {}
+  applyTransportUI();
+  if (sel.value === 'ws') {
+    logInfo('Transport → Pi bridge (' + wsUrlFromConfig() + '). Click Connect — works in any browser.');
+  } else {
+    logInfo('Transport → Web Serial (USB, this browser). Click Connect and pick the port.');
+  }
 }
 
 // ─── Serial Connection ───
@@ -1376,8 +1417,10 @@ function setConnected(state) {
   isConnected = state;
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   const btn = document.getElementById('connectBtn');
-  btn.textContent = state ? 'Disconnect' : 'Connect';
+  btn.textContent = state ? 'Disconnect' : (transportMode() === 'ws' ? 'Connect (bridge)' : 'Connect');
   btn.className = state ? 'connected' : '';
+  const tsel = document.getElementById('transportSel');
+  if (tsel) tsel.disabled = state;   // can't switch transport mid-connection
 }
 
 async function readLoop() {
@@ -2424,17 +2467,29 @@ function spinPresetDelete() {
 // ─── Init ───
 logInfo('RMR Gantry Controller ready.');
 logInfo('Keyboard: Arrow keys = XY jog, PgUp/PgDn = Z jog, Esc = E-STOP');
+// ─── Transport toggle: seed from URL / saved choice / protocol default ───
+(function initTransport() {
+  const sel = document.getElementById('transportSel');
+  const serialOk = ('serial' in navigator);   // Web Serial needs a secure context (file://, https://, http://localhost)
+  if (sel) {
+    if (!serialOk) {
+      const opt = sel.querySelector('option[value="serial"]');
+      if (opt) { opt.disabled = true; opt.textContent = 'Web Serial (n/a)'; }
+    }
+    let seed = defaultTransport();
+    if (seed === 'serial' && !serialOk) seed = 'ws';
+    sel.value = seed;
+  }
+  applyTransportUI();
+})();
+
 if (transportMode() === 'ws') {
   // Pi bridge mode — the browser is a display; the Pi owns the serial port.
-  const baudSel = document.getElementById('baudRate');
-  if (baudSel) { baudSel.style.display = 'none'; }   // baud is set by the bridge
-  const btn = document.getElementById('connectBtn');
-  if (btn) btn.textContent = 'Connect (bridge)';
   logInfo('Bridge mode: connecting to ' + wsUrlFromConfig() + ' — any browser works, no Web Serial needed.');
   setTimeout(() => { if (!isConnected) connect(); }, 400);   // auto-connect the panel
 } else {
   logInfo('Click "Connect" and select your serial port (250000 baud).');
-  logInfo('Web Serial mode: requires Chrome/Edge. (Serve via the Pi bridge to use any browser.)');
+  logInfo('Web Serial mode: requires Chrome/Edge. Switch the header dropdown to "Pi Bridge" to use any browser.');
 }
 </script>
 </body>
