@@ -130,6 +130,13 @@ The page auto-picks its transport, override with query params:
 | Force Web Serial | Web Serial | `?transport=serial` |
 | Bridge on another host/port | WebSocket | `?ws=ws://host:8765` |
 
+The header also has a **Web Serial / Pi Bridge** dropdown that overrides the
+auto-pick without a URL change; the choice is remembered (`localStorage`), so a
+dev laptop served over `http://localhost` can switch to Web Serial once and stay
+there. The dropdown is disabled while connected, and "Web Serial" shows as
+`(n/a)` in insecure contexts (plain `http://` to a LAN IP), where the browser
+does not expose the API — use `localhost`, `https://`, or a local `file://`.
+
 ## GPIO I/O: buttons, status tower, E-stop sense
 
 All optional and off unless configured. Copy `rmr_io.example.json` to `rmr_io.json`,
