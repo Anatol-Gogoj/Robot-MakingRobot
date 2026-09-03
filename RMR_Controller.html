@@ -1217,6 +1217,8 @@
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="180" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
+          <div class="seq-field"><label>Post-press lift Z (mm)</label><input type="number" id="stampLiftZ" value="80" min="0" step="1"><span class="seq-hint">raise straight up after press (clears the syringe)</span></div>
+          <div class="seq-field"><label>Post-press Y back-off (mm)</label><input type="number" id="stampBackY" value="20" min="0" step="1"><span class="seq-hint">then move Y- before going up &amp; over</span></div>
           <div class="seq-field full">
             <label>Filter feeder side</label>
             <div class="seq-radio-row" id="stampSideRow">
@@ -2374,6 +2376,8 @@ async function runStampBlock() {
   const hold = numv('stampHold', 0);
   const pressZ = numv('stampForce', 180);
   const approachZ = numv('stApproachZ', 150);
+  const liftZ = numv('stampLiftZ', 80);   // post-press straight-up clearance (Z- = up)
+  const backY = numv('stampBackY', 20);   // post-press Y- back-off to clear the syringe
   const spinX = numv('stSX', 117), spinY = numv('stSY', 24);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
@@ -2391,7 +2395,7 @@ async function runStampBlock() {
   // Advance feeder by one stack height (relative)
   if (stack > 0) {
     await seqCmd('G91');
-    await seqCmd('G1 A' + stack.toFixed(3) + ' F' + aF);
+    await seqCmd('G1 A-' + stack.toFixed(3) + ' F' + aF);   // feeder homes to MAX (343); advance = A- (A+ is clamped at the max soft-endstop)
     await seqCmd('G90');
   }
   await seqCmd('M400');
@@ -2410,8 +2414,14 @@ async function runStampBlock() {
   await seqCmd('G1 Z' + pressZ + ' F' + pF);
   await seqCmd('M400');
   if (hold > 0) { seqSetStatus('Stamp — pressing ' + hold + ' s'); await seqSleep(hold * 1000); }
-  // Release & dispose used filter
-  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+  // Post-press clearance: raise straight up, then back off in Y-, so the gripper
+  // assembly clears the syringe before transiting up-and-over to the discard.
+  await seqCmd('G91');
+  await seqCmd('G1 Z-' + liftZ.toFixed(3) + ' F' + zF);    // raise (Z- = up) by liftZ
+  await seqCmd('G1 Y-' + backY.toFixed(3) + ' F' + xyF);   // back off in Y-
+  await seqCmd('G90');
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);                // continue up to the upper safe Z
+  // Dispose used filter
   await seqCmd('G1 Y0 F' + xyF);
   await seqCmd('G1 X' + disX + ' F' + xyF);
   await seqCmd('G1 Z' + disZ + ' F' + zF);
