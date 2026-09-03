@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../module/motion.h"
 
+#if ENABLED(MOTOR_POWER_SENSE)
+  #include "../../feature/motor_power.h"
+#endif
+
 #include "../../MarlinCore.h"
 
 #if ALL(FWRETRACT, FWRETRACT_AUTORETRACT)
@@ -46,6 +50,11 @@ extern xyze_pos_t destination;
  */
 void GcodeSuite::G0_G1(TERN_(HAS_FAST_MOVES, const bool fast_move/*=false*/)) {
   if (!MOTION_CONDITIONS) return;
+
+  #if ENABLED(MOTOR_POWER_SENSE)
+    // Refuse moves after a motor-power loss until the machine is re-homed (position was lost).
+    if (motor_power::needs_rehome()) { SERIAL_ECHO_MSG("Move refused: re-home (G28) after motor power loss"); return; }
+  #endif
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_RUNNING));
 
