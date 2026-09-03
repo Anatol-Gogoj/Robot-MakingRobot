@@ -31,6 +31,9 @@ static float    _homePos     = 0.0f;   // encoder position (turns) at last home 
 //  Init / Boot
 // ═══════════════════════════════════════════════════════════════════════════
 
+volatile bool Spincoater::abortRequested = false;
+void Spincoater::requestAbort() { abortRequested = true; }
+
 void Spincoater::init() {
   if (_initialized) return;
   ODRIVE_SERIAL.begin(SPINCOATER_BAUD);

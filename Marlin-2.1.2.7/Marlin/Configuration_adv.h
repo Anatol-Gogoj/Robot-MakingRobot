@@ -2451,7 +2451,7 @@
  * Currently handles M108, M112, M410, M876
  * NOTE: Not yet implemented for all platforms.
  */
-//#define EMERGENCY_PARSER
+#define EMERGENCY_PARSER   // RMR: real-time M112 (E-STOP) + M410 (sequencer Stop) even during blocking moves/M750
 
 /**
  * Realtime Reporting (requires EMERGENCY_PARSER)

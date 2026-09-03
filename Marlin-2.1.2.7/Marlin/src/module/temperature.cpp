@@ -33,6 +33,7 @@
 #include "../gcode/gcode.h"
 
 #include "temperature.h"
+#include "../feature/spincoater.h"   // RMR: spincoater abort on M410
 #include "endstops.h"
 #include "planner.h"
 #include "printcounter.h"
@@ -1882,6 +1883,7 @@ void Temperature::task() {
     if (emergency_parser.quickstop_by_M410) {
       emergency_parser.quickstop_by_M410 = false; // quickstop_stepper may call idle so clear this now!
       quickstop_stepper();
+      TERN_(SPINCOATER, Spincoater::requestAbort()); // RMR: also stop a running spincoater spin cycle
     }
 
     #if HAS_MEDIA

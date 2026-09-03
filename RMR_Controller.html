@@ -2137,7 +2137,8 @@ function seqStop() {
   if (!seqRunning) return;
   seqAbort = true;
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
-  logInfo('Sequencer: STOP requested — the command chain will halt. Use E-STOP for an immediate hardware halt.');
+  sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin
+  logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
   seqSetStatus('<b>Stopping…</b>');
 }
 
