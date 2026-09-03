@@ -77,6 +77,7 @@ _last_tx_ts = 0.0               # time.monotonic() of the last serial write (act
 _error_until = 0.0             # tower alarm latched (red+buzzer) until this monotonic time
 _serial_open = False            # is the serial port currently open?
 _estop = False                  # E-stop sense input asserted?
+_motor_lost = False             # Mega reported motor power removed (latched red until restored)
 _tower_last = None              # last (color, alarm) applied, to avoid redundant GPIO writes
 
 cfg = None                      # argparse.Namespace, set in main()
@@ -259,24 +260,33 @@ def setup_tower(tcfg):
 
 
 def note_serial_line(text):
-    """Latch a tower alarm on Marlin errors; clear it on a reset/boot line."""
-    global _error_until
+    """Latch a tower alarm on Marlin errors / motor-power loss; clear it on a reset/boot line."""
+    global _error_until, _motor_lost
     low = text.lower()
-    if text.startswith("Error:") or text.startswith("!!") or "kill()" in low or "emergency" in low:
+    if "motor power lost" in low:                     # Mega motor_power sense: E-stop cut the motors
+        with io_lock:
+            _motor_lost = True                         # latched red until Marlin reports restore
+        schedule_broadcast(json.dumps({"_rmr": "motorpower", "ok": False}))
+    elif "motor power restored" in low:
+        with io_lock:
+            _motor_lost = False
+        schedule_broadcast(json.dumps({"_rmr": "motorpower", "ok": True}))
+    elif text.startswith("Error:") or text.startswith("!!") or "kill()" in low or "emergency" in low:
         with io_lock:
             _error_until = time.monotonic() + 5.0   # refreshed while errors keep coming
     elif text == "start" or text.startswith("echo:Marlin") or "marlin ready" in low:
         with io_lock:
             _error_until = 0.0                        # M999 / boot clears the alarm
+            _motor_lost = False                        # boot clears the motor-power latch too
 
 
 def _tower_state():
     """Priority: E-stop / error (red+buzz) > serial down (red) > active (amber) > idle (green)."""
     now = time.monotonic()
     with io_lock:
-        estop, err = _estop, now < _error_until
+        estop, err, mlost = _estop, now < _error_until, _motor_lost
         opened, active = _serial_open, (now - _last_tx_ts) < 1.5
-    if estop or err:
+    if estop or err or mlost:
         return ("red", True)
     if not opened:
         return ("red", False)
@@ -313,10 +323,17 @@ def setup_estop(ecfg):
         pull = ecfg.get("pull", "up")
         bounce = float(ecfg.get("bounce", 0.02))
         cmd = ecfg.get("cmd")  # optional G-code to also send on press (e.g. "M112")
+        nc = bool(ecfg.get("nc", False))  # True = normally-closed contact (opens when pressed)
         estop_btn = Button(pin, pull_up=(pull == "up"), bounce_time=bounce)
-        estop_btn.when_pressed = functools.partial(_on_estop, True, cmd)
-        estop_btn.when_released = functools.partial(_on_estop, False, None)
-        print("[gpio] E-stop sense GPIO%s (pull=%s, cmd=%s)" % (pin, pull, cmd))
+        if nc:
+            # NC safety contact: closed (gpiozero "active") at rest, opens when the mushroom is hit.
+            estop_btn.when_released = functools.partial(_on_estop, True, cmd)
+            estop_btn.when_pressed  = functools.partial(_on_estop, False, None)
+            _on_estop(not estop_btn.is_active, None)   # seed current state (contact open == pressed)
+        else:
+            estop_btn.when_pressed  = functools.partial(_on_estop, True, cmd)
+            estop_btn.when_released = functools.partial(_on_estop, False, None)
+        print("[gpio] E-stop sense GPIO%s (pull=%s, nc=%s, cmd=%s)" % (pin, pull, nc, cmd))
     except Exception as e:
         print("[gpio] E-stop sense setup failed: %s" % e)
 
