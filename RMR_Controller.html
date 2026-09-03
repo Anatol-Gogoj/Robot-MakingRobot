@@ -1648,7 +1648,7 @@ function resetFirmware() {
 // ─── Auto Report ───
 function toggleAutoReport() {
   if (document.getElementById('autoReport').checked) {
-    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+    autoReportInterval = setInterval(() => { if (!seqRunning) sendCmd('M114'); }, 1000);
   } else {
     if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
   }
@@ -1989,8 +1989,28 @@ function seqOnOk() {
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.resolve(); }
 }
 
-function seqAwaitOk() {
-  return new Promise((resolve, reject) => { seqWaiter = { resolve, reject }; });
+// Wait for the command's 'ok'. Times out (so a stuck step never hangs the
+// sequencer forever) and shows a live elapsed-time status, so a long-running or
+// stalled command is visible instead of an unexplained freeze.
+function seqAwaitOk(timeoutMs = 90000, label = '') {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    let timer = null, ticker = null;
+    const cleanup = () => { if (timer) clearTimeout(timer); if (ticker) clearInterval(ticker); timer = ticker = null; };
+    const tag = (label || 'command').slice(0, 24);
+    timer = setTimeout(() => {
+      cleanup(); seqWaiter = null;
+      reject(new Error('no "ok" for "' + tag + '" after ' + Math.round(timeoutMs / 1000) +
+        's — the machine may be stuck (e.g. an axis not reaching its endstop) or the connection dropped. Use the physical Reset.'));
+    }, timeoutMs);
+    ticker = setInterval(() => {
+      seqSetStatus('Running <b>' + tag + '</b>… ' + Math.round((performance.now() - start) / 1000) + 's (waiting for ok)');
+    }, 1000);
+    seqWaiter = {
+      resolve: () => { cleanup(); resolve(); },
+      reject:  (e) => { cleanup(); reject(e); }
+    };
+  });
 }
 
 // Abortable sleep; onTick(elapsedMs) fires ~every 100ms
@@ -2008,11 +2028,11 @@ function seqSleep(ms, onTick) {
 }
 
 // Send one command; optionally wait for its 'ok' before resolving
-async function seqCmd(cmd, waitOk = true) {
+async function seqCmd(cmd, waitOk = true, timeoutMs = 90000) {
   if (seqAbort) throw new Error('aborted');
   if (!isConnected) throw new Error('not connected');
   sendCmd(cmd);
-  if (waitOk) await seqAwaitOk();
+  if (waitOk) await seqAwaitOk(timeoutMs, cmd);
   if (seqAbort) throw new Error('aborted');
 }
 
@@ -2077,7 +2097,7 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
   if (seqAutoReportWasOn && document.getElementById('autoReport').checked) {
-    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+    autoReportInterval = setInterval(() => { if (!seqRunning) sendCmd('M114'); }, 1000);
   }
   if (statusHtml) seqSetStatus(statusHtml);
 }
@@ -2195,7 +2215,10 @@ async function runSpinBlock() {
   const sink = numv('seqSpinSink', 1);
   const home = document.getElementById('seqSpinHome').checked ? 1 : 0;
   spinTargetRPM = rpm;
-  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home); // blocking full cycle
+  // M750 runs the entire spin cycle before replying 'ok', so allow the full
+  // duration (+ ramp + margin) before the ok-timeout would trip.
+  const spinTimeout = (dur + rise + sink + 90) * 1000;
+  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); // blocking full cycle
 }
 
 // ─── Block: UV lid & light ───
