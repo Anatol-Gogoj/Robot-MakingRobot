@@ -1393,7 +1393,15 @@ async function readLoop() {
         let lines = readBuffer.split('\n');
         readBuffer = lines.pop(); // keep incomplete line in buffer
         for (const line of lines) {
-          processLine(line.trim());
+          // A malformed/unexpected line must NEVER kill the reader: if processLine
+          // threw, the loop would exit and all further serial data — including the
+          // 'ok' the sequencer waits on — would be silently lost (the sequencer then
+          // hangs "waiting for ok"). Isolate each line and log the offender instead.
+          try {
+            processLine(line.trim());
+          } catch (err) {
+            logErr('Ignored a bad serial line (' + err.message + '): ' + line.trim().slice(0, 80));
+          }
         }
       }
     }
