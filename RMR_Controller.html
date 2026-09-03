@@ -1406,6 +1406,7 @@ function setConnected(state) {
 async function readLoop() {
   const decoder = new TextDecoderStream();
   const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+  readableStreamClosed.catch(() => {});   // a lost device rejects this too; swallow to avoid an uncaught NetworkError
   reader = decoder.readable.getReader();
   try {
     while (true) {
@@ -1429,7 +1430,14 @@ async function readLoop() {
       }
     }
   } catch (e) {
-    if (isConnected) logErr('Read error: ' + e.message);
+    // The port died (USB dropped / board reset). Recover instead of hanging: fail
+    // any in-flight sequencer wait and drop to a disconnected state with a clear
+    // reason — a reset mid-move almost always means a power dip / brown-out.
+    if (isConnected) {
+      logErr('Serial device lost: ' + e.message + '. The USB link dropped or the board reset — reconnect, and check cable/power (a reset during a move usually means a brown-out).');
+      setConnected(false);
+    }
+    if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('serial device lost')); }
   }
 }
 
