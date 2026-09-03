@@ -1228,7 +1228,7 @@
       <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
-          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this each cycle</span></div>
+          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this per pick (once per L/R pair when alternating)</span></div>
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="180" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
@@ -1242,6 +1242,18 @@
               <label class="seq-radio"><input type="radio" name="stampSide" value="right"> Right only</label>
               <span class="seq-hint" style="align-self:center">next pick: <b id="stampNext">Left</b></span>
             </div>
+          </div>
+          <div class="seq-field full">
+            <label>Filter feeder jog (axis A)</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <input type="number" id="feedJogMm" value="4" min="0" step="0.5" style="width:78px">
+              <span class="seq-hint">mm</span>
+              <input type="number" id="feedJogFeed" value="2000" min="10" step="10" style="width:90px">
+              <span class="seq-hint">mm/min</span>
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="feederJog(1)">Advance &#9650;</button>
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="feederJog(-1)">Retract &#9660;</button>
+            </div>
+            <span class="seq-hint">Advance raises the stack toward the gripper (A-); Retract lowers it (A+).</span>
           </div>
         </div>
 
@@ -2397,6 +2409,7 @@ async function runUvBlock() {
 
 // ─── Block: Stamp (filter pick & press) ───
 let stampAltNext = 'left';   // side used on the next 'alternating' cycle
+let stampAltPick = 0;        // pick counter within alternating mode (for once-per-pair feed)
 
 function updateStampNext() {
   const sel = document.querySelector('input[name="stampSide"]:checked');
@@ -2416,6 +2429,7 @@ function stampResolveSide() {
 }
 
 async function runStampBlock() {
+  const mode   = document.querySelector('input[name="stampSide"]:checked').value;
   const side   = stampResolveSide();
   const gOpen  = Math.round(numv('stGOpen', 170));
   const gClose = Math.round(numv('stGClose', 90));
@@ -2445,8 +2459,17 @@ async function runStampBlock() {
   await seqCmd('G1 X' + pickX + ' F' + xyF);
   await seqCmd('G1 Y' + pickY + ' F' + xyF);
   await seqCmd('M280 P0 S' + gOpen);   // open now that the arm is over the pick
-  // Advance feeder by one stack height (relative)
-  if (stack > 0) {
+  // Advance feeder by one stack height (relative).
+  // A single shared carriage (axis A) lifts BOTH the L and R stacks together, so
+  // one L + one R pick lowers both columns by one filter → the carriage should rise
+  // by one `stack` per L+R PAIR. Advancing every pick (correct for left-/right-only)
+  // double-raises in alternating mode, so there we advance only once every two picks.
+  let advanceFeed = stack > 0;
+  if (mode === 'alt') {
+    stampAltPick = (stampAltPick + 1) % 2;
+    advanceFeed = advanceFeed && (stampAltPick === 0);   // only on completion of a pair
+  }
+  if (advanceFeed) {
     await seqCmd('G91');
     await seqCmd('G1 A-' + stack.toFixed(3) + ' F' + aF);   // feeder homes to MAX (343); advance = A- (A+ is clamped at the max soft-endstop)
     await seqCmd('G90');
@@ -2516,6 +2539,18 @@ function plungerMove() {
   const pos = numv('plungerPos', 0), feed = Math.round(numv('plungerFeed', 300));
   sendCmd('G90');
   sendCmd('G1 C' + pos.toFixed(3) + ' F' + feed);
+}
+// Relative jog for the filter feeder (axis A). dir +1 = advance/raise the stack
+// toward the gripper (A-), dir -1 = retract (A+). A homes to MAX (343), so A+ is
+// clamped at the max soft-endstop; advancing is always A-.
+function feederJog(dir) {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  const amt = numv('feedJogMm', 4), feed = Math.round(numv('feedJogFeed', 2000));
+  const signed = (dir > 0 ? -amt : amt);
+  sendCmd('G91');
+  sendCmd('G1 A' + signed.toFixed(3) + ' F' + feed);
+  sendCmd('G90');
 }
 // Convert the hand-measured mm-per-mL into the read-only mm displays.
 function syrCalc() {
