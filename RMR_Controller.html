@@ -581,6 +581,13 @@
     .seq-grid { grid-template-columns: 1fr; }
   }
 
+  /* ── Toast notifications ── */
+  #toastWrap { position: fixed; top: 14px; right: 14px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: min(360px, 92vw); }
+  .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.4); border-left: 4px solid var(--accent, #4aa3ff); background: var(--surface2, #232a3a); opacity: 0; transform: translateX(24px); transition: opacity .25s ease, transform .25s ease; }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast.success { border-left-color: var(--green, #3ad07a); }
+  .toast.warn    { border-left-color: #f0ad4e; }
+  .toast.error   { border-left-color: var(--red, #ff4a5c); }
 </style>
 </head>
 <body>
@@ -1373,9 +1380,11 @@ async function connectSerial() {
     writer = port.writable.getWriter();
     setConnected(true);
     logInfo(`Connected at ${baud} baud (Web Serial)`);
+    showToast(`Connected at ${baud} baud`, 'success');
     readLoop();
   } catch (e) {
     logErr('Connection failed: ' + e.message);
+    showToast('Connection failed: ' + e.message, 'error', 5000);
   }
 }
 
@@ -1484,6 +1493,7 @@ async function readLoop() {
     // reason — a reset mid-move almost always means a power dip / brown-out.
     if (isConnected) {
       logErr('Serial device lost: ' + e.message + '. The USB link dropped or the board reset — reconnect, and check cable/power (a reset during a move usually means a brown-out).');
+      showToast('Serial device lost — reconnect (check cable/power)', 'error', 6000);
       setConnected(false);
     }
     if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('serial device lost')); }
@@ -1722,9 +1732,22 @@ function relayCmd(relay, sVal) {
 }
 
 // ─── Emergency Stop ───
+// Transient popup notification (top-right). type: info | success | warn | error
+function showToast(message, type = 'info', ms = 3800) {
+  const wrap = document.getElementById('toastWrap');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = message;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, ms);
+}
+
 function emergencyStop() {
   sendCmd('M112');
   logErr('>>> EMERGENCY STOP SENT — press Reset (M999) to recover without replug <<<');
+  showToast('EMERGENCY STOP — press Reset (M999) to recover', 'error', 6000);
 }
 
 // ─── Firmware Reset ───
@@ -2607,5 +2630,6 @@ if (transportMode() === 'ws') {
   logInfo('Web Serial mode: requires Chrome/Edge. Switch the header dropdown to "Pi Bridge" to use any browser.');
 }
 </script>
+<div id="toastWrap" aria-live="polite"></div>
 </body>
 </html>
