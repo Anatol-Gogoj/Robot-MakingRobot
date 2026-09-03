@@ -30,6 +30,10 @@
   #include "../../module/temperature.h"
 #endif
 
+#if ENABLED(UV_LID_INTERLOCK)
+  #include "../../feature/uv_interlock.h"
+#endif
+
 #ifdef MAPLE_STM32F1
   // these are enums on the F1...
   #define INPUT_PULLDOWN INPUT_PULLDOWN
@@ -85,6 +89,19 @@ void GcodeSuite::M42() {
 
   if (!parser.seenval('S')) return;
   const byte pin_status = parser.value_byte();
+
+  #if ENABLED(UV_LID_INTERLOCK)
+    // UV lamp lid interlock: refuse to energize UV with the lid open, and record the
+    // commanded state so the idle() task can cut UV if the lid opens mid-cure.
+    if (pin == UV_LAMP_PIN) {
+      const bool want_uv_on = (pin_status == UV_LAMP_ON_VALUE);
+      if (want_uv_on && !uv_interlock::permit_uv_on()) {
+        SERIAL_ECHO_MSG("UV inhibited: lid open (interlock)");
+        return;
+      }
+      uv_interlock::note_uv(want_uv_on);
+    }
+  #endif
 
   #if HAS_FAN
     switch (pin) {

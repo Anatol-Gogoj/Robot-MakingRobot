@@ -32,6 +32,10 @@
   #include "../../module/servo.h"  // RMR: close gripper before X homing
 #endif
 
+#if ENABLED(MOTOR_POWER_SENSE)
+  #include "../../feature/motor_power.h"
+#endif
+
 #if HAS_HOMING_CURRENT
   #include "../../module/motion.h" // for set/restore_homing_current
 #endif
@@ -640,6 +644,8 @@ void GcodeSuite::G28() {
 
   TERN_(HAS_DWIN_E3V2_BASIC, DWIN_HomingDone());
   TERN_(EXTENSIBLE_UI, ExtUI::onHomingDone());
+
+  TERN_(MOTOR_POWER_SENSE, motor_power::clear_rehome());  // homing restored position after a motor-power fault
 
   report_current_position();
 

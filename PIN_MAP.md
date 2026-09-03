@@ -148,10 +148,10 @@ Pins below are verified free in the current build (`pins_RAMPS.h` + custom `pins
 |-----|----------|---------------|----------------|----------------------|--------------------------|
 | 18  | PD3      | OC3A (Timer3) | Serial1 TX     | Free (EMI-sensitive — avoid for inputs; OK for slow outputs) | A Z or I MIN endstop is re-enabled without undef |
 | 37  | PC0      | none          | AUX4_09        | Free                 | LCD display defined (becomes `EXP2_05_PIN` / `EXP1_01_PIN`) |
-| 39  | PG2      | none          | AUX4_08        | Free                 | — (label only in stock RAMPS) |
+| 39  | PG2      | none          | AUX4_08        | **Used: UV lid interlock switch** | — |
 | 41  | PG0      | none          | AUX4_07        | Free                 | LCD display defined (becomes `EXP2_08_PIN`) |
 | 42  | **PL7**  | **none**      | AUX2_08        | **Used: solenoid valve relay** | — |
-| 43  | PL6      | none          | AUX4_06        | Free                 | — (label only in stock RAMPS) |
+| 43  | PL6      | none          | AUX4_06        | **Used: motor-power sense (E-stop)** | — |
 | 47  | PL2      | none          | AUX4_04        | Free                 | — (label only in stock RAMPS) |
 | 49  | PL0      | none          | AUX3_02        | Free                 | LCD + SDSUPPORT enabled (becomes `SD_DETECT_PIN` / `EXP2_07_PIN`) |
 | 57  | PF3 (A3) | none          | AUX1_05        | Free                 | — (label only in stock RAMPS) |
