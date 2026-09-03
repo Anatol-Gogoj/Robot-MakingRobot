@@ -1287,9 +1287,6 @@ let historyIdx = -1;
 let useWS = false;
 let ws = null;
 let wsShouldReconnect = false;
-let serialShouldReconnect = false;   // auto-reopen the serial port after an UNEXPECTED drop
-let serialBaud = 250000;
-let serialReconnectTries = 0;
 
 function transportMode() {
   const p = new URLSearchParams(location.search);
@@ -1327,43 +1324,13 @@ async function connectSerial() {
     useWS = false;
     port = await navigator.serial.requestPort();
     const baud = parseInt(document.getElementById('baudRate').value);
-    serialBaud = baud;
     await port.open({ baudRate: baud });
     writer = port.writable.getWriter();
-    serialShouldReconnect = true;
-    serialReconnectTries = 0;
     setConnected(true);
     logInfo(`Connected at ${baud} baud (Web Serial)`);
     readLoop();
   } catch (e) {
     logErr('Connection failed: ' + e.message);
-  }
-}
-
-// Auto-reconnect after an UNEXPECTED serial drop: Web Serial reports even a brief
-// USB glitch as "device lost", so re-open the SAME port once the device returns.
-async function attemptSerialReconnect() {
-  if (!serialShouldReconnect || isConnected || useWS || !port) return;
-  serialReconnectTries++;
-  try {
-    try { if (writer) writer.releaseLock(); } catch (e) {}
-    writer = null; reader = null;
-    try { await port.close(); } catch (e) {}   // release the errored streams from the lost device
-    await port.open({ baudRate: serialBaud });
-    writer = port.writable.getWriter();
-    readBuffer = '';
-    serialReconnectTries = 0;
-    setConnected(true);
-    logInfo('Serial device reconnected.');
-    readLoop();
-  } catch (e) {
-    if (serialShouldReconnect && serialReconnectTries < 30) {
-      if (serialReconnectTries === 1) logInfo('Serial device lost — waiting for it to come back (auto-reconnect)…');
-      setTimeout(attemptSerialReconnect, 2000);
-    } else {
-      serialShouldReconnect = false;
-      logErr('Auto-reconnect gave up after ' + serialReconnectTries + ' tries. Click Connect to retry.');
-    }
   }
 }
 
@@ -1415,7 +1382,6 @@ function handleWSMessage(data) {
 }
 
 async function disconnect() {
-  serialShouldReconnect = false;   // user-initiated disconnect: do not auto-reconnect
   try {
     if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
     if (useWS) {
@@ -1470,11 +1436,10 @@ async function readLoop() {
     // any in-flight sequencer wait and drop to a disconnected state with a clear
     // reason — a reset mid-move almost always means a power dip / brown-out.
     if (isConnected) {
-      logErr('Serial device lost: ' + e.message + (serialShouldReconnect ? ' — auto-reconnecting…' : '. Reconnect and check cable/power.'));
+      logErr('Serial device lost: ' + e.message + '. The USB link dropped or the board reset — reconnect, and check cable/power (a reset during a move usually means a brown-out).');
       setConnected(false);
     }
     if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('serial device lost')); }
-    if (serialShouldReconnect && !useWS) setTimeout(attemptSerialReconnect, 1000);
   }
 }
 
