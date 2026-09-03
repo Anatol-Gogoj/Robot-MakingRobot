@@ -563,7 +563,7 @@
 
   .vslider-wrap { display: flex; align-items: flex-start; gap: 14px; }
   input[type=range].v-slider {
-    writing-mode: vertical-lr; direction: rtl;
+    writing-mode: vertical-lr;   /* min (0) at top, max at bottom */
     width: 34px; height: 210px; accent-color: var(--accent); cursor: pointer;
   }
   .vslider-scale { display: flex; flex-direction: column; justify-content: space-between; height: 210px; font-size: 10px; color: var(--text-dim); text-align: right; }
@@ -1077,6 +1077,7 @@
           <label class="seq-check"><input type="checkbox" class="home-axis" value="Z" disabled> Z</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="A" disabled> A &middot; Filter Feed</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="B" disabled> B &middot; Syringe Ht</label>
+          <label class="seq-check checked" title="Boot + index the ODrive spincoater during homing so the first spin doesn't stall"><input type="checkbox" id="homeSpin" checked onchange="this.closest('.seq-check').classList.toggle('checked', this.checked)"> Spincoater index</label>
         </div>
         <div class="seq-footer">
           <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="homing" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
@@ -1089,36 +1090,59 @@
     <details class="seq-block" id="seqBlock-syringe">
       <summary>Syringe &middot; Dispense <span class="seq-badge on" id="badge-syringe">enabled</span></summary>
       <div class="seq-body">
-        <div style="display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start">
-          <!-- Vertical position slider (B axis) -->
+        <p class="seq-hint">Run does the full cycle: <b>lower</b> the nozzle to the dispense height &rarr; <b>dispense</b> &rarr; <b>retract</b> the plunger &rarr; <b>raise</b> back up. Axis B: home (0) is up, larger B is down. Axis C: +C dispenses.</p>
+        <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
+          <!-- Height slider (B axis): top = 0 = up/home, bottom = 304 = down -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>304<br>top</span><span>0<br>btm</span></div>
-            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5" orient="vertical"
+            <div class="vslider-scale"><span>0<br>up</span><span>304<br>down</span></div>
+            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5"
                    oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
-              <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B)</small></div>
+              <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B) &mdash; dispense height</small></div>
               <div class="seq-field" style="width:120px">
                 <label>Move feed mm/min</label>
                 <input type="number" id="syrPosFeed" value="1500" min="10" max="3000" step="10">
               </div>
-              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="syrMove()">Move &#8597;</button>
+              <div style="display:flex; gap:8px">
+                <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="syrLower()">Lower &#9660;</button>
+                <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="syrRaise()">Raise &#9650;</button>
+              </div>
+            </div>
+          </div>
+          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 135 = pushed -->
+          <div class="vslider-wrap">
+            <div class="vslider-scale"><span>0<br>open</span><span>135<br>pushed</span></div>
+            <input type="range" class="v-slider" id="plungerPos" min="0" max="135" value="0" step="0.5"
+                   oninput="document.getElementById('plungerPosVal').textContent=(+this.value).toFixed(1)">
+            <div class="vslider-track">
+              <div><span class="vslider-readout" id="plungerPosVal">0.0</span><small> mm (C) &mdash; plunger</small></div>
+              <div class="seq-field" style="width:120px">
+                <label>Jog feed mm/min</label>
+                <input type="number" id="plungerFeed" value="300" min="10" max="480" step="10">
+              </div>
+              <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue)" onclick="plungerMove()">Jog &#8597;</button>
             </div>
           </div>
           <!-- Dispense parameters -->
           <div class="seq-grid" style="flex:1; min-width:270px; align-content:start">
+            <div class="seq-field full">
+              <label>Syringe calibration (measure by hand)</label>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+                <input type="number" id="calMm" value="100" min="0.01" step="0.1" style="width:78px" oninput="syrCalc()">
+                <span class="seq-hint">mm of plunger&nbsp;=</span>
+                <input type="number" id="calMl" value="1" min="0.0001" step="0.1" style="width:78px" oninput="syrCalc()">
+                <span class="seq-hint">mL</span>
+              </div>
+              <span class="seq-hint">&rarr; <b id="calFactor">&mdash;</b> mm per mL (from your measurement)</span>
+            </div>
             <div class="seq-field">
-              <label>Dispense amount (&micro;L)</label>
-              <input type="number" id="syrVol" value="50" min="0" step="1" oninput="syrCalc()">
+              <label>Dispense amount (mL)</label>
+              <input type="number" id="syrVol" value="0.05" min="0" step="0.01" oninput="syrCalc()">
               <span class="seq-hint">&rarr; <b id="syrVolMm">&mdash;</b> mm of plunger travel</span>
             </div>
             <div class="seq-field">
-              <label>Factor (&micro;L per mm)</label>
-              <input type="number" id="syrFactor" value="10" min="0.0001" step="0.1" oninput="syrCalc()">
-              <span class="seq-hint">volume = distance &times; factor</span>
-            </div>
-            <div class="seq-field">
-              <label>Pullback / retract (&micro;L)</label>
-              <input type="number" id="syrPull" value="5" min="0" step="1" oninput="syrCalc()">
+              <label>Pullback / retract (mL)</label>
+              <input type="number" id="syrPull" value="0.005" min="0" step="0.001" oninput="syrCalc()">
               <span class="seq-hint">&rarr; <b id="syrPullMm">&mdash;</b> mm retract after dispense</span>
             </div>
             <div class="seq-field">
@@ -1175,6 +1199,9 @@
           <div class="seq-field full">
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvLid" checked> Close lid during cure, reopen after</label>
           </div>
+          <div class="seq-field full">
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvSpinHome"> Home spincoater during cure (set Spin &ldquo;home after spin&rdquo; OFF)</label>
+          </div>
           <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="110" min="0" max="180"></div>
           <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
         </div>
@@ -1198,6 +1225,8 @@
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="180" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
+          <div class="seq-field"><label>Post-press lift Z (mm)</label><input type="number" id="stampLiftZ" value="80" min="0" step="1"><span class="seq-hint">raise straight up after press (clears the syringe)</span></div>
+          <div class="seq-field"><label>Post-press Y back-off (mm)</label><input type="number" id="stampBackY" value="20" min="0" step="1"><span class="seq-hint">then move Y- before going up &amp; over</span></div>
           <div class="seq-field full">
             <label>Filter feeder side</label>
             <div class="seq-radio-row" id="stampSideRow">
@@ -1426,6 +1455,7 @@ function setConnected(state) {
 async function readLoop() {
   const decoder = new TextDecoderStream();
   const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+  readableStreamClosed.catch(() => {});   // a lost device rejects this too; swallow to avoid an uncaught NetworkError
   reader = decoder.readable.getReader();
   try {
     while (true) {
@@ -1436,12 +1466,27 @@ async function readLoop() {
         let lines = readBuffer.split('\n');
         readBuffer = lines.pop(); // keep incomplete line in buffer
         for (const line of lines) {
-          processLine(line.trim());
+          // A malformed/unexpected line must NEVER kill the reader: if processLine
+          // threw, the loop would exit and all further serial data — including the
+          // 'ok' the sequencer waits on — would be silently lost (the sequencer then
+          // hangs "waiting for ok"). Isolate each line and log the offender instead.
+          try {
+            processLine(line.trim());
+          } catch (err) {
+            logErr('Ignored a bad serial line (' + err.message + '): ' + line.trim().slice(0, 80));
+          }
         }
       }
     }
   } catch (e) {
-    if (isConnected) logErr('Read error: ' + e.message);
+    // The port died (USB dropped / board reset). Recover instead of hanging: fail
+    // any in-flight sequencer wait and drop to a disconnected state with a clear
+    // reason — a reset mid-move almost always means a power dip / brown-out.
+    if (isConnected) {
+      logErr('Serial device lost: ' + e.message + '. The USB link dropped or the board reset — reconnect, and check cable/power (a reset during a move usually means a brown-out).');
+      setConnected(false);
+    }
+    if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('serial device lost')); }
   }
 }
 
@@ -1691,7 +1736,7 @@ function resetFirmware() {
 // ─── Auto Report ───
 function toggleAutoReport() {
   if (document.getElementById('autoReport').checked) {
-    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+    autoReportInterval = setInterval(() => { if (!seqRunning) sendCmd('M114'); }, 1000);
   } else {
     if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
   }
@@ -2032,8 +2077,28 @@ function seqOnOk() {
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.resolve(); }
 }
 
-function seqAwaitOk() {
-  return new Promise((resolve, reject) => { seqWaiter = { resolve, reject }; });
+// Wait for the command's 'ok'. Times out (so a stuck step never hangs the
+// sequencer forever) and shows a live elapsed-time status, so a long-running or
+// stalled command is visible instead of an unexplained freeze.
+function seqAwaitOk(timeoutMs = 90000, label = '') {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    let timer = null, ticker = null;
+    const cleanup = () => { if (timer) clearTimeout(timer); if (ticker) clearInterval(ticker); timer = ticker = null; };
+    const tag = (label || 'command').slice(0, 24);
+    timer = setTimeout(() => {
+      cleanup(); seqWaiter = null;
+      reject(new Error('no "ok" for "' + tag + '" after ' + Math.round(timeoutMs / 1000) +
+        's — the machine may be stuck (e.g. an axis not reaching its endstop) or the connection dropped. Use the physical Reset.'));
+    }, timeoutMs);
+    ticker = setInterval(() => {
+      seqSetStatus('Running <b>' + tag + '</b>… ' + Math.round((performance.now() - start) / 1000) + 's (waiting for ok)');
+    }, 1000);
+    seqWaiter = {
+      resolve: () => { cleanup(); resolve(); },
+      reject:  (e) => { cleanup(); reject(e); }
+    };
+  });
 }
 
 // Abortable sleep; onTick(elapsedMs) fires ~every 100ms
@@ -2051,11 +2116,11 @@ function seqSleep(ms, onTick) {
 }
 
 // Send one command; optionally wait for its 'ok' before resolving
-async function seqCmd(cmd, waitOk = true) {
+async function seqCmd(cmd, waitOk = true, timeoutMs = 90000) {
   if (seqAbort) throw new Error('aborted');
   if (!isConnected) throw new Error('not connected');
   sendCmd(cmd);
-  if (waitOk) await seqAwaitOk();
+  if (waitOk) await seqAwaitOk(timeoutMs, cmd);
   if (seqAbort) throw new Error('aborted');
 }
 
@@ -2120,7 +2185,7 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
   if (seqAutoReportWasOn && document.getElementById('autoReport').checked) {
-    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+    autoReportInterval = setInterval(() => { if (!seqRunning) sendCmd('M114'); }, 1000);
   }
   if (statusHtml) seqSetStatus(statusHtml);
 }
@@ -2129,7 +2194,8 @@ function seqStop() {
   if (!seqRunning) return;
   seqAbort = true;
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
-  logInfo('Sequencer: STOP requested — the command chain will halt. Use E-STOP for an immediate hardware halt.');
+  sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin
+  logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
   seqSetStatus('<b>Stopping…</b>');
 }
 
@@ -2201,33 +2267,43 @@ async function seqRunAll() {
 async function runHomingBlock() {
   if (document.getElementById('homeAll').checked) {
     await seqCmd('G28');
-    return;
+  } else {
+    const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
+    await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
   }
-  const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
-  await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
+  // Bury the spincoater's one-time ODrive boot + encoder index into homing, so the
+  // first spin (M750) doesn't stall on it. M752 boots + indexes and sets the ready flag.
+  const hs = document.getElementById('homeSpin');
+  if (hs && hs.checked) {
+    seqSetStatus('Homing — indexing the spincoater (ODrive)…');
+    await seqCmd('M752', true, 40000);   // boot (up to a 15s probe) + index; generous timeout
+  }
 }
 
 // ─── Block: Syringe ───
 async function runSyringeBlock() {
-  const factor = numv('syrFactor', 10) || 1;
-  const dispMm = numv('syrVol', 0) / factor;
-  const pullMm = numv('syrPull', 0) / factor;
+  const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1;
+  const mmPerMl = calMm / calMl;                            // hand-measured mm per mL
+  const dispMm = numv('syrVol', 0)  * mmPerMl;
+  const pullMm = numv('syrPull', 0) * mmPerMl;
   const pos = numv('syrPos', 0);
   const posFeed = Math.round(numv('syrPosFeed', 1500));
   const eFeed = Math.round(numv('syrFeed', 300));
   await seqCmd('G90');
-  await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);   // position syringe height (B)
+  await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);    // 1) lower to dispense height (B)
   await seqCmd('M400');
-  // Syringe is the homeable C (K) axis. Dispense/retract as RELATIVE moves
+  // Plunger is the homeable C (K) axis. Dispense/retract as RELATIVE moves
   // (+C = push/dispense); no G92 on a homed axis, so soft limits [0, K_MAX_POS] hold.
   await seqCmd('G91');
-  await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // dispense (push plunger)
+  await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // 2) dispense (push plunger)
   await seqCmd('M400');
   if (pullMm > 0) {
-    await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // pullback / retract
+    await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // 3) retract plunger
     await seqCmd('M400');
   }
-  await seqCmd('G90');                                       // restore absolute mode
+  await seqCmd('G90');
+  await seqCmd('G1 B0 F' + posFeed);                          // 4) raise the nozzle back up
+  await seqCmd('M400');
 }
 
 // ─── Block: Spin Coater ───
@@ -2238,7 +2314,10 @@ async function runSpinBlock() {
   const sink = numv('seqSpinSink', 1);
   const home = document.getElementById('seqSpinHome').checked ? 1 : 0;
   spinTargetRPM = rpm;
-  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home); // blocking full cycle
+  // M750 runs the entire spin cycle before replying 'ok', so allow the full
+  // duration (+ ramp + margin) before the ok-timeout would trip.
+  const spinTimeout = (dur + rise + sink + 90) * 1000;
+  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); // blocking full cycle
 }
 
 // ─── Block: UV lid & light ───
@@ -2265,6 +2344,11 @@ async function runUvBlock() {
     await seqCmd('M280 P1 S' + lidClose + ' T' + lidMs);   // close lid (T ramp is blocking)
   }
   await seqCmd('M42 P' + pin + ' S1');                      // UV ON
+  // Optionally index-home the spincoater DURING the cure (parallel). Fire-and-forget so
+  // it runs while we wait out the cure; we wait for it to finish below so the platter is
+  // stationary at its datum before the block ends (the process is alignment-sensitive).
+  const uvHomeSpin = document.getElementById('uvSpinHome') && document.getElementById('uvSpinHome').checked;
+  if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
   logInfo('UV: curing ' + t + ' s (pin ' + pin + ')');
   try {
     await seqSleep(t * 1000, (elapsed) => {
@@ -2276,6 +2360,12 @@ async function runUvBlock() {
     elEl.textContent = t.toFixed(1) + ' s';
   } finally {
     sendCmd('M42 P' + pin + ' S0');                         // UV OFF — fire even on abort
+  }
+  if (uvHomeSpin && !seqAbort) {
+    // Guarantee the spincoater home has finished before proceeding (alignment): M752
+    // blocks Marlin, so awaiting any command here waits for it — instant if already done.
+    seqSetStatus('UV — confirming the spincoater reached its datum…');
+    await seqCmd('M400', true, 40000);
   }
   if (manageLid && !seqAbort) {
     await seqCmd('M280 P1 S' + lidOpen + ' T' + lidMs);     // reopen lid
@@ -2316,6 +2406,8 @@ async function runStampBlock() {
   const hold = numv('stampHold', 0);
   const pressZ = numv('stampForce', 180);
   const approachZ = numv('stApproachZ', 150);
+  const liftZ = numv('stampLiftZ', 80);   // post-press straight-up clearance (Z- = up)
+  const backY = numv('stampBackY', 20);   // post-press Y- back-off to clear the syringe
   const spinX = numv('stSX', 117), spinY = numv('stSY', 24);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
@@ -2324,16 +2416,16 @@ async function runStampBlock() {
 
   logInfo('Stamp: picking from ' + side.toUpperCase() + ' feeder');
   await seqCmd('G90');
-  // Approach pick position (gripper open)
+  // Move the arm over the pick position FIRST, then open the gripper (not before moving)
   await seqCmd('M400');
-  await seqCmd('M280 P0 S' + gOpen);
   await seqCmd('G1 Z' + safeZ + ' F' + zF);
   await seqCmd('G1 X' + pickX + ' F' + xyF);
   await seqCmd('G1 Y' + pickY + ' F' + xyF);
+  await seqCmd('M280 P0 S' + gOpen);   // open now that the arm is over the pick
   // Advance feeder by one stack height (relative)
   if (stack > 0) {
     await seqCmd('G91');
-    await seqCmd('G1 A' + stack.toFixed(3) + ' F' + aF);
+    await seqCmd('G1 A-' + stack.toFixed(3) + ' F' + aF);   // feeder homes to MAX (343); advance = A- (A+ is clamped at the max soft-endstop)
     await seqCmd('G90');
   }
   await seqCmd('M400');
@@ -2352,8 +2444,14 @@ async function runStampBlock() {
   await seqCmd('G1 Z' + pressZ + ' F' + pF);
   await seqCmd('M400');
   if (hold > 0) { seqSetStatus('Stamp — pressing ' + hold + ' s'); await seqSleep(hold * 1000); }
-  // Release & dispose used filter
-  await seqCmd('G1 Z' + safeZ + ' F' + zF);
+  // Post-press clearance: raise straight up, then back off in Y-, so the gripper
+  // assembly clears the syringe before transiting up-and-over to the discard.
+  await seqCmd('G91');
+  await seqCmd('G1 Z-' + liftZ.toFixed(3) + ' F' + zF);    // raise (Z- = up) by liftZ
+  await seqCmd('G1 Y-' + backY.toFixed(3) + ' F' + xyF);   // back off in Y-
+  await seqCmd('G90');
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);                // continue up to the upper safe Z
+  // Dispose used filter
   await seqCmd('G1 Y0 F' + xyF);
   await seqCmd('G1 X' + disX + ' F' + xyF);
   await seqCmd('G1 Z' + disZ + ' F' + zF);
@@ -2375,17 +2473,34 @@ function homeAllToggle() {
     lbl.style.opacity = all ? '0.45' : '1';
   });
 }
-function syrMove() {
+function syrLower() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
   const pos = numv('syrPos', 0), feed = Math.round(numv('syrPosFeed', 1500));
   sendCmd('G90');
-  sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);
+  sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);   // lower to the dispense height
 }
+function syrRaise() {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  const feed = Math.round(numv('syrPosFeed', 1500));
+  sendCmd('G90');
+  sendCmd('G1 B0 F' + feed);   // raise the nozzle up (B home)
+}
+function plungerMove() {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  const pos = numv('plungerPos', 0), feed = Math.round(numv('plungerFeed', 300));
+  sendCmd('G90');
+  sendCmd('G1 C' + pos.toFixed(3) + ' F' + feed);
+}
+// Convert the hand-measured mm-per-mL into the read-only mm displays.
 function syrCalc() {
-  const factor = numv('syrFactor', 10) || 1;
-  document.getElementById('syrVolMm').textContent  = (numv('syrVol', 0) / factor).toFixed(3);
-  document.getElementById('syrPullMm').textContent = (numv('syrPull', 0) / factor).toFixed(3);
+  const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1;
+  const mmPerMl = calMm / calMl;
+  document.getElementById('calFactor').textContent  = mmPerMl.toFixed(2);
+  document.getElementById('syrVolMm').textContent  = (numv('syrVol', 0)  * mmPerMl).toFixed(3);
+  document.getElementById('syrPullMm').textContent = (numv('syrPull', 0) * mmPerMl).toFixed(3);
 }
 function spinPreview() {
   const rpm  = Math.round(numv('seqSpinRPM', 5000));

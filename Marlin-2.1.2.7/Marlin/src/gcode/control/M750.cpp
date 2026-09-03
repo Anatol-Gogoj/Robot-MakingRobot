@@ -69,7 +69,7 @@ static void spinTelemetry() {
  * Samples at 100ms intervals for dur_s seconds.
  * Reports stats via echo:SPIN DATA: lines.
  */
-static void measureSpeed(const int dur_s) {
+static bool measureSpeed(const int dur_s) {
   const millis_t sampleInterval = 100;
   const millis_t duration = (millis_t)dur_s * 1000UL;
 
@@ -82,6 +82,9 @@ static void measureSpeed(const int dur_s) {
   float  maxRPM = -1e9f;
 
   while (millis() - startTime < duration) {
+    #if ENABLED(EMERGENCY_PARSER)
+      if (Spincoater::abortRequested) return true;   // RMR: aborted from the UI (M410 / seq Stop)
+    #endif
     idle();  // CRITICAL: feed watchdog, process M112, send keepalive
 
     const millis_t now = millis();
@@ -128,6 +131,7 @@ static void measureSpeed(const int dur_s) {
   SERIAL_ECHOPGM("echo:SPIN DATA: MinRPM=");     SERIAL_ECHOLN(minRPM);
   SERIAL_ECHOPGM("echo:SPIN DATA: MaxRPM=");     SERIAL_ECHOLN(maxRPM);
   SERIAL_ECHOPGM("echo:SPIN DATA: Range=");       SERIAL_ECHOLN(maxRPM - minRPM);
+  return false;
 }
 
 void GcodeSuite::M750() {
@@ -143,6 +147,8 @@ void GcodeSuite::M750() {
     SERIAL_ECHOLNPGM("echo:SPIN ERR: All values must be > 0");
     return;
   }
+
+  TERN_(EMERGENCY_PARSER, Spincoater::abortRequested = false);  // RMR: clear any stale abort request
 
   // ── Boot ODrive on first call ──
   if (!Spincoater::isReady()) {
@@ -219,6 +225,15 @@ void GcodeSuite::M750() {
   if (rampTimeout < 10000) rampTimeout = 10000;
 
   while (lastTelemRPM < threshRPM) {
+    #if ENABLED(EMERGENCY_PARSER)
+      if (Spincoater::abortRequested) {
+        Spincoater::abortRequested = false;
+        Spincoater::setVelocity(0);
+        SERIAL_ECHOLNPGM("echo:SPIN STATE:STOPPED");
+        SERIAL_ECHOLNPGM("echo:SPIN OK: ABORTED");
+        return;
+      }
+    #endif
     idle();
     spinTelemetry();
 
@@ -252,7 +267,13 @@ void GcodeSuite::M750() {
 
   // ── Measure ──
   SERIAL_ECHOLNPGM("echo:SPIN STATE:MEASURING");
-  measureSpeed(dur_s);
+  if (measureSpeed(dur_s)) {   // RMR: aborted from the UI during the hold
+    Spincoater::abortRequested = false;
+    Spincoater::setVelocity(0);
+    SERIAL_ECHOLNPGM("echo:SPIN STATE:STOPPED");
+    SERIAL_ECHOLNPGM("echo:SPIN OK: ABORTED");
+    return;
+  }
 
   // ── Ramp down ──
   SERIAL_ECHOLNPGM("echo:SPIN STATE:RAMP_DOWN");

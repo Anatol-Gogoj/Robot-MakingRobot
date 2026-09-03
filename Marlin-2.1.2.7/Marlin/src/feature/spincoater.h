@@ -107,6 +107,19 @@ namespace Spincoater {
    */
   float getHomePos();
 
+  /**
+   * Cooperative abort flag: set by the M410/quickstop path (temperature.cpp) and
+   * polled by M750 so a running spin cycle can be stopped from the UI (sequencer
+   * Stop) without a full machine kill. M750 zeroes the rotor and returns.
+   */
+  extern volatile bool abortRequested;
+  void requestAbort();
+
+  /** Stop the rotor, but ONLY if the ODrive was initialised — safe to call from
+   * kill(): if no spin ran this session the ODrive serial isn't begun and a
+   * setVelocity() would block forever in Serial.flush(). */
+  void safeStop();
+
 } // namespace Spincoater
 
 #endif // SPINCOATER
