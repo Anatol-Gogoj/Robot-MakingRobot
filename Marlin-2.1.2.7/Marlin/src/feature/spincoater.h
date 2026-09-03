@@ -115,6 +115,11 @@ namespace Spincoater {
   extern volatile bool abortRequested;
   void requestAbort();
 
+  /** Stop the rotor, but ONLY if the ODrive was initialised — safe to call from
+   * kill(): if no spin ran this session the ODrive serial isn't begun and a
+   * setVelocity() would block forever in Serial.flush(). */
+  void safeStop();
+
 } // namespace Spincoater
 
 #endif // SPINCOATER

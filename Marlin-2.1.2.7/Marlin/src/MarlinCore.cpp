@@ -893,7 +893,7 @@ void idle(const bool no_stepper_sleep/*=false*/) {
  */
 void kill(FSTR_P const lcd_error/*=nullptr*/, FSTR_P const lcd_component/*=nullptr*/, const bool steppers_off/*=false*/) {
   thermalManager.disable_all_heaters();
-  TERN_(SPINCOATER, Spincoater::setVelocity(0)); // RMR: stop a spinning spincoater on any kill/E-STOP
+  TERN_(SPINCOATER, Spincoater::safeStop()); // RMR: stop a spinning spincoater on any kill/E-STOP (no-op if never spun)
 
   TERN_(HAS_CUTTER, cutter.kill()); // Full cutter shutdown including ISR control
 

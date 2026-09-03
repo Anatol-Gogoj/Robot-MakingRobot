@@ -33,6 +33,7 @@ static float    _homePos     = 0.0f;   // encoder position (turns) at last home 
 
 volatile bool Spincoater::abortRequested = false;
 void Spincoater::requestAbort() { abortRequested = true; }
+void Spincoater::safeStop() { if (isReady()) setVelocity(0); }  // no-op if the ODrive serial was never begun
 
 void Spincoater::init() {
   if (_initialized) return;
