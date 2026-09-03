@@ -1073,6 +1073,7 @@
           <label class="seq-check"><input type="checkbox" class="home-axis" value="Z" disabled> Z</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="A" disabled> A &middot; Filter Feed</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="B" disabled> B &middot; Syringe Ht</label>
+          <label class="seq-check checked" title="Boot + index the ODrive spincoater during homing so the first spin doesn't stall"><input type="checkbox" id="homeSpin" checked onchange="this.closest('.seq-check').classList.toggle('checked', this.checked)"> Spincoater index</label>
         </div>
         <div class="seq-footer">
           <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="homing" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
@@ -1193,6 +1194,9 @@
           <div class="seq-field"><label>UV relay pin</label><input type="number" id="uvSeqPin" value="4" min="0" max="70"></div>
           <div class="seq-field full">
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvLid" checked> Close lid during cure, reopen after</label>
+          </div>
+          <div class="seq-field full">
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvSpinHome"> Home spincoater during cure (set Spin &ldquo;home after spin&rdquo; OFF)</label>
           </div>
           <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="110" min="0" max="180"></div>
           <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
@@ -2220,10 +2224,17 @@ async function seqRunAll() {
 async function runHomingBlock() {
   if (document.getElementById('homeAll').checked) {
     await seqCmd('G28');
-    return;
+  } else {
+    const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
+    await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
   }
-  const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
-  await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
+  // Bury the spincoater's one-time ODrive boot + encoder index into homing, so the
+  // first spin (M750) doesn't stall on it. M752 boots + indexes and sets the ready flag.
+  const hs = document.getElementById('homeSpin');
+  if (hs && hs.checked) {
+    seqSetStatus('Homing — indexing the spincoater (ODrive)…');
+    await seqCmd('M752', true, 40000);   // boot (up to a 15s probe) + index; generous timeout
+  }
 }
 
 // ─── Block: Syringe ───
@@ -2290,6 +2301,11 @@ async function runUvBlock() {
     await seqCmd('M280 P1 S' + lidClose + ' T' + lidMs);   // close lid (T ramp is blocking)
   }
   await seqCmd('M42 P' + pin + ' S1');                      // UV ON
+  // Optionally index-home the spincoater DURING the cure (parallel). Fire-and-forget so
+  // it runs while we wait out the cure; we wait for it to finish below so the platter is
+  // stationary at its datum before the block ends (the process is alignment-sensitive).
+  const uvHomeSpin = document.getElementById('uvSpinHome') && document.getElementById('uvSpinHome').checked;
+  if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
   logInfo('UV: curing ' + t + ' s (pin ' + pin + ')');
   try {
     await seqSleep(t * 1000, (elapsed) => {
@@ -2301,6 +2317,12 @@ async function runUvBlock() {
     elEl.textContent = t.toFixed(1) + ' s';
   } finally {
     sendCmd('M42 P' + pin + ' S0');                         // UV OFF — fire even on abort
+  }
+  if (uvHomeSpin && !seqAbort) {
+    // Guarantee the spincoater home has finished before proceeding (alignment): M752
+    // blocks Marlin, so awaiting any command here waits for it — instant if already done.
+    seqSetStatus('UV — confirming the spincoater reached its datum…');
+    await seqCmd('M400', true, 40000);
   }
   if (manageLid && !seqAbort) {
     await seqCmd('M280 P1 S' + lidOpen + ' T' + lidMs);     // reopen lid
