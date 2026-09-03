@@ -19,10 +19,11 @@
     "active_high": true
   },
 
-  "_comment_estop": "OPTIONAL auxiliary contact of the hardware E-stop wired to a GPIO input, so the software knows it was hit (turns the tower red + buzzer, tells the UI, and — if 'cmd' is set — also sends it). Match 'pull' to your contact: default active-low (button/contact to GND). 'cmd':null to only annunciate.",
+  "_comment_estop": "OPTIONAL auxiliary contact of the hardware E-stop wired to a GPIO input, so the software knows it was hit (turns the tower red + buzzer, tells the UI, and — if 'cmd' is set — also sends it). Match 'pull' to your contact: default active-low (button/contact to GND). Set 'nc':true for a normally-closed contact (the safe kind — 'open == pressed', so a cut/broken wire also alarms). 'cmd':null to only annunciate. Note: on the layered E-stop the Mega also emits 'MOTOR POWER LOST' when the motor contactor drops, which independently latches the tower red — so the tower goes red even without this contact wired.",
   "estop": {
     "pin": 20,
     "pull": "up",
+    "nc": true,
     "cmd": "M112",
     "name": "estop"
   }

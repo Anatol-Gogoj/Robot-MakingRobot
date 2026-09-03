@@ -57,6 +57,14 @@
 
 #include "feature/pause.h"
 #include "feature/spincoater.h"   // RMR: stop the spincoater on kill()/E-STOP
+
+#if ENABLED(UV_LID_INTERLOCK)
+  #include "feature/uv_interlock.h"
+#endif
+
+#if ENABLED(MOTOR_POWER_SENSE)
+  #include "feature/motor_power.h"
+#endif
 #include "sd/cardreader.h"
 
 #include "lcd/marlinui.h"
@@ -809,6 +817,12 @@ void idle(const bool no_stepper_sleep/*=false*/) {
     if (TERN1(HAS_PRUSA_MMU2, !mmu2.enabled()))
       runout.run();
   #endif
+
+  // RMR: UV lamp lid interlock — cut UV if the lid opens while it's energized
+  TERN_(UV_LID_INTERLOCK, uv_interlock::task());
+
+  // RMR: motor-power sense — halt + unhome if the E-stop removed motor power
+  TERN_(MOTOR_POWER_SENSE, motor_power::task());
 
   // Run HAL idle tasks
   hal.idletask();

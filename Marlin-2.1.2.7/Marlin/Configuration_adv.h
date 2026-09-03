@@ -3516,6 +3516,48 @@
 #endif
 
 /**
+ * UV lamp lid interlock (RMR)
+ *
+ * Firmware refuses to energize the UV lamp (M42 P<UV_LAMP_PIN> S<UV_LAMP_ON_VALUE>)
+ * unless a lid-closed switch reads closed, and cuts UV if the lid opens while the lamp
+ * is on. This is DEFENSE-IN-DEPTH behind a HARDWARE interlock (a switch wired in series
+ * with the UV relay coil / lamp supply), which remains the primary safety layer — do not
+ * rely on firmware alone for a UV hazard.
+ *
+ * Lid switch: NO microswitch, COM -> Mega GND, NO -> LID_SWITCH_PIN, internal pull-up,
+ * positioned so a fully-closed lid actuates it (contact closed -> pin reads LOW).
+ * Fail-safe: a broken/unplugged switch floats HIGH -> reads "open" -> UV inhibited.
+ */
+#define UV_LID_INTERLOCK
+#if ENABLED(UV_LID_INTERLOCK)
+  #define UV_LAMP_PIN         4     // UV relay pin (matches M42 P4 in the UI / G-code)
+  #define UV_LAMP_ON_VALUE    1     // M42 S-value that energizes UV (1 for active-HIGH modules)
+  #define UV_LAMP_ON_LEVEL    HIGH  // pin level when UV is energized (HIGH for active-HIGH modules)
+  #define LID_SWITCH_PIN      39    // lid-closed switch input (free GPIO on the AUX-4 header)
+  #define LID_CLOSED_STATE    LOW   // pin level when the lid is fully closed (switch actuated)
+#endif
+
+/**
+ * Motor power sense (RMR)
+ *
+ * Reads the motor-contactor aux contact so the firmware knows when the E-stop has
+ * removed motor power (layered E-stop: motors cut, logic + Pi stay live). On loss it
+ * aborts motion, clears the command queue, marks all axes unhomed, and refuses moves
+ * until re-homed (G28) — the open-loop steppers lose position the instant power drops.
+ *
+ * Boot-safe / fail-safe: the watcher only ARMS after it first sees motor power present,
+ * so an unwired pin never false-faults on boot. Once armed, an open (power lost) trips it.
+ *
+ * Aux contact: closed when the motor contactor is energized (motors powered). Wire the
+ * aux contact from MOTOR_POWER_SENSE_PIN to GND (internal pull-up). Powered = pin LOW.
+ */
+#define MOTOR_POWER_SENSE
+#if ENABLED(MOTOR_POWER_SENSE)
+  #define MOTOR_POWER_SENSE_PIN   43    // motor-contactor aux contact (free GPIO, AUX-4 header)
+  #define MOTOR_POWER_OK_STATE    LOW   // pin level when motor power is present (aux closed to GND)
+#endif
+
+/**
  * Synchronous Laser Control with M106/M107
  *
  * Marlin normally applies M106/M107 fan speeds at a time "soon after" processing
