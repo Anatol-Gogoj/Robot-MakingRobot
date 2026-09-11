@@ -2013,6 +2013,7 @@ function showToast(message, type = 'info', ms = 3800) {
 }
 
 function emergencyStop() {
+  seqFault('emergency stop (M112)');   // abort a running sequence at once (lamp off / argon closed in its finally)
   sendCmd('M112');
   logErr('>>> EMERGENCY STOP SENT — press Reset (M999) to recover without replug <<<');
   showToast('EMERGENCY STOP — press Reset (M999) to recover', 'error', 6000);

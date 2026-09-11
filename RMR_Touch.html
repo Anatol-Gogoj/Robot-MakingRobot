@@ -1862,7 +1862,7 @@ function servoSheetPreset(type) {
 function servoSheetSendOverride() { if (activeServoSheet !== null) { const v = document.getElementById('servoSheetOverride').value; if (v !== '') sendCmd('M280 P' + activeServoSheet + ' S' + v); } }
 
 // ─── Emergency / Reset ───
-function emergencyStop() { sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 press M999 to recover <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
+function emergencyStop() { seqFault('emergency stop (M112)'); sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 press M999 to recover <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
 function resetFirmware() { sendCmd('M999'); logInfo('>>> M999 reset sent <<<'); showToast('Firmware reset sent', 'warn'); }
 
 // ─── Auto Report ───
