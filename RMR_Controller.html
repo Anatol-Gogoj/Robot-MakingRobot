@@ -4,22 +4,218 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RMR Gantry Controller</title>
+<script>
+  // Apply the saved colour theme BEFORE first paint (no flash of the wrong theme).
+  // 'auto' follows the OS: prefers-contrast → Tol high-contrast, else light / dark. See setTheme().
+  (function () {
+    try {
+      var p = localStorage.getItem('rmr.theme') || 'auto', r = p;
+      var mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+      if (p === 'auto') r = mq('(prefers-contrast: more)') ? 'tol-hc' : (mq('(prefers-color-scheme: light)') ? 'tol-light' : 'midnight');
+      document.documentElement.setAttribute('data-theme', r);
+    } catch (e) {}
+  })();
+</script>
 <style>
+  /* ─── Colour themes ───
+     Tokens only — no colour is hard-coded below this block. The accents are Paul Tol's
+     colour-blind-safe schemes (Bright / Light / Muted / High-contrast); every text role is
+     checked for WCAG 2.1 AA contrast on each surface by tools/contrast_check.py.
+     The saved choice is applied to <html data-theme="…"> before first paint (see <head>). */
   :root {
+    color-scheme: dark;
     --bg: #1a1a2e;
     --surface: #16213e;
     --surface2: #0f3460;
-    --accent: #e94560;
-    --accent2: #0f3460;
-    --text: #eee;
-    --text-dim: #888;
-    --green: #4ecca3;
-    --yellow: #f0c040;
-    --red: #e94560;
-    --blue: #6ec6ff;
-    --purple: #b06be0;
+    --panel: #1a1a2e;
     --border: #2a2a4a;
+    --border-strong: #7c82a4;
+    --text: #eeeeee;
+    --text-dim: #9aa0b8;
+    --accent: #d13652;
+    --on-accent: #ffffff;
+    --accent2: #0f3460;
+    --header: #16213e;
+    --on-header: #eeeeee;
+    --header-accent: #ff5c78;
+    --danger: #d13652;
+    --on-danger: #ffffff;
+    --green: #4ecca3;
+    --on-green: #000000;
+    --yellow: #f0c040;
+    --on-yellow: #000000;
+    --red: #ff5c78;
+    --on-red: #000000;
+    --blue: #6ec6ff;
+    --on-blue: #000000;
+    --cyan: #6ec6ff;
+    --purple: #b06be0;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #0f3460;
+    --on-control: #eeeeee;
+    --label: #9aa0b8;
+    --focus: #f0c040;
+    --focus-halo: #000000;
+    --overlay: rgba(26,26,46,0.72);
   }
+  html[data-theme="midnight"] {
+    color-scheme: dark;
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --panel: #1a1a2e;
+    --border: #2a2a4a;
+    --border-strong: #7c82a4;
+    --text: #eeeeee;
+    --text-dim: #9aa0b8;
+    --accent: #d13652;
+    --on-accent: #ffffff;
+    --accent2: #0f3460;
+    --header: #16213e;
+    --on-header: #eeeeee;
+    --header-accent: #ff5c78;
+    --danger: #d13652;
+    --on-danger: #ffffff;
+    --green: #4ecca3;
+    --on-green: #000000;
+    --yellow: #f0c040;
+    --on-yellow: #000000;
+    --red: #ff5c78;
+    --on-red: #000000;
+    --blue: #6ec6ff;
+    --on-blue: #000000;
+    --cyan: #6ec6ff;
+    --purple: #b06be0;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #0f3460;
+    --on-control: #eeeeee;
+    --label: #9aa0b8;
+    --focus: #f0c040;
+    --focus-halo: #000000;
+    --overlay: rgba(26,26,46,0.72);
+  }
+  html[data-theme="tol-dark"] {
+    color-scheme: dark;
+    --bg: #000000;
+    --surface: #16213e;
+    --surface2: #1c2f54;
+    --panel: #000000;
+    --border: #8a8fa8;
+    --border-strong: #8a8fa8;
+    --text: #ffffff;
+    --text-dim: #d4d6e6;
+    --accent: #EE6677;
+    --on-accent: #000000;
+    --accent2: #AA3377;
+    --header: #4477AA;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #BB5566;
+    --on-danger: #ffffff;
+    --green: #44BB99;
+    --on-green: #000000;
+    --yellow: #EEDD88;
+    --on-yellow: #000000;
+    --red: #EE6677;
+    --on-red: #000000;
+    --blue: #77AADD;
+    --on-blue: #000000;
+    --cyan: #99DDFF;
+    --purple: #C2A5CF;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #4477AA;
+    --on-control: #ffffff;
+    --label: #99DDFF;
+    --focus: #EEDD88;
+    --focus-halo: #000000;
+    --overlay: rgba(0,0,0,0.7);
+  }
+  html[data-theme="tol-light"] {
+    color-scheme: light;
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --surface2: #e9ecf3;
+    --panel: #ffffff;
+    --border: #c4c8d4;
+    --border-strong: #7d8294;
+    --text: #1a1a2e;
+    --text-dim: #4f5566;
+    --accent: #4477AA;
+    --on-accent: #ffffff;
+    --accent2: #AA3377;
+    --header: #4477AA;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #882255;
+    --on-danger: #ffffff;
+    --green: #117733;
+    --on-green: #ffffff;
+    --yellow: #7a5f00;
+    --on-yellow: #ffffff;
+    --red: #882255;
+    --on-red: #ffffff;
+    --blue: #004488;
+    --on-blue: #ffffff;
+    --cyan: #004488;
+    --purple: #AA3377;
+    --on-purple: #ffffff;
+    --console-bg: #fafbff;
+    --control: #4477AA;
+    --on-control: #ffffff;
+    --label: #004488;
+    --focus: #1a1a2e;
+    --focus-halo: #ffffff;
+    --overlay: rgba(244,245,249,0.82);
+  }
+  html[data-theme="tol-hc"] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface2: #f2f2f2;
+    --panel: #ffffff;
+    --border: #000000;
+    --border-strong: #000000;
+    --text: #000000;
+    --text-dim: #333333;
+    --accent: #004488;
+    --on-accent: #ffffff;
+    --accent2: #BB5566;
+    --header: #004488;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #882255;
+    --on-danger: #ffffff;
+    --green: #0b5a25;
+    --on-green: #ffffff;
+    --yellow: #6b5300;
+    --on-yellow: #ffffff;
+    --red: #882255;
+    --on-red: #ffffff;
+    --blue: #004488;
+    --on-blue: #ffffff;
+    --cyan: #004488;
+    --purple: #762A83;
+    --on-purple: #ffffff;
+    --console-bg: #ffffff;
+    --control: #004488;
+    --on-control: #ffffff;
+    --label: #004488;
+    --focus: #000000;
+    --focus-halo: #ffffff;
+    --overlay: rgba(255,255,255,0.88);
+  }
+  /* Accessibility: keyboard focus is always visible — a two-tone ring (focus + halo) so it
+     contrasts on every background, including the coloured header; motion is optional */
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; box-shadow: 0 0 0 6px var(--focus-halo); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+  /* High-contrast theme: solid 2px outlines, no translucent chrome */
+  html[data-theme="tol-hc"] .panel, html[data-theme="tol-hc"] details.seq-block, html[data-theme="tol-hc"] .seq-toolbar,
+  html[data-theme="tol-hc"] .toast { border-width: 2px; box-shadow: none; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -32,7 +228,7 @@
 
   /* Header */
   header {
-    background: var(--surface);
+    background: var(--header);
     border-bottom: 2px solid var(--accent);
     padding: 10px 20px;
     display: flex;
@@ -41,20 +237,20 @@
     gap: 15px;
     flex-wrap: wrap;
   }
-  header h1 { font-size: 18px; font-weight: 600; }
-  header h1 span { color: var(--accent); }
+  header h1 { font-size: 18px; font-weight: 600; color: var(--on-header); }
+  header h1 span { color: var(--header-accent); }
   .conn-bar { display: flex; align-items: center; gap: 10px; }
   .conn-bar select, .conn-bar button {
     padding: 6px 14px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
   }
-  .conn-bar button:hover { background: var(--accent); }
-  .conn-bar button.connected { background: var(--green); color: #000; }
+  .conn-bar button:hover { background: var(--accent); color: var(--on-accent); }
+  .conn-bar button.connected { background: var(--green); color: var(--on-green); }
   .status-dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: var(--red);
@@ -101,7 +297,7 @@
   }
   .jog-btn {
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
     color: var(--text);
     font-size: 18px;
@@ -112,7 +308,7 @@
     transition: background 0.15s;
     user-select: none;
   }
-  .jog-btn:hover { background: var(--accent); }
+  .jog-btn:hover { background: var(--accent); color: var(--on-accent); }
   .jog-btn:active { transform: scale(0.95); }
   .jog-btn.home-btn { font-size: 12px; font-weight: 600; }
 
@@ -135,13 +331,13 @@
   .step-btn {
     padding: 4px 10px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
     cursor: pointer;
   }
-  .step-btn.active { background: var(--accent); border-color: var(--accent); }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
   /* Feedrate slider */
   .feed-control {
@@ -168,7 +364,7 @@
     width: 60px;
     padding: 4px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
@@ -188,13 +384,13 @@
   .toggle-btn {
     padding: 6px 16px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
   }
-  .toggle-btn.on { background: var(--green); color: #000; }
+  .toggle-btn.on { background: var(--green); color: var(--on-green); }
 
   /* Position readout */
   .pos-grid {
@@ -221,7 +417,7 @@
   }
   #console {
     flex: 1;
-    background: #0a0a1a;
+    background: var(--console-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px;
@@ -246,19 +442,19 @@
     flex: 1;
     padding: 8px 12px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-family: 'Consolas', monospace;
     font-size: 13px;
   }
-  .cmd-bar input:focus { outline: none; border-color: var(--accent); }
+  .cmd-bar input:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .cmd-bar button {
     padding: 8px 16px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--accent);
-    color: white;
+    color: var(--on-accent);
     font-size: 13px;
     cursor: pointer;
   }
@@ -273,13 +469,13 @@
   .quick-btn {
     padding: 4px 10px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 11px;
     cursor: pointer;
   }
-  .quick-btn:hover { background: var(--accent); }
+  .quick-btn:hover { background: var(--accent); color: var(--on-accent); }
 
   /* Verbose panel */
   .verbose-toggle {
@@ -292,11 +488,11 @@
 
   /* E-stop */
   .estop-btn {
-    background: var(--red) !important;
-    color: white !important;
+    background: var(--danger) !important;
+    color: var(--on-danger) !important;
     font-weight: 700;
     font-size: 16px !important;
-    border: 2px solid #ff2040 !important;
+    border: 2px solid var(--red) !important;
     padding: 10px 24px;
     border-radius: 6px;
     cursor: pointer;
@@ -306,7 +502,7 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
     50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
   }
-  .estop-btn:hover { background: #ff2040 !important; }
+  .estop-btn:hover { background: var(--red) !important; color: var(--on-red) !important; }
 
   /* Advanced settings */
   .adv-panel { display: none; }
@@ -323,7 +519,7 @@
     width: 70px;
     padding: 3px 6px;
     border-radius: 3px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
@@ -332,13 +528,13 @@
   .setting-row button {
     padding: 3px 8px;
     border-radius: 3px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 11px;
     cursor: pointer;
   }
-  .setting-row button:hover { background: var(--accent); }
+  .setting-row button:hover { background: var(--accent); color: var(--on-accent); }
 
   @media (max-width: 800px) {
     .main { grid-template-columns: 1fr; }
@@ -379,10 +575,10 @@
   .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
   .spin-param-item input[type="number"] {
     width: 100%; padding: 6px 8px; border-radius: 4px;
-    border: 1px solid var(--border); background: var(--surface);
+    border: 1px solid var(--border-strong); background: var(--surface);
     color: var(--text); font-size: 16px; font-weight: 600; font-family: 'Consolas', monospace;
   }
-  .spin-param-item input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .spin-param-item input[type="number"]:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .spin-param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
   .spin-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
   .spin-toggle-label { font-size: 13px; }
@@ -407,14 +603,14 @@
     background: transparent; color: var(--green); cursor: pointer;
     text-transform: uppercase; letter-spacing: 2px; transition: all 0.15s;
   }
-  .spin-big-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .spin-big-btn:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .spin-big-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .spin-big-btn.stop { border-color: var(--red); color: var(--red); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
-  .spin-big-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .spin-big-btn.stop:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
   .spin-big-btn.home-btn { border-color: var(--yellow); color: var(--yellow); }
-  .spin-big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: #000; }
+  .spin-big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: var(--on-yellow); }
   .spin-big-btn.index-btn { border-color: var(--blue); color: var(--blue); }
-  .spin-big-btn.index-btn:hover:not(:disabled) { background: var(--blue); color: #000; }
+  .spin-big-btn.index-btn:hover:not(:disabled) { background: var(--blue); color: var(--on-blue); }
 
   .spin-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .spin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
@@ -471,19 +667,19 @@
   .seq-title-main { font-size: 15px; font-weight: 700; margin-right: auto; }
   .seq-title-main small { display: block; font-size: 11px; font-weight: 400; color: var(--text-dim); }
   .seq-btn {
-    padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border);
+    padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 700;
     cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
   }
   .seq-btn.run { border-color: var(--green); color: var(--green); background: transparent; }
-  .seq-btn.run:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-btn.run:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .seq-btn.stop { border-color: var(--red); color: var(--red); background: transparent; }
-  .seq-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .seq-btn.stop:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
   .seq-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .seq-repeat { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
   .seq-repeat input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); }
   .seq-repeat input[type=number] {
-    width: 58px; padding: 5px; border-radius: 4px; border: 1px solid var(--border);
+    width: 58px; padding: 5px; border-radius: 4px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); text-align: center; font-size: 13px;
   }
   .seq-status-line { width: 100%; font-size: 12px; color: var(--text-dim); font-family: 'Consolas', monospace; margin-top: 2px; }
@@ -495,7 +691,7 @@
     margin-bottom: 12px;
   }
   details.seq-block[open] { border-left-color: var(--accent); }
-  details.seq-block.disabled { opacity: 0.5; border-left-color: var(--text-dim); }
+  details.seq-block.disabled { opacity: 0.75; border-left-color: var(--text-dim); }
   details.seq-block.running { border-left-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
   details.seq-block.done { border-left-color: var(--green); }
   details.seq-block > summary {
@@ -515,18 +711,18 @@
   }
   .seq-badge.on  { color: var(--green); border-color: var(--green); }
   .seq-badge.off { color: var(--text-dim); border-color: var(--text-dim); }
-  .seq-badge.run { color: #000; background: var(--green); border-color: var(--green); }
+  .seq-badge.run { color: var(--on-green); background: var(--green); border-color: var(--green); }
   .seq-body { padding: 0 16px 14px 16px; }
   .seq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
   .seq-field { display: flex; flex-direction: column; gap: 4px; }
   .seq-field.full { grid-column: 1 / -1; }
   .seq-field > label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
   .seq-field input[type=number], .seq-field input[type=text], .seq-field select {
-    padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border);
+    padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); font-size: 14px; font-family: 'Consolas', monospace;
     width: 100%;
   }
-  .seq-field input:focus, .seq-field select:focus { outline: none; border-color: var(--accent); }
+  .seq-field input:focus, .seq-field select:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .seq-hint { font-size: 11px; color: var(--text-dim); }
   .seq-hint b { color: var(--blue); font-family: 'Consolas', monospace; }
   .seq-footer {
@@ -540,13 +736,13 @@
     background: transparent; color: var(--green); font-weight: 700; font-size: 13px;
     text-transform: uppercase; letter-spacing: 1px; cursor: pointer; white-space: nowrap;
   }
-  .seq-run-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-run-btn:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .seq-run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .seq-checks { display: flex; flex-wrap: wrap; gap: 8px; }
   .seq-check {
     display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-    border: 1px solid var(--border); border-radius: 6px; background: var(--surface2);
+    border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface2);
     font-size: 13px; cursor: pointer; user-select: none;
   }
   .seq-check input { accent-color: var(--accent); }
@@ -555,7 +751,7 @@
   .seq-radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .seq-radio {
     display: flex; align-items: center; gap: 6px; padding: 6px 14px;
-    border: 1px solid var(--border); border-radius: 20px; background: var(--surface2);
+    border: 1px solid var(--border-strong); border-radius: 20px; background: var(--surface2);
     font-size: 13px; cursor: pointer; user-select: none;
   }
   .seq-radio input { accent-color: var(--accent); }
@@ -605,11 +801,11 @@
 
   /* ── Toast notifications ── */
   #toastWrap { position: fixed; top: 14px; right: 14px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: min(360px, 92vw); }
-  .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.4); border-left: 4px solid var(--accent, #4aa3ff); background: var(--surface2, #232a3a); opacity: 0; transform: translateX(24px); transition: opacity .25s ease, transform .25s ease; }
+  .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.4); border: 1px solid var(--border-strong); border-left: 4px solid var(--blue); background: var(--surface2); opacity: 0; transform: translateX(24px); transition: opacity .25s ease, transform .25s ease; }
   .toast.show { opacity: 1; transform: translateX(0); }
-  .toast.success { border-left-color: var(--green, #3ad07a); }
-  .toast.warn    { border-left-color: #f0ad4e; }
-  .toast.error   { border-left-color: var(--red, #ff4a5c); }
+  .toast.success { border-left-color: var(--green); }
+  .toast.warn    { border-left-color: var(--yellow); }
+  .toast.error   { border-left-color: var(--red); }
 </style>
 </head>
 <body>
@@ -618,6 +814,13 @@
   <h1><span>RMR</span> Gantry Controller</h1>
   <div class="conn-bar">
     <span class="status-dot" id="statusDot"></span>
+    <select id="themeSel" aria-label="Colour theme" title="Colour theme — Paul Tol colour-blind-safe palettes; Auto follows the OS light/dark/high-contrast setting" onchange="setTheme(this.value)">
+      <option value="auto">Auto (system)</option>
+      <option value="midnight">Midnight (original dark)</option>
+      <option value="tol-dark">Tol dark</option>
+      <option value="tol-light">Tol light</option>
+      <option value="tol-hc">Tol high-contrast</option>
+    </select>
     <select id="transportSel" title="How this browser reaches the machine — Web Serial (USB, this browser only) or the Raspberry Pi bridge (WebSocket, any browser)." onchange="onTransportChange()">
       <option value="serial">Web Serial</option>
       <option value="ws">Pi Bridge</option>
@@ -629,7 +832,7 @@
     </select>
     <button id="connectBtn" onclick="toggleConnection()">Connect</button>
     <button class="estop-btn" onclick="emergencyStop()">E-STOP</button>
-    <button class="toggle-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()">Reset (M999)</button>
+    <button class="toggle-btn" style="background:var(--yellow);color:var(--on-yellow);font-weight:bold" onclick="resetFirmware()">Reset (M999)</button>
   </div>
 </header>
 
@@ -832,10 +1035,10 @@
           <circle class="dial-track" cx="50" cy="50" r="40"/>
           <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
           <circle class="dial-center" cx="50" cy="50" r="3"/>
-          <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">0</text>
-          <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">90</text>
-          <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">180</text>
-          <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">270</text>
+          <text x="50" y="10" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">0</text>
+          <text x="93" y="53" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">90</text>
+          <text x="50" y="97" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">180</text>
+          <text x="7" y="53" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">270</text>
         </svg>
         <div class="dial-deg" id="spinLiveDEG">0.00</div>
         <div class="dial-deg-unit">degrees</div>
@@ -1048,9 +1251,9 @@
   <div class="panel" style="grid-column: 1 / -1">
     <h2>Program Runner</h2>
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-      <button class="toggle-btn" id="progRunBtn" onclick="progRun()" style="background:#2d8a4e;min-width:70px">Run</button>
+      <button class="toggle-btn" id="progRunBtn" onclick="progRun()" style="background:var(--green);color:var(--on-green);min-width:70px">Run</button>
       <button class="toggle-btn" id="progPauseBtn" onclick="progPause()" style="min-width:70px" disabled>Pause</button>
-      <button class="toggle-btn" id="progStopBtn" onclick="progStop()" style="background:#c0392b;min-width:70px" disabled>Stop</button>
+      <button class="toggle-btn" id="progStopBtn" onclick="progStop()" style="background:var(--danger);color:var(--on-danger);min-width:70px" disabled>Stop</button>
       <span id="progStatus" style="font-size:12px;color:var(--text-dim)">Idle</span>
       <span style="flex:1"></span>
       <label class="toggle-btn" style="cursor:pointer;font-size:12px;padding:4px 10px">
@@ -1792,6 +1995,8 @@ function relayCmd(relay, sVal) {
   const offBtn = document.getElementById(relay + 'OffBtn');
   onBtn.classList.toggle('on', sVal === 1);
   offBtn.classList.toggle('on', sVal === 0);
+  onBtn.setAttribute('aria-pressed', sVal === 1 ? 'true' : 'false');
+  offBtn.setAttribute('aria-pressed', sVal === 0 ? 'true' : 'false');
 }
 
 // ─── Emergency Stop ───
@@ -3037,6 +3242,48 @@ function spinPresetDelete() {
         const l = inp.closest('.seq-check'); if (l) l.classList.toggle('checked', inp.checked);
       }
     });
+  });
+})();
+
+// ─── Colour themes ───
+// Token sets live in the <style> block (one per data-theme); 'auto' follows the OS setting.
+const THEME_NAMES = ['auto', 'midnight', 'tol-dark', 'tol-light', 'tol-hc'];
+const THEME_DEFAULT_DARK = 'midnight';
+function themePref() { try { return localStorage.getItem('rmr.theme') || 'auto'; } catch (e) { return 'auto'; } }
+function resolveTheme(pref) {
+  if (pref !== 'auto') return pref;
+  const mq = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
+  if (mq('(prefers-contrast: more)')) return 'tol-hc';
+  return mq('(prefers-color-scheme: light)') ? 'tol-light' : THEME_DEFAULT_DARK;
+}
+function applyTheme(pref) {
+  const resolved = resolveTheme(pref);
+  document.documentElement.setAttribute('data-theme', resolved);
+  const sel = document.getElementById('themeSel');
+  if (sel) sel.value = pref;
+  if (typeof uvCanvas !== 'undefined') uvCanvas.draw();   // the canvas reads the CSS tokens
+  return resolved;
+}
+function setTheme(pref) {
+  if (!THEME_NAMES.includes(pref)) pref = 'auto';
+  try { localStorage.setItem('rmr.theme', pref); } catch (e) {}
+  const r = applyTheme(pref);
+  logInfo('Theme: ' + pref + (pref === 'auto' ? ' (system → ' + r + ')' : ''));
+}
+(function themeInit() {
+  const pref = themePref();
+  applyTheme(THEME_NAMES.includes(pref) ? pref : 'auto');
+  if (window.matchMedia) ['(prefers-color-scheme: light)', '(prefers-contrast: more)'].forEach(q => {
+    const m = window.matchMedia(q), h = () => { if (themePref() === 'auto') applyTheme('auto'); };
+    if (m.addEventListener) m.addEventListener('change', h); else if (m.addListener) m.addListener(h);
+  });
+  // Accessible names for icon-only buttons: reuse the tooltip, or the jog axis/direction
+  document.querySelectorAll('button[title]:not([aria-label])').forEach(b => {
+    if (!/[A-Za-z0-9]/.test(b.textContent)) b.setAttribute('aria-label', b.title);
+  });
+  document.querySelectorAll('[data-jog]:not([aria-label])').forEach(b => {
+    const p = String(b.dataset.jog).split(',');
+    b.setAttribute('aria-label', 'Jog ' + p[0] + (String(p[1]).startsWith('-') ? ' minus' : ' plus'));
   });
 })();
 
