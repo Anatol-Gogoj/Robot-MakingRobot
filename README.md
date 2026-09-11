@@ -256,6 +256,13 @@ M999             ; reset firmware after emergency stop (M112)
 - G-code program runner with Load .gcode, Run/Pause/Stop, and wait-for-ok sequencing
 - Raw G-code input with command history
 - Keyboard shortcuts: Arrow keys = XY, PgUp/PgDn = Z, Esc = E-Stop
+- **Process Sequencer** tab — Homing / Syringe / Spin Coater / UV / Stamp recipe blocks with per-block Run, Run All and Repeat
+  - **Homing gate:** Syringe, UV and Stamp stay locked until a full home (bare `G28`) has completed; Spin Coater and Homing are always available. Re-locks after E-stop, reset, motors-off, a firmware restart or a motor-power loss.
+  - **Argon purge:** the UV block can open the argon solenoid a configurable number of seconds before UV-on and close it a configurable number of seconds after UV-off (negative values allowed); the lamp and solenoid always end off/closed, even on Stop.
+  - UV progress is drawn on a canvas showing the argon / UV / argon segments — click it to cycle bar → wave → snake.
+- **Colour themes** (header selector; Touch UI: Advanced tab): Auto, Midnight, Tol dark, Tol light, Tol high-contrast — Paul Tol colour-blind-safe palettes, every text/surface pair WCAG AA checked by `tools/contrast_check.py`; keyboard focus rings and reduced-motion support.
+
+`RMR_Touch.html` is the touch-panel variant of the same UI (large controls, tabbed layout) with the same sequencer, themes and Pi-bridge transport.
 
 ## Important Gotchas
 
@@ -270,6 +277,7 @@ M999             ; reset firmware after emergency stop (M112)
 9. **M42 hijacks hardware timers on AVR:** Stock Marlin's `M42.cpp` always falls through to `hal.set_pwm_duty(pin, pin_status)` on AVR, which maps to `analogWrite()` and grabs the pin's hardware timer compare unit — even for `S0` and `S1`. On pins tied to Timer1 (e.g. pin 11 = OC1A, used by Marlin's stepper ISR) this causes intermittent pin-fighting where `M42` appears to work once and then stops. Our patched `M42.cpp` adds a `pin_status <= 1` early return so digital-only writes always take the pure `digitalWrite` path. For relay pins, prefer pure-GPIO pads with no timer compare unit (pin 42 = PL7 is used for the solenoid valve; pin 4 = OC0B is tolerable only because of the patch).
 10. **Relay module polarity:** The current relay modules are active-HIGH (`M42 Pxx S1` = energize, `M42 Pxx S0` = de-energize). The original Bestep JQC3F-03VDC-C modules were active-LOW (reversed polarity). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values, so the correct polarity is handled by button choice regardless of module type.
 11. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation — with SERVO_DELAY=2000, that is 2s per step. For tight ramp loops, use `write()` with manual `attach(0)` before and `write(final)+safe_delay(250)+detach` after. The M280 T parameter uses this approach. Default lid ramp time in the HTML UIs is 800ms.
+12. **Sequencer homing gate:** the web UIs track "all axes homed" in the browser. A manual bare `G28` is followed by `M118 RMR:HOMED_ALL`, which Marlin prints back only after the homing finishes — that line unlocks the Syringe / UV / Stamp blocks on every client of the Pi bridge. Partial homing (`G28 X Z`) does not unlock; E-stop, `M999`, `M18`, a firmware restart or `MOTOR POWER LOST` re-lock.
 
 ## AI Attribution
 

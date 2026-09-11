@@ -145,7 +145,11 @@ Pins are BCM GPIO numbers.
 
 **Physical buttons (gloves / dirty hands)** — momentary buttons mapped to G-code.
 Default wiring is button → GPIO pin and GND (internal pull-up, active-low). Each
-press calls the same path as the UI and is echoed to every connected screen.
+press calls the same path as the UI and is echoed to every connected screen. A
+`cmd` may hold several lines (`\n` inside the JSON string): the example `home_all`
+button sends `G28` and then `M118 RMR:HOMED_ALL` — Marlin prints that marker back
+only after the homing has finished, and every browser UI uses it to unlock the
+Process Sequencer's homing gate (Syringe / UV / Stamp stay locked until a full home).
 
 **Status tower + buzzer** — a red/amber/green tower light and buzzer driven from
 machine state the bridge infers off the serial stream + connection:
