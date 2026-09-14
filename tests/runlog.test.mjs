@@ -27,13 +27,14 @@ ok('prefill sets Run All cycles to the remaining layers', el('seqCycles').value 
 ev('isConnected = true');
 ev('writer = { write: async () => {} }');
 el('syrVol').value = '0.05'; el('syrPull').value = '0.005'; el('calMm').value = '100'; el('calMl').value = '1';
+el('syrDwell').value = '0.02';   // the post-dose dwell is a browser-side sleep; keep the test quick
 {
   const sent = [];
   ev('globalThis.__sent = []');
   ev('writer = { write: async (b) => { globalThis.__sent.push(new TextDecoder().decode(b).trim()); } }');
   let done = false, err = null;
   ev('runSyringeBlock')().then(() => { done = true; }, e => { done = true; err = e; });
-  for (let i = 0; i < 40 && !done; i++) { await flush(); ev('processLine')('ok'); }
+  for (let i = 0; i < 400 && !done; i++) { await sleep(5); ev('processLine')('ok'); }
   await flush();
   const cmds = ev('__sent');
   ok('syringe block ran to completion', done && !err, err && err.message);
