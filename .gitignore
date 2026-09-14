@@ -2,3 +2,7 @@
 *.jfif
 *.FCbak
 DemoProgram.txt
+
+# Exception: the ODrive S1 J11 pinout is a wiring reference cited by
+# PIN_MAP.md, claude.md and README.md. It must travel with the repo.
+!SpincoaterPinMap.jfif
