@@ -172,9 +172,11 @@ Connect via the included `RMR_Controller.html` web UI (Chrome/Edge, Web Serial A
 ### Startup Sequence
 
 ```gcode
-G28              ; home all axes (lid open → Z → Y → J → X → I) — safe, all have endstops
-G92 E0           ; reset syringe position
+G28              ; home all axes (lid open → Z → Y → J → gripper close → X → I → K/Syringe) — safe, all have endstops
+G28 X Y Z A B    ; home the gantry + aux axes WITHOUT retracting the syringe
 ```
+
+A bare `G28` also homes the syringe (Marlin K axis, G-code letter `C`) and leaves the plunger fully open at `C0`, so no `G92` reset is needed — the syringe is a homed absolute axis.
 
 ### Moving the Gantry
 
@@ -192,9 +194,14 @@ Each auxiliary motor has its own G-code axis letter — no tool switching needed
 ```gcode
 G1 A50 F1000     ; move Filter Feed to 50 mm at 1000 mm/min
 G1 B20 F600      ; move Syringe Height to 20 mm
-G92 E0           ; reset syringe position
-G1 E5 F300       ; extrude syringe 5 mm
+G1 C5 F300       ; push the syringe plunger to 5 mm from home (+C = dispense; C0 = fully open)
+
+G91              ; relative mode
+G1 C5 F300       ; dispense a further 5 mm from the current plunger position
+G90              ; back to absolute mode
 ```
+
+The syringe is a homed absolute axis (Marlin K axis, G-code letter `C`; `C0` = plunger fully open, soft-endstop limit 135 mm). Do **not** use `G92 C0` to re-zero it — that defeats the soft endstops. For a relative "dispense N mm" nudge, wrap the move in `G91` / `G90` as shown. The old extruder idioms `G1 E…` / `G92 E0` are silently ignored by the current firmware (there is no E axis).
 
 ### Servos, UV Lamp, and Solenoid
 
@@ -227,8 +234,8 @@ M750 is blocking — Marlin will not process further commands until the cycle co
 ### Runtime Tuning (no rebuild needed)
 
 ```gcode
-M201 X500 Y200 Z100 A150 B50 E500   ; set max acceleration (mm/s²)
-M203 X400 Y333 Z50 A33 B50 E8       ; set max feedrate (mm/s)
+M201 X500 Y200 Z100 A150 B50 C500   ; set max acceleration (mm/s²) — C = Syringe
+M203 X400 Y333 Z50 A33 B50 C8       ; set max feedrate (mm/s) — C = Syringe
 M500             ; save to EEPROM
 M501             ; load from EEPROM
 M503             ; report all settings
