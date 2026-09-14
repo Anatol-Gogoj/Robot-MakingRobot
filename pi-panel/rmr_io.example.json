@@ -1,11 +1,11 @@
 {
   "_comment": "Pi GPIO config for rmr_bridge.py (pass with --io). Copy to rmr_io.json and edit. All sections are OPTIONAL — omit any you don't have. Pins are BCM GPIO numbers. SAFETY: the estop entries below act in SOFTWARE (send/echo M112) and are NOT a safety interlock — also fit a hardware E-stop that physically cuts stepper/ODrive motor power.",
 
-  "_comment_buttons": "Momentary buttons → G-code. 'pull':'up' (default) = wire button between the GPIO pin and GND (internal pull-up, active-low). 'bounce' = debounce seconds.",
+  "_comment_buttons": "Momentary buttons → G-code. 'pull':'up' (default) = wire button between the GPIO pin and GND (internal pull-up, active-low). 'bounce' = debounce seconds. A cmd may hold several lines (\n). home_all is followed by 'M118 RMR:HOMED_ALL': Marlin prints that marker back only after the G28 has finished, and every browser UI on the bridge uses it to unlock its Process Sequencer (homing gate).",
   "buttons": [
     { "pin": 17, "name": "estop",      "cmd": "M112",       "pull": "up", "bounce": 0.03 },
     { "pin": 27, "name": "reset",      "cmd": "M999",       "pull": "up", "bounce": 0.05 },
-    { "pin": 22, "name": "home_all",   "cmd": "G28",        "pull": "up", "bounce": 0.05 },
+    { "pin": 22, "name": "home_all",   "cmd": "G28\nM118 RMR:HOMED_ALL", "pull": "up", "bounce": 0.05 },
     { "pin": 23, "name": "uv_off",     "cmd": "M42 P4 S0",  "pull": "up", "bounce": 0.05 },
     { "pin": 24, "name": "valve_shut", "cmd": "M42 P42 S0", "pull": "up", "bounce": 0.05 }
   ],

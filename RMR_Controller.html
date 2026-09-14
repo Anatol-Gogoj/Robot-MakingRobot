@@ -4,22 +4,218 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RMR Gantry Controller</title>
+<script>
+  // Apply the saved colour theme BEFORE first paint (no flash of the wrong theme).
+  // 'auto' follows the OS: prefers-contrast → Tol high-contrast, else light / dark. See setTheme().
+  (function () {
+    try {
+      var p = localStorage.getItem('rmr.theme') || 'auto', r = p;
+      var mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+      if (p === 'auto') r = mq('(prefers-contrast: more)') ? 'tol-hc' : (mq('(prefers-color-scheme: light)') ? 'tol-light' : 'midnight');
+      document.documentElement.setAttribute('data-theme', r);
+    } catch (e) {}
+  })();
+</script>
 <style>
+  /* ─── Colour themes ───
+     Tokens only — no colour is hard-coded below this block. The accents are Paul Tol's
+     colour-blind-safe schemes (Bright / Light / Muted / High-contrast); every text role is
+     checked for WCAG 2.1 AA contrast on each surface by tools/contrast_check.py.
+     The saved choice is applied to <html data-theme="…"> before first paint (see <head>). */
   :root {
+    color-scheme: dark;
     --bg: #1a1a2e;
     --surface: #16213e;
     --surface2: #0f3460;
-    --accent: #e94560;
-    --accent2: #0f3460;
-    --text: #eee;
-    --text-dim: #888;
-    --green: #4ecca3;
-    --yellow: #f0c040;
-    --red: #e94560;
-    --blue: #6ec6ff;
-    --purple: #b06be0;
+    --panel: #1a1a2e;
     --border: #2a2a4a;
+    --border-strong: #7c82a4;
+    --text: #eeeeee;
+    --text-dim: #9aa0b8;
+    --accent: #d13652;
+    --on-accent: #ffffff;
+    --accent2: #0f3460;
+    --header: #16213e;
+    --on-header: #eeeeee;
+    --header-accent: #ff5c78;
+    --danger: #d13652;
+    --on-danger: #ffffff;
+    --green: #4ecca3;
+    --on-green: #000000;
+    --yellow: #f0c040;
+    --on-yellow: #000000;
+    --red: #ff5c78;
+    --on-red: #000000;
+    --blue: #6ec6ff;
+    --on-blue: #000000;
+    --cyan: #6ec6ff;
+    --purple: #b06be0;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #0f3460;
+    --on-control: #eeeeee;
+    --label: #9aa0b8;
+    --focus: #f0c040;
+    --focus-halo: #000000;
+    --overlay: rgba(26,26,46,0.72);
   }
+  html[data-theme="midnight"] {
+    color-scheme: dark;
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --panel: #1a1a2e;
+    --border: #2a2a4a;
+    --border-strong: #7c82a4;
+    --text: #eeeeee;
+    --text-dim: #9aa0b8;
+    --accent: #d13652;
+    --on-accent: #ffffff;
+    --accent2: #0f3460;
+    --header: #16213e;
+    --on-header: #eeeeee;
+    --header-accent: #ff5c78;
+    --danger: #d13652;
+    --on-danger: #ffffff;
+    --green: #4ecca3;
+    --on-green: #000000;
+    --yellow: #f0c040;
+    --on-yellow: #000000;
+    --red: #ff5c78;
+    --on-red: #000000;
+    --blue: #6ec6ff;
+    --on-blue: #000000;
+    --cyan: #6ec6ff;
+    --purple: #b06be0;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #0f3460;
+    --on-control: #eeeeee;
+    --label: #9aa0b8;
+    --focus: #f0c040;
+    --focus-halo: #000000;
+    --overlay: rgba(26,26,46,0.72);
+  }
+  html[data-theme="tol-dark"] {
+    color-scheme: dark;
+    --bg: #000000;
+    --surface: #16213e;
+    --surface2: #1c2f54;
+    --panel: #000000;
+    --border: #8a8fa8;
+    --border-strong: #8a8fa8;
+    --text: #ffffff;
+    --text-dim: #d4d6e6;
+    --accent: #EE6677;
+    --on-accent: #000000;
+    --accent2: #AA3377;
+    --header: #4477AA;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #BB5566;
+    --on-danger: #ffffff;
+    --green: #44BB99;
+    --on-green: #000000;
+    --yellow: #EEDD88;
+    --on-yellow: #000000;
+    --red: #EE6677;
+    --on-red: #000000;
+    --blue: #77AADD;
+    --on-blue: #000000;
+    --cyan: #99DDFF;
+    --purple: #C2A5CF;
+    --on-purple: #000000;
+    --console-bg: #0a0a1a;
+    --control: #4477AA;
+    --on-control: #ffffff;
+    --label: #99DDFF;
+    --focus: #EEDD88;
+    --focus-halo: #000000;
+    --overlay: rgba(0,0,0,0.7);
+  }
+  html[data-theme="tol-light"] {
+    color-scheme: light;
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --surface2: #e9ecf3;
+    --panel: #ffffff;
+    --border: #c4c8d4;
+    --border-strong: #7d8294;
+    --text: #1a1a2e;
+    --text-dim: #4f5566;
+    --accent: #4477AA;
+    --on-accent: #ffffff;
+    --accent2: #AA3377;
+    --header: #4477AA;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #882255;
+    --on-danger: #ffffff;
+    --green: #117733;
+    --on-green: #ffffff;
+    --yellow: #7a5f00;
+    --on-yellow: #ffffff;
+    --red: #882255;
+    --on-red: #ffffff;
+    --blue: #004488;
+    --on-blue: #ffffff;
+    --cyan: #004488;
+    --purple: #AA3377;
+    --on-purple: #ffffff;
+    --console-bg: #fafbff;
+    --control: #4477AA;
+    --on-control: #ffffff;
+    --label: #004488;
+    --focus: #1a1a2e;
+    --focus-halo: #ffffff;
+    --overlay: rgba(244,245,249,0.82);
+  }
+  html[data-theme="tol-hc"] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface2: #f2f2f2;
+    --panel: #ffffff;
+    --border: #000000;
+    --border-strong: #000000;
+    --text: #000000;
+    --text-dim: #333333;
+    --accent: #004488;
+    --on-accent: #ffffff;
+    --accent2: #BB5566;
+    --header: #004488;
+    --on-header: #ffffff;
+    --header-accent: #ffffff;
+    --danger: #882255;
+    --on-danger: #ffffff;
+    --green: #0b5a25;
+    --on-green: #ffffff;
+    --yellow: #6b5300;
+    --on-yellow: #ffffff;
+    --red: #882255;
+    --on-red: #ffffff;
+    --blue: #004488;
+    --on-blue: #ffffff;
+    --cyan: #004488;
+    --purple: #762A83;
+    --on-purple: #ffffff;
+    --console-bg: #ffffff;
+    --control: #004488;
+    --on-control: #ffffff;
+    --label: #004488;
+    --focus: #000000;
+    --focus-halo: #ffffff;
+    --overlay: rgba(255,255,255,0.88);
+  }
+  /* Accessibility: keyboard focus is always visible — a two-tone ring (focus + halo) so it
+     contrasts on every background, including the coloured header; motion is optional */
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; box-shadow: 0 0 0 6px var(--focus-halo); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+  /* High-contrast theme: solid 2px outlines, no translucent chrome */
+  html[data-theme="tol-hc"] .panel, html[data-theme="tol-hc"] details.seq-block, html[data-theme="tol-hc"] .seq-toolbar,
+  html[data-theme="tol-hc"] .toast { border-width: 2px; box-shadow: none; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -32,7 +228,7 @@
 
   /* Header */
   header {
-    background: var(--surface);
+    background: var(--header);
     border-bottom: 2px solid var(--accent);
     padding: 10px 20px;
     display: flex;
@@ -41,20 +237,20 @@
     gap: 15px;
     flex-wrap: wrap;
   }
-  header h1 { font-size: 18px; font-weight: 600; }
-  header h1 span { color: var(--accent); }
+  header h1 { font-size: 18px; font-weight: 600; color: var(--on-header); }
+  header h1 span { color: var(--header-accent); }
   .conn-bar { display: flex; align-items: center; gap: 10px; }
   .conn-bar select, .conn-bar button {
     padding: 6px 14px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
   }
-  .conn-bar button:hover { background: var(--accent); }
-  .conn-bar button.connected { background: var(--green); color: #000; }
+  .conn-bar button:hover { background: var(--accent); color: var(--on-accent); }
+  .conn-bar button.connected { background: var(--green); color: var(--on-green); }
   .status-dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: var(--red);
@@ -101,7 +297,7 @@
   }
   .jog-btn {
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
     color: var(--text);
     font-size: 18px;
@@ -112,7 +308,7 @@
     transition: background 0.15s;
     user-select: none;
   }
-  .jog-btn:hover { background: var(--accent); }
+  .jog-btn:hover { background: var(--accent); color: var(--on-accent); }
   .jog-btn:active { transform: scale(0.95); }
   .jog-btn.home-btn { font-size: 12px; font-weight: 600; }
 
@@ -135,13 +331,13 @@
   .step-btn {
     padding: 4px 10px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
     cursor: pointer;
   }
-  .step-btn.active { background: var(--accent); border-color: var(--accent); }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
   /* Feedrate slider */
   .feed-control {
@@ -168,7 +364,7 @@
     width: 60px;
     padding: 4px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
@@ -188,13 +384,13 @@
   .toggle-btn {
     padding: 6px 16px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
   }
-  .toggle-btn.on { background: var(--green); color: #000; }
+  .toggle-btn.on { background: var(--green); color: var(--on-green); }
 
   /* Position readout */
   .pos-grid {
@@ -221,7 +417,7 @@
   }
   #console {
     flex: 1;
-    background: #0a0a1a;
+    background: var(--console-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px;
@@ -246,19 +442,19 @@
     flex: 1;
     padding: 8px 12px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-family: 'Consolas', monospace;
     font-size: 13px;
   }
-  .cmd-bar input:focus { outline: none; border-color: var(--accent); }
+  .cmd-bar input:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .cmd-bar button {
     padding: 8px 16px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--accent);
-    color: white;
+    color: var(--on-accent);
     font-size: 13px;
     cursor: pointer;
   }
@@ -273,13 +469,13 @@
   .quick-btn {
     padding: 4px 10px;
     border-radius: 4px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 11px;
     cursor: pointer;
   }
-  .quick-btn:hover { background: var(--accent); }
+  .quick-btn:hover { background: var(--accent); color: var(--on-accent); }
 
   /* Verbose panel */
   .verbose-toggle {
@@ -292,11 +488,11 @@
 
   /* E-stop */
   .estop-btn {
-    background: var(--red) !important;
-    color: white !important;
+    background: var(--danger) !important;
+    color: var(--on-danger) !important;
     font-weight: 700;
     font-size: 16px !important;
-    border: 2px solid #ff2040 !important;
+    border: 2px solid var(--red) !important;
     padding: 10px 24px;
     border-radius: 6px;
     cursor: pointer;
@@ -306,7 +502,7 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.4); }
     50% { box-shadow: 0 0 12px 4px rgba(233,69,96,0.4); }
   }
-  .estop-btn:hover { background: #ff2040 !important; }
+  .estop-btn:hover { background: var(--red) !important; color: var(--on-red) !important; }
 
   /* Advanced settings */
   .adv-panel { display: none; }
@@ -323,7 +519,7 @@
     width: 70px;
     padding: 3px 6px;
     border-radius: 3px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 12px;
@@ -332,13 +528,13 @@
   .setting-row button {
     padding: 3px 8px;
     border-radius: 3px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface2);
     color: var(--text);
     font-size: 11px;
     cursor: pointer;
   }
-  .setting-row button:hover { background: var(--accent); }
+  .setting-row button:hover { background: var(--accent); color: var(--on-accent); }
 
   @media (max-width: 800px) {
     .main { grid-template-columns: 1fr; }
@@ -379,10 +575,10 @@
   .spin-param-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
   .spin-param-item input[type="number"] {
     width: 100%; padding: 6px 8px; border-radius: 4px;
-    border: 1px solid var(--border); background: var(--surface);
+    border: 1px solid var(--border-strong); background: var(--surface);
     color: var(--text); font-size: 16px; font-weight: 600; font-family: 'Consolas', monospace;
   }
-  .spin-param-item input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .spin-param-item input[type="number"]:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .spin-param-unit { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
   .spin-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
   .spin-toggle-label { font-size: 13px; }
@@ -407,14 +603,14 @@
     background: transparent; color: var(--green); cursor: pointer;
     text-transform: uppercase; letter-spacing: 2px; transition: all 0.15s;
   }
-  .spin-big-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .spin-big-btn:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .spin-big-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .spin-big-btn.stop { border-color: var(--red); color: var(--red); flex: 0 0 auto; padding-left: 18px; padding-right: 18px; }
-  .spin-big-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .spin-big-btn.stop:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
   .spin-big-btn.home-btn { border-color: var(--yellow); color: var(--yellow); }
-  .spin-big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: #000; }
+  .spin-big-btn.home-btn:hover:not(:disabled) { background: var(--yellow); color: var(--on-yellow); }
   .spin-big-btn.index-btn { border-color: var(--blue); color: var(--blue); }
-  .spin-big-btn.index-btn:hover:not(:disabled) { background: var(--blue); color: #000; }
+  .spin-big-btn.index-btn:hover:not(:disabled) { background: var(--blue); color: var(--on-blue); }
 
   .spin-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .spin-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
@@ -471,19 +667,19 @@
   .seq-title-main { font-size: 15px; font-weight: 700; margin-right: auto; }
   .seq-title-main small { display: block; font-size: 11px; font-weight: 400; color: var(--text-dim); }
   .seq-btn {
-    padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border);
+    padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 700;
     cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
   }
   .seq-btn.run { border-color: var(--green); color: var(--green); background: transparent; }
-  .seq-btn.run:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-btn.run:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .seq-btn.stop { border-color: var(--red); color: var(--red); background: transparent; }
-  .seq-btn.stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+  .seq-btn.stop:hover:not(:disabled) { background: var(--danger); color: var(--on-danger); }
   .seq-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .seq-repeat { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
   .seq-repeat input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); }
   .seq-repeat input[type=number] {
-    width: 58px; padding: 5px; border-radius: 4px; border: 1px solid var(--border);
+    width: 58px; padding: 5px; border-radius: 4px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); text-align: center; font-size: 13px;
   }
   .seq-status-line { width: 100%; font-size: 12px; color: var(--text-dim); font-family: 'Consolas', monospace; margin-top: 2px; }
@@ -495,7 +691,7 @@
     margin-bottom: 12px;
   }
   details.seq-block[open] { border-left-color: var(--accent); }
-  details.seq-block.disabled { opacity: 0.5; border-left-color: var(--text-dim); }
+  details.seq-block.disabled { opacity: 0.75; border-left-color: var(--text-dim); }
   details.seq-block.running { border-left-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
   details.seq-block.done { border-left-color: var(--green); }
   details.seq-block > summary {
@@ -515,18 +711,18 @@
   }
   .seq-badge.on  { color: var(--green); border-color: var(--green); }
   .seq-badge.off { color: var(--text-dim); border-color: var(--text-dim); }
-  .seq-badge.run { color: #000; background: var(--green); border-color: var(--green); }
+  .seq-badge.run { color: var(--on-green); background: var(--green); border-color: var(--green); }
   .seq-body { padding: 0 16px 14px 16px; }
   .seq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
   .seq-field { display: flex; flex-direction: column; gap: 4px; }
   .seq-field.full { grid-column: 1 / -1; }
   .seq-field > label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
   .seq-field input[type=number], .seq-field input[type=text], .seq-field select {
-    padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border);
+    padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border-strong);
     background: var(--surface2); color: var(--text); font-size: 14px; font-family: 'Consolas', monospace;
     width: 100%;
   }
-  .seq-field input:focus, .seq-field select:focus { outline: none; border-color: var(--accent); }
+  .seq-field input:focus, .seq-field select:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
   .seq-hint { font-size: 11px; color: var(--text-dim); }
   .seq-hint b { color: var(--blue); font-family: 'Consolas', monospace; }
   .seq-footer {
@@ -540,13 +736,13 @@
     background: transparent; color: var(--green); font-weight: 700; font-size: 13px;
     text-transform: uppercase; letter-spacing: 1px; cursor: pointer; white-space: nowrap;
   }
-  .seq-run-btn:hover:not(:disabled) { background: var(--green); color: #000; }
+  .seq-run-btn:hover:not(:disabled) { background: var(--green); color: var(--on-green); }
   .seq-run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .seq-checks { display: flex; flex-wrap: wrap; gap: 8px; }
   .seq-check {
     display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-    border: 1px solid var(--border); border-radius: 6px; background: var(--surface2);
+    border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface2);
     font-size: 13px; cursor: pointer; user-select: none;
   }
   .seq-check input { accent-color: var(--accent); }
@@ -555,7 +751,7 @@
   .seq-radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .seq-radio {
     display: flex; align-items: center; gap: 6px; padding: 6px 14px;
-    border: 1px solid var(--border); border-radius: 20px; background: var(--surface2);
+    border: 1px solid var(--border-strong); border-radius: 20px; background: var(--surface2);
     font-size: 13px; cursor: pointer; user-select: none;
   }
   .seq-radio input { accent-color: var(--accent); }
@@ -572,10 +768,32 @@
   .vslider-readout small { font-size: 12px; color: var(--text-dim); }
 
   .uv-progress-wrap { margin-top: 12px; }
-  .uv-progress-bar-bg { height: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .uv-progress-bar { height: 100%; width: 0%; background: var(--purple); transition: width 0.2s; }
-  .uv-time-readout { display: flex; justify-content: space-between; font-size: 14px; margin-top: 5px; font-family: 'Consolas', monospace; }
+  .uv-canvas { display: block; width: 100%; height: 30px; border-radius: 15px; cursor: pointer; }
+  .uv-time-readout { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; margin-top: 5px; font-family: 'Consolas', monospace; }
   .uv-time-readout .elapsed { color: var(--yellow); font-weight: 700; }
+  .uv-time-readout .phase { color: var(--text-dim); flex: 1; text-align: center; font-size: 12px; }
+  .uv-argon-fields { display: contents; }
+  .uv-argon-fields.off > .seq-field { opacity: 0.45; }
+  .seq-hint.bad { color: var(--red); }
+
+  /* Homing gate — Syringe / UV / Stamp stay locked until a full G28 */
+  .seq-lock-banner {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--yellow); border-left: 4px solid var(--yellow);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px;
+  }
+  .seq-lock-banner[hidden] { display: none; }
+  .seq-lock-banner .seq-lock-text { flex: 1; min-width: 220px; line-height: 1.4; }
+  .seq-lock-banner b { color: var(--yellow); }
+  .seq-homed-chip {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-dim); white-space: nowrap;
+  }
+  .seq-homed-chip.ok { color: var(--green); border-color: var(--green); }
+  .seq-homed-chip.locked { color: var(--yellow); border-color: var(--yellow); }
+  details.seq-block.locked { border-left-style: dashed; }
+  details.seq-block.locked > summary { opacity: 0.8; }
+  .seq-badge.lock { color: var(--yellow); border-color: var(--yellow); }
 
   @media (max-width: 640px) {
     .seq-grid { grid-template-columns: 1fr; }
@@ -583,11 +801,11 @@
 
   /* ── Toast notifications ── */
   #toastWrap { position: fixed; top: 14px; right: 14px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: min(360px, 92vw); }
-  .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.4); border-left: 4px solid var(--accent, #4aa3ff); background: var(--surface2, #232a3a); opacity: 0; transform: translateX(24px); transition: opacity .25s ease, transform .25s ease; }
+  .toast { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.4); border: 1px solid var(--border-strong); border-left: 4px solid var(--blue); background: var(--surface2); opacity: 0; transform: translateX(24px); transition: opacity .25s ease, transform .25s ease; }
   .toast.show { opacity: 1; transform: translateX(0); }
-  .toast.success { border-left-color: var(--green, #3ad07a); }
-  .toast.warn    { border-left-color: #f0ad4e; }
-  .toast.error   { border-left-color: var(--red, #ff4a5c); }
+  .toast.success { border-left-color: var(--green); }
+  .toast.warn    { border-left-color: var(--yellow); }
+  .toast.error   { border-left-color: var(--red); }
 </style>
 </head>
 <body>
@@ -596,6 +814,13 @@
   <h1><span>RMR</span> Gantry Controller</h1>
   <div class="conn-bar">
     <span class="status-dot" id="statusDot"></span>
+    <select id="themeSel" aria-label="Colour theme" title="Colour theme — Paul Tol colour-blind-safe palettes; Auto follows the OS light/dark/high-contrast setting" onchange="setTheme(this.value)">
+      <option value="auto">Auto (system)</option>
+      <option value="midnight">Midnight (original dark)</option>
+      <option value="tol-dark">Tol dark</option>
+      <option value="tol-light">Tol light</option>
+      <option value="tol-hc">Tol high-contrast</option>
+    </select>
     <select id="transportSel" title="How this browser reaches the machine — Web Serial (USB, this browser only) or the Raspberry Pi bridge (WebSocket, any browser)." onchange="onTransportChange()">
       <option value="serial">Web Serial</option>
       <option value="ws">Pi Bridge</option>
@@ -607,7 +832,7 @@
     </select>
     <button id="connectBtn" onclick="toggleConnection()">Connect</button>
     <button class="estop-btn" onclick="emergencyStop()">E-STOP</button>
-    <button class="toggle-btn" style="background:#f0ad4e;color:#000;font-weight:bold" onclick="resetFirmware()" title="Clears the 'stopped' state only. Does NOT recover from E-STOP (M112) — for that, Disconnect and reconnect (board resets, spincoater auto-disarms).">Reset (M999)</button>
+    <button class="toggle-btn" style="background:var(--yellow);color:var(--on-yellow);font-weight:bold" onclick="resetFirmware()" title="Clears the 'stopped' state only. Does NOT recover from E-STOP (M112) — for that, Disconnect and reconnect (board resets, spincoater auto-disarms).">Reset (M999)</button>
   </div>
 </header>
 
@@ -810,10 +1035,10 @@
           <circle class="dial-track" cx="50" cy="50" r="40"/>
           <line class="dial-needle" id="spinDialNeedle" x1="50" y1="50" x2="50" y2="14"/>
           <circle class="dial-center" cx="50" cy="50" r="3"/>
-          <text x="50" y="10" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">0</text>
-          <text x="93" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">90</text>
-          <text x="50" y="97" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">180</text>
-          <text x="7" y="53" text-anchor="middle" fill="#888" font-size="6" font-family="Consolas, monospace">270</text>
+          <text x="50" y="10" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">0</text>
+          <text x="93" y="53" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">90</text>
+          <text x="50" y="97" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">180</text>
+          <text x="7" y="53" text-anchor="middle" style="fill:var(--text-dim)" font-size="6" font-family="Consolas, monospace">270</text>
         </svg>
         <div class="dial-deg" id="spinLiveDEG">0.00</div>
         <div class="dial-deg-unit">degrees</div>
@@ -1026,9 +1251,9 @@
   <div class="panel" style="grid-column: 1 / -1">
     <h2>Program Runner</h2>
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-      <button class="toggle-btn" id="progRunBtn" onclick="progRun()" style="background:#2d8a4e;min-width:70px">Run</button>
+      <button class="toggle-btn" id="progRunBtn" onclick="progRun()" style="background:var(--green);color:var(--on-green);min-width:70px">Run</button>
       <button class="toggle-btn" id="progPauseBtn" onclick="progPause()" style="min-width:70px" disabled>Pause</button>
-      <button class="toggle-btn" id="progStopBtn" onclick="progStop()" style="background:#c0392b;min-width:70px" disabled>Stop</button>
+      <button class="toggle-btn" id="progStopBtn" onclick="progStop()" style="background:var(--danger);color:var(--on-danger);min-width:70px" disabled>Stop</button>
       <span id="progStatus" style="font-size:12px;color:var(--text-dim)">Idle</span>
       <span style="flex:1"></span>
       <label class="toggle-btn" style="cursor:pointer;font-size:12px;padding:4px 10px">
@@ -1062,6 +1287,7 @@
       <div class="seq-title-main">Process Sequencer
         <small>Run any block on its own, or Run All to execute the enabled blocks top-to-bottom.</small>
       </div>
+      <span class="seq-homed-chip locked" id="seqHomedChip" title="Syringe, UV and Stamp unlock after a full home (a bare G28)">&#128274; not homed</span>
       <label class="seq-repeat" title="Loop the whole Run All sequence">
         <input type="checkbox" id="seqRepeat"> Repeat
         <input type="number" id="seqCycles" value="1" min="0" max="9999" title="Number of cycles (0 = repeat until Stop)">
@@ -1072,11 +1298,20 @@
       <div class="seq-status-line" id="seqStatus">Idle.</div>
     </div>
 
+    <!-- Homing gate banner (hidden once all axes are homed) -->
+    <div class="seq-lock-banner" id="seqLockBanner" role="status">
+      <span aria-hidden="true" style="font-size:20px">&#128274;</span>
+      <div class="seq-lock-text"><b>Machine not homed.</b> Syringe, UV and Stamp are locked until every axis has been homed
+        (a full <b>G28</b>). Spin Coater and Homing are always available. Homing is required again after an E-stop, a firmware
+        reset, motors-off, or a motor-power loss.</div>
+      <button class="seq-btn run" id="seqHomeNowBtn" onclick="seqHomeAllNow()">&#8962; Home all axes</button>
+    </div>
+
     <!-- 1 ─── Homing ─── -->
     <details class="seq-block" id="seqBlock-homing" open>
       <summary>Homing <span class="seq-badge on" id="badge-homing">enabled</span></summary>
       <div class="seq-body">
-        <p class="seq-hint">Home all axes with <b>G28</b>, or tick individual axes to home only those (e.g. <b>G28 X Z</b>).</p>
+        <p class="seq-hint">Home all axes with <b>G28</b> &mdash; this is what unlocks the Syringe / UV / Stamp blocks &mdash; or tick individual axes to home only those (e.g. <b>G28 X Z</b>; partial homing does <i>not</i> unlock them).</p>
         <div class="seq-checks" style="margin-top:10px" id="homeChecks">
           <label class="seq-check checked"><input type="checkbox" id="homeAll" checked onchange="homeAllToggle()"> All axes</label>
           <label class="seq-check"><input type="checkbox" class="home-axis" value="X" disabled> X</label>
@@ -1201,7 +1436,7 @@
       <summary>UV &middot; Lid &amp; Light <span class="seq-badge on" id="badge-uv">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
-          <div class="seq-field"><label>UV cure time (s)</label><input type="number" id="uvTime" value="60" min="1" max="3600" step="1" oninput="uvResetReadout()"></div>
+          <div class="seq-field"><label>UV cure time (s)</label><input type="number" id="uvTime" value="60" min="1" max="3600" step="1" oninput="uvArgonPreview()"></div>
           <div class="seq-field"><label>UV relay pin</label><input type="number" id="uvSeqPin" value="4" min="0" max="70"></div>
           <div class="seq-field full">
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvLid" checked> Close lid during cure, reopen after</label>
@@ -1211,10 +1446,19 @@
           </div>
           <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="110" min="0" max="180"></div>
           <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
+          <div class="seq-field full" style="margin-top:4px">
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0" title="Open the argon solenoid around the cure for an inert atmosphere"><input type="checkbox" id="uvArgon" onchange="uvArgonToggle()"> Argon purge &mdash; open the solenoid around the cure (inert atmosphere)</label>
+          </div>
+          <div class="uv-argon-fields off" id="uvArgonFields">
+            <div class="seq-field"><label>Open before UV on (s)</label><input type="number" id="uvArgonLead" value="5" step="0.5" oninput="uvArgonPreview()" disabled><span class="seq-hint">negative = open <i>after</i> UV turns on</span></div>
+            <div class="seq-field"><label>Close after UV off (s)</label><input type="number" id="uvArgonLag" value="3" step="0.5" oninput="uvArgonPreview()" disabled><span class="seq-hint">negative = close <i>before</i> UV turns off</span></div>
+            <div class="seq-field"><label>Argon solenoid pin</label><input type="number" id="uvArgonPin" value="42" min="0" max="70" disabled><span class="seq-hint"><b>M42 P&lt;pin&gt; S1</b> = open, <b>S0</b> = closed</span></div>
+            <div class="seq-field"><label>Timeline</label><span class="seq-hint" id="uvArgonPreview" style="font-size:12px; line-height:1.5">&mdash;</span></div>
+          </div>
         </div>
-        <div class="uv-progress-wrap">
-          <div class="uv-progress-bar-bg"><div class="uv-progress-bar" id="uvBar"></div></div>
-          <div class="uv-time-readout"><span class="elapsed" id="uvElapsed">0.0 s</span><span id="uvTotal">/ 60.0 s</span></div>
+        <div class="uv-progress-wrap" id="uvProgress" role="progressbar" aria-label="UV step progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <canvas class="uv-canvas" id="uvCanvas" title="Psst — click me to change the style" aria-hidden="true"></canvas>
+          <div class="uv-time-readout"><span class="elapsed" id="uvElapsed">0.0 s</span><span class="phase" id="uvPhase">ready</span><span id="uvTotal">/ 60.0 s</span></div>
         </div>
         <div class="seq-footer">
           <label class="seq-enable-lbl"><input type="checkbox" class="seq-enable" data-block="uv" checked onchange="seqEnableToggle(this)"> Enabled (include in Run All)</label>
@@ -1431,12 +1675,13 @@ function handleWSMessage(data) {
     if (m && m._rmr) {
       if (m._rmr === 'tx') {
         logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : ''));
+        homedTrackTx(m.cmd);   // another client / a physical button may have un-homed the machine
       } else if (m._rmr === 'status') {
         logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : '') + (m.error ? ' — ' + m.error : ''));
       } else if (m._rmr === 'button') {
         logInfo('Physical button: ' + m.name + ' → ' + m.cmd);
       } else if (m._rmr === 'estop') {
-        if (m.pressed) logErr('*** PHYSICAL E-STOP PRESSED ***');
+        if (m.pressed) { logErr('*** PHYSICAL E-STOP PRESSED ***'); seqSetHomed(false, 'physical E-stop'); seqFault('physical E-stop pressed'); }
         else logInfo('Physical E-stop released');
       } else if (m._rmr === 'error') {
         logErr('Bridge: ' + m.msg);
@@ -1465,6 +1710,7 @@ async function disconnect() {
 
 function setConnected(state) {
   isConnected = state;
+  seqSetHomed(false, state ? 'new connection — homing state unknown' : 'disconnected');
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   const btn = document.getElementById('connectBtn');
   btn.textContent = state ? 'Disconnect' : (transportMode() === 'ws' ? 'Connect (bridge)' : 'Connect');
@@ -1515,6 +1761,7 @@ async function readLoop() {
 function processLine(line) {
   if (!line) return;
   const verbose = document.getElementById('verboseMode').checked;
+  homedTrackRx(line);
 
 
   // ── Spincoater telemetry and data (from echo:SPIN lines) ──
@@ -1671,8 +1918,11 @@ function processLine(line) {
 }
 
 // ─── Command Sending ───
-async function sendCmd(cmd) {
+// opts.tracked: the caller waits for this command's 'ok' itself (sequencer / program
+// runner), so no extra command may be appended behind it.
+async function sendCmd(cmd, opts) {
   if (!isConnected) { logErr('Not connected'); return; }
+  const tracked = !!(opts && opts.tracked);
   try {
     if (useWS) {
       if (!ws || ws.readyState !== WebSocket.OPEN) { logErr('Bridge not connected'); return; }
@@ -1684,6 +1934,10 @@ async function sendCmd(cmd) {
       await writer.write(new TextEncoder().encode(cmd + '\n'));
       logTx(cmd);
     }
+    homedTrackTx(cmd);
+    // A manual full home (bare G28) is followed by a marker that Marlin prints back only
+    // AFTER the G28 has finished; that line unlocks the sequencer here and on every client.
+    if (!tracked && isFullHomeCmd(cmd)) await sendCmd('M118 ' + HOME_MARKER, { tracked: true });
   } catch (e) {
     logErr('Send error: ' + e.message);
   }
@@ -1789,6 +2043,8 @@ function relayCmd(relay, sVal) {
   const offBtn = document.getElementById(relay + 'OffBtn');
   onBtn.classList.toggle('on', sVal === 1);
   offBtn.classList.toggle('on', sVal === 0);
+  onBtn.setAttribute('aria-pressed', sVal === 1 ? 'true' : 'false');
+  offBtn.setAttribute('aria-pressed', sVal === 0 ? 'true' : 'false');
 }
 
 // ─── Emergency Stop ───
@@ -1805,6 +2061,7 @@ function showToast(message, type = 'info', ms = 3800) {
 }
 
 function emergencyStop() {
+  seqFault('emergency stop (M112)');   // abort a running sequence at once (lamp off / argon closed in its finally)
   sendCmd('M112');
   logErr('>>> EMERGENCY STOP SENT — firmware is halted. Disconnect and reconnect to recover (board resets; spincoater auto-disarms on reboot). M999 CANNOT recover from M112. <<<');
   showToast('EMERGENCY STOP — disconnect and reconnect to recover (M999 cannot)', 'error', 6000);
@@ -2012,12 +2269,13 @@ function progSendNext() {
   const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 16;
   textarea.scrollTop = Math.max(0, rawLineIdx * lineHeight - textarea.clientHeight / 2);
 
-  sendCmd(cmd);
+  sendCmd(cmd, { tracked: true });
   progIndex++;
 
   const waitOk = document.getElementById('progWaitOk').checked;
   if (waitOk) {
     progWaitingOk = true;
+    progHomePending = isFullHomeCmd(cmd);   // this line's 'ok' means a full home completed
     // progOnOk() will be called when 'ok' is received from firmware
   } else {
     // Fire next line after a small delay
@@ -2026,9 +2284,11 @@ function progSendNext() {
 }
 
 // Hook into the serial read to detect 'ok' responses for program sequencing
+let progHomePending = false;
 function progOnOk() {
   if (progWaitingOk && progRunning && !progPaused) {
     progWaitingOk = false;
+    if (progHomePending) { progHomePending = false; seqSetHomed(true, 'program G28 complete'); }
     progSendNext();
   }
 }
@@ -2190,7 +2450,7 @@ function seqSleep(ms, onTick) {
     const start = performance.now();
     if (onTick) onTick(0);
     const iv = setInterval(() => {
-      if (seqAbort) { clearInterval(iv); reject(new Error('aborted')); return; }
+      if (seqAbort || seqFaultReason) { clearInterval(iv); reject(new Error(seqFaultReason || 'aborted')); return; }
       const el = performance.now() - start;
       if (onTick) onTick(Math.min(el, ms));
       if (el >= ms) { clearInterval(iv); resolve(); }
@@ -2200,10 +2460,12 @@ function seqSleep(ms, onTick) {
 
 // Send one command; optionally wait for its 'ok' before resolving
 async function seqCmd(cmd, waitOk = true, timeoutMs = 90000) {
+  if (seqFaultReason) throw new Error(seqFaultReason);
   if (seqAbort) throw new Error('aborted');
   if (!isConnected) throw new Error('not connected');
-  sendCmd(cmd);
+  sendCmd(cmd, { tracked: true });
   if (waitOk) await seqAwaitOk(timeoutMs, cmd);
+  if (seqFaultReason) throw new Error(seqFaultReason);
   if (seqAbort) throw new Error('aborted');
 }
 
@@ -2215,6 +2477,100 @@ function numv(id, def) {
   if (!el) return def;
   const v = parseFloat(el.value);
   return isNaN(v) ? def : v;
+}
+
+// ─── Homing gate ───
+// Syringe / UV / Stamp are LOCKED until the machine has done a FULL home (a bare G28,
+// which homes every axis including the syringe). Homing and Spin Coater are never gated.
+// The flag lives in the browser:
+//   set   → a full G28 completes. The sequencer awaits its 'ok'; a manual send (Home All
+//           button, console) is followed by `M118 RMR:HOMED_ALL`, which Marlin prints back
+//           only AFTER the G28 has finished — and, on the Pi bridge, every client sees it.
+//   clear → anything that can invalidate the position: connect/disconnect, M112, M999,
+//           M18/M84 (steppers off), a firmware restart ('start'), a physical E-stop, and
+//           the firmware's own MOTOR POWER LOST fault.
+let seqHomed = false;
+let seqFaultReason = null;      // set by a firmware line that must fail the running sequence at once
+let uvInterlockMsg = null;      // set when the firmware's UV lid interlock refuses / cuts the lamp
+const SEQ_NEEDS_HOME = { syringe: true, uv: true, stamp: true };
+const HOME_MARKER = 'RMR:HOMED_ALL';
+
+function isFullHomeCmd(cmd) {
+  const u = String(cmd || '').trim().toUpperCase();
+  if (!/^G28(\s|$)/.test(u)) return false;
+  const axes = u.slice(3).match(/[XYZABC]/g) || [];
+  return axes.length === 0 || ['X', 'Y', 'Z', 'A', 'B', 'C'].every(a => axes.includes(a));
+}
+function seqSetHomed(on, why) {
+  const was = seqHomed;
+  seqHomed = !!on;
+  seqApplyHomeLock();
+  if (was === seqHomed) return;
+  if (seqHomed) {
+    logInfo('Homing gate: all axes homed' + (why ? ' (' + why + ')' : '') + ' — Syringe / UV / Stamp unlocked.');
+    showToast('Homed — sequencer unlocked', 'success');
+  } else {
+    logInfo('Homing gate: machine marked NOT homed' + (why ? ' (' + why + ')' : '') + ' — home all axes (G28) to unlock Syringe / UV / Stamp.');
+  }
+}
+function seqApplyHomeLock() {
+  const chip = document.getElementById('seqHomedChip');
+  if (chip) {
+    chip.textContent = seqHomed ? '✓ homed' : '🔒 not homed';
+    chip.classList.toggle('ok', seqHomed);
+    chip.classList.toggle('locked', !seqHomed);
+  }
+  const banner = document.getElementById('seqLockBanner');
+  if (banner) banner.hidden = seqHomed;
+  Object.keys(SEQ_NEEDS_HOME).forEach(id => {
+    const el = seqBlockEl(id);
+    if (!el) return;
+    el.classList.toggle('locked', !seqHomed);
+    el.querySelectorAll('.seq-run-btn').forEach(b => {
+      if (!seqRunning) b.disabled = !seqHomed;
+      b.title = seqHomed ? '' : 'Locked — home all axes first (G28)';
+    });
+    restoreBadge(id);
+  });
+}
+// true = OK to proceed; false = blocked (and says why)
+function seqHomeGate(what) {
+  if (seqHomed) return true;
+  logErr((what || 'This step') + ' is locked until all axes are homed — run Homing with "All axes" (G28).');
+  showToast('Home all axes first (G28)', 'warn');
+  return false;
+}
+function seqHomeAllNow() {
+  const all = document.getElementById('homeAll');
+  if (all && !all.checked) { all.checked = true; homeAllToggle(); }
+  const d = seqBlockEl('homing');
+  if (d) d.open = true;
+  seqRunBlock('homing');
+}
+// Commands (from this UI, or echoed by the bridge from another client / a physical button)
+// that invalidate the homed position.
+function homedTrackTx(cmd) {
+  const u = String(cmd || '').trim().toUpperCase();
+  if (/^M112\b/.test(u)) seqSetHomed(false, 'emergency stop');
+  else if (/^M999\b/.test(u)) seqSetHomed(false, 'firmware reset');
+  else if (/^M(18|84)\b/.test(u)) seqSetHomed(false, 'steppers disabled — the axes may have moved');
+}
+// Firmware lines that confirm / invalidate homing, or that should fail a running sequence fast.
+function homedTrackRx(line) {
+  if (line.indexOf(HOME_MARKER) >= 0) { seqSetHomed(true, 'full G28 confirmed by the firmware'); return; }
+  if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); return; }
+  if (/MOTOR POWER LOST/.test(line)) { seqSetHomed(false, 'motor power lost'); seqFault('MOTOR POWER LOST — the firmware halted motion; re-home (G28)'); return; }
+  if (/Move refused: re-home/.test(line)) { seqSetHomed(false, 'the firmware refused a move'); seqFault('the firmware refused a move — re-home (G28) after the motor-power loss'); return; }
+  if (/UV inhibited: lid open/.test(line)) { uvInterlockMsg = 'the firmware lid interlock refused UV — the lid is not closed'; return; }
+  if (/UV cut: lid opened/.test(line)) { uvInterlockMsg = 'the lid interlock cut the UV lamp — the lid opened during the cure'; seqFault(uvInterlockMsg); return; }
+  if (/^Error:/.test(line) && seqRunning) seqFault(line);
+}
+// Fail the running sequence immediately (instead of waiting out the 'ok' timeout).
+function seqFault(reason) {
+  if (!seqRunning || seqFaultReason) return;
+  seqFaultReason = reason;
+  logErr('Sequencer: FAULT — ' + reason);
+  if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error(reason)); }
 }
 
 // Block registry — order defines Run All execution order
@@ -2240,6 +2596,7 @@ function setBadge(id, cls, text) {
 }
 function restoreBadge(id) {
   const en = seqIsEnabled(id);
+  if (SEQ_NEEDS_HOME[id] && !seqHomed) { setBadge(id, 'lock', '🔒 home first'); return; }
   setBadge(id, en ? 'on' : 'off', en ? 'enabled' : 'disabled');
 }
 function seqEnableToggle(cb) {
@@ -2251,6 +2608,7 @@ function seqEnableToggle(cb) {
 function seqBegin() {
   seqRunning = true;
   seqAbort = false;
+  seqFaultReason = null;
   document.getElementById('seqRunAllBtn').disabled = true;
   document.getElementById('seqStopBtn').disabled = false;
   document.querySelectorAll('.seq-run-btn').forEach(b => b.disabled = true);
@@ -2267,6 +2625,7 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('.seq-run-btn').forEach(b => b.disabled = false);
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
+  seqApplyHomeLock();   // re-lock the gated blocks' buttons if the machine is not homed
   if (seqAutoReportWasOn && document.getElementById('autoReport').checked) {
     autoReportInterval = setInterval(() => { if (!seqRunning) sendCmd('M114'); }, 1000);
   }
@@ -2288,6 +2647,7 @@ async function seqRunBlock(id) {
   if (!isConnected) { logErr('Not connected — connect a serial port first'); return; }
   const blk = SEQ_BLOCKS.find(b => b.id === id);
   if (!blk) return;
+  if (SEQ_NEEDS_HOME[id] && !seqHomeGate(blk.name)) return;
   seqBegin();
   const el = seqBlockEl(id);
   el.classList.add('running'); el.classList.remove('done');
@@ -2312,6 +2672,15 @@ async function seqRunAll() {
   if (!isConnected) { logErr('Not connected — connect a serial port first'); return; }
   const enabled = SEQ_BLOCKS.filter(b => seqIsEnabled(b.id));
   if (enabled.length === 0) { logErr('No blocks are enabled'); return; }
+  // Homing gate: locked blocks need a full home — already done, or the Homing block
+  // (All axes) enabled at the top of this run.
+  const gated = enabled.filter(b => SEQ_NEEDS_HOME[b.id]);
+  const homesAllFirst = enabled[0].id === 'homing' && document.getElementById('homeAll').checked;
+  if (gated.length && !seqHomed && !homesAllFirst) {
+    logErr('Run All blocked: ' + gated.map(b => b.name).join(' / ') + ' need a full home first — enable the Homing block with "All axes", or home now.');
+    showToast('Home all axes first (G28)', 'warn');
+    return;
+  }
 
   const repeat = document.getElementById('seqRepeat').checked;
   let cycles = parseInt(document.getElementById('seqCycles').value, 10);
@@ -2329,6 +2698,7 @@ async function seqRunAll() {
       const cycTxt = infinite ? ('cycle ' + cycle + ' / ∞') : ('cycle ' + cycle + ' / ' + cycles);
       for (const blk of enabled) {
         if (seqAbort) break;
+        if (SEQ_NEEDS_HOME[blk.id] && !seqHomed) throw new Error(blk.name + ' is locked — all axes must be homed (G28) first');
         const el = seqBlockEl(blk.id);
         el.classList.add('running'); el.classList.remove('done');
         setBadge(blk.id, 'run', 'running');
@@ -2348,11 +2718,13 @@ async function seqRunAll() {
 
 // ─── Block: Homing ───
 async function runHomingBlock() {
-  if (document.getElementById('homeAll').checked) {
-    await seqCmd('G28');
-  } else {
-    const axes = Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
-    await seqCmd(axes.length ? ('G28 ' + axes.join(' ')) : 'G28');
+  const all = document.getElementById('homeAll').checked;
+  const axes = all ? [] : Array.from(document.querySelectorAll('.home-axis:checked')).map(c => c.value);
+  const cmd = axes.length ? ('G28 ' + axes.join(' ')) : 'G28';
+  await seqCmd(cmd, true, 240000);   // a full home (6 axes + bumps) can take a couple of minutes
+  if (isFullHomeCmd(cmd)) {
+    seqSetHomed(true, 'G28 complete');
+    await seqCmd('M118 ' + HOME_MARKER);   // let every other client on the bridge know, too
   }
   // Bury the spincoater's one-time ODrive boot + encoder index into homing, so the
   // first spin (M750) doesn't stall on it. M752 boots + indexes and sets the ready flag.
@@ -2403,50 +2775,124 @@ async function runSpinBlock() {
   await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); // blocking full cycle
 }
 
-// ─── Block: UV lid & light ───
+// ─── Block: UV lid & light (+ optional argon purge) ───
+// One clock, UV-on = 0 s:  argon opens at −lead · UV on at 0 · UV off at T · argon closes at T+lag.
+// lead / lag may be NEGATIVE (open after UV-on / close before UV-off). Whatever happens —
+// Stop, a fault, an error — the lamp always ends OFF and the solenoid always ends CLOSED.
+function uvArgonPlan() {
+  const t = Math.max(0, numv('uvTime', 60));
+  const arEl = document.getElementById('uvArgon');
+  const arOn = !!(arEl && arEl.checked);
+  const lead = numv('uvArgonLead', 0), lag = numv('uvArgonLag', 0);
+  const openAt = -lead, closeAt = t + lag;
+  const t0 = arOn ? Math.min(0, openAt) : 0;
+  const tEnd = arOn ? Math.max(t, closeAt) : t;
+  return { t, arOn, lead, lag, openAt, closeAt, t0, tEnd, total: tEnd - t0,
+           valid: !arOn || (closeAt - openAt) > 0,
+           pin: Math.round(numv('uvSeqPin', 4)), arPin: Math.round(numv('uvArgonPin', 42)) };
+}
+function uvArgonToggle() {
+  const cb = document.getElementById('uvArgon'), wrap = document.getElementById('uvArgonFields');
+  if (!cb || !wrap) return;
+  wrap.classList.toggle('off', !cb.checked);
+  wrap.querySelectorAll('input').forEach(i => i.disabled = !cb.checked);
+  uvArgonPreview();
+}
+const fmtSignedS = (s) => (s < 0 ? '−' : (s > 0 ? '+' : '')) + Math.abs(s).toFixed(1) + ' s';
+function uvArgonPreview() {
+  const p = uvArgonPlan();
+  const el = document.getElementById('uvArgonPreview');
+  if (el) {
+    el.classList.toggle('bad', !p.valid);
+    if (!p.arOn) el.innerHTML = 'Argon off — UV on at <b>0.0 s</b>, off at <b>' + p.t.toFixed(1) + ' s</b>.';
+    else if (!p.valid) el.innerHTML = 'Invalid: the solenoid would close (' + fmtSignedS(p.closeAt) + ') before it opens (' + fmtSignedS(p.openAt) + '). Increase the lead or the lag.';
+    else {
+      // list the four events in the order they will actually happen (lead / lag may be negative)
+      const ev = [[p.openAt, 'Ar opens'], [0, 'UV on'], [p.t, 'UV off'], [p.closeAt, 'Ar closes']].sort((a, b) => a[0] - b[0]);
+      el.innerHTML = ev.map(e => e[1] + ' <b>' + fmtSignedS(e[0]) + '</b>').join(' &rarr; ') +
+                     ' &nbsp;&middot;&nbsp; Ar open ' + (p.closeAt - p.openAt).toFixed(1) + ' s, whole step ' + p.total.toFixed(1) + ' s';
+    }
+  }
+  uvResetReadout();
+}
 function uvResetReadout() {
-  const t = numv('uvTime', 60);
-  document.getElementById('uvTotal').textContent = '/ ' + t.toFixed(1) + ' s';
-  document.getElementById('uvElapsed').textContent = '0.0 s';
-  document.getElementById('uvBar').style.width = '0%';
+  const p = uvArgonPlan();
+  uvProgressRender(p, p.t0, false, false, 'idle');
+}
+// mode: 'idle' | 'run' | 'done'
+function uvProgressRender(p, tNow, uvOn, arOpen, mode) {
+  const cure = Math.max(0, Math.min(p.t, tNow));
+  const elEl = document.getElementById('uvElapsed'), tot = document.getElementById('uvTotal'), ph = document.getElementById('uvPhase');
+  if (elEl) elEl.textContent = (mode === 'done' ? p.t : cure).toFixed(1) + ' s';
+  if (tot) tot.textContent = '/ ' + p.t.toFixed(1) + ' s';
+  let phase = 'ready';
+  if (mode === 'done') phase = 'done';
+  else if (mode === 'run') {
+    if (tNow < 0) phase = (arOpen ? 'argon pre-purge · ' : '') + 'UV on in ' + (-tNow).toFixed(1) + ' s';
+    else if (tNow < p.t) phase = 'curing' + (arOpen ? ' · argon open' : '');
+    else phase = (arOpen ? 'argon post-purge · ' : 'UV off · ') + 'ends in ' + Math.max(0, p.tEnd - tNow).toFixed(1) + ' s';
+  } else if (!p.valid) phase = 'invalid argon timing';
+  if (ph) ph.textContent = phase;
+  const frac = mode === 'done' ? 1 : (p.total > 0 ? Math.max(0, Math.min(1, (tNow - p.t0) / p.total)) : 0);
+  uvCanvas.draw({ frac, plan: p, uvOn, arOpen, done: mode === 'done', idle: mode === 'idle' });
+  const wrap = document.getElementById('uvProgress');
+  if (wrap) wrap.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
 }
 async function runUvBlock() {
-  const t = numv('uvTime', 60);
-  const pin = Math.round(numv('uvSeqPin', 4));
+  const p = uvArgonPlan();
+  if (!(p.t > 0)) throw new Error('UV cure time must be greater than 0 s');
+  if (!p.valid) throw new Error('argon timing is invalid — the solenoid would close before it opens (check the lead / lag values)');
   const manageLid = document.getElementById('uvLid').checked;
   const lidClose = Math.round(numv('uvLidClose', 110));
   const lidOpen  = Math.round(numv('uvLidOpen', 30));
   const lidMs = parseInt(localStorage.getItem('rmr.lidMoveMs') || '800', 10);
-  const bar = document.getElementById('uvBar');
-  const elEl = document.getElementById('uvElapsed');
-  document.getElementById('uvTotal').textContent = '/ ' + t.toFixed(1) + ' s';
-  bar.style.width = '0%'; elEl.textContent = '0.0 s';
+  const spinEl = document.getElementById('uvSpinHome');
+  const uvHomeSpin = !!(spinEl && spinEl.checked);
+  uvInterlockMsg = null;
 
+  // Event list on the UV-on = 0 clock. Stable sort keeps a safe order on ties:
+  // argon opens BEFORE the lamp lights, the lamp goes off BEFORE argon closes.
+  const events = [];
+  if (p.arOn) events.push({ at: p.openAt, name: 'argon-open' });
+  events.push({ at: 0, name: 'uv-on' });
+  events.push({ at: p.t, name: 'uv-off' });
+  if (p.arOn) events.push({ at: p.closeAt, name: 'argon-close' });
+  events.sort((a, b) => a.at - b.at);
+
+  let uvIsOn = false, arIsOpen = false;
   if (manageLid) {
     await seqCmd('M400');
     await seqCmd('M280 P1 S' + lidClose + ' T' + lidMs);   // close lid (T ramp is blocking)
   }
-  await seqCmd('M42 P' + pin + ' S1');                      // UV ON
-  // Optionally index-home the spincoater DURING the cure (parallel). Fire-and-forget so
-  // it runs while we wait out the cure; we wait for it to finish below so the platter is
-  // stationary at its datum before the block ends (the process is alignment-sensitive).
-  const uvHomeSpin = document.getElementById('uvSpinHome') && document.getElementById('uvSpinHome').checked;
-  if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
-  logInfo('UV: curing ' + t + ' s (pin ' + pin + ')');
+  logInfo('UV: cure ' + p.t + ' s on pin ' + p.pin + (p.arOn ? (' · argon on pin ' + p.arPin + ': open ' + fmtSignedS(p.openAt) + ' → close ' + fmtSignedS(p.closeAt)) : ' · no argon'));
+  const T0 = performance.now();
+  const nowS = () => p.t0 + (performance.now() - T0) / 1000;          // current timeline time (s)
+  const draw = () => uvProgressRender(p, nowS(), uvIsOn, arIsOpen, 'run');
   try {
-    await seqSleep(t * 1000, (elapsed) => {
-      const s = elapsed / 1000;
-      bar.style.width = Math.min(100, (s / t) * 100) + '%';
-      elEl.textContent = s.toFixed(1) + ' s';
-    });
-    bar.style.width = '100%';
-    elEl.textContent = t.toFixed(1) + ' s';
+    for (const ev of events) {
+      const waitMs = (ev.at - nowS()) * 1000;
+      if (waitMs > 0) await seqSleep(waitMs, draw);                    // abortable, fault-aware
+      if (ev.name === 'argon-open')  { await seqCmd('M42 P' + p.arPin + ' S1'); arIsOpen = true;  logInfo('UV: argon solenoid OPEN'); }
+      if (ev.name === 'argon-close') { await seqCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; logInfo('UV: argon solenoid CLOSED'); }
+      if (ev.name === 'uv-on') {
+        await seqCmd('M42 P' + p.pin + ' S1');
+        if (uvInterlockMsg) throw new Error(uvInterlockMsg);          // firmware refused: lid not closed
+        uvIsOn = true;
+        // Optionally index-home the spincoater DURING the cure (parallel, fire-and-forget);
+        // confirmed finished below so the platter sits at its datum before the block ends.
+        if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
+      }
+      if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; }
+      draw();
+    }
+    uvProgressRender(p, p.tEnd, false, false, 'done');
   } finally {
-    sendCmd('M42 P' + pin + ' S0');                         // UV OFF — fire even on abort
+    // Safe state no matter how we got here (Stop / fault / error): lamp OFF, argon CLOSED.
+    if (uvIsOn)   { sendCmd('M42 P' + p.pin + ' S0');   uvIsOn = false; }
+    if (arIsOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; }
   }
   if (uvHomeSpin && !seqAbort) {
-    // Guarantee the spincoater home has finished before proceeding (alignment): M752
-    // blocks Marlin, so awaiting any command here waits for it — instant if already done.
+    // M752 blocks Marlin, so awaiting any command here waits for it — instant if already done.
     seqSetStatus('UV — confirming the spincoater reached its datum…');
     await seqCmd('M400', true, 40000);
   }
@@ -2454,6 +2900,163 @@ async function runUvBlock() {
     await seqCmd('M280 P1 S' + lidOpen + ' T' + lidMs);     // reopen lid
   }
 }
+
+// ─── UV progress canvas ───
+// Draws the whole UV step (argon pre-purge · cure · argon post-purge) on a canvas.
+// Easter egg: click / tap the bar to cycle its style — classic bar → wave → hungry snake
+// (it eats one pellet per step of progress and grows). The choice is remembered.
+// Honours prefers-reduced-motion (no wiggle, bubbles or tongue).
+const uvCanvas = (function () {
+  const SKINS = ['bar', 'wave', 'snake'];
+  const SKIN_NAMES = { bar: 'classic bar', wave: 'wave', snake: 'hungry snake 🐍' };
+  let skin = 'bar';
+  try { const s = localStorage.getItem('rmr.uvSkin'); if (SKINS.includes(s)) skin = s; } catch (e) {}
+  let st = { frac: 0, plan: null, uvOn: false, arOpen: false, done: false, idle: true };
+  let raf = 0;
+  const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const cv = () => document.getElementById('uvCanvas');
+  const tok = (n, d) => { const v = getComputedStyle(document.documentElement).getPropertyValue(n).trim(); return v || d; };
+  function palette() {
+    return { track: tok('--surface2', '#0f3460'), border: tok('--border', '#2a2a4a'), uv: tok('--purple', '#b06be0'),
+             ar: tok('--blue', '#6ec6ff'), none: tok('--text-dim', '#888'), snake: tok('--green', '#4ecca3'),
+             eye: tok('--text', '#eee'), tongue: tok('--red', '#e94560'), star: tok('--yellow', '#f0c040'), label: tok('--text', '#eee') };
+  }
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, h / 2, w / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  // Timeline → [{a, b, kind}] as fractions of the bar; kind = 'uv' | 'ar' | 'none'
+  function segments(p) {
+    if (!p || !(p.total > 0)) return [{ a: 0, b: 1, kind: 'uv' }];
+    const f = (x) => Math.max(0, Math.min(1, (x - p.t0) / p.total));
+    const uvA = f(0), uvB = f(p.t), arA = p.arOn ? f(p.openAt) : 0, arB = p.arOn ? f(p.closeAt) : 0;
+    const xs = Array.from(new Set([0, 1, uvA, uvB, arA, arB])).sort((a, b) => a - b);
+    const out = [];
+    for (let i = 0; i < xs.length - 1; i++) {
+      const a = xs[i], b = xs[i + 1];
+      if (b - a <= 0) continue;
+      const m = (a + b) / 2;
+      const inUv = m > uvA && m < uvB, inAr = p.arOn && m > arA && m < arB;
+      out.push({ a, b, kind: inUv ? 'uv' : (inAr ? 'ar' : 'none') });
+    }
+    return out;
+  }
+  function draw(s) {
+    if (s) st = Object.assign(st, s);
+    const c = cv();
+    if (!c) return;
+    const rect = c.getBoundingClientRect();
+    if (rect.width < 4) return;   // hidden tab — nothing to draw
+    const W = Math.max(20, rect.width), H = Math.max(12, rect.height), dpr = window.devicePixelRatio || 1;
+    if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const pal = palette(), segs = segments(st.plan), now = performance.now() / 1000;
+    const anim = !reducedMotion() && !st.idle && !st.done;
+    const colorOf = (k) => k === 'uv' ? pal.uv : (k === 'ar' ? pal.ar : pal.none);
+    rr(ctx, 0.5, 0.5, W - 1, H - 1, H / 2); ctx.fillStyle = pal.track; ctx.fill();
+    ctx.save(); rr(ctx, 1, 1, W - 2, H - 2, H / 2); ctx.clip();
+    // faint tint + label per segment, so the timeline reads before it starts
+    ctx.font = '700 ' + Math.max(8, Math.round(H * 0.34)) + 'px system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    segs.forEach(sg => {
+      ctx.globalAlpha = 0.16; ctx.fillStyle = colorOf(sg.kind); ctx.fillRect(sg.a * W, 0, (sg.b - sg.a) * W, H); ctx.globalAlpha = 1;
+      if ((sg.b - sg.a) * W > 30 && sg.kind !== 'none') {
+        ctx.globalAlpha = 0.5; ctx.fillStyle = pal.label;
+        ctx.fillText(sg.kind === 'uv' ? 'UV' : 'Ar', (sg.a + sg.b) / 2 * W, H / 2 + 0.5); ctx.globalAlpha = 1;
+      }
+    });
+    if (skin === 'bar') fillTo(ctx, W, H, segs, colorOf, st.frac * W);
+    else if (skin === 'wave') drawWave(ctx, W, H, pal, segs, colorOf, now, anim);
+    else drawSnake(ctx, W, H, pal, segs, colorOf, now, anim);
+    ctx.restore();
+    rr(ctx, 0.5, 0.5, W - 1, H - 1, H / 2); ctx.strokeStyle = pal.border; ctx.lineWidth = 1; ctx.stroke();
+    if (anim && !raf) raf = requestAnimationFrame(() => { raf = 0; draw(); });
+  }
+  function fillTo(ctx, W, H, segs, colorOf, xEnd) {
+    segs.forEach(sg => {
+      const a = sg.a * W, b = Math.min(sg.b * W, xEnd);
+      if (b > a) { ctx.fillStyle = colorOf(sg.kind); ctx.fillRect(a, 0, b - a, H); }
+    });
+  }
+  function drawWave(ctx, W, H, pal, segs, colorOf, now, anim) {
+    const fx = st.frac * W, amp = anim ? Math.min(4, H * 0.14) : 0;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(0, 0);
+    for (let y = 0; y <= H; y += 2) {
+      const x = fx + amp * Math.sin(y / H * Math.PI * 2.2 + now * 5) + (amp ? 1.5 * Math.sin(y / H * Math.PI * 5 - now * 3) : 0);
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(0, H); ctx.closePath(); ctx.clip();
+    fillTo(ctx, W, H, segs, colorOf, W);
+    if (anim) {   // rising bubbles inside the fill
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      for (let i = 0; i < 7; i++) {
+        const bx = ((i * 0.173 + 0.05) % 1) * fx, cyc = (now * (0.25 + i * 0.05) + i * 0.37) % 1;
+        const by = H - cyc * (H + 6), r = 1 + (i % 3);
+        if (bx > r + 2) { ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill(); }
+      }
+    }
+    ctx.restore();
+  }
+  function drawSnake(ctx, W, H, pal, segs, colorOf, now, anim) {
+    const pad = H * 0.55, span = W - 2 * pad, step = Math.max(9, H * 0.42);
+    const n = Math.max(2, Math.floor(span / step));
+    const headX = pad + st.frac * span;
+    let eaten = 0;
+    for (let i = 0; i < n; i++) {                       // pellets: one per step of progress
+      const x = pad + (i + 0.5) / n * span;
+      if (x <= headX + H * 0.12) { eaten++; continue; }
+      const sg = segs.find(s => x / W >= s.a && x / W <= s.b) || segs[0];
+      ctx.fillStyle = colorOf(sg.kind); ctx.beginPath(); ctx.arc(x, H / 2, Math.max(2, H * 0.11), 0, Math.PI * 2); ctx.fill();
+    }
+    const amp = anim ? H * 0.16 : 0, k = 1 / (H * 0.36), ph = now * 7;
+    const yAt = (x) => H / 2 + amp * Math.sin(x * k + ph);
+    const len = Math.max(0, Math.min(headX - pad * 0.35, H * 0.6 + eaten * step * 0.75));
+    ctx.strokeStyle = pal.snake; ctx.lineWidth = Math.max(4, H * 0.42); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(headX, yAt(headX));
+    for (let x = headX - 2; x >= headX - len; x -= 2) ctx.lineTo(x, yAt(x));
+    ctx.stroke();
+    // head, eyes (happy when done) and a flicking tongue
+    const hy = yAt(headX), hr = Math.max(4, H * 0.27);
+    ctx.fillStyle = pal.snake; ctx.beginPath(); ctx.arc(headX, hy, hr, 0, Math.PI * 2); ctx.fill();
+    const er = Math.max(1.3, hr * 0.32);
+    [-0.5, 0.5].forEach(dy => {
+      const ex = headX + hr * 0.3, ey = hy + dy * hr;
+      if (st.done) {
+        ctx.strokeStyle = pal.eye; ctx.lineWidth = Math.max(1, er * 0.5); ctx.beginPath(); ctx.arc(ex, ey + er * 0.3, er, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+      } else {
+        ctx.fillStyle = pal.eye; ctx.beginPath(); ctx.arc(ex, ey, er, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = pal.track; ctx.beginPath(); ctx.arc(ex + er * 0.35, ey, er * 0.45, 0, Math.PI * 2); ctx.fill();
+      }
+    });
+    if (anim && (now % 1.7) < 0.28) {
+      ctx.strokeStyle = pal.tongue; ctx.lineWidth = Math.max(1, H * 0.06); ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.moveTo(headX + hr, hy); ctx.lineTo(headX + hr * 1.7, hy);
+      ctx.lineTo(headX + hr * 2.1, hy - hr * 0.3); ctx.moveTo(headX + hr * 1.7, hy); ctx.lineTo(headX + hr * 2.1, hy + hr * 0.3); ctx.stroke();
+    }
+    if (st.done) {
+      ctx.fillStyle = pal.star; ctx.font = '700 ' + Math.round(H * 0.5) + 'px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('★', Math.min(W - H * 0.4, headX + hr * 2.2), H / 2 + 1);
+    }
+  }
+  function cycle() {
+    skin = SKINS[(SKINS.indexOf(skin) + 1) % SKINS.length];
+    try { localStorage.setItem('rmr.uvSkin', skin); } catch (e) {}
+    showToast('UV progress style: ' + SKIN_NAMES[skin], 'info');
+    draw();
+  }
+  function init() {
+    const c = cv();
+    if (!c) return;
+    c.addEventListener('click', cycle);
+    if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(c);
+    window.addEventListener('resize', () => draw());
+  }
+  return { draw, cycle, init, skin: () => skin };
+})();
 
 // ─── Block: Stamp (filter pick & press) ───
 let stampAltNext = 'left';   // side used on the next 'alternating' cycle
@@ -2570,6 +3173,7 @@ function homeAllToggle() {
 function syrLower() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Syringe height move')) return;
   const pos = numv('syrPos', 0), feed = Math.round(numv('syrPosFeed', 1500));
   sendCmd('G90');
   sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);   // lower to the dispense height
@@ -2577,6 +3181,7 @@ function syrLower() {
 function syrRaise() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Syringe height move')) return;
   const feed = Math.round(numv('syrPosFeed', 1500));
   sendCmd('G90');
   sendCmd('G1 B0 F' + feed);   // raise the nozzle up (B home)
@@ -2584,6 +3189,7 @@ function syrRaise() {
 function plungerMove() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Plunger move')) return;
   const pos = numv('plungerPos', 0), feed = Math.round(numv('plungerFeed', 300));
   sendCmd('G90');
   sendCmd('G1 C' + pos.toFixed(3) + ' F' + feed);
@@ -2594,6 +3200,7 @@ function plungerMove() {
 function feederJog(dir) {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Feeder jog')) return;
   const amt = numv('feedJogMm', 4), feed = Math.round(numv('feedJogFeed', 2000));
   const signed = (dir > 0 ? -amt : amt);
   sendCmd('G91');
@@ -2669,7 +3276,9 @@ function spinPresetDelete() {
   syrCalc();
   spinPreview();
   updateStampNext();
-  uvResetReadout();
+  uvCanvas.init();
+  uvArgonToggle();      // also draws the idle progress bar + timeline preview
+  seqApplyHomeLock();   // everything but Homing / Spin Coater starts locked
   // Visual selected-state for pill checkboxes / radios
   document.querySelectorAll('.seq-check input, .seq-radio input').forEach(inp => {
     inp.addEventListener('change', () => {
@@ -2682,6 +3291,48 @@ function spinPresetDelete() {
         const l = inp.closest('.seq-check'); if (l) l.classList.toggle('checked', inp.checked);
       }
     });
+  });
+})();
+
+// ─── Colour themes ───
+// Token sets live in the <style> block (one per data-theme); 'auto' follows the OS setting.
+const THEME_NAMES = ['auto', 'midnight', 'tol-dark', 'tol-light', 'tol-hc'];
+const THEME_DEFAULT_DARK = 'midnight';
+function themePref() { try { return localStorage.getItem('rmr.theme') || 'auto'; } catch (e) { return 'auto'; } }
+function resolveTheme(pref) {
+  if (pref !== 'auto') return pref;
+  const mq = (q) => !!(window.matchMedia && window.matchMedia(q).matches);
+  if (mq('(prefers-contrast: more)')) return 'tol-hc';
+  return mq('(prefers-color-scheme: light)') ? 'tol-light' : THEME_DEFAULT_DARK;
+}
+function applyTheme(pref) {
+  const resolved = resolveTheme(pref);
+  document.documentElement.setAttribute('data-theme', resolved);
+  const sel = document.getElementById('themeSel');
+  if (sel) sel.value = pref;
+  if (typeof uvCanvas !== 'undefined') uvCanvas.draw();   // the canvas reads the CSS tokens
+  return resolved;
+}
+function setTheme(pref) {
+  if (!THEME_NAMES.includes(pref)) pref = 'auto';
+  try { localStorage.setItem('rmr.theme', pref); } catch (e) {}
+  const r = applyTheme(pref);
+  logInfo('Theme: ' + pref + (pref === 'auto' ? ' (system → ' + r + ')' : ''));
+}
+(function themeInit() {
+  const pref = themePref();
+  applyTheme(THEME_NAMES.includes(pref) ? pref : 'auto');
+  if (window.matchMedia) ['(prefers-color-scheme: light)', '(prefers-contrast: more)'].forEach(q => {
+    const m = window.matchMedia(q), h = () => { if (themePref() === 'auto') applyTheme('auto'); };
+    if (m.addEventListener) m.addEventListener('change', h); else if (m.addListener) m.addListener(h);
+  });
+  // Accessible names for icon-only buttons: reuse the tooltip, or the jog axis/direction
+  document.querySelectorAll('button[title]:not([aria-label])').forEach(b => {
+    if (!/[A-Za-z0-9]/.test(b.textContent)) b.setAttribute('aria-label', b.title);
+  });
+  document.querySelectorAll('[data-jog]:not([aria-label])').forEach(b => {
+    const p = String(b.dataset.jog).split(',');
+    b.setAttribute('aria-label', 'Jog ' + p[0] + (String(p[1]).startsWith('-') ? ' minus' : ' plus'));
   });
 })();
 
@@ -2702,6 +3353,11 @@ logInfo('Keyboard: Arrow keys = XY jog, PgUp/PgDn = Z jog, Esc = E-STOP');
     sel.value = seed;
   }
   applyTransportUI();
+  if (!serialOk) {
+    // Loud, unmissable banner: the #1 "can't see my ports" cause is the wrong browser.
+    logErr('=== This browser has NO Web Serial support (Firefox / Safari). ===');
+    logErr('For direct USB, open this page in Chrome or Edge. Otherwise set the header dropdown to "Pi Bridge" to drive the machine over the network.');
+  }
 })();
 
 if (transportMode() === 'ws') {
