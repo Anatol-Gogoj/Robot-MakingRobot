@@ -273,6 +273,7 @@
  * M750 - Spincoater spin cycle (Requires SPINCOATER)
  * M751 - Spincoater set home datum (Requires SPINCOATER)
  * M752 - Spincoater encoder index search (Requires SPINCOATER)
+ * M754 - Spincoater encoder configuration dump, read-only (Requires SPINCOATER)
  * M808 - Set or Goto a Repeat Marker (Requires GCODE_REPEAT_MARKERS)
  * M810-M819 - Define/execute a G-code macro (Requires GCODE_MACROS)
  * M851 - Set Z probe's XYZ offsets in current units. (Negative values: X=left, Y=front, Z=below)
@@ -1133,6 +1134,7 @@ private:
     static void M751();
     static void M752();
     static void M753();
+    static void M754();
   #endif
 
   #if ENABLED(GCODE_REPEAT_MARKERS)
