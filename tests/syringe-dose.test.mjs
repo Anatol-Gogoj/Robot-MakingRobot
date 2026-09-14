@@ -30,6 +30,9 @@ async function drive(fnName, ...args) {
 ok('dwell defaults to 2 s', el('syrDwell').value == 2, el('syrDwell').value);
 ok('max-retract guard defaults to 0.05 mm', el('syrMaxRetract').value == 0.05, el('syrMaxRetract').value);
 ok('purge defaults: 2 mL at 60 mm/min, idle limit 300 s', el('syrPurgeVol').value == 2 && el('syrPurgeFeed').value == 60 && el('syrIdleLimit').value == 300);
+ok('the 150 mL syringe is the default: 0.7958 mm/mL, 5 mL at 15.9 mm/min, 0.0227 mL retract at 1 mm/min, 4 mm snap, 120 mm stroke, 4.18 mm max dose, 0.5 mL prime',
+   el('calMm').value == 0.7958 && el('syrVol').value == 5 && el('syrFeed').value == 15.9 && el('syrPull').value == 0.0227 && el('syrRetractFeed').value == 1 && el('syrSnapMm').value == 4 && el('syrStroke').value == 120 && el('syrMaxDose').value == 4.18 && el('syrPrimeVol').value == 0.5,
+   [el('calMm').value, el('syrVol').value, el('syrFeed').value, el('syrStroke').value, el('syrPrimeVol').value]);
 
 // 2 -- barrel calibration: 40 mm ID → 0.7958 mm of plunger per mL
 el('syrBarrelId').value = '40';
@@ -70,6 +73,17 @@ el('posE').textContent = '---';
   const r = await drive('runSyringePurge', false);
   ok('purge completed', r.done && !r.err, r.err && r.err.message);
   ok('purge pushes 2 mL = 1.5916 mm at 60 mm/min then retracts and snaps', r.cmds.includes('G1 C1.5916 F60') && r.cmds.includes('G1 C-0.0181 F1') && r.cmds.includes('G1 B-4.000 F3000'), r.cmds);
+}
+
+// 5b -- initial purge (prime): the increment only, tip stays put, no dwell / retract / lift
+{
+  el('syrPrimeVol').value = '0.5';
+  const r = await drive('runSyringePrime');
+  ok('initial purge pushes exactly the increment at the purge feed', r.done && !r.err && JSON.stringify(r.cmds) === JSON.stringify(['G91', 'G1 C0.3979 F60', 'M400', 'G90']), r.err ? r.err.message : r.cmds);
+  el('posE').textContent = '119.8';
+  const r2 = await drive('runSyringePrime');
+  ok('initial purge past the stroke is refused', r2.err && /stroke/.test(r2.err.message) && r2.cmds.length === 0, r2.err && r2.err.message);
+  el('posE').textContent = '---';
 }
 
 // 6 -- idle warning: never blocks
