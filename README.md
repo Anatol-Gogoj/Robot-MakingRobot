@@ -26,7 +26,8 @@ Robot-MakingRobot/
 │           │   ├── M280.cpp             # Servo handling (patched)
 │           │   ├── M750.cpp             # Spincoater spin cycle
 │           │   ├── M751_M752.cpp        # Spincoater home datum / index search
-│           │   └── M753.cpp             # ODrive UART diagnostic
+│           │   ├── M753.cpp             # ODrive UART diagnostic
+│           │   └── M754.cpp             # ODrive encoder configuration dump (read-only)
 │           ├── MarlinCore.cpp           # Patched: spincoater disarm in kill() and in setup()
 │           └── inc/SanityCheck.h        # Servo deactivation check bypass (patched)
 ├── SpincoaterStage/              # Benchtop test firmware (Nano RP2040 — reference only)
@@ -35,9 +36,23 @@ Robot-MakingRobot/
 │   └── INTEGRATION_PLAN.md         # Integration design rationale (STALE — see note below)
 ├── RMR_Controller.html           # Unified Web Serial controller (click-optimised, debug/tuning)
 ├── RMR_Touch.html                # Touchscreen-optimised Web Serial UI (operation)
-├── fullcode.gcode                # Production DEA layer program (spin → dispense → UV cure)
+├── RMR_SegmentRunner.html        # Standalone segment runner + named recipes (E-axis dispense — port before use)
+├── fullcode.gcode                # Production DEA layer program (dispense step still E-axis — port before use)
+├── LayerCycle.gcode              # Spin-coating layer cycle (E-axis dispense — port before use)
+├── LayerCycle.segments.gcode     # LayerCycle with segment markers + parameters for the Segment Runner
+├── SpinCoatUVCure.gcode          # April 2026 Copilot protocol, never run (E-axis)
 ├── DemoProgram.gcode             # Demo pick-and-place cycle
+├── tests/                        # Stub-DOM harness for the browser pages (Node; never run here)
+├── tools/contrast_check.py       # WCAG contrast checker for the UI colour themes
+├── pi-panel/                     # Raspberry Pi touch-panel bridge, GPIO config, systemd unit, README
 ├── PIN_MAP.md                    # Consolidated pin map + wiring reference (authoritative bench doc)
+├── SpincoaterPinMap.jfif         # ODrive S1 J11 connector pinout image
+├── ODRIVE_CONFIG.md              # ODrive S1 configuration as recorded 2026-08-13
+├── RUN_SHEET.md                  # Bench run sheet (four lanes, Tasks 1–15) with dated results
+├── HANDOFF-2026-09-14.md         # CURRENT handoff — read this first
+├── HANDOFF-2026-08-19.md         # Superseded: August bench results
+├── HANDOFF-2026-08-14.md         # Superseded: the modulo-one-turn index finding
+├── HANDOFF.md                    # Original 2026-08-11 handoff: reasoning behind the spincoater stack
 ├── AI_ATTRIBUTION.md             # AI assistance disclosure
 ├── CAD/                          # FreeCAD sources + STEP exports for printed parts
 ├── claude.md                     # Detailed firmware architecture & project docs
@@ -53,13 +68,16 @@ parses them as ramp *times* in seconds. Treat `claude.md` as authoritative.
 
 ## Current State
 
-The spincoater firmware is currently a six-PR stack (#38, #39, #51, #56, #57, #58) that is
-**not merged and not bench-verified**. It compiles (`pio run -e mega2560`) and has been
-reviewed, but none of it has run on the machine. The Spin Coater Subsystem section below
-describes the behaviour at the tip of that stack, not the behaviour of `main`.
+The spincoater firmware stack that was open all summer (#38, #39, #51, #56, #57, #58, plus #70 M754
+and #76) was merged into `main` on 2026-09-14 as one consolidation, PR #106; the September UI work
+(sequencer homing gate, argon purge, colour themes, Touch UI syringe C-axis port) followed as PR #107.
+The merged firmware compiles (`pio run -e mega2560`) but **has not been flashed since the merge** — the
+last hardware evidence is the 2026-08-17/19 bench sessions. The Spin Coater Subsystem section below
+now describes `main`.
 
-See `HANDOFF.md` for the work-state detail: what each PR contains, the forced merge order,
-the open issues, and the bench checklist for the on-site colleague.
+See `HANDOFF-2026-09-14.md` for the work-state detail: what merged, the conflict resolutions that were
+decisions, the four UI pull requests that were deliberately left out, and the ordered list of what to do
+next. `RUN_SHEET.md` is the bench checklist; `HANDOFF-2026-08-19.md` holds the August results.
 
 ## Hardware Overview
 
@@ -137,11 +155,11 @@ Several stock RAMPS pins are reassigned to free GPIOs for the auxiliary motors (
 
 ### Key Configuration Choices
 
-- `EXTRUDERS 1` — syringe only; Filter Feed and Syringe Height are I/J linear axes with full homing support
-- `AXIS4_NAME 'A'`, `AXIS5_NAME 'B'` — G-code letters for I/J axes
+- `EXTRUDERS 0` — no extruder; the syringe is the homeable K axis (G-code `C`), Filter Feed and Syringe Height are the I/J linear axes (`A`/`B`), all with endstops and homing
+- `AXIS4_NAME 'A'`, `AXIS5_NAME 'B'`, `AXIS6_NAME 'C'` — G-code letters for the I/J/K axes
 - All temperature sensors disabled (`TEMP_SENSOR_* 0`) — no heaters on this machine
-- `EXTRUDE_MINTEMP 0` — allows extruder moves without temperature checks
-- `INVERT_Z_DIR`, `INVERT_I_DIR`, `INVERT_J_DIR` all `true` — verified by physical testing
+- `EXTRUDE_MINTEMP 0` — moot since `EXTRUDERS 0`: there is no E axis and no cold-extrusion check
+- `INVERT_Z_DIR`, `INVERT_I_DIR`, `INVERT_J_DIR`, `INVERT_K_DIR` all `true` — Z/I/J verified by physical testing; K (syringe) is flipped so `-C` homes toward the open end — verify on first use
 - Custom homing order: lid open (30°) → Z → Y → J(Syr.Ht) → gripper close (90°) → X → I(Filter Feed)
 - `DEACTIVATE_SERVOS_AFTER_MOVE` with 2-second hold — prevents servo jitter
 
@@ -150,7 +168,7 @@ Several stock RAMPS pins are reassigned to free GPIOs for the auxiliary motors (
 The spin coater uses an ODrive S1 motor controller driving a D5312s-330kV brushless motor with an AMT102 incremental encoder. The ODrive is controlled directly from the Mega 2560 over Serial2 (pins 16/17) at 115200 baud using the ODrive raw ASCII protocol — there is no second Arduino.
 
 ```
-Mega 2560 (Marlin + M750/M751/M752/M753)  ──Serial2 (115200)──►  ODrive S1  ──►  Motor
+Mega 2560 (Marlin + M750/M751/M752/M753/M754)  ──Serial2 (115200)──►  ODrive S1  ──►  Motor
 ```
 
 ### Spincoater G-Codes
@@ -160,6 +178,7 @@ M750 S5000 D30 A5 C1 H1   ; spin cycle: 5000 RPM, 30s dwell, 5s ramp-up, 1s ramp
 M751                       ; set current position as the 0° home datum
 M752                       ; encoder index search, then move back to the saved datum
 M753                       ; UART diagnostic — probes ODrive link, reports raw response
+M754                       ; encoder configuration dump (read-only) — answers the index-reference question over UART
 ```
 
 **M750** — blocking spin cycle. `S` = RPM, `D` = dwell seconds, `A` = ramp-up **time in
@@ -343,12 +362,12 @@ operation). They share the same serial contract and the same spincoater panel lo
 `RMR_Controller.html` features:
 
 - XY/Z jog pads with configurable step sizes and per-axis feed sliders
-- Per-axis auxiliary motor controls with individual feed sliders (A, B, E)
+- Per-axis auxiliary motor controls with individual feed sliders (A, B, C)
 - Collapsible acceleration tuning panel (M201) with per-axis sliders and EEPROM save
 - Gripper servo slider (90°–170°) with Open/Close buttons and full-range override textbox
 - Spincoater panel — RPM/Duration/Rise/Sink inputs, live RPM gauge, SVG circular position dial, Welford stats cards, phase indicator, and four buttons:
   - **Start Spin** (M750), **Set Home** (M751), **Index Home** (M752 — rotates the chuck)
-  - **Stop** — sends **M112**. This is not a soft stop: it kills the firmware, freewheels the chuck, needs a board reset to recover, and loses the datum. There is no soft spin-stop in the UI or the firmware.
+  - **Stop** — sends **M112**. This is not a soft stop: it kills the firmware, freewheels the chuck, needs a board reset to recover, and loses the datum. The Process Sequencer's Stop is the soft one: it sends `M410`, which a running `M750` polls and honours by zeroing the rotor (`STATE:STOPPED` + `OK: ABORTED`, untested on hardware).
 - E-Stop (M112) — recover via board reset (disconnect/reconnect USB); the M999 Reset button only clears the softer "stopped" state
 - Position readout with auto-report polling
 - G-code program runner with Load .gcode, Run/Pause/Stop, and wait-for-ok sequencing
@@ -365,7 +384,7 @@ operation). They share the same serial contract and the same spincoater panel lo
 ## Important Gotchas
 
 1. **Axis naming:** G-code uses `A` and `B` for the Filter Feed and Syringe Height axes (not `I`/`J`). This applies to all commands: `G1`, `M201`, `M203`, `G28`, etc.
-2. **Cold extrusion:** `PREVENT_COLD_EXTRUSION` is enabled but `EXTRUDE_MINTEMP` is 0, so E moves work without temperature checks. `M302` **is** compiled in (`gcode.cpp:813`) and will execute if sent — it is simply not needed.
+2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0–135 mm). `G92 E0` / `G1 E…` are silently ignored — no error — so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do (see `HANDOFF-2026-09-14.md` §5).
 3. **Filter Feed homes to MAX:** Unlike all other axes which home to MIN, the Filter Feed (A axis) homes to its far-end endstop (I_MAX, pin 15).
 4. **Servo deactivation:** Servos go limp 2 seconds after positioning. If the gripper needs to actively hold force, `DEACTIVATE_SERVOS_AFTER_MOVE` must be disabled (requires rebuild) or an external servo controller used.
 5. **E-Stop recovery:** `M112` fully kills the firmware and **cannot** be recovered with `M999` — reset the board (disconnect/reconnect USB or power-cycle). On reboot the firmware automatically disarms the spincoater. `M999` only recovers from the softer "stopped" state. `EMERGENCY_PARSER` is enabled, so `M112`/`M108`/`M410` act immediately from the serial RX path instead of queueing behind a blocking M750. Side effect: `M0`/`M1` are now compiled in and will **pause until an `M108` arrives** — previously they returned "Unknown command". Any production G-code containing `M0`/`M1` will stall. **This side effect has not been bench-checked.**
@@ -377,7 +396,7 @@ operation). They share the same serial contract and the same spincoater panel lo
 11. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation — with SERVO_DELAY=2000, that is 2s per step. For tight ramp loops, use `write()` with manual `attach(0)` before and `write(final)+safe_delay(250)+detach` after. The M280 T parameter uses this approach. Default lid ramp time in the HTML UIs is 800ms.
 12. **M752 and `M750 ... H1` physically rotate the chuck.** After the index search the firmware re-arms closed loop and commands a slow trapezoidal move back to the saved datum — up to ~15 RPM for up to 8 seconds. Do not run either with the lid open or with anything resting on the chuck.
 13. **`ok` does not mean a spincoater command succeeded.** Every M750/M751/M752 failure path returns normally, so Marlin still emits `ok`. The Program Runner's wait-for-ok will happily continue to the next layer after a failed home. Judge success only by the terminal marker (`OK: CYCLE_COMPLETE` / `OK: INDEX_COMPLETE` / `OK: HOME_SET`).
-14. **Both UIs can render a spincoater failure as a success.** The panels match tokens by substring, and the failure tokens contain the success tokens: `CYCLE_COMPLETE_NO_HOME` matches `CYCLE_COMPLETE`, and both `HOME_SET_FAILED` and `STATE:HOME_SETTLE` match `HOME_SET`. A failed cycle shows a green "Cycle complete"; a failed Set Home shows "Home datum set". Some newer states (`MEASURE_LINK_LOST`, `DECEL_LINK_LOST`, `DECEL_STALL`) match nothing and leave the phase indicator stuck. Read the console lines, not the dot. Fix tracked as issue #47.
+14. **Spincoater failure tokens used to render as successes.** Until 2026-09-14 both UIs matched tokens by substring, so `ERR: CYCLE_COMPLETE_NO_HOME` showed a green "Cycle complete" and `ERR: HOME_SET_FAILED` showed "Home datum set". `main` now dispatches `ERR:` / `OK:` by message class (PR #84's commit, merged with #106): any `ERR:` sets the error phase, and the Touch UI toasts it. Still unhandled: `WARN:` lines, and the `STATE:STOPPED` / `OK: ABORTED` pair a Process Sequencer Stop produces — read the console.
 15. **The spincoater datum is RAM-only.** `_homePos` is not stored in EEPROM, so it is lost on every board reset — including the DTR reset the browser triggers when it connects, and the reset that is the only recovery from `M112`. After any reconnect or E-stop, re-run `M751` before any layer that depends on angular registration.
 16. **`M112` disarms the spincoater, it does not brake it.** `kill()` requests ODrive IDLE, so the rotor **freewheels** to a stop. This is deliberate — there is no confirmed brake resistor and regen from a high-RPM chuck could overvolt the DC bus. Coast-down time from full speed has never been measured on this machine.
 17. **Sequencer homing gate:** the web UIs track "all axes homed" in the browser. A manual bare `G28` is followed by `M118 RMR:HOMED_ALL`, which Marlin prints back only after the homing finishes — that line unlocks the Syringe / UV / Stamp blocks on every client of the Pi bridge. Partial homing (`G28 X Z`) does not unlock; E-stop, `M999`, `M18`, a firmware restart or `MOTOR POWER LOST` re-lock.

@@ -591,6 +591,15 @@ just merged into.
 
 **Step 11.3** — Tell the owner after the last merge.
 
+### Results — 2026-09-14
+
+Done, but not in this sequence. The owner merged the whole stack, with #70 and #76, at once as one
+consolidation pull request, #106, after Tasks 4 to 8 had passed in August (see `HANDOFF-2026-08-19.md`).
+Tasks 9 and 10, and 7.4 to 7.7 (T5), are still open. The six pull requests remain open on GitHub and
+can be closed; their content is in `main`. The merged firmware compiles and has not been installed on
+the machine — repeat Tasks 5, 6 and 8 after the first install (the merge changed the measure-phase
+result and the order of the two spincoater calls in `kill()`).
+
 > **QUESTION FOR THE OWNER**
 > Ask the owner to choose: merge all six after all the tests pass, or merge each one as its own
 > tests pass.
@@ -690,6 +699,16 @@ red failure.
 **Step 14.6** — Do not make a new UI file. `RMR_Controller.html` and `RMR_Touch.html` are the UI
 of the machine.
 
+### Results — 2026-09-14
+
+14.1 done — merged with #106 (the commit from pull request #84). The two UI files now branch on the
+message class (`ERR:` / `OK:`) and any `ERR:` line sets the error phase; the Touch UI also shows a
+toast. 14.2 not done — the four tokens are still absent from the map, but each of those paths also
+writes an `ERR:` line, so nothing is stuck green any more. 14.3 not done — `INDEX_SETTLE` is still
+in the map. 14.4 half done — `ERR:` lines reach the operator, `WARN:` lines do not. New since this
+sheet was written: a Stop from the Process Sequencer sends `M410` and the firmware answers
+`STATE:STOPPED` and `OK: ABORTED`; neither UI maps them.
+
 ---
 
 ## Task 15 — Correct the Program Runner (issue #48)
@@ -707,6 +726,15 @@ only the first file. The same fault is in both.
 >    live position during a run.
 > 2. Use line numbers to match each `ok` to its command. This is more work. The operator keeps the
 >    live position.
+
+### Results — 2026-09-14
+
+Not done. Pull request #83 (method 2, a ledger that attributes each `ok` to its command) was written
+in August but could not be merged: the September UI work rebuilt the connection code around the
+Raspberry Pi bridge and the Process Sequencer, and #83 rebuilds the same code differently. The
+question for the owner is still open. Whichever method is chosen must be written again on the current
+files. The Process Sequencer does not have this fault — it keeps one command in flight and stops the
+automatic `M114` report while it runs.
 
 ---
 

@@ -8,6 +8,7 @@ This project used **Claude** (Anthropic) as a development tool. This document de
 - **Firmware configuration** — Configuration.h values (steps/mm, feedrates, acceleration) were reviewed and updated in collaboration with Claude. Claude did not generate the hardware design or wiring; it translated known hardware parameters into Marlin configuration values.
 - **Custom pin mapping** — pins_RAMPS_14_RMR.h conflict resolution and pin assignments were developed with Claude's assistance.
 - **Web controller UI** — RMR_Controller.html was generated with Claude.
+- **Repository consolidation and documentation (September 2026)** — merging the August spincoater pull-request stack and the September UI work into `main` (PRs #106, #107), including the conflict resolutions recorded in their merge commits, and the 2026-09-14 handoff and documentation refresh, were done with Claude Code.
 
 ## What Claude Was NOT Used For
 
@@ -21,4 +22,4 @@ All AI-generated code and configuration was reviewed, tested, and validated by t
 
 ## Model
 
-Claude (Anthropic) — primarily Claude Opus 4.6 and Claude Sonnet 4.6, accessed via Claude Desktop (Cowork mode) and Claude chat (Claude.ai).
+Claude (Anthropic) — primarily Claude Opus 4.6 and Claude Sonnet 4.6, accessed via Claude Desktop (Cowork mode) and Claude chat (Claude.ai); Claude Fable 5.1 via Claude Code for the September 2026 consolidation and documentation work.

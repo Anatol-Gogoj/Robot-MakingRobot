@@ -121,10 +121,10 @@ INVERT_K_DIR             true        (Syringe — flipped vs old E0 so -C homes 
 
 ### Motion Parameters
 ```
-Max Feedrate (mm/s):     X=400  Y=333  Z=50  I(A)=33  J(B)=50  E=8
-  (mm/min equivalents):  X=24000 Y=20000 Z=3000 A=2000 B=3000 E=500
-Max Acceleration (mm/s²): X=500  Y=200  Z=100  I(A)=150  J(B)=50  E=500
-Steps/mm:                X=57.14 Y=57.14 Z=320 I=320 J=320 E=1600
+Max Feedrate (mm/s):     X=400  Y=333  Z=50  I(A)=33  J(B)=50  K(C)=8
+  (mm/min equivalents):  X=24000 Y=20000 Z=3000 A=2000 B=3000 C=480 (UI slider cap)
+Max Acceleration (mm/s²): X=500  Y=200  Z=100  I(A)=150  J(B)=50  K(C)=500
+Steps/mm:                X=57.14 Y=57.14 Z=320 I=320 J=320 K=1600
 Travel limits (mm):      X=770  Y=150  Z=186  I=343  J=304
 Homing feedrates (mm/s): X=50  Y=50  Z=15  I(A)=25  J(B)=25
 Homing bump (mm):        X=5   Y=5   Z=10  I=2     J=2
@@ -158,7 +158,7 @@ ENDSTOP_NOISE_THRESHOLD  7     (max — required for EMI rejection on Z)
 14. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation. With `SERVO_DELAY=2000`, that would be 2 seconds per step — unusable for smooth ramps. For tight interpolation loops, use `write()` with a manual `attach(0)` before the loop and `write(final_angle) + safe_delay(250) + detach` after. The M280 T parameter (timed servo ramp) uses this approach. Default lid move time in the HTML UIs is 800ms.
 15. **UV lamp lid interlock (`UV_LID_INTERLOCK`):** Firmware refuses to energize the UV lamp (`M42 P4 S1`) unless the lid-closed switch on **pin 39** reads closed, and cuts UV if the lid opens while it is on. Enforced in the patched `M42.cpp` (so a raw `M42` can't bypass it) plus an `idle()` auto-off — both in `src/feature/uv_interlock.*`. Lid switch: NO microswitch, COM→GND, NO→pin 39, internal pullup, positioned so a *closed* lid actuates it (pin LOW = closed). Fail-safe: a broken/unplugged switch floats HIGH → reads "open" → UV inhibited. **This is defense-in-depth, not the primary safeguard — a HARDWARE interlock (switch in series with the UV relay coil / lamp supply) is the real safety layer.** Config/pins in `Configuration_adv.h`; source registered in `ini/features.ini`.
 16. **Motor-power (E-stop) sense (`MOTOR_POWER_SENSE`):** For the layered E-stop (a second contactor drops the motor 24V bus while logic + Pi stay live), the firmware reads the motor-contactor aux contact on **pin 43**. On loss it does `planner.quick_stop()` + `queue.clear()` + `set_all_unhomed()` and then **refuses `G0/G1` moves until re-homed** (`G28` clears the lock); it prints `MOTOR POWER LOST` / `Motor power restored`. **Boot-safe:** the watcher only arms after it first sees motor power present, so an unwired pin 43 never false-faults on boot. Aux wiring: the contact is closed when the motor contactor is energized (motors powered) → pin 43 to GND (internal pullup), so powered = LOW. Code in `src/feature/motor_power.*`, move-gate in `G0_G1.cpp`, clear in `G28.cpp`, idle task in `MarlinCore.cpp`. The Pi bridge (`rmr_bridge.py`) separately latches the status tower red on the `MOTOR POWER LOST` serial line.
-17. **UI token matching is substring-based, first-match-wins — a new token must never be a superstring of an existing one.** Both UIs dispatch `STATE:` through `for (const [key,[phase,label]] of Object.entries(stateMap)) { if (state.includes(key)) { spinSetPhase(...); break; } }` (`RMR_Controller.html:1006-1008`, `RMR_Touch.html:1041`) — `includes()`, insertion-ordered, `break` on first hit. The four completion markers are separate un-`else`-guarded `spinMsg.includes(...)` checks that run **after** the state block (`Controller:1012-1015`, `Touch:1043-1046`). Three live false-positives at the stack tip: `ERR: CYCLE_COMPLETE_NO_HOME` contains `CYCLE_COMPLETE` → both UIs show green "Cycle complete" and the Touch UI fires `showToast('Spin cycle complete','success')`; `ERR: HOME_SET_FAILED` contains `HOME_SET` → "Home datum set" on a failed M751; `STATE:HOME_SETTLE` also contains `HOME_SET` → the UI declares the datum set while the return-to-datum move is still running. (Verified safe: `INDEX_INCOMPLETE` does **not** contain `INDEX_COMPLETE`.) Consequence for firmware authors: **never name a new token so that it contains an existing token as a substring**, and never judge a cycle by the phase indicator — read the `ERR:`/`WARN:` lines. Fix tracked in issue #47.
+17. **UI token matching is substring-based, first-match-wins — a new token must never be a superstring of an existing one.** Both UIs dispatch `STATE:` through `for (const [key,[phase,label]] of Object.entries(stateMap)) { if (state.includes(key)) { spinSetPhase(...); break; } }` (`RMR_Controller.html:1006-1008`, `RMR_Touch.html:1041`) — `includes()`, insertion-ordered, `break` on first hit. The four completion markers are separate un-`else`-guarded `spinMsg.includes(...)` checks that run **after** the state block (`Controller:1012-1015`, `Touch:1043-1046`). Three live false-positives at the stack tip: `ERR: CYCLE_COMPLETE_NO_HOME` contains `CYCLE_COMPLETE` → both UIs show green "Cycle complete" and the Touch UI fires `showToast('Spin cycle complete','success')`; `ERR: HOME_SET_FAILED` contains `HOME_SET` → "Home datum set" on a failed M751; `STATE:HOME_SETTLE` also contains `HOME_SET` → the UI declares the datum set while the return-to-datum move is still running. (Verified safe: `INDEX_INCOMPLETE` does **not** contain `INDEX_COMPLETE`.) Consequence for firmware authors: **never name a new token so that it contains an existing token as a substring**, and never judge a cycle by the phase indicator — read the `ERR:`/`WARN:` lines. Fix tracked in issue #47. *(2026-09-14: #84's message-class dispatch is merged, so these three false positives are closed; `WARN:`, the link-lost `STATE:` tokens and the M410 `STOPPED`/`ABORTED` pair are still unhandled — see the UI table below.)*
 18. **Datum rules — an existing datum is never silently moved.** `_homePos` (`spincoater.cpp:37`) is only a meaningful reference when `_datumSet` (`:43`) is true. It becomes true via M751 (`:833-834`), or at boot **only if the boot index search actually completed** (`:258`; otherwise the AMT102 frame is anchored to wherever the rotor sat at ODrive power-up and the position is an arbitrary shaft angle), or as a last-resort first datum adopted when a settle fails and none exists yet (`:776-777`). A **failed** index home never overwrites an existing operator datum — that was the original VanVersion behaviour and it destroyed layer-to-layer registration on the most common failure path (issue #41). A datum is never captured from a moving axis: both `doSetHome()` (`:826`) and the settle fallback (`:770`) refuse above `|vel| > 0.05` rev/s (~3 RPM). Every datum-writing read goes through `feedbackStable()` (two consistent reads), never a single `feedback()`.
 19. **The spincoater datum is RAM-only and does not survive a reset.** `_homePos`/`_datumSet` are plain file-scope statics; `settings.cpp` contains no spincoater state (grep-verified: zero hits). Every board reset — including the DTR reset a browser triggers on connect, and the reset that is the only way to recover from M112 — loses the operator's zero. The next M750/M751/M752 re-runs the full `boot()` including a fresh index search and re-datums at wherever the boot settle got to, with a `WARN:`. Re-run M751 after every reconnect if layer registration matters. Tracked as issue #54.
 20. **The >1-turn settle guard latches.** If `|pos − _homePos| > 1.0` turns, `doIndexHome()` refuses the settle move (`spincoater.cpp:665-677`) and keeps refusing — nothing re-normalises `_homePos` into a new encoder frame automatically, because doing so used to mean silently destroying the operator's datum. The only exit is M751. The firmware says so on the wire: `WARN: datum lies >1 turn outside the current encoder frame -- run M751 (Set Home) to re-establish it`. Tracked as issue #55. **UNVERIFIED:** whether an ODrive 0.6.x index search re-references `pos_estimate` is exactly issue #46 and has never been observed on this machine — if it does not, this guard will fire on essentially every post-spin home.
@@ -271,7 +271,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **XY jog pad** with configurable step sizes (0.1–50 mm) and feed slider (max 24000 mm/min)
 - **Z jog** with feed slider (max 3000 mm/min), arrows inverted to match physical reality (up arrow = platform down)
 - **Y axis arrows** swapped to match physical motion direction
-- **Per-axis auxiliary feed sliders:** A (max 2000), B (max 3000), E (max 500 mm/min)
+- **Per-axis auxiliary feed sliders:** A (max 2000), B (max 3000), C (max 480 mm/min)
 - **Acceleration tuning panel** (collapsible) — per-axis M201 sliders with Set/Set All/Save to EEPROM
 - **Gripper servo** — slider (90°-170°), Open/Close quick buttons, override textbox (0-180°)
 - **Lid servo** — slider (0°-180°) with T<ms> timed ramp (default 800ms)
@@ -281,7 +281,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Raw G-code** input with command history
 - **Spincoater panel** (collapsible, starts open) — M750/M751/M752 controls:
   - Parameter inputs: RPM, Duration, Rise Time, Sink Time, Encoder homing toggle
-  - Start Spin / **Stop (sends M112 — this KILLS the firmware; recovery needs a board reset and the spincoater datum is lost — see gotcha #25)** / Set Home (M751) / Index Home (M752 — rotates the chuck)
+  - Start Spin / **Stop (sends M112 — this KILLS the firmware; recovery needs a board reset and the spincoater datum is lost — see gotcha #25 — the Process Sequencer's Stop is the soft one: it sends `M410`, which a running M750 polls via `Spincoater::abortRequested` and honours by zeroing the rotor, printing `STATE:STOPPED` + `OK: ABORTED`)** / Set Home (M751) / Index Home (M752 — rotates the chuck)
   - Live RPM gauge with progress bar, SVG circular position dial with shortest-path needle rotation
   - Stats cards: mean, std dev, min, max, range, samples, bus voltage, home position
   - Phase indicator with color-coded status dot
@@ -341,13 +341,13 @@ The touchscreen variant is `RMR_Touch.html` at repo root. Its spincoater parsing
 
 ## Spin Coater Subsystem
 
-> **This section describes the code at the tip of an unmerged PR stack.** Nothing in it has run on the machine. See "Status: Unmerged PR Stack" immediately below.
+> **Status (2026-09-14):** the six-PR stack described below, plus #70 (M754) and #76 (measure liveness), was merged into `main` on 2026-09-14 as the consolidation PR #106; the September UI work followed as #107. Hardware evidence is unchanged from the 2026-08-17/19 sessions (`HANDOFF-2026-08-19.md`): the merged firmware **compiles** but nothing has been flashed since the merge — see `HANDOFF-2026-09-14.md` §4–§5. Line citations in this section were taken at the stack tip and have drifted with every merge since; trust the function names and re-grep the numbers.
 
-### Status: Unmerged PR Stack
+### Status: merged 2026-09-14 (PR #106)
 
-Everything in this section reflects branch `fix/44-feedback-numeric-validation`, the tip of a six-PR stack that is **open, unmerged and un-bench-verified**. Every commit compiles (`pio run -e mega2560`) and has passed adversarial review; none has run on hardware.
+Everything in this section was written against branch `fix/44-feedback-numeric-validation`, the tip of the six-PR stack below. That stack is now in `main` (PR #106, 2026-09-14). The individual PRs still show as open on GitHub only because nobody has closed them; their content is merged. What the August bench sessions verified is in `HANDOFF-2026-08-19.md`; what the merge changed (a three-way `measureSpeed()` result, `kill()` running `safeStop()` before `emergencyStop()`, `DispenseCureDemo1.gcode` deleted) is in `HANDOFF-2026-09-14.md` §2.
 
-The PRs are a strict stack of bases, not six independent branches off `main` — they must be merged bottom-up in exactly this order:
+The PRs were a strict stack of bases, not six independent branches off `main`. The consolidation merged the tip (`fix/69-boot-honest-index-search`, which carried the whole chain), then #76 and #70:
 
 | Order | PR | Commits | What it does |
 |---|---|---|---|
@@ -358,7 +358,7 @@ The PRs are a strict stack of bases, not six independent branches off `main` —
 | 5 | #57 (issue #42) | `bd3058c` | Bound every blocking wait in the spin cycle; detect a dead link directly |
 | 6 | #58 (issue #44) | `757fdad` | Reject corrupted ODrive replies instead of laundering them into zeros |
 
-Aggregate `main..HEAD`: 12 files, +811/−480. Firmware surface is `spincoater.{h,cpp}`, `M750.cpp`, `M751_M752.cpp`, `Configuration_adv.h`, `MarlinCore.cpp`. `M753.cpp` is **unchanged across the whole stack**. The two HTML UIs were touched only for the M112/M999 recovery wording — **neither UI's serial parser was updated**, which is why gotcha #15 exists.
+Aggregate `main..HEAD`: 12 files, +811/−480. Firmware surface is `spincoater.{h,cpp}`, `M750.cpp`, `M751_M752.cpp`, `Configuration_adv.h`, `MarlinCore.cpp`. `M753.cpp` is **unchanged across the whole stack**. The two HTML UIs were touched only for the M112/M999 recovery wording at the time; #84's message-class verdict parsing was cherry-picked into `main` with the consolidation (see the UI table below).
 
 ### Overview
 
@@ -465,7 +465,7 @@ Web Serial dashboard (Chrome/Edge only, 115200 baud). Dark theme matching RMR_Co
 - **Serial console** — color-coded log levels, telemetry display toggle (default OFF), auto-scroll toggle
 - **Raw command input** — send arbitrary commands to firmware
 
-### Marlin/Mega Integration (IMPLEMENTED — stack unmerged, nothing bench-verified)
+### Marlin/Mega Integration (IMPLEMENTED — merged 2026-09-14; bench-verified only as far as the August sessions went)
 
 The spincoater is integrated into the Mega/Marlin firmware; the Nano RP2040 is eliminated. `SpincoaterStage/INTEGRATION_PLAN.md` holds the original design rationale, but **its parameter semantics are out of date and its M750 `A`/`C` table is wrong** (it documents them as rev/s² rates; they are seconds). Everything below is authoritative; that document is not.
 
@@ -480,7 +480,7 @@ J endstop moved from pin 17 (TX2) to pin 23. Serial2 (pins 16/17) now connects t
 
 > **UNVERIFIED — the docs disagree on J11 logic power.** This section and `INTEGRATION_PLAN.md:36-37` say the Mega feeds `ISOVDD`/`ISOGND`; `PIN_MAP.md:95` says "ODrive provides its own 5V logic supply". J11 is the *isolated* connector, so these are mutually exclusive wirings, and getting it wrong leaves the isolator unpowered — which presents exactly as the dead-link symptom class in issue #46. **Confirm on the bench before rewiring.** No firmware source can settle a wiring question.
 
-#### Custom M-Codes: M750, M751, M752, M753
+#### Custom M-Codes: M750, M751, M752, M753, M754
 
 ##### M750 — spin cycle
 
@@ -513,6 +513,7 @@ Statistics (success path only, `:149-154`): `Samples`, `MeanRPM`, `StdDevRPM`, `
 | No RPM progress during ramp-down | `STATE:DECEL_STALL` | `:342-353` | `setVelocity(0)` **and** `forceIdle()` → freewheel |
 | H1 and index home failed | `ERR: CYCLE_COMPLETE_NO_HOME` | `:377-411` | one of three WARN branches first |
 | Success | `OK: CYCLE_COMPLETE` | `:413` | — |
+| Operator abort — `M410` (Process Sequencer Stop) sets `Spincoater::abortRequested`, polled in ramp-up and in the measure loop (`measureSpeed()` returns `MEASURE_ABORTED`) | `STATE:STOPPED` + `OK: ABORTED` | `M750.cpp` ramp-up loop; `MeasureResult` switch after `measureSpeed()` | `setVelocity(0)`; flag cleared; returns with **no** `CYCLE_COMPLETE`-family token. Added 2026-09-14 — never run on hardware |
 
 **Critical:** on **all ten abort rows** (every row above `H1 and index home failed`) **M750 emits no `CYCLE_COMPLETE`-family token at all** — there is no machine-readable "the cycle ended" signal on those paths. The only emitters are `M750.cpp:411` (`ERR: CYCLE_COMPLETE_NO_HOME`) and `:413` (`OK: CYCLE_COMPLETE`); every earlier failure returns before that block. Marlin still returns a bare `ok` in every case (gotcha #23).
 
@@ -567,6 +568,10 @@ Boots the ODrive if needed (`M751_M752.cpp:25-31`), then `doSetHome()` (`spincoa
 ##### M753 — UART diagnostic
 
 `M753.cpp` — **untouched by the entire PR stack.** Sends `r vbus_voltage\n` on Serial2 and dumps every byte for up to 2000 ms, printing `DIAG:` lines only. It uses raw `SPINCOATER_SERIAL` directly, does **not** go through the strict parsers, and emits no `STATE:`/`OK:`/`ERR:` tokens — so neither UI's spincoater panel reacts to it beyond logging. It calls `Spincoater::init()` only; it never boots, never touches the datum, never moves the chuck. **This makes it the correct first command on a cold bench.**
+
+##### M754 — encoder configuration dump (read-only)
+
+Merged with PR #70. Reads the ODrive properties that decide whether the encoder is index-referenced for *position* and prints them in one block of `echo:SPIN CFG:` lines (`M754.cpp`). It exists because the ODrive's native USB link failed on 2026-08-13 (`error -71`) while the Serial2 link stayed healthy, so run-sheet Task 2 — and with it issue #46 — can be answered over UART. It is read-only: it moves nothing and writes no datum. Neither UI parses `CFG:`; read the console.
 
 #### `reportFault()` output shape
 
@@ -797,7 +802,7 @@ Nothing in the subsystem can hang forever at the stack tip — that was the poin
 
 1. `EMERGENCY_PARSER` is enabled (`Configuration_adv.h:2454`). The serial RX ISR pattern-matches `M112` and sets `EmergencyParser::killed_by_M112` **without the command entering the 4-slot queue** (`BUFSIZE 4`). That is the whole point: a blocking M750 never drains the queue.
 2. Dispatch happens in `Temperature::task()`, reached from `idle()` and from `safe_delay()` (which calls it every ≤50 ms slice). Every cycle-level loop in `spincoater.cpp` and `M750.cpp` calls one or both. The two short reply-wait loops that do not call `idle()` poll the flag directly and break early (`spincoater.cpp:296`, `:331`), so worst-case added latency is one truncated reply wait, not a full 500 ms.
-3. `kill()` (`MarlinCore.cpp:897`) runs, in order: `disable_all_heaters()` → `cutter.kill()` → **`Spincoater::emergencyStop()` (`:904`)** → `Error:Printer halted. kill() called!` → `minkill(true)`.
+3. `kill()` (`MarlinCore.cpp`, ~`:908`) runs, in order: `disable_all_heaters()` → `Spincoater::safeStop()` (`:914` — September's cooperative-abort helper: zero velocity, no-op if the ODrive serial was never begun) → `cutter.kill()` → **`Spincoater::emergencyStop()` (`:920`)** → `Error:Printer halted. kill() called!` → `minkill(true)`.
 4. `emergencyStop()` writes `w axis0.requested_state 1` **twice** with a `flush()` after each (~2.3 ms per write) and reads no reply. **The ODrive is DISARMED, not braked — the rotor freewheels** (gotcha #19). Coast-down time from full speed has **never been measured**.
 5. `minkill(true)` (`MarlinCore.cpp:927-967`): ~600 ms message drain → `cli()` → ~250 ms → heaters off again → `stepper.disable_all_steppers()` → **`for (;;) hal.watchdog_refresh();`**. The watchdog is deliberately *petted*, so the board **never self-resets**. The `hal.reboot()` branch is compiled out — it needs `HAS_KILL` or `SOFT_RESET_ON_KILL`, and neither is defined (no kill button is wired).
 
@@ -807,22 +812,23 @@ With `EMERGENCY_PARSER` enabled there is **no queued M112 handler at all** — `
 
 #### Where the firmware's tokens and the two HTML UIs currently DISAGREE
 
-Both UIs carry functionally equivalent — not byte-identical — spincoater parsing (`RMR_Controller.html:968-1039`, `RMR_Touch.html:1018-1064`) and **neither was updated by this stack**. All of the following apply to both files and are tracked in issue #47.
+Both UIs carry functionally equivalent — not byte-identical — spincoater parsing. The consolidation (#106, 2026-09-14) cherry-picked #84's verdict-by-message-class commit into both: `spinMsg.startsWith('ERR:')` and `('OK:')` are now separate branches with an `errMap` (`RMR_Controller.html` ~`:1837`, `RMR_Touch.html` ~`:1711`), so a failure token can no longer be claimed by a success test, and **any** `ERR:` line sets the error phase (the Touch UI also toasts it). What is still open is tracked in issue #47 (UI) and #48 (Program Runner). Status per defect:
 
-| # | Defect | Effect |
+| # | Defect | Status 2026-09-14 |
 |---|---|---|
-| A | `HOME_SETTLE` has no `stateMap` key and falls through to `includes('HOME_SET')` | While the rotor is actively crawling back to the datum, both UIs display phase = idle, "Home datum set" |
-| B | `ERR: HOME_SET_FAILED` contains `HOME_SET` | A **failed** M751 renders as success |
-| C | `ERR: CYCLE_COMPLETE_NO_HOME` contains `CYCLE_COMPLETE` | A failed post-spin home renders as success; the Touch UI additionally fires a green success toast (`Touch:1043`) |
-| D | `MEASURE_LINK_LOST`, `DECEL_LINK_LOST`, `DECEL_STALL` match nothing, and M750 then returns with no completion marker | The phase indicator is left stuck on "Measuring speed..." or "Decelerating..." **permanently**, with a stale RPM gauge |
-| E | `INDEX_INCOMPLETE` and `INDEX_HOME_FAILED` match nothing | A failed M752 produces no phase change at all (no false success either — `INDEX_INCOMPLETE` does not contain `INDEX_COMPLETE`) |
-| F | `INDEX_FOUND_INSTANT` and `INDEX_SETTLE` are dead `stateMap` keys | Harmless, but misleading to anyone reading the UI as a spec of the serial contract |
-| G | `WARN:` is entirely unhandled | Every datum-integrity message renders as ordinary grey console text — no toast, no phase change, no card update |
-| H | `ERR:` lines route to `logRx()`, not `logErr()` | The spincoater panel has no error styling for firmware-originated errors at all |
-| I | Stat cards go stale rather than clearing on an aborted measure | See the `DATA:` irregularities above |
-| J | `procedure_result`, `active_errors`, `disarm_reason`, `HomeSettleErr`, `BootSettleErr`, `InitialPos`, `accel` parse but hit no branch | Console log only |
-| K | Both Program Runners advance on any bare `ok` | A production program continues past every spincoater failure (gotcha #23, issue #48) |
-| L | After M112 the firmware never sends another `ok` | A running program stalls silently; neither UI detects the halt or the `Error:Printer halted` line |
+| A | `HOME_SETTLE` has no `stateMap` key | **Defused, not fixed.** It no longer falls into the `HOME_SET` success test (that check now runs only on `OK:` lines); the phase simply does not change while the rotor crawls back to the datum |
+| B | `ERR: HOME_SET_FAILED` contains `HOME_SET` | **Fixed** — renders as error phase "Could not set home datum" |
+| C | `ERR: CYCLE_COMPLETE_NO_HOME` contains `CYCLE_COMPLETE` | **Fixed** — error phase "Cycle finished WITHOUT homing"; the Touch success toast fires only on `OK: CYCLE_COMPLETE` |
+| D | `MEASURE_LINK_LOST`, `DECEL_LINK_LOST`, `DECEL_STALL` match nothing | **Defused.** Still no `stateMap` keys, but each of those paths also prints an `ERR:` line, which now sets the error phase — the indicator is no longer stuck on "Measuring…" / "Decelerating…" |
+| E | `INDEX_INCOMPLETE` and `INDEX_HOME_FAILED` match nothing | **Fixed** — both mapped in `errMap` |
+| F | `INDEX_SETTLE` is a dead `stateMap` key | **Open** (harmless); `INDEX_FOUND_INSTANT` is gone |
+| G | `WARN:` is entirely unhandled | **Open** — all thirteen datum-integrity messages still render as plain console text |
+| H | `ERR:` lines route to `logRx()`, not `logErr()` | **Half.** The spincoater panel now shows an error phase (and the Touch toasts); the console line itself still has no error styling |
+| I | Stat cards go stale rather than clearing on an aborted measure | **Open** |
+| J | `procedure_result`, `active_errors`, `disarm_reason`, `HomeSettleErr`, `BootSettleErr`, `InitialPos`, `accel` parse but hit no branch | **Open** — console log only; `CFG:` (M754) likewise |
+| K | Both Program Runners advance on any bare `ok` | **Open** — PR #83's `ok` ledger was **not** merged (it rebuilds the connection layer that September's bridge/sequencer work rebuilt differently) and must be redone on the current files. The Process Sequencer is unaffected: it keeps one command in flight and pauses auto-report |
+| L | After M112 the firmware never sends another `ok` | **Open** — the Process Sequencer now faults itself on E-STOP (`seqFault`), the Program Runner still stalls silently |
+| M | `STATE:STOPPED` / `OK: ABORTED` (the M410 cooperative abort, new 2026-09-14) are unmapped | **Open** — after a sequencer Stop mid-spin the panel keeps its last phase (e.g. "Measuring speed…") until the next token |
 
 ## File Inventory
 
@@ -839,18 +845,30 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | M750.cpp | `Marlin/src/gcode/control/` | Spincoater spin cycle handler |
 | M751_M752.cpp | `Marlin/src/gcode/control/` | Spincoater datum set + index home |
 | M753.cpp | `Marlin/src/gcode/control/` | ODrive UART diagnostic (Serial2 probe) |
+| M754.cpp | `Marlin/src/gcode/control/` | ODrive encoder configuration dump over UART, read-only (`echo:SPIN CFG:` lines) — answers run-sheet Task 2 / issue #46 without the ODrive USB link |
 | spincoater.h | `Marlin/src/feature/` | ODrive raw ASCII communication namespace |
 | spincoater.cpp | `Marlin/src/feature/` | ODrive Serial2 communication implementation |
-| gcode.cpp | `Marlin/src/gcode/` | M-code dispatch (M750/M751/M752/M753 cases added, `:972-975`) |
-| gcode.h | `Marlin/src/gcode/` | M-code declarations (M750/M751/M752/M753 added, `:1132-1135`) |
-| MarlinCore.cpp | `Marlin/src/` | Patched — `Spincoater::emergencyStop()` in `kill()` (`:904`); `Spincoater::startupSafetyDisarm()` in `setup()` (`:1284`). Issue #40 |
+| gcode.cpp | `Marlin/src/gcode/` | M-code dispatch (M750–M754 cases added, `:972-976`) |
+| gcode.h | `Marlin/src/gcode/` | M-code declarations (M750–M754 added, `:1133-1137`) |
+| MarlinCore.cpp | `Marlin/src/` | Patched — `Spincoater::safeStop()` (`:914`) then `Spincoater::emergencyStop()` (`:920`) in `kill()`; `Spincoater::startupSafetyDisarm()` in `setup()` (`:1300`); UV-lid and motor-power idle tasks. Issues #40, #98 |
 | features.ini | `Marlin-2.1.2.7/ini/` | `SPINCOATER` build-src-filter registration (`:255`) for spincoater.cpp + M750/M751_M752/M753.cpp |
 | SanityCheck.h | `Marlin/src/inc/` | Patched — DEACTIVATE_SERVOS_AFTER_MOVE check bypassed |
 | PIN_MAP.md | repo root | Consolidated pin map + wiring reference (authoritative bench doc). **Not updated by this stack** — it does not yet reflect the e-stop / homing / bounded-wait / strict-parsing changes, and it contradicts this file on J11 logic power (see the UNVERIFIED note above) |
 | RMR_Controller.html | repo root | Unified Web Serial controller (gantry + spincoater) — click-optimised, full control, for debugging/tuning |
 | RMR_Touch.html | repo root | Touchscreen-optimised Web Serial UI — for operation. Functionally equivalent (not byte-identical) spincoater parsing to the Controller — patch both files separately |
-| fullcode.gcode | repo root | Production DEA layer program — `M753` → `M752` → `M751` → dispense → lid close → `M750 S1000 D50 A3 C3 H1` → UV cure → lid open |
+| fullcode.gcode | repo root | Production DEA layer program — `M753` → `M752` → `M751` → dispense → lid close → `M750 S1000 D50 A3 C3 H1` → UV cure → lid open. **Its dispense step still sends `G92 E0` / `G1 E-6` (lines 28–31), which the firmware silently ignores (gotcha #1) — port to `G91` / `G1 C…` / `G90` before use** |
 | DemoProgram.gcode | repo root | Demo pick-and-place cycle |
+| LayerCycle.gcode | repo root | Spin-coating layer cycle (PR #82). **Syringe moves are still E-axis (`G92 E0` / `G1 E-…`, lines 30–33) — silently ignored; port to `C` before use** |
+| LayerCycle.segments.gcode | repo root | `LayerCycle.gcode` with `;SEGMENT` markers and `{placeholder}` parameters for the Segment Runner (PR #85). Same E-axis caveat (lines 85–88) |
+| RMR_SegmentRunner.html | repo root | Standalone Web Serial segment runner + named recipes (PRs #85, #88); shares no code with the two UIs. Never run against this firmware; its dispense template is E-axis (`:1640-1641`) |
+| SpinCoatUVCure.gcode | repo root | April 2026 Copilot protocol (2000/3000/4000/5000 RPM × 5 cycles). E-axis syringe moves, never run |
+| tests/ | `tests/` | Stub-DOM harness for the browser pages (PR #87): `run.mjs` + six `*.test.mjs`. Needs Node; never run in this repo since the merge. `ok-attribution` and `spin-markers` were written against the excluded UI chain and are expected to fail against `main` |
+| HANDOFF-2026-09-14.md | repo root | **Current handoff** — what merged on 2026-09-14, what was excluded and why, what to do next |
+| HANDOFF-2026-08-19.md | repo root | Superseded handoff: the August bench results (T3, Task 6/8, first clean cycle), USB fault, GUI problem |
+| HANDOFF-2026-08-14.md | repo root | Superseded handoff: the modulo-one-turn index finding |
+| HANDOFF.md | repo root | Original 2026-08-11 handoff: the reasoning behind the spincoater stack; §7 traps still apply |
+| RUN_SHEET.md | repo root | Bench run sheet (four lanes, Tasks 1–15) with dated results |
+| ODRIVE_CONFIG.md | repo root | The ODrive S1 configuration as recorded 2026-08-13 |
 | AI_ATTRIBUTION.md | repo root | AI contribution record |
 | SpincoaterStage/platformio.ini | `SpincoaterStage/` | PlatformIO config for Nano RP2040 Connect (retired reference) |
 | SpincoaterStage/src/main.cpp | `SpincoaterStage/src/` | Spincoater test firmware v2.6 (Nano — retired reference) |
@@ -913,21 +931,23 @@ The two open items at the bottom of this list have been re-issued against the Ma
 - [ ] **Test:** long-duration stability (>60 s cycles) — re-issued from the retired Nano list
 - [ ] Write production G-code sequences with spin coating steps
 
-### Spincoater — UNMERGED AND UNVERIFIED (as of this revision)
-Nothing in the PR stack below is merged, and **none of it has run on the machine**. Every item compiles (`pio run -e mega2560`; flash 29.7%, RAM 42.7%) and has passed adversarial review only. Merge order is forced: 38 → 39 → 51 → 56 → 57 → 58 (each PR's base is its predecessor's branch, not `main`).
-- [ ] Bench-verify PR #38/#39 — settle to saved home datum, fallback DEG, >1-turn guard, UV relay S-value
-- [ ] Bench-verify PR #51 (issue #40) — `EMERGENCY_PARSER` e-stop + ODrive IDLE disarm. **Highest-consequence change in the stack:** it alters the serial RX hot path for *every* command, so confirm normal G-code still streams at 250000 baud before trusting M112 itself
-- [ ] Bench-verify PR #56 (issues #41, #43) — honest `doIndexHome()` exits, fault introspection, datum preservation. Expect runs that *appeared* to work before to now report failures; that is the intent, not a regression
-- [ ] Bench-verify PR #57 (issue #42) — every blocking wait bounded, dead-link detection. The timeout constants are guesses; characterise real sink time for a loaded chuck before trusting them
-- [ ] Bench-verify PR #58 (issue #44) — strict ODrive reply parsing (no laundered zeros)
-- [ ] **#46 BENCH TASK — leading root cause:** ODrive 0.6.x index/encoder config on the S1. The decisive observation is **after an index search, does `pos_estimate` return near 0 (re-referenced) or hold its pre-search value?** That single answer decides the design of #52, #54, #55 and the datum half of #45. Blocked by nothing; can start today. **Gap:** the `odrive_report.py` one-shot script referenced by the issue is not in this repo (verified — no file matching `*odrive*report*`); it must be recovered or rewritten first
+### Spincoater — merged 2026-09-14 (PR #106); bench verification outstanding
+The stack (#38 → #58), #70 and #76 are in `main`. What the August bench sessions verified is in `HANDOFF-2026-08-19.md` §2 and §6 — #71, #72 and #76 on hardware, #51's Task 6, #57's Task 8, T3 with the physical mark; #56's honest-failure test (T5) is held by the owner. **Nothing has been flashed since the merge**; the merged binary was only compiled (flash 30.1 %, RAM 44.7 %). The full list is `HANDOFF-2026-09-14.md` §5.
+- [ ] **Flash `main` and repeat run-sheet Tasks 5, 6 and 8** — the consolidation re-plumbed the measure-phase result (`MeasureResult`) and added `safeStop()` ahead of `emergencyStop()` in `kill()`; then one `M750 S1000 D10 A3 C3 H1` and one T3 physical-mark check
+- [ ] **Bench: a Process Sequencer Stop during the measure phase** must print `STATE:STOPPED` + `OK: ABORTED` and leave the board alive — the `M410` abort path has never run on hardware
+- [ ] **Port the E-axis syringe moves** in `fullcode.gcode`, `LayerCycle.gcode`, `LayerCycle.segments.gcode`, `RMR_SegmentRunner.html` and `SpinCoatUVCure.gcode` to `G91` / `G1 C…` / `G90` — until then those programs dispense nothing (gotcha #1)
+- [ ] **Close the 19 August PRs merged via #106** (#38 #39 #51 #56 #57 #58 #70 #71 #72 #74 #75 #76 #77 #79 #82 #85 #86 #87 #88) and decide #73 / #78 / #83 / #84 (superseded — redo on the current UI, see below)
+- [ ] T5 / run-sheet Task 7.4–7.7 — **held by the owner**, deliberately
+- [ ] **#46 BENCH TASK — leading root cause:** ODrive 0.6.x index/encoder config on the S1. The decisive observation is **after an index search, does `pos_estimate` return near 0 (re-referenced) or hold its pre-search value?** That single answer decides the design of #52, #54, #55 and the datum half of #45. **`M754` is now in `main` for exactly this** — it dumps the encoder configuration over Serial2, so the ODrive's failed USB link no longer blocks it
 - [ ] #45 boot performs a second index search and overwrites the datum — unstarted
-- [ ] #47 UI serial contract — both UIs mis-render the new failure tokens (gotcha #15) — unstarted. Must be written against the stack-tip token list even though it merges independently
-- [ ] #48 Program Runner wait-for-ok is defeated by auto-report M114 `ok`s — unstarted. Present in **both** UIs, not just the Controller
-- [ ] #54 datum is RAM-only, lost on every reset — no EEPROM persistence (gotcha #17)
-- [ ] #55 the >1-turn guard latches; only M751 clears it (gotcha #18). **Do not resolve this by restoring automatic re-datuming** — that self-healing *was* bug #41
+- [ ] #47 UI serial contract — **half done**: `ERR:`/`OK:` by message class is merged (from #84). Still open in both UIs: `WARN:` handling, `STATE:` keys for `HOME_SETTLE` / `MEASURE_LINK_LOST` / `DECEL_LINK_LOST` / `DECEL_STALL`, the dead `INDEX_SETTLE` key, and the new `STATE:STOPPED` / `OK: ABORTED` pair
+- [ ] #48 Program Runner wait-for-ok is defeated by auto-report `M114` `ok`s — **open**. PR #83 (the `ok` ledger) was excluded from the consolidation because it rebuilds the connection layer September rebuilt differently; redo on the current files, then #78's M115 identity check, then decide whether #73's reconnect logic adds anything to the September device-lost handling
+- [ ] Decide the **Reset (M999)** button in both UIs — it cannot recover from M112 (gotcha #6); remove it or relabel it for the "stopped" state it clears
+- [ ] Decide `DispenseCureDemo1.gcode` — deleted in #106 (stale active-LOW UV polarity); restore from `4ef31d7` only with the polarity fixed
+- [ ] #54 datum is RAM-only, lost on every reset — no EEPROM persistence (gotcha #19)
+- [ ] #55 the >1-turn guard latches; only M751 clears it (gotcha #20). **Do not resolve this by restoring automatic re-datuming** — that self-healing *was* bug #41
 - [ ] #52 post-spin homing design review — blocked by #46
 - [ ] #53 gripper servo shudder — bench diagnosis first
-- [ ] #49 elastomer-dependent dispense volume and UV cure time in the touchscreen GUI — extend `RMR_Touch.html`; **no new GUI**
+- [ ] #49 elastomer-dependent dispense volume and UV cure time in the touchscreen GUI — extend `RMR_Touch.html`; **no new GUI**. Note #88's named recipes live in `RMR_SegmentRunner.html`, not in the two UIs
 
 **Open questions only the bench or the owner can answer:** is a braking resistor fitted on the S1 (determines whether active braking on e-stop is ever viable)? Which end supplies J11 logic power (this file vs `PIN_MAP.md` disagree)? What is the datum fundamentally — an absolute multi-turn encoder position, or a fractional offset from the index mark? The `DEG` maths already assumes the latter (`fmod((pos − _homePos) × 360, 360)`), so the representation and its use currently disagree; #46 must answer first.
