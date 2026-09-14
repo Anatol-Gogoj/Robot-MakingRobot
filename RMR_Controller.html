@@ -839,6 +839,7 @@
 <div class="tab-bar">
   <button class="tab-btn active" id="tabbtn-manual" onclick="switchTab('manual')">Manual Control</button>
   <button class="tab-btn" id="tabbtn-sequencer" onclick="switchTab('sequencer')">Process Sequencer</button>
+  <button class="tab-btn" id="tabbtn-runlog" onclick="switchTab('runlog')">Run Log</button>
 </div>
 
 <div id="tab-manual" class="tab-page active">
@@ -1296,6 +1297,7 @@
       <button class="seq-btn run" id="seqRunAllBtn" onclick="seqRunAll()">&#9654; Run All</button>
       <button class="seq-btn stop" id="seqStopBtn" onclick="seqStop()" disabled>&#9632; Stop</button>
       <div class="seq-status-line" id="seqStatus">Idle.</div>
+      <div class="rl-strip" id="rlStrip" hidden></div>
     </div>
 
     <!-- Homing gate banner (hidden once all axes are homed) -->
@@ -1535,6 +1537,9 @@
   </div>
 </div><!-- /tab-sequencer -->
 
+<!-- ═══════════════ Run Log Tab (module: see RMR-RUNLOG block at the end of the page) ═══════════════ -->
+<div id="tab-runlog" class="tab-page"><div id="rlRoot" class="rl-root"></div></div>
+
 <script>
 // ─── State ───
 let port = null;
@@ -1762,6 +1767,7 @@ function processLine(line) {
   if (!line) return;
   const verbose = document.getElementById('verboseMode').checked;
   homedTrackRx(line);
+  rlRx(line);   // Run Log observes every line (spin DATA:/OK:/ERR:, 'start', MOTOR POWER LOST)
 
 
   // ── Spincoater telemetry and data (from echo:SPIN lines) ──
@@ -2061,6 +2067,7 @@ function showToast(message, type = 'info', ms = 3800) {
 }
 
 function emergencyStop() {
+  rlEvent('estop', {});
   seqFault('emergency stop (M112)');   // abort a running sequence at once (lamp off / argon closed in its finally)
   sendCmd('M112');
   logErr('>>> EMERGENCY STOP SENT — firmware is halted. Disconnect and reconnect to recover (board resets; spincoater auto-disarms on reboot). M999 CANNOT recover from M112. <<<');
@@ -2471,6 +2478,27 @@ async function seqCmd(cmd, waitOk = true, timeoutMs = 90000) {
 
 function seqSetStatus(html) { document.getElementById('seqStatus').innerHTML = html; }
 
+// ─── Run Log glue ───
+// The Run Log module (rmrLog) is a separate <script> at the end of the page, shared byte-for-byte with
+// the other UI (tools/sync_runlog.py). These shims keep every hook inert when it is absent (e.g. in the
+// tests) and make sure a bug in it can never fault a run — except a hold that must abort with the run.
+function rlEvent(kind, data) { try { if (typeof rmrLog !== 'undefined') rmrLog.event(kind, data); } catch (e) { console.error('runlog', e); } }
+function rlRx(line) { try { if (typeof rmrLog !== 'undefined') rmrLog.rx(line); } catch (e) {} }
+async function rlHoldPoint(after, ctx) {
+  try { if (typeof rmrLog !== 'undefined') await rmrLog.seqHoldPoint(after, ctx); }
+  catch (e) { if (e && e.name === 'RunLogAbort') throw e; console.error('runlog hold', e); }
+}
+
+// What the Run Log module needs from this page (it attaches itself when its script runs).
+window.rmrLogHost = {
+  status: (h) => seqSetStatus(h), info: (m) => logInfo(m), err: (m) => logErr(m), toast: (m, t) => showToast(m, t),
+  isRunning: () => seqRunning, abortReason: () => (seqAbort ? 'aborted' : (seqFaultReason || null)),
+  switchTab: () => switchTab('runlog'), editableByDefault: true,
+  seqCycles: () => document.getElementById('seqCycles'), seqRepeat: () => document.getElementById('seqRepeat'),
+  settings: () => ({ rpm: numv('seqSpinRPM', 0), dur: numv('seqSpinDur', 0), rise: numv('seqSpinRise', 0), sink: numv('seqSpinSink', 0),
+                     cureS: numv('uvTime', 0), stampHold: numv('stampHold', 0), dispenseMl: numv('syrVol', 0) }),
+};
+
 // Safe numeric read from an input id
 function numv(id, def) {
   const el = document.getElementById(id);
@@ -2570,6 +2598,7 @@ function seqFault(reason) {
   if (!seqRunning || seqFaultReason) return;
   seqFaultReason = reason;
   logErr('Sequencer: FAULT — ' + reason);
+  rlEvent('seq.fault', { reason });
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error(reason)); }
 }
 
@@ -2635,6 +2664,7 @@ function seqEnd(statusHtml) {
 function seqStop() {
   if (!seqRunning) return;
   seqAbort = true;
+  rlEvent('seq.stop', {});
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
   sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin
   logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
@@ -2654,12 +2684,17 @@ async function seqRunBlock(id) {
   setBadge(id, 'run', 'running');
   seqSetStatus('Running <b>' + blk.name + '</b>…');
   logInfo('Sequencer: running ' + blk.name);
+  if (id === 'syringe') rlEvent('warn.incomplete', { what: 'running Syringe' });
+  rlEvent('block.begin', { block: id, mode: 'single' });
   try {
     await blk.run();
+    rlEvent('block.end', { block: id, mode: 'single' });
+    await rlHoldPoint('single', { blocks: [id] });   // a requested Hold / Break takes effect here
     el.classList.remove('running'); el.classList.add('done');
     seqEnd('<b>' + blk.name + '</b> complete.');
     logInfo('Sequencer: ' + blk.name + ' complete');
   } catch (e) {
+    rlEvent('block.fail', { block: id, reason: e.message, aborted: seqAbort });
     el.classList.remove('running');
     seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message));
     if (!seqAbort) logErr('Sequencer: ' + blk.name + ' failed — ' + e.message);
@@ -2691,26 +2726,38 @@ async function seqRunAll() {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('done'));
   logInfo('Sequencer: Run All started (' + enabled.length + ' block(s)' +
           (repeat ? (infinite ? ', repeating until Stop' : ', ' + cycles + ' cycles') : '') + ')');
+  const blockIds = enabled.map(b => b.id);
+  rlEvent('warn.incomplete', { what: 'Run All' });
+  rlEvent('run.begin', { cycles: infinite ? 0 : cycles, blocks: blockIds });
   try {
-    let cycle = 0;
+    let cycle = 0, prev = null;   // prev: the block that just finished (a Hold / Break may apply after it)
     while (!seqAbort && (infinite || cycle < cycles)) {
       cycle++;
       const cycTxt = infinite ? ('cycle ' + cycle + ' / ∞') : ('cycle ' + cycle + ' / ' + cycles);
+      rlEvent('cycle.begin', { cycle, cycles: infinite ? 0 : cycles, blocks: blockIds });
       for (const blk of enabled) {
         if (seqAbort) break;
         if (SEQ_NEEDS_HOME[blk.id] && !seqHomed) throw new Error(blk.name + ' is locked — all axes must be homed (G28) first');
+        if (prev) await rlHoldPoint(prev, { blocks: blockIds });   // pause BETWEEN blocks, never inside one
+        rlEvent('block.begin', { block: blk.id, mode: 'runall', cycle });
         const el = seqBlockEl(blk.id);
         el.classList.add('running'); el.classList.remove('done');
         setBadge(blk.id, 'run', 'running');
         seqSetStatus(cycTxt + ' — running <b>' + blk.name + '</b>…');
         await blk.run();
+        rlEvent('block.end', { block: blk.id, cycle });
+        prev = blk.id;
         el.classList.remove('running'); el.classList.add('done');
         restoreBadge(blk.id);
       }
+      rlEvent('cycle.end', { cycle });
+      if (!seqAbort && (infinite || cycle < cycles)) { await rlHoldPoint('cycle', { blocks: blockIds }); prev = null; }
     }
+    rlEvent(seqAbort ? 'run.fail' : 'run.end', { aborted: seqAbort });
     seqEnd(seqAbort ? 'Stopped.' : 'Run All complete.');
     logInfo('Sequencer: Run All ' + (seqAbort ? 'stopped' : 'complete'));
   } catch (e) {
+    rlEvent('run.fail', { reason: e.message, aborted: seqAbort });
     seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message));
     if (!seqAbort) logErr('Sequencer: Run All failed — ' + e.message);
   }
@@ -2752,6 +2799,7 @@ async function runSyringeBlock() {
   await seqCmd('G91');
   await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + eFeed);   // 2) dispense (push plunger)
   await seqCmd('M400');
+  rlEvent('dispense', { mL: numv('syrVol', 0), mm: dispMm, pullMl: numv('syrPull', 0), pullMm, heightB: pos, feed: eFeed });   // plunger has stopped
   if (pullMm > 0) {
     await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + eFeed); // 3) retract plunger
     await seqCmd('M400');
@@ -2772,7 +2820,9 @@ async function runSpinBlock() {
   // M750 runs the entire spin cycle before replying 'ok', so allow the full
   // duration (+ ramp + margin) before the ok-timeout would trip.
   const spinTimeout = (dur + rise + sink + 90) * 1000;
-  await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); // blocking full cycle
+  rlEvent('spin.start', { rpm, dur, rise, sink, home });   // opens the capture window for the DATA:/OK:/ERR: lines
+  try { await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); } // blocking full cycle
+  finally { rlEvent('spin.done', { aborted: seqAbort, fault: seqFaultReason }); }
 }
 
 // ─── Block: UV lid & light (+ optional argon purge) ───
@@ -2878,17 +2928,18 @@ async function runUvBlock() {
         await seqCmd('M42 P' + p.pin + ' S1');
         if (uvInterlockMsg) throw new Error(uvInterlockMsg);          // firmware refused: lid not closed
         uvIsOn = true;
+        rlEvent('uv.on', { pin: p.pin, setS: p.t, argon: p.arOn, lid: manageLid });
         // Optionally index-home the spincoater DURING the cure (parallel, fire-and-forget);
         // confirmed finished below so the platter sits at its datum before the block ends.
         if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
       }
-      if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; }
+      if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; rlEvent('uv.off', {}); }
       draw();
     }
     uvProgressRender(p, p.tEnd, false, false, 'done');
   } finally {
     // Safe state no matter how we got here (Stop / fault / error): lamp OFF, argon CLOSED.
-    if (uvIsOn)   { sendCmd('M42 P' + p.pin + ' S0');   uvIsOn = false; }
+    if (uvIsOn)   { sendCmd('M42 P' + p.pin + ' S0');   uvIsOn = false; rlEvent('uv.off', { aborted: true }); }
     if (arIsOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; }
   }
   if (uvHomeSpin && !seqAbort) {
@@ -3130,6 +3181,7 @@ async function runStampBlock() {
   await seqCmd('G1 Z' + grabZ + ' F' + zF);
   await seqCmd('M400');
   await seqCmd('M280 P0 S' + gClose);
+  rlEvent('stamp.pick', { side: side === 'left' ? 'L' : 'R' });
   if (grabDelay > 0) { seqSetStatus('Stamp — grab delay ' + grabDelay + ' s'); await seqSleep(grabDelay * 1000); }
   // Raise & transit to spincoater
   await seqCmd('G1 Z' + safeZ + ' F' + zF);
@@ -3140,6 +3192,7 @@ async function runStampBlock() {
   await seqCmd('G1 Z' + approachZ + ' F' + zF);
   await seqCmd('G1 Z' + pressZ + ' F' + pF);
   await seqCmd('M400');
+  rlEvent('stamp.press', { side: side === 'left' ? 'L' : 'R', holdS: hold, pressZ });   // filter is on the elastomer
   if (hold > 0) { seqSetStatus('Stamp — pressing ' + hold + ' s'); await seqSleep(hold * 1000); }
   // Post-press clearance: raise straight up, then back off in Y-, so the gripper
   // assembly clears the syringe before transiting up-and-over to the discard.
@@ -3370,5 +3423,1219 @@ if (transportMode() === 'ws') {
 }
 </script>
 <div id="toastWrap" aria-live="polite"></div>
+<!-- RMR-RUNLOG:BEGIN -->
+<!-- Run Log — shared module (DEA per-layer manufacturing log). The canonical copy lives in
+     RMR_Controller.html; RMR_Touch.html carries a byte-identical copy. Edit the Controller's copy,
+     then run  python tools/sync_runlog.py  to copy it across (the test suite runs it with --check).
+     Page-specific glue (tab, strip container, sequencer hooks, window.rmrLogHost) lives OUTSIDE
+     these markers. Nothing in here sends G-code; see claude.md "Run Log". -->
+<style>
+  /* ─── Run Log (shared) ─── tokens only. --touch-min is 48px on the Touch page and unset in the Controller. */
+  .rl-root { display: flex; flex-direction: column; gap: 12px; max-width: 1400px; margin: 0 auto; padding: 12px 16px 40px; }
+  .rl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .rl-dev { display: grid; grid-template-columns: 1fr auto; gap: 8px 18px; }
+  .rl-dev h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .rl-spec { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .rl-spec b { color: var(--text); font-weight: 600; }
+  .rl-now { text-align: right; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .rl-now b { color: var(--cyan); }
+  .rl-prog { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+  .rl-track { flex: 1; min-width: 120px; height: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .rl-fill { height: 100%; background: var(--blue); width: 0; transition: width .3s; }
+  .rl-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .rl-ctl .rl-gap { flex: 1; }
+  .rl-btn { padding: 8px 14px; min-height: var(--touch-min, 0px); border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .rl-btn:hover:not(:disabled) { border-color: var(--text); }
+  .rl-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .rl-btn.hold { border-color: var(--yellow); color: var(--yellow); }
+  .rl-btn.hold.on, .rl-btn.primary { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); }
+  .rl-btn.go { border-color: var(--green); color: var(--green); }
+  .rl-btn.go.on { background: var(--green); color: var(--on-green); }
+  .rl-btn.danger { border-color: var(--red); color: var(--red); }
+  .rl-btn.danger.on { background: var(--red); color: var(--on-red); }
+  .rl-sel { padding: 6px 8px; border-radius: 5px; border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text); font-size: 13px; min-height: var(--touch-min, 0px); }
+  .rl-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; border: 1px solid transparent; }
+  .rl-pill.ok { background: var(--green); color: var(--on-green); }
+  .rl-pill.live { background: var(--blue); color: var(--on-blue); }
+  .rl-pill.warn { background: var(--yellow); color: var(--on-yellow); }
+  .rl-pill.bad { background: var(--red); color: var(--on-red); }
+  .rl-pill.hold { background: var(--purple); color: var(--on-purple); }
+  .rl-pill.dim { border-color: var(--border-strong); color: var(--text-dim); }
+  .rl-tblwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .rl-tbl { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .rl-tbl th { position: sticky; top: 0; z-index: 1; background: var(--surface2); color: var(--text-dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 9px; text-align: left; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+  .rl-tbl td { padding: 7px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; vertical-align: middle; height: var(--touch-min, auto); }
+  .rl-tbl td.n, .rl-tbl td.t { font-family: 'Consolas', monospace; font-variant-numeric: tabular-nums; }
+  .rl-tbl td.layer { font-weight: 700; font-size: 15px; }
+  .rl-tbl td.el { color: var(--cyan); font-weight: 700; font-size: 15px; }
+  .rl-tbl td.notes { white-space: normal; min-width: 160px; max-width: 340px; }
+  .rl-tbl tr.cur { background: var(--surface2); box-shadow: inset 3px 0 0 var(--blue); }
+  .rl-tbl tr.holdrow td { font-style: italic; box-shadow: inset 3px 0 0 var(--purple); }
+  .rl-tbl tr.noterow td { box-shadow: inset 3px 0 0 var(--yellow); }
+  .rl-tbl th.det, .rl-tbl td.det { display: none; }
+  .rl-root.details .rl-tbl th.det, .rl-root.details .rl-tbl td.det { display: table-cell; color: var(--text-dim); }
+  .rl-tbl .dim { color: var(--text-dim); }
+  .rl-tbl .set { color: var(--text-dim); font-size: 12px; }
+  .rl-ed { border-bottom: 2px dotted var(--yellow); }
+  .rl-ed::after { content: ' \270E'; color: var(--yellow); font-size: .85em; }
+  .rl-root.editable .rl-tbl td[data-edit] { cursor: text; }
+  .rl-root.editable .rl-tbl td[data-edit]:hover { outline: 1px dashed var(--border-strong); outline-offset: -2px; }
+  .rl-tbl td input.rl-in, .rl-tbl td select.rl-in { width: 100%; min-width: 90px; padding: 5px 7px; border-radius: 4px; border: 1px solid var(--focus); background: var(--surface2); color: var(--text); font: inherit; }
+  .rl-tbl td textarea.rl-in { width: 100%; min-width: 180px; min-height: 48px; padding: 5px 7px; border-radius: 4px; border: 1px solid var(--focus); background: var(--surface2); color: var(--text); font: inherit; }
+  .rl-rowbtn { padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-dim); font-size: 12px; cursor: pointer; }
+  .rl-rowbtn:hover { color: var(--text); border-color: var(--text); }
+  .rl-legend { font-size: 12px; color: var(--text-dim); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .rl-banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--purple); border-left: 4px solid var(--purple); border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+  .rl-banner b { color: var(--purple); }
+  .rl-banner .rl-txt { flex: 1; min-width: 220px; line-height: 1.45; }
+  .rl-banner.req { border-color: var(--yellow); }
+  .rl-banner.req b { color: var(--yellow); }
+  .rl-banner.warn { border-color: var(--red); }
+  .rl-banner.warn b { color: var(--red); }
+  .rl-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 14px; }
+  .rl-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); }
+  .rl-form input, .rl-form select, .rl-form textarea { padding: 7px 9px; border-radius: 5px; border: 1px solid var(--border-strong); background: var(--surface2); color: var(--text); font-size: 14px; min-height: var(--touch-min, 0px); font-family: inherit; }
+  .rl-form .full { grid-column: 1 / -1; }
+  .rl-form .chk { flex-direction: row; align-items: center; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); gap: 8px; }
+  .rl-form .chk input { width: 20px; height: 20px; min-height: 0; accent-color: var(--accent); }
+  .rl-form .rl-btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+  .rl-journal { font-family: 'Consolas', monospace; font-size: 12px; max-height: 260px; overflow: auto; background: var(--console-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; line-height: 1.5; color: var(--text); }
+  .rl-journal .t { color: var(--text-dim); margin-right: 8px; }
+  .rl-journal .warn { color: var(--yellow); }
+  .rl-journal .err { color: var(--red); }
+  .rl-strip { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; width: 100%; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+  .rl-strip[hidden] { display: none; }
+  .rl-strip b { color: var(--text); }
+  .rl-strip .rl-track { max-width: 160px; height: 7px; min-width: 60px; }
+  .rl-strip .rl-btn { padding: 4px 10px; font-size: 12px; min-height: 0; }
+  .rl-empty { text-align: center; padding: 28px 12px; color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+  .rl-hint { font-size: 12px; color: var(--text-dim); line-height: 1.45; }
+  details.rl-det > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-dim); user-select: none; padding: 4px 0; }
+  @media (max-width: 640px) { .rl-dev { grid-template-columns: 1fr; } .rl-now { text-align: left; } }
+</style>
+<script>
+// ═══════════════ RMR Run Log — shared module ═══════════════
+// One log per DEA device. Rows mirror the MLDEA Reference Sheet: a dielectric layer row (dispense →
+// spin → cure) followed by an electrode row (P/N, filter pressed). The Process Sequencer reports
+// events through rmrLog.event() and every serial line through rmrLog.rx(); the operator can edit any
+// cell; Hold / Break pause a run BETWEEN two sequencer commands (never mid-command, never by sending
+// G-code — the Mega drops serial input during a blocking command). Everything persists in
+// localStorage; an optional save folder mirrors JSON / CSV / XLSX on every change.
+// Every public entry point is wrapped in try/catch: a bug here must never fault a run or kill the
+// serial read loop.
+const rmrLog = (function () {
+  'use strict';
+  const VERSION = 1;
+  const LS_INDEX = 'rmr.runlog.index', LS_DEV = 'rmr.runlog.dev.', LS_PREFS = 'rmr.runlog.prefs', LS_PRESETS = 'rmr.runlog.presets';
+  const BUILTIN_PRESETS = {
+    'CN9018 7.5% HDDA': {
+      material: 'CN9018 7.5% HDDA', materialType: 'Acrylic', thicknessUm: 70, thicknessTolUm: 10, targetLayers: 31,
+      rpm: 1000, holdS: 50, cureS: 480, dispenseMl: 0.05, firstElectrode: 'P', feederPolarity: false, feederLeft: 'P',
+      electrodeNote: 'hand press',
+      notes: 'Electrodes pressed by hand (no Stamp block). Tap "Filter pressed" in the Log tab after each press.',
+    },
+  };
+  const HOLD_POINTS = { block: 'after the current block', cured: 'after the next UV cure', layer: 'at the end of this layer' };
+  const BLOCK_NAMES = { homing: 'Homing', syringe: 'Syringe', spin: 'Spin', uv: 'UV cure', stamp: 'Stamp' };
+
+  let host = null, idx = null, prefs = null, dev = null, presets = null;
+  let cap = null;             // open spin capture: {rowId, data, markers, states, at, implicit}
+  let holdWaiter = null;      // {resolve, reject} while a running sequence is held
+  let tickTimer = null, folderTimer = null;
+  let folder = { handle: null, name: '', state: 'none', err: null, last: null };  // none | prompt | granted | error
+  let editing = null;         // {rowId, path} while a cell editor is open
+  let curPhase = '';          // sequencer block currently running
+  let formOpen = null;        // 'new' | 'edit' | null
+  let root = null, strip = null;
+
+  // ─── small utilities ───
+  const pad2 = n => String(n).padStart(2, '0');
+  function isoLocal(d) {
+    d = d || new Date();
+    const off = -d.getTimezoneOffset(), a = Math.abs(off);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) +
+      '.' + String(d.getMilliseconds()).padStart(3, '0') + (off >= 0 ? '+' : '-') + pad2(Math.floor(a / 60)) + ':' + pad2(a % 60);
+  }
+  function toDate(iso) { if (!iso) return null; const d = new Date(iso); return isNaN(d) ? null : d; }
+  function fmtT(iso) { const d = toDate(iso); return d ? pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) : (iso ? String(iso) : ''); }
+  function fmtD(iso) { const d = toDate(iso); return d ? d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) : ''; }
+  function fmtDur(ms) {
+    if (ms == null || isNaN(ms) || ms < 0) return '';
+    const s = Math.round(ms / 1000);
+    if (s < 60) return s + ' s';
+    const m = Math.floor(s / 60), h = Math.floor(m / 60);
+    if (h) return h + ' h ' + pad2(m % 60) + ' m';
+    return m + ' min ' + pad2(s % 60) + ' s';
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function num(v, digits) { return (v == null || v === '' || isNaN(v)) ? '' : Number(v).toFixed(digits == null ? 1 : digits); }
+  function uid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function safe(fn, what) { try { return fn(); } catch (e) { try { console.error('rmrLog ' + (what || ''), e); } catch (_) {} return undefined; } }
+  function getp(o, path) { return path.split('.').reduce((a, k) => (a == null ? undefined : a[k]), o); }
+  function setp(o, path, v) { const ks = path.split('.'); let a = o; for (let i = 0; i < ks.length - 1; i++) { if (a[ks[i]] == null || typeof a[ks[i]] !== 'object') a[ks[i]] = {}; a = a[ks[i]]; } a[ks[ks.length - 1]] = v; }
+  const H = () => host || {};
+  const say = (m) => safe(() => H().info && H().info('Run Log: ' + m));
+  const oops = (m) => safe(() => H().err && H().err('Run Log: ' + m));
+  const toast = (m, t) => safe(() => H().toast && H().toast(m, t || 'info'));
+
+  // ─── storage ───
+  function lsGet(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { oops('could not save (' + e.message + ') — export the log now'); return false; } }
+  function loadIndex() { idx = lsGet(LS_INDEX, null); if (!idx || typeof idx !== 'object') idx = { v: VERSION, active: null, devices: {} }; if (!idx.devices) idx.devices = {}; }
+  function saveIndex() { lsSet(LS_INDEX, idx); }
+  function loadPrefs() { prefs = Object.assign({ order: 'stack', details: false, holdPoint: 'layer', prefillCycles: true, journalOpen: false }, lsGet(LS_PREFS, {}) || {}); }
+  function savePrefs() { lsSet(LS_PREFS, prefs); }
+  function loadPresets() {
+    presets = lsGet(LS_PRESETS, null);
+    if (!presets || typeof presets !== 'object' || !Object.keys(presets).length) { presets = JSON.parse(JSON.stringify(BUILTIN_PRESETS)); lsSet(LS_PRESETS, presets); }
+  }
+  function summary(d) {
+    return { id: d.id, material: d.device.material || '', operator: d.device.operator || '', created: d.created, updated: d.updated,
+             targetLayers: d.device.targetLayers || 0, layers: d.rows.filter(r => r.kind === 'layer').length };
+  }
+  function loadDevice(id) { const d = lsGet(LS_DEV + id, null); return (d && d.kind === 'rmr-runlog' && d.rows) ? d : null; }
+  function save() {
+    if (!dev) return;
+    dev.updated = isoLocal(); dev.rev = (dev.rev || 0) + 1;
+    lsSet(LS_DEV + dev.id, dev);
+    idx.devices[dev.id] = summary(dev); idx.active = dev.id; saveIndex();
+    scheduleFolderSave();
+  }
+  function journal(text, level) {
+    if (!dev) return;
+    dev.journal.push({ at: isoLocal(), text: String(text), level: level || 'info' });
+    if (dev.journal.length > 3000) dev.journal.splice(0, dev.journal.length - 3000);
+  }
+
+  // ─── devices ───
+  function blankDevice(f) {
+    return {
+      kind: 'rmr-runlog', version: VERSION, id: f.id, created: isoLocal(), updated: isoLocal(), rev: 0,
+      device: {
+        id: f.id, operator: f.operator || '', material: f.material || '', materialType: f.materialType || '',
+        thicknessUm: +f.thicknessUm || 0, thicknessTolUm: +f.thicknessTolUm || 0, targetLayers: parseInt(f.targetLayers, 10) || 0,
+        rpm: +f.rpm || 0, holdS: +f.holdS || 0, cureS: +f.cureS || 0, dispenseMl: +f.dispenseMl || 0,
+        firstElectrode: f.firstElectrode === 'N' ? 'N' : 'P', feederPolarity: !!f.feederPolarity, feederLeft: f.feederLeft === 'N' ? 'N' : 'P',
+        electrodeNote: f.electrodeNote || '', notes: f.notes || '',
+      },
+      state: { logging: 'off', openLayer: null, hold: null, holdReq: null, offSince: null, offMissed: 0, startedAt: null },
+      rows: [], journal: [],
+    };
+  }
+  function sanitizeId(s) { return String(s || '').trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').slice(0, 60); }
+  function defaultId() {
+    const d = new Date(), base = d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate());
+    let suffix = 0; const names = Object.keys(idx.devices);
+    while (names.includes(base + '-' + String.fromCharCode(65 + suffix))) suffix++;
+    return base + '-' + String.fromCharCode(65 + Math.min(suffix, 25));
+  }
+  function createDevice(f) {
+    const id = sanitizeId(f.id) || defaultId();
+    if (idx.devices[id] && !confirm('A device log named "' + id + '" already exists. Replace it?')) return false;
+    closeCapture('device changed');
+    dev = blankDevice(Object.assign({}, f, { id }));
+    journal('device created: ' + id + (f.presetName ? ' (preset ' + f.presetName + ')' : ''));
+    save(); say('new device log "' + id + '"');
+    return true;
+  }
+  function openDevice(id) {
+    const d = loadDevice(id);
+    if (!d) { oops('device "' + id + '" not found'); return false; }
+    closeCapture('device changed');
+    dev = d; dev.state.holdReq = null; idx.active = id; saveIndex();
+    say('opened device log "' + id + '" (' + dev.rows.filter(r => r.kind === 'layer').length + ' layers)');
+    return true;
+  }
+  function deleteDevice(id) {
+    if (!idx.devices[id]) return;
+    if (!confirm('Delete the log for device "' + id + '"? This cannot be undone (export it first if in doubt).')) return;
+    try { localStorage.removeItem(LS_DEV + id); } catch (e) {}
+    delete idx.devices[id];
+    if (dev && dev.id === id) { dev = null; idx.active = null; }
+    saveIndex(); say('deleted device log "' + id + '"');
+  }
+
+  // ─── rows ───
+  const layerRows = () => dev.rows.filter(r => r.kind === 'layer');
+  const rowById = id => dev.rows.find(r => r.id === id);
+  const openLayerRow = () => (dev && dev.state.openLayer) ? rowById(dev.state.openLayer) : null;
+  function nextLayerNumber() { return layerRows().reduce((m, r) => Math.max(m, +r.layer || 0), 0) + 1; }
+  function polarityByRule(n) { const first = dev.device.firstElectrode || 'P', other = first === 'P' ? 'N' : 'P'; return (n % 2 === 1) ? first : other; }
+  function polarityBySide(side) { const left = dev.device.feederLeft || 'P', right = left === 'P' ? 'N' : 'P'; return side === 'L' ? left : (side === 'R' ? right : null); }
+  function newLayerRow(manual) {
+    const r = { id: uid(), kind: 'layer', layer: nextLayerNumber(), created: isoLocal(), dispense: {}, spin: {}, cure: {}, flags: [], notes: '', edits: {}, manual: !!manual };
+    dev.rows.push(r); dev.state.openLayer = r.id;
+    if (!dev.state.startedAt) dev.state.startedAt = r.created;
+    journal('layer ' + r.layer + ' opened');
+    return r;
+  }
+  function electrodeRowFor(layerRow, create) {
+    const existing = dev.rows.find(r => r.kind === 'electrode' && r.layer === layerRow.layer);
+    if (existing || !create) return existing || null;
+    const r = { id: uid(), kind: 'electrode', layer: layerRow.layer, polarity: polarityByRule(layerRow.layer), created: isoLocal(), stamp: {}, flags: [], notes: '', edits: {} };
+    dev.rows.push(r);
+    return r;
+  }
+  function addFlag(row, f) { if (row && f && !(row.flags || (row.flags = [])).includes(f)) row.flags.push(f); }
+  // set an automatic value; an operator edit always wins (the auto value is kept underneath)
+  function setAuto(row, path, v) {
+    if (!row) return;
+    if (row.edits && row.edits[path]) { row.edits[path].auto = v; return; }
+    setp(row, path, v);
+  }
+  function setEdit(row, path, v) {
+    if (!row.edits) row.edits = {};
+    if (!row.edits[path]) row.edits[path] = { auto: getp(row, path) == null ? null : getp(row, path), at: isoLocal() };
+    else row.edits[path].at = isoLocal();
+    setp(row, path, v);
+    journal('edited ' + (row.kind === 'hold' ? 'hold' : (row.kind === 'note' ? 'note' : rowLabel(row))) + ' ' + path + ' → ' + (v == null ? '(blank)' : v));
+  }
+  function revertEdit(row, path) {
+    if (!row || !row.edits || !row.edits[path]) return;
+    setp(row, path, row.edits[path].auto);
+    delete row.edits[path];
+    journal('reverted ' + rowLabel(row) + ' ' + path + ' to the recorded value');
+  }
+  function rowLabel(r) { return r.kind === 'layer' ? ('layer ' + r.layer) : (r.kind === 'electrode' ? ('electrode ' + r.polarity + ' (after layer ' + r.layer + ')') : r.kind); }
+  // which layer row a new step belongs to
+  function layerFor(step, manual) {
+    let r = openLayerRow();
+    if (r) {
+      const cured = !!r.cure.offAt;
+      if ((step === 'dispense' || step === 'spin') && cured) r = null;   // a fresh dispense/spin after a cure starts the next layer
+    }
+    if (!r) r = newLayerRow(manual);
+    return r;
+  }
+  function nominalFor(row) { const t = +dev.device.thicknessUm || 0; return (+row.layer || 0) * t; }
+  function cureActual(row) { const a = toDate(row.cure.onAt), b = toDate(row.cure.offAt); return (a && b) ? (b - a) / 1000 : null; }
+  function resultOf(row) {
+    if (row.kind === 'layer') {
+      const f = row.flags || [];
+      if (f.some(x => x.startsWith('fault'))) return ['bad', f.find(x => x.startsWith('fault'))];
+      if (f.some(x => x.startsWith('aborted'))) return ['warn', f.find(x => x.startsWith('aborted'))];
+      if (row.cure.onAt && !row.cure.offAt) return ['live', 'curing'];
+      if (cap && cap.rowId === row.id) return ['live', 'spinning'];
+      if (row.spin.result === 'no home') return ['bad', 'no home'];
+      if (row.spin.result === 'no samples') return ['warn', 'no samples'];
+      if (row.spin.result === 'aborted') return ['warn', 'spin aborted'];
+      if (row.spin.result === 'incomplete') return ['warn', 'spin incomplete'];
+      if (row.cure.aborted) return ['warn', 'cure cut short'];
+      if (row.cure.offAt) return ['ok', row.manual ? 'manual' : 'ok'];
+      if (row.dispense.at || row.spin.at) return ['live', 'in progress'];
+      return ['dim', 'empty'];
+    }
+    if (row.kind === 'electrode') {
+      const f = row.flags || [];
+      if (f.includes('polarity mismatch')) return ['warn', 'polarity ≠ feeder'];
+      if (row.stamp.at) return ['ok', row.stamp.manual ? (row.stamp.note || 'manual') : 'ok'];
+      return ['dim', 'pending'];
+    }
+    return ['dim', ''];
+  }
+
+  // ─── events from the sequencer ───
+  function event(kind, data) { safe(() => applyEvent(kind, data || {}), 'event ' + kind); }
+  function applyEvent(kind, d) {
+    if (kind === 'block.begin') curPhase = d.block || ''; else if (kind === 'block.end' || kind === 'block.fail') curPhase = '';
+    if (!dev) { renderStrip(); return; }
+    if (kind === 'warn.incomplete') { warnIncomplete(d.what); return; }
+    if (kind === 'run.end' || kind === 'run.fail') { curPhase = ''; if (dev.state.holdReq) { const q = dev.state.holdReq; beginHold(q.kind, q.reason, 'after the run'); } }
+    const armed = dev.state.logging === 'armed';
+    if (!armed) { if (kind === 'dispense') { dev.state.offMissed = (dev.state.offMissed || 0) + 1; save(); } renderStrip(); return; }
+    const t = isoLocal();
+    let row;
+    switch (kind) {
+      case 'run.begin': journal('Run All started: ' + (d.blocks || []).map(b => BLOCK_NAMES[b] || b).join(' → ') + (d.cycles ? ' × ' + d.cycles : ' (until Stop)')); break;
+      case 'run.end': journal('Run All complete'); break;
+      case 'run.fail': journal('run ended: ' + (d.aborted ? 'stopped by operator' : (d.reason || 'error')), d.aborted ? 'warn' : 'err'); abortOpen(d.aborted ? 'aborted' : ('fault: ' + (d.reason || 'error'))); break;
+      case 'cycle.begin':
+        journal('cycle ' + d.cycle + (d.cycles ? ' / ' + d.cycles : '') + ' begins');
+        row = openLayerRow();
+        if (row && (row.dispense.at || row.spin.at || row.cure.onAt)) newLayerRow(); else if (!row) newLayerRow();
+        break;
+      case 'cycle.end': journal('cycle ' + d.cycle + ' ends'); break;
+      case 'block.begin': journal((d.mode === 'single' ? 'block run: ' : 'block: ') + (BLOCK_NAMES[d.block] || d.block)); break;
+      case 'block.end': break;
+      case 'block.fail': journal((BLOCK_NAMES[d.block] || d.block) + ' failed: ' + (d.aborted ? 'stopped' : d.reason), 'err'); abortOpen(d.aborted ? ('aborted at ' + (BLOCK_NAMES[d.block] || d.block)) : ('fault: ' + (d.reason || 'error'))); break;
+      case 'dispense':
+        row = layerFor('dispense', d.manual);
+        if (row.dispense.at) { addFlag(row, 're-dispensed'); journal('layer ' + row.layer + ' re-dispensed', 'warn'); }
+        setAuto(row, 'dispense.at', t); setAuto(row, 'dispense.mL', d.mL); setAuto(row, 'dispense.mm', d.mm);
+        setAuto(row, 'dispense.pullMl', d.pullMl); setAuto(row, 'dispense.pullMm', d.pullMm); setAuto(row, 'dispense.heightB', d.heightB);
+        if (d.manual) setAuto(row, 'dispense.manual', true);
+        journal('layer ' + row.layer + ' dispensed' + (d.mL != null ? ' ' + num(d.mL, 3) + ' mL' : '') + (d.manual ? ' (marked by hand)' : ''));
+        break;
+      case 'spin.start':
+        row = layerFor('spin');
+        if (row.spin.result) { addFlag(row, 're-spun'); journal('layer ' + row.layer + ' re-spun', 'warn'); }
+        closeCapture('new spin');
+        cap = { rowId: row.id, data: {}, markers: [], states: [], at: t, implicit: false };
+        setAuto(row, 'spin.at', t); setAuto(row, 'spin.rpmSet', d.rpm); setAuto(row, 'spin.dur', d.dur); setAuto(row, 'spin.rise', d.rise); setAuto(row, 'spin.sink', d.sink); setAuto(row, 'spin.home', d.home);
+        ['meanRpm', 'stdRpm', 'samples', 'minRpm', 'maxRpm', 'result', 'endAt'].forEach(k => { if (!(row.edits && row.edits['spin.' + k])) delete row.spin[k]; });
+        journal('layer ' + row.layer + ' spin started: ' + d.rpm + ' RPM × ' + d.dur + ' s');
+        break;
+      case 'spin.done': closeCapture(d.aborted ? 'aborted' : (d.fault ? 'fault' : null)); break;
+      case 'uv.on':
+        row = layerFor('uv');
+        if (row.cure.onAt && row.cure.offAt) { addFlag(row, 're-cured'); journal('layer ' + row.layer + ' cured again', 'warn'); }
+        setAuto(row, 'cure.onAt', t); setAuto(row, 'cure.offAt', null); setAuto(row, 'cure.actualS', null); setAuto(row, 'cure.aborted', false);
+        setAuto(row, 'cure.setS', d.setS); setAuto(row, 'cure.argon', !!d.argon); setAuto(row, 'cure.lid', !!d.lid); setAuto(row, 'cure.pin', d.pin);
+        if (d.manual) setAuto(row, 'cure.manual', true);
+        journal('layer ' + row.layer + ' UV on' + (d.setS ? ' (' + d.setS + ' s set)' : '') + (d.manual ? ' (marked by hand)' : ''));
+        break;
+      case 'uv.off':
+        row = openLayerRow() || dev.rows.slice().reverse().find(r => r.kind === 'layer' && r.cure.onAt && !r.cure.offAt);
+        if (!row) { journal('UV off (no open layer)'); break; }
+        if (!row.cure.onAt) { journal('UV off without a recorded UV on', 'warn'); break; }
+        setAuto(row, 'cure.offAt', t); setAuto(row, 'cure.actualS', Math.round(cureActual(row) * 10) / 10); setAuto(row, 'cure.aborted', !!d.aborted);
+        journal('layer ' + row.layer + ' UV off — ' + num(row.cure.actualS, 1) + ' s' + (d.aborted ? ' (CUT SHORT)' : ''), d.aborted ? 'warn' : 'info');
+        break;
+      case 'stamp.pick': journal('filter picked from ' + (d.side || '?') + ' feeder'); break;
+      case 'stamp.press': {
+        row = openLayerRow() || layerRows().slice(-1)[0];
+        if (!row) { journal('filter pressed but no layer exists — add a layer row first', 'warn'); toast('No layer to attach the electrode to', 'warn'); break; }
+        const e = electrodeRowFor(row, true);
+        if (e.stamp.at) { addFlag(e, 're-pressed'); journal('electrode after layer ' + row.layer + ' pressed again', 'warn'); }
+        setAuto(e, 'stamp.at', t); setAuto(e, 'stamp.holdS', d.holdS); setAuto(e, 'stamp.side', d.side || null); setAuto(e, 'stamp.pressZ', d.pressZ);
+        if (d.manual) { setAuto(e, 'stamp.manual', true); setAuto(e, 'stamp.note', dev.device.electrodeNote || 'hand press'); if (!e.notes && dev.device.electrodeNote) e.notes = dev.device.electrodeNote; }
+        if (dev.device.feederPolarity && d.side) {
+          const p = polarityBySide(d.side);
+          if (p) { if (!(e.edits && e.edits.polarity)) e.polarity = p; if (p !== polarityByRule(row.layer)) addFlag(e, 'polarity mismatch'); }
+        }
+        dev.state.openLayer = null;    // the layer is complete once its electrode is on
+        journal('electrode ' + e.polarity + ' applied after layer ' + row.layer + (d.side ? ' from feeder ' + d.side : '') + (d.manual ? ' (' + (dev.device.electrodeNote || 'by hand') + ')' : ''));
+        break;
+      }
+      case 'seq.stop': journal('Stop pressed (M410)', 'warn'); abortOpen('aborted' + (curPhase ? ' at ' + (BLOCK_NAMES[curPhase] || curPhase) : '')); break;
+      case 'seq.fault': journal('FAULT: ' + (d.reason || ''), 'err'); abortOpen('fault: ' + (d.reason || 'error')); break;
+      case 'estop': journal('E-STOP (M112)', 'err'); abortOpen('fault: E-STOP'); break;
+      default: journal(kind + (Object.keys(d).length ? ' ' + JSON.stringify(d) : '')); break;
+    }
+    save(); render();
+  }
+  // whatever is open (a spin capture, a cure) ends now
+  function abortOpen(why) {
+    if (cap) closeCapture(why.startsWith('aborted') ? 'aborted' : 'fault');
+    const row = openLayerRow();
+    if (row) {
+      if (row.cure.onAt && !row.cure.offAt) { setAuto(row, 'cure.offAt', isoLocal()); setAuto(row, 'cure.actualS', Math.round(cureActual(row) * 10) / 10); setAuto(row, 'cure.aborted', true); }
+      if (row.dispense.at || row.spin.at || row.cure.onAt) addFlag(row, why);
+    }
+    if (holdWaiter) { const w = holdWaiter; holdWaiter = null; endHold(why); w.reject(abortError(why)); }
+  }
+  function abortError(msg) { const e = new Error(msg); e.name = 'RunLogAbort'; return e; }
+  function warnIncomplete(what) {
+    if (!dev || dev.state.logging !== 'armed') return;
+    const r = openLayerRow(); if (!r) return;
+    const miss = [];
+    if (!r.dispense.at) miss.push('dispense'); if (!r.spin.result) miss.push('spin'); if (!r.cure.offAt) miss.push('cure');
+    if (!miss.length) miss.push('electrode');
+    const msg = 'Layer ' + r.layer + ' looks incomplete (no ' + miss.join(', ') + ' recorded) — ' + (what || 'starting') + ' anyway';
+    toast(msg, 'warn'); journal(msg, 'warn'); save();
+  }
+
+  // ─── serial lines (observe only) ───
+  function rx(line) { safe(() => applyRx(String(line || '')), 'rx'); }
+  function applyRx(line) {
+    if (!dev || dev.state.logging !== 'armed' || !line) return;
+    if (line.startsWith('echo:SPIN ')) {
+      const m = line.substring(10);
+      const dm = m.match(/^DATA:\s*(\w+)=\s*([-\d.]+)/);
+      if (dm) { onSpinData(dm[1], parseFloat(dm[2])); return; }
+      if (m.startsWith('OK:') || m.startsWith('ERR:')) { onSpinMarker(m); return; }
+      if (m.startsWith('WARN:')) { journal('spincoater: ' + m.slice(5).trim(), 'warn'); save(); return; }
+      if (m.startsWith('STATE:')) { onSpinState(m.slice(6).trim()); return; }
+      return;
+    }
+    if (line === 'start') { journal('firmware (re)started', 'warn'); if (cap) closeCapture('firmware restarted'); save(); render(); return; }
+    if (/MOTOR POWER LOST/.test(line)) { journal('MOTOR POWER LOST', 'err'); return; }   // the sequencer faults itself; seq.fault follows
+  }
+  function onSpinState(s) {
+    if (cap) { cap.states.push(s); return; }
+    // A spin started outside the sequencer (Spin tab / console): capture it opportunistically into the
+    // open layer if that layer has not spun yet. A test spin with no open layer is journaled only.
+    if (s === 'RAMP_UP' || s === 'CONNECTING') {
+      const row = openLayerRow();
+      if (row && !row.spin.result) {
+        cap = { rowId: row.id, data: {}, markers: [], states: [s], at: isoLocal(), implicit: true };
+        setAuto(row, 'spin.at', isoLocal()); if (row.spin.rpmSet == null) setAuto(row, 'spin.rpmSet', +dev.device.rpm || null);
+        journal('layer ' + row.layer + ' spin detected (started outside the sequencer)'); save(); render();
+      } else if (s === 'RAMP_UP') { journal('spin detected outside the sequencer (not attached to a layer)'); save(); }
+    }
+  }
+  const SPIN_KEYS = { MeanRPM: 'meanRpm', StdDevRPM: 'stdRpm', Samples: 'samples', MinRPM: 'minRpm', MaxRPM: 'maxRpm', Range: 'rangeRpm', Vbus: 'vbus', HomeSettleErr: 'homeSettleErr' };
+  function onSpinData(key, v) {
+    if (!cap || !(key in SPIN_KEYS) || isNaN(v)) return;
+    cap.data[key] = v;
+    const row = rowById(cap.rowId); if (!row) return;
+    setAuto(row, 'spin.' + SPIN_KEYS[key], v);
+    if (key === 'MeanRPM' || key === 'HomeSettleErr') { save(); render(); }
+  }
+  function onSpinMarker(m) {
+    if (!cap) { if (/^ERR:/.test(m)) { journal('spincoater: ' + m, 'err'); save(); } return; }
+    const tok = m.replace(/^(OK|ERR):\s*/, '').split(/\s/)[0];
+    cap.markers.push(m.startsWith('OK:') ? 'OK:' + tok : 'ERR:' + tok);
+    if (/^ERR:/.test(m)) journal('spincoater: ' + m, 'err');
+    if (tok.startsWith('CYCLE_COMPLETE') || tok === 'ABORTED') closeCapture(null);
+  }
+  function closeCapture(why) {
+    if (!cap) return;
+    const c = cap; cap = null;
+    const row = rowById(c.rowId);
+    if (row) {
+      let result;
+      if (c.markers.includes('OK:CYCLE_COMPLETE')) result = 'ok';
+      else if (c.markers.some(x => x.startsWith('ERR:CYCLE_COMPLETE_NO_HOME'))) result = 'no home';
+      else if (c.markers.includes('OK:ABORTED') || why === 'aborted') result = 'aborted';
+      else if (why === 'fault') result = 'fault';
+      else if (c.data.Samples === 0) result = 'no samples';
+      else if (why === 'manual') result = 'manual';
+      else result = c.data.MeanRPM != null ? 'ok' : 'incomplete';
+      if (!('MeanRPM' in c.data) && result === 'ok') result = 'no samples';
+      setAuto(row, 'spin.result', result); setAuto(row, 'spin.endAt', isoLocal());
+      if (result === 'no samples') addFlag(row, 'no RPM samples');
+      journal('layer ' + row.layer + ' spin ' + result + (c.data.MeanRPM != null ? ' — ' + num(c.data.MeanRPM, 1) + ' RPM (σ ' + num(c.data.StdDevRPM, 1) + ', n ' + (c.data.Samples == null ? '?' : Math.round(c.data.Samples)) + ')' : ' — no RPM samples'), result === 'ok' ? 'info' : 'warn');
+    }
+    save(); render();
+  }
+
+  // ─── manual marks (hand-pressed electrodes, or anything the sequencer did not do) ───
+  function mark(step) {
+    if (!dev) return;
+    if (dev.state.logging !== 'armed') { toast('Start logging first', 'warn'); return; }
+    if (step === 'dispense') applyEvent('dispense', { manual: true, mL: +dev.device.dispenseMl || null });
+    else if (step === 'spin') {
+      if (cap) closeCapture('manual');
+      else { const row = layerFor('spin', true); setAuto(row, 'spin.at', isoLocal()); setAuto(row, 'spin.rpmSet', +dev.device.rpm || null); setAuto(row, 'spin.result', 'manual'); journal('layer ' + row.layer + ' spin marked by hand'); save(); render(); }
+    }
+    else if (step === 'uvOn') applyEvent('uv.on', { manual: true, setS: +dev.device.cureS || null });
+    else if (step === 'uvOff') applyEvent('uv.off', { manual: true });
+    else if (step === 'press') applyEvent('stamp.press', { manual: true, holdS: +dev.device.holdS || null, side: null });
+    else if (step === 'note') {
+      const text = prompt('Note (added to the log with the current time):', '');
+      if (text && text.trim()) { dev.rows.push({ id: uid(), kind: 'note', at: isoLocal(), text: text.trim(), notes: '', edits: {} }); journal('note: ' + text.trim()); save(); render(); }
+    }
+  }
+  function addRow(kind) {
+    if (!dev) return;
+    if (kind === 'layer') { const r = newLayerRow(true); addFlag(r, 'added by hand'); journal('layer ' + r.layer + ' row added by hand'); }
+    else if (kind === 'electrode') {
+      const last = layerRows().slice(-1)[0];
+      if (!last) { toast('Add a layer row first', 'warn'); return; }
+      const e = electrodeRowFor(last, true);
+      if (!e.stamp.at) { setAuto(e, 'stamp.manual', true); e.notes = dev.device.electrodeNote || ''; }
+      dev.state.openLayer = null; journal('electrode row added by hand after layer ' + last.layer);
+    }
+    else if (kind === 'hold') { const r = { id: uid(), kind: 'hold', hold: 'hold', from: isoLocal(), to: isoLocal(), reason: 'entered by hand', ctx: 'manual', edits: {} }; dev.rows.push(r); journal('hold row added by hand'); }
+    else if (kind === 'note') { mark('note'); return; }
+    save(); render();
+  }
+  function deleteRow(id) {
+    const r = rowById(id); if (!r) return;
+    if (!confirm('Delete this ' + (r.kind === 'layer' ? 'layer ' + r.layer : r.kind) + ' row?')) return;
+    dev.rows = dev.rows.filter(x => x.id !== id);
+    if (dev.state.openLayer === id) dev.state.openLayer = null;
+    if (dev.state.hold && dev.state.hold.rowId === id) dev.state.hold = null;
+    if (cap && cap.rowId === id) cap = null;
+    journal('deleted row: ' + rowLabel(r), 'warn'); save(); render();
+  }
+
+  // ─── logging on / off ───
+  function setLogging(on) {
+    if (!dev) return;
+    if (on) {
+      if (dev.state.logging === 'armed') return;
+      dev.state.logging = 'armed';
+      if (dev.state.offSince) {
+        const missed = dev.state.offMissed || 0;
+        dev.rows.push({ id: uid(), kind: 'note', at: isoLocal(), auto: true, edits: {},
+          text: 'Logging was off ' + fmtT(dev.state.offSince) + ' → ' + fmtT(isoLocal()) + (missed ? ' — ' + missed + ' dispense' + (missed > 1 ? 's' : '') + ' not recorded' : '') });
+        dev.state.offSince = null; dev.state.offMissed = 0;
+      }
+      journal('logging ON'); say('logging to "' + dev.id + '"'); toast('Logging to ' + dev.id, 'success');
+      prefill();
+    } else {
+      if (dev.state.logging !== 'armed') return;
+      dev.state.logging = 'off'; dev.state.offSince = isoLocal(); dev.state.offMissed = 0;
+      if (cap) closeCapture('logging off');
+      journal('logging OFF'); say('logging paused — rows are not being written'); toast('Logging off — the machine keeps running, nothing is recorded', 'warn');
+    }
+    save(); render();
+  }
+  function prefill() {
+    if (!prefs.prefillCycles || !dev) return;
+    const s = stats();
+    const cyc = safe(() => H().seqCycles && H().seqCycles()), rep = safe(() => H().seqRepeat && H().seqRepeat());
+    if (cyc && s.remaining > 0) { cyc.value = s.remaining; if (rep) rep.checked = true; say('Run All cycles set to ' + s.remaining + ' (remaining layers)'); }
+  }
+
+  // ─── hold / break (a pause between two sequencer commands) ───
+  function requestHold(kind, reason) {
+    if (!dev) { toast('Open or create a device log first', 'warn'); return; }
+    if (dev.state.hold) return;
+    const running = !!safe(() => H().isRunning && H().isRunning());
+    const point = prefs.holdPoint || 'layer';
+    if (running) {
+      dev.state.holdReq = { kind, point, reason: reason || '', at: isoLocal() };
+      journal((kind === 'break' ? 'break' : 'hold') + ' requested — will pause ' + HOLD_POINTS[point], 'warn');
+      safe(() => H().status && H().status('⏸ <b>' + (kind === 'break' ? 'BREAK' : 'HOLD') + ' requested</b> — the run pauses ' + HOLD_POINTS[point]));
+      toast((kind === 'break' ? 'Break' : 'Hold') + ' requested — pausing ' + HOLD_POINTS[point], 'warn');
+    } else beginHold(kind, reason, 'idle');
+    save(); render();
+  }
+  function beginHold(kind, reason, ctx) {
+    const r = { id: uid(), kind: 'hold', hold: kind === 'break' ? 'break' : 'hold', from: isoLocal(), to: null, reason: reason || (kind === 'break' ? 'operator break' : ''), ctx: ctx || '', edits: {} };
+    dev.rows.push(r); dev.state.hold = { rowId: r.id, kind: r.hold }; dev.state.holdReq = null;
+    journal((r.hold === 'break' ? 'BREAK' : 'HOLD') + ' begins' + (r.reason ? ' — ' + r.reason : '') + (ctx ? ' (' + ctx + ')' : ''), 'warn');
+    say((r.hold === 'break' ? 'break' : 'hold') + ' started' + (ctx === 'run' ? ' — the run is paused between commands; press Resume in the Log tab' : ''));
+    save(); render();
+  }
+  function endHold(why) {
+    if (!dev || !dev.state.hold) return;
+    const r = rowById(dev.state.hold.rowId);
+    if (r) { r.to = isoLocal(); r.endedBy = why || 'resume'; }
+    dev.state.hold = null;
+    journal((r && r.hold === 'break' ? 'break' : 'hold') + ' ends (' + (why || 'resume') + ')' + (r ? ' — ' + fmtDur(toDate(r.to) - toDate(r.from)) : ''));
+    save(); render();
+  }
+  function resume() {
+    if (!dev) return;
+    if (dev.state.holdReq && !dev.state.hold) { dev.state.holdReq = null; journal('hold request cancelled'); safe(() => H().status && H().status('Hold request cancelled — running.')); save(); render(); return; }
+    if (!dev.state.hold) return;
+    endHold('resume');
+    if (holdWaiter) { const w = holdWaiter; holdWaiter = null; safe(() => H().status && H().status('Resumed.')); w.resolve(); }
+  }
+  function holdApplies(point, after, ctx) {
+    if (after === 'single') return true;
+    if (point === 'block') return true;
+    if (point === 'layer') return after === 'cycle';
+    if (point === 'cured') {
+      const blocks = (ctx && ctx.blocks) || [];
+      if (!blocks.includes('uv')) return true;
+      return after === 'cycle' || after === 'uv' || after === 'stamp' || after === 'homing';
+    }
+    return after === 'cycle';
+  }
+  // Called by the sequencer between two commands. Resolves at once unless a hold applies here.
+  function seqHoldPoint(after, ctx) {
+    return new Promise((resolve, reject) => {
+      const q = dev && dev.state.holdReq;
+      if (!q || !holdApplies(q.point, after, ctx)) { resolve(); return; }
+      beginHold(q.kind, q.reason, 'run');
+      holdWaiter = { resolve, reject };
+      const iv = setInterval(() => {
+        if (!holdWaiter) { clearInterval(iv); return; }
+        const ab = safe(() => H().abortReason && H().abortReason());
+        if (ab) { clearInterval(iv); const w = holdWaiter; holdWaiter = null; endHold(ab); w.reject(abortError(ab)); return; }
+        const r = dev && dev.state.hold && rowById(dev.state.hold.rowId);
+        safe(() => H().status && H().status('⏸ <b>' + (r && r.hold === 'break' ? 'BREAK' : 'HOLD') + '</b> — ' + fmtDur(Date.now() - (r ? toDate(r.from) : Date.now())) + ' — waiting for Resume (Log tab)'));
+      }, 500);
+    });
+  }
+
+  // ─── stats / ETA ───
+  function stats() {
+    const L = layerRows(); const done = L.length; const target = +dev.device.targetLayers || 0;
+    const remaining = Math.max(0, target - done);
+    const times = L.map(r => toDate(r.dispense.at)).filter(Boolean).map(d => +d);
+    let per = null, perSrc = '';
+    if (times.length >= 2) { const dd = []; for (let i = 1; i < times.length; i++) dd.push(times[i] - times[i - 1]); dd.sort((a, b) => a - b); per = dd[Math.floor(dd.length / 2)]; perSrc = 'median of ' + dd.length + ' layer' + (dd.length > 1 ? 's' : ''); }
+    else { const s = safe(() => H().settings && H().settings()) || {}; per = ((+s.dur || 0) + (+s.rise || 0) + (+s.sink || 0) + (+s.cureS || +dev.device.cureS || 0) + (+s.stampHold || 0) + 90) * 1000; perSrc = 'from the block settings'; }
+    const started = toDate(dev.state.startedAt);
+    return { done, target, remaining, per, perSrc, eta: (per && remaining) ? per * remaining : null, elapsed: started ? Date.now() - started : null, nominalUm: done * (+dev.device.thicknessUm || 0) };
+  }
+  function lastSpin() { return layerRows().slice().reverse().find(r => r.spin.meanRpm != null); }
+  function lastCure() { return layerRows().slice().reverse().find(r => r.cure.actualS != null); }
+  function nextStep() {
+    const r = openLayerRow();
+    if (!r) return { now: 'idle', next: 'layer ' + nextLayerNumber() + ' dispense' };
+    const el = electrodeRowFor(r, false);
+    let now = 'layer ' + r.layer;
+    if (curPhase) now += ' · ' + (BLOCK_NAMES[curPhase] || curPhase);
+    else if (r.cure.onAt && !r.cure.offAt) now += ' · curing'; else if (cap) now += ' · spinning'; else if (r.cure.offAt) now += ' · cured'; else if (r.dispense.at) now += ' · dispensed';
+    let next;
+    if (!r.dispense.at) next = 'dispense';
+    else if (!r.spin.result && !cap) next = 'spin';
+    else if (!r.cure.offAt) next = 'UV cure';
+    else if (!el || !el.stamp.at) next = polarityByRule(r.layer) + ' electrode' + (dev.device.feederPolarity ? ' (feeder ' + (polarityBySide('L') === polarityByRule(r.layer) ? 'L' : 'R') + ')' : '');
+    else next = 'layer ' + (r.layer + 1) + ' dispense';
+    return { now, next };
+  }
+
+  // ─── rendering ───
+  function el(id) { return document.getElementById(id); }
+  function render() { safe(renderMain, 'render'); safe(renderStrip, 'strip'); }
+  function renderMain() {
+    root = root || el('rlRoot');
+    if (!root) return;
+    root.classList.toggle('details', !!prefs.details);
+    root.classList.toggle('editable', !!prefs.editUnlocked);
+    if (!dev) { root.innerHTML = renderEmpty() + (formOpen === 'new' ? renderForm(null) : ''); return; }
+    const h = [];
+    h.push(renderDeviceCard());
+    if (dev.state.hold || dev.state.holdReq) h.push(renderHoldBanner());
+    if (dev.state.logging !== 'armed') h.push('<div class="rl-banner warn"><div class="rl-txt"><b>Not logging.</b> Runs are not recorded until you press <b>Start logging</b>' + (dev.state.offSince ? ' (off since ' + fmtT(dev.state.offSince) + (dev.state.offMissed ? ', ' + dev.state.offMissed + ' dispense' + (dev.state.offMissed > 1 ? 's' : '') + ' missed' : '') + ')' : '') + '.</div><button class="rl-btn go" data-act="arm">&#9654; Start logging</button></div>');
+    h.push(renderControls());
+    if (formOpen) h.push(renderForm(formOpen === 'edit' ? dev.device : null));
+    h.push(renderTable());
+    h.push(renderJournal());
+    root.innerHTML = h.join('');
+    const j = el('rlJournalBox'); if (j && j.scrollHeight) j.scrollTop = j.scrollHeight;
+  }
+  function renderEmpty() {
+    const names = Object.keys(idx.devices).sort((a, b) => (idx.devices[b].updated || '').localeCompare(idx.devices[a].updated || ''));
+    return '<div class="rl-card rl-empty"><div><b>No device log is open.</b></div><div>Create one per multilayer DEA. The Process Sequencer fills the rows in as it runs; you can edit every cell.</div>' +
+      '<div class="rl-ctl" style="justify-content:center;margin-top:12px"><button class="rl-btn primary" data-act="new">&#65291; New device</button>' +
+      (names.length ? '<select class="rl-sel" id="rlOpenSel">' + names.map(n => '<option value="' + esc(n) + '">' + esc(n) + ' — ' + esc(idx.devices[n].material || '') + ' · ' + (idx.devices[n].layers || 0) + ' layers · ' + esc(fmtD(idx.devices[n].updated)) + '</option>').join('') + '</select><button class="rl-btn" data-act="open">Open</button>' : '') +
+      '<button class="rl-btn" data-act="import">Import JSON…</button></div>' + renderFolderLine() + '</div>';
+  }
+  function renderFolderLine() {
+    let txt, btns = '';
+    if (folder.state === 'granted') { txt = 'Auto-save folder: <b>' + esc(folder.name) + '</b>' + (folder.last ? ' · last saved ' + fmtT(folder.last) : ''); btns = '<button class="rl-btn" data-act="folder-save">Save now</button><button class="rl-btn" data-act="folder-forget">Forget</button>'; }
+    else if (folder.state === 'prompt') { txt = 'Auto-save folder <b>' + esc(folder.name) + '</b> needs permission again after the restart.'; btns = '<button class="rl-btn primary" data-act="folder-reconnect">Reconnect folder</button><button class="rl-btn" data-act="folder-forget">Forget</button>'; }
+    else if (folder.state === 'error') { txt = '<span style="color:var(--red)">Auto-save to <b>' + esc(folder.name) + '</b> failed: ' + esc(folder.err || '') + '</span>'; btns = '<button class="rl-btn" data-act="folder-reconnect">Retry</button><button class="rl-btn" data-act="folder-pick">Pick folder…</button>'; }
+    else { txt = 'Saved in this browser. Pick a <b>save folder</b> to also keep <code>.json</code> / <code>.csv</code> / <code>.xlsx</code> files up to date (e.g. a synced share).'; btns = '<button class="rl-btn" data-act="folder-pick">Pick save folder…</button>'; }
+    return '<div class="rl-ctl" id="rlFolder" style="margin-top:10px;justify-content:center"><span class="rl-hint">' + txt + '</span>' + btns + '</div>';
+  }
+  function renderDeviceCard() {
+    const d = dev.device, s = stats(), ns = nextStep(), armed = dev.state.logging === 'armed';
+    const pct = s.target ? Math.min(100, Math.round(100 * s.done / s.target)) : 0;
+    const spec = [];
+    if (d.material) spec.push('<b>' + esc(d.material) + '</b>' + (d.materialType ? ' · ' + esc(d.materialType) : ''));
+    if (d.thicknessUm) spec.push(d.thicknessUm + (d.thicknessTolUm ? ' ± ' + d.thicknessTolUm : '') + ' µm/layer');
+    if (d.targetLayers) spec.push('target <b>' + d.targetLayers + '</b> layers');
+    if (d.rpm) spec.push(d.rpm + ' RPM'); if (d.holdS) spec.push(d.holdS + ' s hold'); if (d.cureS) spec.push(d.cureS + ' s cure'); if (d.dispenseMl) spec.push(num(d.dispenseMl, 3) + ' mL');
+    spec.push('electrodes ' + (d.firstElectrode || 'P') + '/' + ((d.firstElectrode || 'P') === 'P' ? 'N' : 'P') + (d.feederPolarity ? ' (L = ' + (d.feederLeft || 'P') + ')' : ''));
+    if (d.operator) spec.push('op. ' + esc(d.operator));
+    spec.push('created ' + esc(fmtD(dev.created)));
+    return '<div class="rl-card rl-dev">' +
+      '<div><h3>' + esc(dev.id) + ' <span class="rl-pill ' + (armed ? 'live' : 'dim') + '">' + (armed ? 'logging' : 'not logging') + '</span>' +
+      (dev.state.hold ? ' <span class="rl-pill hold">' + (dev.state.hold.kind === 'break' ? 'on break' : 'on hold') + '</span>' : '') + '</h3>' +
+      '<div class="rl-spec">' + spec.join(' · ') + '</div>' + (d.notes ? '<div class="rl-spec">' + esc(d.notes) + '</div>' : '') + '</div>' +
+      '<div class="rl-now">now: <b>' + esc(ns.now) + '</b><br>next: <b>' + esc(ns.next) + '</b><br>elapsed <span id="rlElapsed">' + (s.elapsed != null ? fmtDur(s.elapsed) : '—') + '</span> · est. remaining <span id="rlEta">' + (s.eta != null ? '~' + fmtDur(s.eta) : '—') + '</span>' + (s.per ? '<br><span class="rl-hint">' + fmtDur(s.per) + ' per layer (' + esc(s.perSrc) + ')</span>' : '') + '</div>' +
+      '<div class="rl-prog"><span><b>' + s.done + '</b>' + (s.target ? ' / ' + s.target : '') + ' layers</span><div class="rl-track"><div class="rl-fill" style="width:' + pct + '%"></div></div><span class="dim">nominal ' + s.nominalUm + ' µm</span>' +
+      (s.remaining && prefs.prefillCycles ? '<button class="rl-btn" data-act="prefill" title="Set Run All to Repeat × remaining layers">cycles ← ' + s.remaining + '</button>' : '') + '</div></div>';
+  }
+  function renderHoldBanner() {
+    if (dev.state.hold) {
+      const r = rowById(dev.state.hold.rowId);
+      const kind = dev.state.hold.kind === 'break' ? 'BREAK' : 'HOLD';
+      return '<div class="rl-banner"><span style="font-size:20px">&#9208;</span><div class="rl-txt"><b>' + kind + '</b> since ' + fmtT(r ? r.from : '') + ' — <span id="rlHoldDur">' + fmtDur(Date.now() - (r ? toDate(r.from) : Date.now())) + '</span>' +
+        (r && r.reason ? ' · ' + esc(r.reason) : '') + (holdWaiter ? '. The run is paused between two commands; nothing is sent to the machine until you resume.' : (r && r.ctx === 'run' ? '. (The run that was paused is no longer active.)' : '.')) + '</div>' +
+        '<button class="rl-btn go on" data-act="resume">&#9654; Resume</button></div>';
+    }
+    const q = dev.state.holdReq;
+    return '<div class="rl-banner req"><span style="font-size:20px">&#9208;</span><div class="rl-txt"><b>' + (q.kind === 'break' ? 'Break' : 'Hold') + ' requested</b> at ' + fmtT(q.at) + ' — the run will pause <b>' + esc(HOLD_POINTS[q.point] || q.point) + '</b>' + (q.reason ? ' · ' + esc(q.reason) : '') + '.</div><button class="rl-btn" data-act="cancel-hold">Cancel request</button></div>';
+  }
+  function renderControls() {
+    const armed = dev.state.logging === 'armed', holding = !!dev.state.hold, req = !!dev.state.holdReq;
+    const hp = prefs.holdPoint || 'layer';
+    const holdSel = '<select class="rl-sel" data-pref="holdPoint" title="Where a Hold / Break takes effect during a run"><option value="layer"' + (hp === 'layer' ? ' selected' : '') + '>at end of layer</option><option value="cured"' + (hp === 'cured' ? ' selected' : '') + '>after next UV cure</option><option value="block"' + (hp === 'block' ? ' selected' : '') + '>after current block</option></select>';
+    return '<div class="rl-card"><div class="rl-ctl">' +
+      (armed ? '<button class="rl-btn go on" data-act="disarm" title="Stop recording (the machine keeps running)">&#9679; Logging ON</button>' : '<button class="rl-btn go" data-act="arm">&#9654; Start logging</button>') +
+      '<button class="rl-btn hold' + (req ? ' on' : '') + '" data-act="hold"' + (holding ? ' disabled' : '') + ' title="Pause the run at the chosen point and record the hold">&#9208; Hold</button>' +
+      '<button class="rl-btn hold" data-act="break"' + (holding ? ' disabled' : '') + ' title="Operator break — same as Hold, recorded as a break">&#9749; Break</button>' + holdSel +
+      (holding ? '<button class="rl-btn go on" data-act="resume">&#9654; Resume</button>' : '') +
+      '<span class="rl-gap"></span>' +
+      '<button class="rl-btn' + (prefs.editUnlocked ? ' primary' : '') + '" data-act="edit-toggle" title="Unlock to edit cells by tapping them">' + (prefs.editUnlocked ? '&#128275; Editing' : '&#128274; Edit') + '</button>' +
+      '<button class="rl-btn" data-act="order" title="Row order">' + (prefs.order === 'stack' ? '&#8593; newest on top' : '&#8595; chronological') + '</button>' +
+      '<button class="rl-btn' + (prefs.details ? ' primary' : '') + '" data-act="details" title="Show the measured / technical columns (right)">Details</button>' +
+      '</div><div class="rl-ctl" style="margin-top:8px">' +
+      '<span class="rl-hint">Mark now:</span>' +
+      '<button class="rl-btn" data-act="mark:dispense" title="Record a dispense done outside the sequencer">Dispensed</button>' +
+      '<button class="rl-btn" data-act="mark:spin" title="Record a spin done outside the sequencer">Spun</button>' +
+      '<button class="rl-btn" data-act="mark:uvOn">UV on</button><button class="rl-btn" data-act="mark:uvOff">UV off</button>' +
+      '<button class="rl-btn primary" data-act="mark:press" title="Electrode filter pressed on by hand — adds the P/N row with the current time">&#9998; Filter pressed</button>' +
+      '<button class="rl-btn" data-act="mark:note">&#43; Note</button>' +
+      '<span class="rl-gap"></span>' +
+      '<select class="rl-sel" id="rlAddSel" title="Add a row by hand"><option value="">+ Row…</option><option value="layer">layer</option><option value="electrode">electrode</option><option value="hold">hold</option></select>' +
+      '<button class="rl-btn" data-act="edit-dev">Device…</button>' +
+      '<select class="rl-sel" id="rlExportSel" title="Export"><option value="">Export…</option><option value="xlsx">Excel (.xlsx, reference-sheet layout)</option><option value="csv">CSV</option><option value="json">JSON (backup)</option></select>' +
+      '<button class="rl-btn" data-act="new">New device</button>' +
+      '<select class="rl-sel" id="rlOpenSel" title="Open another device log"><option value="">Open…</option>' + Object.keys(idx.devices).sort((a, b) => (idx.devices[b].updated || '').localeCompare(idx.devices[a].updated || '')).filter(n => n !== dev.id).map(n => '<option value="' + esc(n) + '">' + esc(n) + ' · ' + (idx.devices[n].layers || 0) + ' layers</option>').join('') + '</select>' +
+      '<button class="rl-btn" data-act="import">Import…</button>' +
+      '<button class="rl-btn danger" data-act="delete-dev" title="Delete this device log">Delete</button>' +
+      '</div>' + renderFolderLine() + '</div>';
+  }
+  function renderForm(d) {
+    const v = Object.assign({ id: defaultId(), operator: '', material: '', materialType: '', thicknessUm: 70, thicknessTolUm: 10, targetLayers: 31, rpm: 1000, holdS: 50, cureS: 480, dispenseMl: 0.05, firstElectrode: 'P', feederPolarity: false, feederLeft: 'P', electrodeNote: 'hand press', notes: '' }, d || {});
+    if (!d) {   // a new device: seed from the built-in preset and the current Recipe-tab settings
+      const p = presets[Object.keys(presets)[0]] || {}; Object.assign(v, p, { id: v.id });
+      const s = safe(() => H().settings && H().settings()) || {};
+      if (s.rpm) v.rpm = s.rpm; if (s.dur) v.holdS = s.dur; if (s.cureS) v.cureS = s.cureS; if (s.dispenseMl) v.dispenseMl = s.dispenseMl;
+    }
+    const f = (name, label, type, extra) => '<label>' + label + '<input id="rlf-' + name + '" type="' + (type || 'text') + '" value="' + esc(v[name] == null ? '' : v[name]) + '"' + (extra || '') + '></label>';
+    const presetOpts = Object.keys(presets).map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+    return '<div class="rl-card"><div class="rl-form">' +
+      '<label class="full" style="flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><span style="font-size:15px;font-weight:700;color:var(--text)">' + (d ? 'Edit device' : 'New device') + '</span><span class="rl-gap" style="flex:1"></span>' +
+      'Preset <select class="rl-sel" id="rlf-preset"><option value="">(choose)</option>' + presetOpts + '</select><button class="rl-btn" data-act="preset-apply">Apply</button><button class="rl-btn" data-act="preset-save" title="Save these specs as a named preset">Save as preset</button><button class="rl-btn" data-act="preset-del" title="Delete the selected preset">&#10005;</button></label>' +
+      f('id', 'Device ID', 'text', d ? ' disabled' : '') + f('operator', 'Operator') + f('material', 'Material (formula)') + f('materialType', 'Material type') +
+      f('thicknessUm', 'Layer thickness (µm)', 'number', ' step="1"') + f('thicknessTolUm', 'Tolerance (± µm)', 'number', ' step="1"') + f('targetLayers', 'Target layers', 'number', ' step="1" min="1"') +
+      f('rpm', 'Spin RPM (nominal)', 'number', ' step="10"') + f('holdS', 'RPM hold time (s)', 'number', ' step="1"') + f('cureS', 'UV cure (s)', 'number', ' step="1"') + f('dispenseMl', 'Dispense (mL)', 'number', ' step="0.005"') +
+      '<label>Electrode after layer 1<select id="rlf-firstElectrode" class="rl-sel"><option value="P"' + (v.firstElectrode === 'P' ? ' selected' : '') + '>P (then N, P, N…)</option><option value="N"' + (v.firstElectrode === 'N' ? ' selected' : '') + '>N (then P, N, P…)</option></select></label>' +
+      '<label class="chk"><input type="checkbox" id="rlf-feederPolarity"' + (v.feederPolarity ? ' checked' : '') + '> Feeder side sets the polarity</label>' +
+      '<label>Left feeder holds<select id="rlf-feederLeft" class="rl-sel"><option value="P"' + (v.feederLeft === 'P' ? ' selected' : '') + '>P (right = N)</option><option value="N"' + (v.feederLeft === 'N' ? ' selected' : '') + '>N (right = P)</option></select></label>' +
+      f('electrodeNote', 'Note for hand-pressed electrodes') +
+      '<label class="full">Notes<textarea id="rlf-notes" rows="2">' + esc(v.notes) + '</textarea></label>' +
+      '<div class="rl-btns"><button class="rl-btn primary" data-act="save-form">' + (d ? 'Save' : 'Create') + '</button><button class="rl-btn" data-act="cancel-form">Cancel</button></div>' +
+      '</div></div>';
+  }
+  function readForm() {
+    const g = id => { const e = el('rlf-' + id); return e ? e.value : ''; };
+    const c = id => { const e = el('rlf-' + id); return !!(e && e.checked); };
+    return { id: g('id'), operator: g('operator'), material: g('material'), materialType: g('materialType'), thicknessUm: g('thicknessUm'), thicknessTolUm: g('thicknessTolUm'), targetLayers: g('targetLayers'),
+             rpm: g('rpm'), holdS: g('holdS'), cureS: g('cureS'), dispenseMl: g('dispenseMl'), firstElectrode: g('firstElectrode'), feederPolarity: c('feederPolarity'), feederLeft: g('feederLeft'), electrodeNote: g('electrodeNote'), notes: g('notes') };
+  }
+  function fillForm(p) { Object.keys(p).forEach(k => { const e = el('rlf-' + k); if (!e || k === 'id') return; if (e.type === 'checkbox') e.checked = !!p[k]; else e.value = p[k] == null ? '' : p[k]; }); }
+
+  const COLS = [
+    { k: 'layer', h: 'Layer' },
+    { k: 'dispAt', h: 'Dispensed', cls: 't', edit: ['dispense.at', 'time'], on: ['layer'] },
+    { k: 'vol', h: 'Vol mL', cls: 'n', edit: ['dispense.mL', 'num'], on: ['layer'] },
+    { k: 'rpm', h: 'RPM set / settled', cls: 'n', edit: ['spin.meanRpm', 'num'], on: ['layer'] },
+    { k: 'uvOn', h: 'UV on', cls: 't', edit: ['cure.onAt', 'time'], on: ['layer'] },
+    { k: 'cure', h: 'Cure set / actual s', cls: 'n', edit: ['cure.actualS', 'num'], on: ['layer'] },
+    { k: 'filterAt', h: 'Filter applied', cls: 't', edit: ['stamp.at', 'time'], on: ['electrode'] },
+    { k: 'hold', h: 'Hold s', cls: 'n', edit: ['stamp.holdS', 'num'], on: ['electrode'] },
+    { k: 'side', h: 'Side', edit: ['stamp.side', 'sel:L,R'], on: ['electrode'] },
+    { k: 'nominal', h: 'Nominal µm', cls: 'n' },
+    { k: 'result', h: 'Result' },
+    { k: 'notes', h: 'Notes', cls: 'notes', edit: ['notes', 'text'], on: ['layer', 'electrode'] },
+    { k: 'std', h: 'σ RPM', cls: 'n', det: true, edit: ['spin.stdRpm', 'num'], on: ['layer'] },
+    { k: 'samples', h: 'n', cls: 'n', det: true, on: ['layer'] },
+    { k: 'minmax', h: 'min / max RPM', cls: 'n', det: true, on: ['layer'] },
+    { k: 'hse', h: 'HomeSettleErr °', cls: 'n', det: true, edit: ['spin.homeSettleErr', 'num'], on: ['layer'] },
+    { k: 'vbus', h: 'Vbus V', cls: 'n', det: true, on: ['layer'] },
+    { k: 'spinAt', h: 'Spin start', cls: 't', det: true, edit: ['spin.at', 'time'], on: ['layer'] },
+    { k: 'uvOff', h: 'UV off', cls: 't', det: true, edit: ['cure.offAt', 'time'], on: ['layer'] },
+    { k: 'pull', h: 'Retract mL', cls: 'n', det: true, on: ['layer'] },
+    { k: 'heightB', h: 'Height B mm', cls: 'n', det: true, on: ['layer'] },
+    { k: 'pressZ', h: 'Press Z mm', cls: 'n', det: true, on: ['electrode'] },
+    { k: 'flags', h: 'Flags', det: true },
+  ];
+  function cellHtml(row, c) {
+    const s = row.spin || {}, d = row.dispense || {}, u = row.cure || {}, st = row.stamp || {};
+    const L = row.kind === 'layer', E = row.kind === 'electrode';
+    const setv = (set, act, dig, setDig) => (set != null ? '<span class="set">' + num(set, setDig == null ? dig : setDig) + ' /</span> ' : '') + (act != null ? '<b>' + num(act, dig) + '</b>' : '<span class="dim">—</span>');
+    switch (c.k) {
+      case 'layer': return L ? String(row.layer) : (E ? esc(row.polarity) + '<span class="dim" style="font-size:11px;font-weight:400"> ' + row.layer + '</span>' : '');
+      case 'dispAt': return L ? fmtT(d.at) : '';
+      case 'vol': return L ? num(d.mL, 3) : '';
+      case 'rpm': return L ? (s.rpmSet != null || s.meanRpm != null ? setv(s.rpmSet, s.meanRpm, 1, 0) : '') : '';
+      case 'uvOn': return L ? fmtT(u.onAt) : '';
+      case 'cure': { if (!L) return ''; if (u.onAt && !u.offAt) return '<span class="set">' + num(u.setS, 0) + ' /</span> <b id="rl-cure-' + row.id + '">' + num((Date.now() - toDate(u.onAt)) / 1000, 0) + '</b> &#8593;'; return (u.setS != null || u.actualS != null) ? setv(u.setS, u.actualS, 1, 0) : ''; }
+      case 'filterAt': return E ? fmtT(st.at) : '';
+      case 'hold': return E ? num(st.holdS, 0) : '';
+      case 'side': return E ? (st.side || '') : '';
+      case 'nominal': return (L || E) ? String(nominalFor(row)) : '';
+      case 'result': { const r = resultOf(row); return r[1] ? '<span class="rl-pill ' + r[0] + '">' + esc(r[1]) + '</span>' : ''; }
+      case 'notes': return esc(row.notes || '');
+      case 'std': return L ? num(s.stdRpm, 1) : '';
+      case 'samples': return L && s.samples != null ? String(Math.round(s.samples)) : '';
+      case 'minmax': return L && (s.minRpm != null || s.maxRpm != null) ? num(s.minRpm, 0) + ' / ' + num(s.maxRpm, 0) : '';
+      case 'hse': return L ? num(s.homeSettleErr, 2) : '';
+      case 'vbus': return L ? num(s.vbus, 1) : '';
+      case 'spinAt': return L ? fmtT(s.at) : '';
+      case 'uvOff': return L ? fmtT(u.offAt) : '';
+      case 'pull': return L ? num(d.pullMl, 3) : '';
+      case 'heightB': return L ? num(d.heightB, 1) : '';
+      case 'pressZ': return E ? num(st.pressZ, 1) : '';
+      case 'flags': return esc((row.flags || []).join(', '));
+    }
+    return '';
+  }
+  function renderTable() {
+    const rows = prefs.order === 'stack' ? dev.rows.slice().reverse() : dev.rows.slice();
+    const ncols = COLS.length + 1;
+    const head = '<tr>' + COLS.map(c => '<th' + (c.det ? ' class="det"' : '') + '>' + esc(c.h) + '</th>').join('') + '<th></th></tr>';
+    const body = rows.map(row => {
+      const acts = prefs.editUnlocked ? '<button class="rl-rowbtn" data-act="del-row:' + row.id + '" title="Delete row">&#10005;</button>' : '';
+      if (row.kind === 'hold') {
+        const open = !row.to;
+        return '<tr class="holdrow"><td colspan="' + ncols + '"' + (prefs.editUnlocked ? ' data-edit="' + row.id + '|reason|text"' : '') + '>&#9208; ' + (row.hold === 'break' ? 'Break' : 'Hold') + ' ' + fmtT(row.from) + ' &rarr; ' + (open ? '<span class="rl-holdopen" id="rl-hold-' + row.id + '">now (' + fmtDur(Date.now() - toDate(row.from)) + ')</span>' : fmtT(row.to) + ' · ' + fmtDur(toDate(row.to) - toDate(row.from))) +
+          (row.reason ? ' · ' + esc(row.reason) : '') + (row.ctx === 'run' ? ' · run paused' : (row.ctx === 'idle' ? '' : (row.ctx ? ' · ' + esc(row.ctx) : ''))) + (row.endedBy && row.endedBy !== 'resume' ? ' · ended by ' + esc(row.endedBy) : '') + ' ' + acts + '</td></tr>';
+      }
+      if (row.kind === 'note') return '<tr class="noterow"><td colspan="' + ncols + '"' + (prefs.editUnlocked ? ' data-edit="' + row.id + '|text|text"' : '') + '>&#9998; ' + fmtT(row.at) + ' — ' + esc(row.text) + ' ' + acts + '</td></tr>';
+      const cur = (dev.state.openLayer === row.id) || (row.kind === 'electrode' && dev.state.openLayer == null && dev.rows[dev.rows.length - 1] === row);
+      const cls = row.kind === 'layer' ? 'layer' : 'el';
+      const tds = COLS.map(c => {
+        const editable = prefs.editUnlocked && c.edit && (!c.on || c.on.includes(row.kind));
+        const edited = c.edit && row.edits && row.edits[c.edit[0]];
+        const inner = cellHtml(row, c);
+        return '<td class="' + (c.k === 'layer' ? cls : (c.cls || '')) + (c.det ? ' det' : '') + '"' + (editable ? ' data-edit="' + row.id + '|' + c.edit[0] + '|' + c.edit[1] + '"' : '') + '>' +
+          (edited ? '<span class="rl-ed" title="edited — recorded value: ' + esc(fmtEdit(row.edits[c.edit[0]].auto, c.edit[1])) + '">' + inner + '</span>' + (prefs.editUnlocked ? ' <button class="rl-rowbtn" data-act="revert:' + row.id + ':' + c.edit[0] + '" title="Revert to the recorded value">&#8634;</button>' : '') : inner) + '</td>';
+      }).join('');
+      return '<tr' + (cur ? ' class="cur"' : '') + ' data-row="' + row.id + '">' + tds + '<td>' + acts + '</td></tr>';
+    }).join('');
+    const legend = '<div class="rl-legend"><span>' + (prefs.order === 'stack' ? 'newest row on top (like the sheet)' : 'oldest row on top') + '</span><span>&#9998; = edited by hand (the recorded value is kept underneath)</span><span>' + (prefs.editUnlocked ? 'tap a cell to edit it' : 'unlock Edit to change cells') + '</span><span>times from this computer\'s clock</span></div>';
+    return '<div class="rl-tblwrap"><table class="rl-tbl"><thead>' + head + '</thead><tbody>' + (body || '<tr><td colspan="' + ncols + '" class="dim" style="text-align:center;padding:20px">No rows yet — the first dispense opens layer 1.</td></tr>') + '</tbody></table></div>' + legend;
+  }
+  function fmtEdit(v, type) { if (v == null) return '(blank)'; return type === 'time' ? fmtT(v) : String(v); }
+  function renderJournal() {
+    const j = dev.journal.slice(-400);
+    return '<details class="rl-det"' + (prefs.journalOpen ? ' open' : '') + ' id="rlJournalDet"><summary>Journal — every event, including re-runs (' + dev.journal.length + ')</summary><div class="rl-journal" id="rlJournalBox">' +
+      j.map(e => '<div class="' + esc(e.level || 'info') + '"><span class="t">' + fmtD(e.at) + ' ' + fmtT(e.at) + '</span>' + esc(e.text) + '</div>').join('') + '</div></details>';
+  }
+  function renderStrip() {
+    strip = strip || el('rlStrip');
+    if (!strip) return;
+    if (!dev) { strip.hidden = false; strip.innerHTML = '<span>Run Log: <b>no device open</b></span><button class="rl-btn" data-act="goto">Open the Log tab</button>'; return; }
+    const s = stats(), ns = nextStep(), armed = dev.state.logging === 'armed';
+    const pct = s.target ? Math.min(100, Math.round(100 * s.done / s.target)) : 0;
+    const ls = lastSpin(), lc = lastCure();
+    strip.hidden = false;
+    strip.innerHTML = '<span>Log: <b>' + esc(dev.id) + '</b> <span class="rl-pill ' + (armed ? 'live' : 'dim') + '">' + (armed ? 'on' : 'off') + '</span></span>' +
+      '<span>layer <b>' + s.done + (s.target ? ' / ' + s.target : '') + '</b></span><div class="rl-track"><div class="rl-fill" style="width:' + pct + '%"></div></div>' +
+      '<span>next: <b>' + esc(ns.next) + '</b></span>' +
+      (ls ? '<span>last spin <b>' + num(ls.spin.meanRpm, 0) + '</b> RPM</span>' : '') + (lc ? '<span>last cure <b>' + num(lc.cure.actualS, 0) + '</b> s</span>' : '') +
+      '<span id="rls-elapsed">' + (s.elapsed != null ? fmtDur(s.elapsed) : '') + '</span><span id="rls-eta">' + (s.eta != null ? '~' + fmtDur(s.eta) + ' left' : '') + '</span>' +
+      (dev.state.hold ? '<span class="rl-pill hold">' + (dev.state.hold.kind === 'break' ? 'BREAK' : 'HOLD') + ' <span id="rls-hold">' + fmtDur(Date.now() - toDate(rowById(dev.state.hold.rowId).from)) + '</span></span><button class="rl-btn go" data-act="resume">&#9654; Resume</button>' :
+        (dev.state.holdReq ? '<span class="rl-pill warn">hold requested</span>' : '<button class="rl-btn hold" data-act="hold">&#9208; Hold</button><button class="rl-btn hold" data-act="break">&#9749; Break</button>')) +
+      '<button class="rl-btn" data-act="goto">Log &#9656;</button>';
+  }
+  function tick() {
+    if (!dev) return;
+    safe(() => {
+      const s = stats();
+      const e1 = el('rlElapsed'), e2 = el('rlEta'), e3 = el('rls-elapsed'), e4 = el('rls-eta');
+      if (e1) e1.textContent = s.elapsed != null ? fmtDur(s.elapsed) : '—'; if (e2) e2.textContent = s.eta != null ? '~' + fmtDur(s.eta) : '—';
+      if (e3) e3.textContent = s.elapsed != null ? fmtDur(s.elapsed) : ''; if (e4) e4.textContent = s.eta != null ? '~' + fmtDur(s.eta) + ' left' : '';
+      if (dev.state.hold) { const r = rowById(dev.state.hold.rowId); const t = r ? fmtDur(Date.now() - toDate(r.from)) : ''; ['rlHoldDur', 'rls-hold', 'rl-hold-' + (r ? r.id : '')].forEach(id => { const x = el(id); if (x) x.textContent = id.startsWith('rl-hold-') ? 'now (' + t + ')' : t; }); }
+      dev.rows.forEach(r => { if (r.kind === 'layer' && r.cure.onAt && !r.cure.offAt) { const x = el('rl-cure-' + r.id); if (x) x.textContent = num((Date.now() - toDate(r.cure.onAt)) / 1000, 0); } });
+    }, 'tick');
+  }
+
+  // ─── editing ───
+  function startEdit(td) {
+    const [rowId, path, type] = (td.dataset.edit || '').split('|');
+    const row = rowById(rowId); if (!row) return;
+    if (editing) commitEdit(false);
+    editing = { rowId, path, type, td, prev: td.innerHTML };
+    const cur = getp(row, path);
+    let inp;
+    if (type.startsWith('sel:')) { inp = document.createElement('select'); inp.className = 'rl-in'; ['', ...type.slice(4).split(',')].forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o || '—'; if ((cur || '') === o) op.selected = true; inp.appendChild(op); }); }
+    else if (type === 'text' && (path === 'notes' || path === 'text' || path === 'reason')) { inp = document.createElement('textarea'); inp.className = 'rl-in'; inp.value = cur == null ? '' : String(cur); }
+    else { inp = document.createElement('input'); inp.className = 'rl-in'; inp.type = 'text'; inp.value = type === 'time' ? fmtT(cur) : (cur == null ? '' : String(cur)); inp.placeholder = type === 'time' ? 'HH:MM:SS' : (type === 'num' ? 'number' : ''); }
+    td.innerHTML = ''; td.appendChild(inp);
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter' && inp.tagName !== 'TEXTAREA') { ev.preventDefault(); commitEdit(true); } else if (ev.key === 'Escape') { ev.preventDefault(); commitEdit(false); } });
+    inp.addEventListener('blur', () => { setTimeout(() => { if (editing && editing.td === td) commitEdit(true); }, 0); });
+    inp.focus(); if (inp.select) inp.select();
+  }
+  function parseEdit(type, raw, cur) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (type === 'num') { if (s === '') return null; const v = parseFloat(s); return isNaN(v) ? undefined : v; }
+    if (type === 'time') {
+      if (s === '') return null;
+      const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      if (m) { const base = toDate(cur) || new Date(); const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), +m[1], +m[2], +(m[3] || 0)); return isNaN(d) ? undefined : isoLocal(d); }
+      const d = new Date(s); return isNaN(d) ? undefined : isoLocal(d);
+    }
+    if (type.startsWith('sel:')) return s || null;
+    return s;
+  }
+  function commitEdit(apply) {
+    const e = editing; if (!e) return; editing = null;
+    const row = rowById(e.rowId);
+    const inp = e.td.querySelector ? e.td.querySelector('.rl-in') : null;
+    if (!apply || !row || !inp) { render(); return; }
+    const v = parseEdit(e.type, inp.value, getp(row, e.path));
+    if (v === undefined) { toast('Could not read that value (use HH:MM:SS for times)', 'warn'); render(); return; }
+    const cur = getp(row, e.path);
+    if ((cur == null ? '' : String(cur)) !== (v == null ? '' : String(v))) {
+      setEdit(row, e.path, v);
+      if (e.path === 'cure.onAt' || e.path === 'cure.offAt') { const a = cureActual(row); if (a != null && !(row.edits && row.edits['cure.actualS'])) row.cure.actualS = Math.round(a * 10) / 10; }
+      if (e.path === 'stamp.side' && dev.device.feederPolarity && !(row.edits && row.edits.polarity)) { const p = polarityBySide(v); if (p) row.polarity = p; }
+      save();
+    }
+    render();
+  }
+
+  // ─── export / import ───
+  const CSV_COLS = ['device', 'kind', 'layer', 'polarity', 'dispensed_at', 'dispense_mL', 'dispense_mm', 'retract_mL', 'height_B_mm', 'spin_start', 'rpm_set', 'rpm_mean', 'rpm_std', 'rpm_min', 'rpm_max', 'samples', 'home_settle_err_deg', 'vbus_V', 'spin_result', 'uv_on', 'uv_off', 'cure_set_s', 'cure_actual_s', 'argon', 'filter_at', 'press_hold_s', 'side', 'press_Z_mm', 'nominal_um', 'result', 'flags', 'notes', 'hold_kind', 'from', 'to', 'duration_s', 'reason', 'manual', 'created'];
+  function rowRecord(r) {
+    const s = r.spin || {}, d = r.dispense || {}, u = r.cure || {}, st = r.stamp || {};
+    const rec = { device: dev.id, kind: r.kind, layer: (r.kind === 'layer' || r.kind === 'electrode') ? r.layer : '', polarity: r.polarity || '', notes: r.notes || (r.kind === 'note' ? r.text : '') || '', flags: (r.flags || []).join('; '), created: r.created || r.at || r.from || '' };
+    if (r.kind === 'layer') Object.assign(rec, { dispensed_at: d.at || '', dispense_mL: d.mL, dispense_mm: d.mm, retract_mL: d.pullMl, height_B_mm: d.heightB, spin_start: s.at || '', rpm_set: s.rpmSet, rpm_mean: s.meanRpm, rpm_std: s.stdRpm, rpm_min: s.minRpm, rpm_max: s.maxRpm, samples: s.samples, home_settle_err_deg: s.homeSettleErr, vbus_V: s.vbus, spin_result: s.result || '', uv_on: u.onAt || '', uv_off: u.offAt || '', cure_set_s: u.setS, cure_actual_s: u.actualS, argon: u.argon ? 1 : (u.argon === false ? 0 : ''), nominal_um: nominalFor(r), result: resultOf(r)[1], manual: (d.manual || u.manual || r.manual) ? 1 : 0 });
+    if (r.kind === 'electrode') Object.assign(rec, { filter_at: st.at || '', press_hold_s: st.holdS, side: st.side || '', press_Z_mm: st.pressZ, nominal_um: nominalFor(r), result: resultOf(r)[1], manual: st.manual ? 1 : 0 });
+    if (r.kind === 'hold') Object.assign(rec, { hold_kind: r.hold, from: r.from || '', to: r.to || '', duration_s: (r.from && r.to) ? Math.round((toDate(r.to) - toDate(r.from)) / 1000) : '', reason: r.reason || '' });
+    if (r.kind === 'note') rec.created = r.at || '';
+    return rec;
+  }
+  function csvCell(v) { if (v == null) return ''; const s = String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  function buildCsv() { const lines = [CSV_COLS.join(',')]; dev.rows.forEach(r => { const rec = rowRecord(r); lines.push(CSV_COLS.map(k => csvCell(rec[k])).join(',')); }); return lines.join('\r\n') + '\r\n'; }
+  function download(name, data, type) {
+    try {
+      const blob = data instanceof Blob ? data : new Blob([data], { type: type || 'application/octet-stream' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(() => { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) {} }, 2000);
+      say('exported ' + name);
+    } catch (e) { oops('export failed: ' + e.message); }
+  }
+  function exportAs(fmt) {
+    if (!dev) return;
+    if (fmt === 'csv') download(dev.id + '.csv', '\uFEFF' + buildCsv(), 'text/csv');
+    else if (fmt === 'json') download(dev.id + '.json', JSON.stringify(dev, null, 2), 'application/json');
+    else if (fmt === 'xlsx') download(dev.id + '.xlsx', buildXlsx(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  }
+  function importJson(file) {
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = ev => safe(() => {
+      const d = JSON.parse(ev.target.result);
+      if (!d || d.kind !== 'rmr-runlog' || !d.rows || !d.device) { oops('that file is not a run log export'); toast('Not a run log file', 'error'); return; }
+      d.id = sanitizeId(d.id || d.device.id) || defaultId(); d.device.id = d.id;
+      if (idx.devices[d.id] && !confirm('A device log named "' + d.id + '" already exists. Replace it with the imported file?')) return;
+      if (!d.state) d.state = {}; d.state = Object.assign({ logging: 'off', openLayer: null, hold: null, holdReq: null, offSince: null, offMissed: 0, startedAt: null }, d.state, { logging: 'off', holdReq: null });
+      if (!d.journal) d.journal = [];
+      closeCapture('import');
+      dev = d; journal('imported from file ' + (file.name || '')); save(); say('imported "' + d.id + '"'); render();
+    }, 'import');
+    rd.readAsText(file);
+  }
+  function pickImport() {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.addEventListener('change', () => importJson(inp.files && inp.files[0]));
+    inp.click();
+  }
+
+  // ─── XLSX writer (no dependencies; stored ZIP + minimal OOXML) ───
+  const CRC_T = (() => { const t = new Int32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c; } return t; })();
+  function crc32(u8) { let c = -1; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ -1) >>> 0; }
+  function zipStore(files) {
+    const enc = new TextEncoder(); const parts = [], central = []; let offset = 0;
+    const d = new Date(); const dtime = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF; const ddate = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+    for (const f of files) {
+      const name = enc.encode(f.name), data = f.data instanceof Uint8Array ? f.data : enc.encode(f.data), crc = crc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, dtime, true); lh.setUint16(12, ddate, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, dtime, true); ch.setUint16(14, ddate, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    }
+    const cdSize = central.reduce((a, p) => a + p.length, 0);
+    const eo = new DataView(new ArrayBuffer(22));
+    eo.setUint32(0, 0x06054b50, true); eo.setUint16(4, 0, true); eo.setUint16(6, 0, true); eo.setUint16(8, files.length, true); eo.setUint16(10, files.length, true); eo.setUint32(12, cdSize, true); eo.setUint32(16, offset, true); eo.setUint16(20, 0, true);
+    const all = [...parts, ...central, new Uint8Array(eo.buffer)]; const out = new Uint8Array(all.reduce((a, p) => a + p.length, 0)); let o = 0;
+    for (const p of all) { out.set(p, o); o += p.length; }
+    return out;
+  }
+  const xml = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  function colLetter(n) { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+  function excelSerial(iso) { const d = toDate(iso); if (!d) return null; return (Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()) - Date.UTC(1899, 11, 30)) / 86400000; }
+  // styles: 0 normal · 1 bold · 2 time hh:mm:ss · 3 date-time · 4 number 0.0 · 5 number 0.00
+  function cellXml(ref, c) {
+    if (c == null) return '';
+    const s = c.s ? ' s="' + c.s + '"' : '';
+    if (c.f) return '<c r="' + ref + '"' + s + '><f>' + xml(c.f) + '</f></c>';   // a formula cell carries no value until Excel recalculates
+    if (c.v === undefined || c.v === null || c.v === '') return '';
+    if (c.t === 'time' || c.t === 'dt') { const v = excelSerial(c.v); return v == null ? '' : '<c r="' + ref + '" s="' + (c.t === 'time' ? 2 : 3) + '"><v>' + v + '</v></c>'; }
+    if (typeof c.v === 'number' && !isNaN(c.v)) return '<c r="' + ref + '"' + s + '><v>' + c.v + '</v></c>';
+    return '<c r="' + ref + '"' + s + ' t="inlineStr"><is><t xml:space="preserve">' + xml(c.v) + '</t></is></c>';
+  }
+  // sheet = { name, cols: {C: width}, rows: { rowNumber: { colNumber: cell } } }
+  function sheetXml(sh) {
+    const cols = Object.keys(sh.cols || {}).map(k => '<col min="' + k + '" max="' + k + '" width="' + sh.cols[k] + '" customWidth="1"/>').join('');
+    const rows = Object.keys(sh.rows).map(Number).sort((a, b) => a - b).map(r => {
+      const cells = Object.keys(sh.rows[r]).map(Number).sort((a, b) => a - b).map(c => cellXml(colLetter(c) + r, sh.rows[r][c])).join('');
+      return '<row r="' + r + '">' + cells + '</row>';
+    }).join('');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' + (cols ? '<cols>' + cols + '</cols>' : '') + '<sheetData>' + rows + '</sheetData></worksheet>';
+  }
+  function xlsxPackage(sheets) {
+    const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+    const ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') + '</Types>';
+    const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + R + '/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+    const wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="' + R + '"><sheets>' + sheets.map((s, i) => '<sheet name="' + xml(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') + '</sheets><calcPr fullCalcOnLoad="1"/></workbook>';
+    const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + sheets.map((s, i) => '<Relationship Id="rId' + (i + 1) + '" Type="' + R + '/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') + '<Relationship Id="rId' + (sheets.length + 1) + '" Type="' + R + '/styles" Target="styles.xml"/></Relationships>';
+    const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="4"><numFmt numFmtId="164" formatCode="hh:mm:ss"/><numFmt numFmtId="165" formatCode="yyyy-mm-dd hh:mm:ss"/><numFmt numFmtId="166" formatCode="0.0"/><numFmt numFmtId="167" formatCode="0.00"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+    const files = [{ name: '[Content_Types].xml', data: ct }, { name: '_rels/.rels', data: rels }, { name: 'xl/workbook.xml', data: wb }, { name: 'xl/_rels/workbook.xml.rels', data: wbRels }, { name: 'xl/styles.xml', data: styles }];
+    sheets.forEach((s, i) => files.push({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml', data: sheetXml(s) }));
+    return zipStore(files);
+  }
+  // The 'Template' sheet reproduces the MLDEA Reference Sheet: B2:F2 headers, layers top-down with the
+  // P/N electrode rows between them, Nominal Height as the same =E(n+1)+$I$3 formulas, Specs at H2:J7.
+  // The columns the machine adds sit to the right (G = Time of Filter; L onward = measured values).
+  function buildXlsx() {
+    const d = dev.device, L = layerRows();
+    const maxLayer = Math.max(+d.targetLayers || 0, L.reduce((m, r) => Math.max(m, +r.layer || 0), 0), 1);
+    const byLayer = {}; L.forEach(r => { byLayer[r.layer] = r; });
+    const byElectrode = {}; dev.rows.forEach(r => { if (r.kind === 'electrode') byElectrode[r.layer] = r; });
+    const T = { name: 'Template', cols: { 3: 17.2, 4: 15, 5: 18.3, 6: 24, 7: 16, 8: 20.8, 9: 20.5, 12: 10, 13: 12, 14: 11, 15: 9, 16: 14, 17: 10, 18: 10, 19: 16, 20: 9, 21: 13, 22: 7, 23: 14, 24: 12, 25: 18 }, rows: {} };
+    const put = (r, c, cell) => { (T.rows[r] = T.rows[r] || {})[c] = cell; };
+    const B = 1;   // bold style
+    [['B', 'Layer'], ['C', 'Time of Dispense'], ['D', 'UV dur (sec)'], ['E', 'Nominal Height (µm)'], ['F', 'Notes'], ['G', 'Time of Filter'], ['L', 'RPM set'], ['M', 'Settled RPM'], ['N', 'StdDev RPM'], ['O', 'Samples'], ['P', 'Cure actual (s)'], ['Q', 'UV on'], ['R', 'UV off'], ['S', 'HomeSettleErr (deg)'], ['T', 'Vbus (V)'], ['U', 'Press hold (s)'], ['V', 'Side'], ['W', 'Result'], ['X', 'Dispense (mL)'], ['Y', 'Flags']]
+      .forEach(([c, h]) => put(2, c.charCodeAt(0) - 64, { v: h, s: B }));
+    put(2, 9, { v: 'Specs', s: B });
+    const specs = [['Layer Thickness (µm)', +d.thicknessUm || null, d.thicknessTolUm ? '+/- ' + d.thicknessTolUm : ''], ['Material', d.material || ''], ['Material Type', d.materialType || ''], ['RPM', +d.rpm || null], ['RPM Hold Time (s)', +d.holdS || null], ['UV cure (s)', +d.cureS || null], ['Dispense (mL)', +d.dispenseMl || null], ['Device', dev.id], ['Operator', d.operator || ''], ['Target layers', +d.targetLayers || null], ['Layers logged', L.length], ['Started', dev.state.startedAt ? { v: dev.state.startedAt, t: 'dt' } : ''], ['Exported', { v: isoLocal(), t: 'dt' }], ['Notes', d.notes || '']];
+    specs.forEach((s, i) => { put(3 + i, 8, { v: s[0], s: B }); put(3 + i, 9, (s[1] && typeof s[1] === 'object') ? s[1] : { v: s[1] }); if (s[2]) put(3 + i, 10, { v: s[2] }); });
+    let r = 3;
+    for (let n = maxLayer; n >= 1; n--) {
+      const lr = byLayer[n] || null;
+      put(r, 2, { v: n });
+      if (lr) {
+        const s = lr.spin || {}, di = lr.dispense || {}, u = lr.cure || {};
+        put(r, 3, { v: di.at, t: 'time' }); put(r, 4, { v: u.setS != null ? u.setS : null }); put(r, 6, { v: lr.notes || '' });
+        put(r, 12, { v: s.rpmSet != null ? s.rpmSet : null }); put(r, 13, { v: s.meanRpm != null ? s.meanRpm : null, s: 4 }); put(r, 14, { v: s.stdRpm != null ? s.stdRpm : null, s: 4 }); put(r, 15, { v: s.samples != null ? Math.round(s.samples) : null });
+        put(r, 16, { v: u.actualS != null ? u.actualS : null, s: 4 }); put(r, 17, { v: u.onAt, t: 'time' }); put(r, 18, { v: u.offAt, t: 'time' }); put(r, 19, { v: s.homeSettleErr != null ? s.homeSettleErr : null, s: 5 }); put(r, 20, { v: s.vbus != null ? s.vbus : null, s: 4 });
+        put(r, 23, { v: resultOf(lr)[1] }); put(r, 24, { v: di.mL != null ? di.mL : null, s: 5 }); put(r, 25, { v: (lr.flags || []).join('; ') });
+      }
+      put(r, 5, { f: n === 1 ? '$I$3' : ('E' + (r + 1) + '+$I$3') });
+      r++;
+      if (n > 1) {   // the electrode that sits on layer n-1
+        const k = n - 1, er = byElectrode[k] || null;
+        put(r, 2, { v: er ? er.polarity : polarityByRule(k) });
+        put(r, 5, { f: 'E' + (r + 1) });
+        if (er) { const st = er.stamp || {}; put(r, 6, { v: er.notes || '' }); put(r, 7, { v: st.at, t: 'time' }); put(r, 21, { v: st.holdS != null ? st.holdS : null }); put(r, 22, { v: st.side || '' }); put(r, 23, { v: resultOf(er)[1] }); put(r, 25, { v: (er.flags || []).join('; ') }); }
+        r++;
+      }
+    }
+    // flat chronological log (every row, every field) + the journal
+    const LOG = { name: 'Log', cols: { 1: 14, 5: 20, 10: 20, 20: 20, 21: 20, 25: 20, 34: 20, 35: 20, 39: 20 }, rows: {} };
+    CSV_COLS.forEach((h, i) => { (LOG.rows[1] = LOG.rows[1] || {})[i + 1] = { v: h, s: B }; });
+    const TIMECOLS = new Set(['dispensed_at', 'spin_start', 'uv_on', 'uv_off', 'filter_at', 'from', 'to', 'created']);
+    dev.rows.forEach((row, ri) => { const rec = rowRecord(row); const cells = {}; CSV_COLS.forEach((k, i) => { const v = rec[k]; if (v === '' || v == null) return; cells[i + 1] = TIMECOLS.has(k) ? { v, t: 'dt' } : { v }; }); LOG.rows[ri + 2] = cells; });
+    const J = { name: 'Journal', cols: { 1: 20, 2: 8, 3: 100 }, rows: { 1: { 1: { v: 'time', s: B }, 2: { v: 'level', s: B }, 3: { v: 'event', s: B } } } };
+    dev.journal.forEach((e, i) => { J.rows[i + 2] = { 1: { v: e.at, t: 'dt' }, 2: { v: e.level || '' }, 3: { v: e.text } }; });
+    return xlsxPackage([T, LOG, J]);
+  }
+
+  // ─── save folder (File System Access API; Chrome / Edge) ───
+  function idbOpen() { return new Promise(res => { try { if (typeof indexedDB === 'undefined') return res(null); const rq = indexedDB.open('rmr-runlog', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('kv'); rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); } catch (e) { res(null); } }); }
+  async function idbGet(k) { const db = await idbOpen(); if (!db) return null; return new Promise(res => { try { const rq = db.transaction('kv', 'readonly').objectStore('kv').get(k); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); } catch (e) { res(null); } }); }
+  async function idbSet(k, v) { const db = await idbOpen(); if (!db) return false; return new Promise(res => { try { const tx = db.transaction('kv', 'readwrite'); if (v == null) tx.objectStore('kv').delete(k); else tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); } catch (e) { res(false); } }); }
+  async function initFolder() {
+    try {
+      const h = await idbGet('folder'); if (!h) return;
+      folder.handle = h; folder.name = h.name || 'folder';
+      const p = await h.queryPermission({ mode: 'readwrite' });
+      folder.state = p === 'granted' ? 'granted' : 'prompt';
+    } catch (e) { folder.state = 'none'; }
+    render();
+  }
+  async function folderPick() {
+    if (typeof window === 'undefined' || !window.showDirectoryPicker) { toast('This browser cannot pick a folder — use Export instead (Chrome/Edge support folders)', 'warn'); return; }
+    try {
+      const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'rmr-runlog' });
+      folder = { handle: h, name: h.name, state: 'granted', err: null, last: null };
+      await idbSet('folder', h);
+      say('auto-saving to folder "' + h.name + '"'); toast('Auto-save folder: ' + h.name, 'success');
+      await folderSaveNow();
+    } catch (e) { if (!e || e.name !== 'AbortError') oops('folder: ' + (e && e.message)); }
+    render();
+  }
+  async function folderReconnect() {
+    if (!folder.handle) return;
+    try { const p = await folder.handle.requestPermission({ mode: 'readwrite' }); folder.state = p === 'granted' ? 'granted' : 'prompt'; folder.err = null; if (p === 'granted') await folderSaveNow(); }
+    catch (e) { folder.state = 'error'; folder.err = e && e.message; }
+    render();
+  }
+  async function folderForget() { folder = { handle: null, name: '', state: 'none', err: null, last: null }; await idbSet('folder', null); render(); }
+  async function folderWrite(name, data) { const fh = await folder.handle.getFileHandle(name, { create: true }); const w = await fh.createWritable(); await w.write(data); await w.close(); }
+  async function folderSaveNow() {
+    if (!dev || !folder.handle || folder.state !== 'granted') return;
+    try {
+      await folderWrite(dev.id + '.json', JSON.stringify(dev, null, 1));
+      await folderWrite(dev.id + '.csv', '\uFEFF' + buildCsv());
+      await folderWrite(dev.id + '.xlsx', buildXlsx());
+      folder.last = isoLocal(); folder.err = null;
+    } catch (e) { folder.state = 'error'; folder.err = e && e.message; oops('could not write to the save folder — ' + folder.err); }
+    const f = el('rlFolder'); if (f) { const tmp = document.createElement('div'); tmp.innerHTML = renderFolderLine(); if (tmp.firstChild) f.replaceWith(tmp.firstChild); }
+  }
+  function scheduleFolderSave() { if (folder.state !== 'granted') return; if (folderTimer) clearTimeout(folderTimer); folderTimer = setTimeout(() => { folderTimer = null; folderSaveNow(); }, 1500); }
+
+  // ─── UI wiring ───
+  function onClick(ev) {
+    const t = ev.target && ev.target.closest ? ev.target.closest('[data-act], td[data-edit]') : null;
+    if (!t) return;
+    if (t.dataset && t.dataset.act) { ev.preventDefault(); safe(() => act(t.dataset.act, t), 'act'); return; }
+    if (t.dataset && t.dataset.edit && prefs.editUnlocked && !(editing && editing.td === t)) { safe(() => startEdit(t), 'edit'); }
+  }
+  function onChange(ev) {
+    const t = ev.target; if (!t) return;
+    if (t.dataset && t.dataset.pref) { prefs[t.dataset.pref] = t.value; savePrefs(); if (dev && dev.state.holdReq) { dev.state.holdReq.point = prefs.holdPoint; save(); } render(); return; }
+    if (t.id === 'rlOpenSel' && t.value) { const v = t.value; t.value = ''; if (openDevice(v)) { formOpen = null; render(); } return; }
+    if (t.id === 'rlExportSel' && t.value) { const v = t.value; t.value = ''; exportAs(v); return; }
+    if (t.id === 'rlAddSel' && t.value) { const v = t.value; t.value = ''; addRow(v); return; }
+    if (t.id === 'rlJournalDet') { prefs.journalOpen = !!t.open; savePrefs(); }
+  }
+  function onToggle(ev) { const t = ev.target; if (t && t.id === 'rlJournalDet') { prefs.journalOpen = !!t.open; savePrefs(); } }
+  function act(a, btn) {
+    const [name, arg, arg2] = a.split(':');
+    switch (name) {
+      case 'new': formOpen = 'new'; render(); { const x = el('rlf-id'); if (x && x.focus) x.focus(); } break;
+      case 'edit-dev': formOpen = 'edit'; render(); break;
+      case 'cancel-form': formOpen = null; render(); break;
+      case 'save-form': {
+        const f = readForm();
+        if (formOpen === 'edit' && dev) { const keep = dev.device.id; Object.assign(dev.device, blankDevice(Object.assign({}, f, { id: keep })).device); journal('device details edited'); formOpen = null; save(); render(); }
+        else if (createDevice(f)) { formOpen = null; render(); }
+        break;
+      }
+      case 'open': { const s = el('rlOpenSel'); if (s && s.value && openDevice(s.value)) { formOpen = null; render(); } break; }
+      case 'delete-dev': if (dev) { deleteDevice(dev.id); render(); } break;
+      case 'arm': setLogging(true); break;
+      case 'disarm': setLogging(false); break;
+      case 'hold': requestHold('hold', ''); break;
+      case 'break': requestHold('break', 'operator break'); break;
+      case 'resume': resume(); break;
+      case 'cancel-hold': resume(); break;
+      case 'edit-toggle': prefs.editUnlocked = !prefs.editUnlocked; if (editing) commitEdit(true); render(); break;
+      case 'order': prefs.order = prefs.order === 'stack' ? 'chrono' : 'stack'; savePrefs(); render(); break;
+      case 'details': prefs.details = !prefs.details; savePrefs(); render(); break;
+      case 'mark': mark(arg); break;
+      case 'add': addRow(arg); break;
+      case 'del-row': deleteRow(arg); break;
+      case 'revert': { const r = rowById(arg); if (r) { revertEdit(r, arg2); save(); render(); } break; }
+      case 'export': exportAs(arg); break;
+      case 'import': pickImport(); break;
+      case 'folder-pick': folderPick(); break;
+      case 'folder-reconnect': folderReconnect(); break;
+      case 'folder-forget': folderForget(); break;
+      case 'folder-save': folderSaveNow(); break;
+      case 'prefill': prefill(); break;
+      case 'preset-apply': { const s = el('rlf-preset'); const p = s && presets[s.value]; if (p) fillForm(p); break; }
+      case 'preset-save': {
+        const f = readForm(); const name = prompt('Preset name:', f.material || '');
+        if (name && name.trim()) { delete f.id; delete f.operator; presets[name.trim()] = f; lsSet(LS_PRESETS, presets); say('preset saved: ' + name.trim()); render(); }
+        break;
+      }
+      case 'preset-del': { const s = el('rlf-preset'); if (s && s.value && confirm('Delete preset "' + s.value + '"?')) { delete presets[s.value]; lsSet(LS_PRESETS, presets); render(); } break; }
+      case 'goto': safe(() => H().switchTab && H().switchTab()); break;
+    }
+  }
+  function bind() {
+    root = el('rlRoot'); strip = el('rlStrip');
+    [root, strip].forEach(n => { if (!n || !n.addEventListener || n.__rlBound) return; n.__rlBound = true; n.addEventListener('click', onClick); n.addEventListener('change', onChange); n.addEventListener('toggle', onToggle, true); });
+  }
+
+  // ─── attach (called once by the page via window.rmrLogHost) ───
+  function attach(h) {
+    host = Object.assign({ status() {}, info() {}, err() {}, toast() {}, isRunning: () => false, abortReason: () => null, switchTab() {}, editableByDefault: true, seqCycles: () => null, seqRepeat: () => null, settings: () => ({}) }, h || {});
+    loadIndex(); loadPrefs(); loadPresets();
+    prefs.editUnlocked = !!host.editableByDefault;
+    if (idx.active) dev = loadDevice(idx.active);
+    if (dev) { dev.state.holdReq = null; if (!dev.journal) dev.journal = []; }
+    bind(); render();
+    if (!tickTimer) { tickTimer = setInterval(tick, 1000); if (tickTimer && tickTimer.unref) tickTimer.unref(); }   // unref: never keeps a Node test process alive
+    initFolder();
+    if (dev) say('device "' + dev.id + '" open — ' + (dev.state.logging === 'armed' ? 'LOGGING' : 'not logging (press Start logging)') + (dev.state.hold ? ' — a ' + dev.state.hold.kind + ' is still open' : ''));
+  }
+
+  return {
+    attach, event, rx, seqHoldPoint, mark, resume, requestHold, setLogging, exportAs, render,
+    // introspection (tests, console)
+    get device() { return dev; }, get prefs() { return prefs; }, get capture() { return cap; }, get index() { return idx; },
+    buildCsv: () => dev ? buildCsv() : '', buildXlsx: () => dev ? buildXlsx() : null, createDevice, openDevice, holdApplies, isoLocal,
+  };
+})();
+if (typeof window !== 'undefined' && window.rmrLogHost) { try { rmrLog.attach(window.rmrLogHost); } catch (e) { console.error('rmrLog attach', e); } }
+</script>
+<!-- RMR-RUNLOG:END -->
 </body>
 </html>

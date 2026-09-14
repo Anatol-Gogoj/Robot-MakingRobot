@@ -34,6 +34,9 @@ const checks = [
   { issue: '#47', name: 'spin markers: Touch',          script: 'spin-markers.test.mjs',            args: [TOUCH],      needs: [TOUCH] },
   { issue: '#62', name: 'segment runner',               script: 'segment-runner.test.mjs',          args: [RUNNER],     needs: [RUNNER] },
   { issue: '#62', name: 'LayerCycle equivalence',       script: 'layercycle-equivalence.test.mjs',  args: [RUNNER, PLAIN, ANNOTATED], needs: [RUNNER, PLAIN, ANNOTATED] },
+  { issue: '—',   name: 'run log: Controller',          script: 'runlog.test.mjs',                  args: [CONTROLLER], needs: [CONTROLLER] },
+  { issue: '—',   name: 'run log: Touch',               script: 'runlog.test.mjs',                  args: [TOUCH],      needs: [TOUCH] },
+  { issue: '—',   name: 'run log: shared block in sync', script: 'runlog-sync.test.mjs',             args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
