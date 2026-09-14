@@ -22,7 +22,7 @@ lead screw, 1600 steps/mm, soft endstops 0–135 mm) and whose syringe height is
 |---|---|---|
 | Barrel ID | 40.0 mm | calipers |
 | Plunger area A | 1256.6 mm² | π/4 · ID² |
-| Barrel stroke | 119.4 mm | 150 mL / A |
+| Barrel stroke | 119.4 mm (UI default **120 mm**) | 150 mL / A |
 | Tip exit ID | 3.8 mm | calipers |
 | Tip entry ID | 6.5 mm | calipers |
 | Tip taper length | 33 mm | calipers |
@@ -74,14 +74,20 @@ D_crit = √(0.84·σ / (ρ·g)) = 1.62 mm, and the 3.8 mm tip is well above it,
 | Lateral shear `G1 X1.5` | **not available** | the syringe is fixed over the chuck: only B (height) and C (plunger) move; the snap lift alone severs the strand |
 | Wiper drag at a park XY | **not available** | no wiper hardware and no XY motion at the syringe |
 | `PurgeBarrel` at start of run and after idle > `IdleLimit` | **Purge** button (2 mL at 60 mm/min → same dwell / retract / snap) and **Purge before the first dose of a Run All** (opt-in); **idle limit** 300 s → a dose after longer idle *warns* (toast + journal) but never blocks | there is no waste position: the purge dispenses onto whatever is under the tip — put a waste cup there first (the button asks; the run-all option is the consent) |
-| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (0.05 mm), **barrel stroke** (119.4 mm, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–135 mm, but the barrel is shorter than the axis |
+| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (0.05 mm), **barrel stroke** (120 mm by default, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–135 mm, but the barrel is shorter than the axis |
 
 All of these are inputs in the Syringe block, so they travel with a Run Log preset: the built-in
 **`CN9018 7.5% HDDA · 150 mL syringe`** preset sets calibration 0.7958 mm/mL (barrel ID 40),
 dose 5 mL, pullback 0.0227 mL, dose feed 15.9, retract feed 1, dwell 2 s, snap 4 mm at 3000,
-max dose 4.18 mm, max retract 0.05 mm, stroke 119.4 mm, purge 2 mL at 60 mm/min, idle limit 300 s,
+max dose 4.18 mm, max retract 0.05 mm, stroke 120 mm, purge 2 mL at 60 mm/min, idle limit 300 s, prime 0.5 mL,
 spin 1000 RPM / 50 s / 3 / 3 / H1, cure 480 s with the lid closed, Stamp block disabled (hand
-pressing). New device → preset → Apply → Create pushes all of it into the Process Sequencer.
+pressing). New device → preset → Apply → Create pushes all of it into the Process Sequencer. **These are also the
+Syringe block's page defaults** (2026-09-14): a fresh page is already set up for the 150 mL syringe.
+
+**Initial purge (prime).** A separate button pushes the plunger by a user-set increment (default 0.5 mL)
+at the purge feed with the tip where it is — no dwell, retract or lift — for priming a fresh barrel:
+press until material reaches the tip, then run the full purge. Only the stroke guard applies. Every
+press is journaled by the Run Log.
 
 ## 5. Open items from the analysis, answered for this machine
 

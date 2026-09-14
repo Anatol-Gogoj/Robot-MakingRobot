@@ -33,6 +33,10 @@ for (const [name, html] of [['Controller', c], ['Touch', t]]) {
   ok('Touch: a #tab-log page exists', /id="tab-log"/.test(t));
 }
 ok('Controller: Run Log tab button + page exist', /id="tabbtn-runlog"/.test(c) && /id="tab-runlog"/.test(c));
+for (const [name, html] of [['Controller', c], ['Touch', t]]) {
+  const open = ['homing', 'syringe', 'spin', 'uv', 'stamp'].filter(b => new RegExp('<details class="seq-block" id="seqBlock-' + b + '" open>').test(html));
+  ok(`${name}: all five sequencer cards open by default`, open.length === 5, open);
+}
 
 console.log(fails ? `\n${fails} check(s) failed` : '\nall checks passed');
 process.exit(fails ? 1 : 0);

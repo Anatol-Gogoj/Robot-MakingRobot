@@ -1331,7 +1331,7 @@
     </details>
 
     <!-- 2 ─── Syringe ─── -->
-    <details class="seq-block" id="seqBlock-syringe">
+    <details class="seq-block" id="seqBlock-syringe" open>
       <summary>Syringe &middot; Dispense <span class="seq-badge on" id="badge-syringe">enabled</span></summary>
       <div class="seq-body">
         <p class="seq-hint">Run does the full cycle: <b>lower</b> the nozzle to the dispense height &rarr; <b>dispense</b> &rarr; <b>retract</b> the plunger &rarr; <b>raise</b> back up. Axis B: home (0) is up, larger B is down. Axis C: +C dispenses.</p>
@@ -1372,26 +1372,26 @@
             <div class="seq-field full">
               <label>Syringe calibration (measure by hand)</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-                <input type="number" id="calMm" value="100" min="0.01" step="0.1" style="width:78px" oninput="syrCalc()">
+                <input type="number" id="calMm" value="0.7958" min="0.01" step="0.0001" style="width:78px" oninput="syrCalc()">
                 <span class="seq-hint">mm of plunger&nbsp;=</span>
                 <input type="number" id="calMl" value="1" min="0.0001" step="0.1" style="width:78px" oninput="syrCalc()">
                 <span class="seq-hint">mL</span>
               </div>
-              <span class="seq-hint">&rarr; <b id="calFactor">&mdash;</b> mm per mL (from your measurement)</span>
+              <span class="seq-hint">&rarr; <b id="calFactor">&mdash;</b> mm per mL &mdash; default: the 150 mL catheter-tip syringe (40 mm barrel; 150 mL &asymp; 120 mm of travel)</span>
             </div>
             <div class="seq-field">
               <label>Dispense amount (mL)</label>
-              <input type="number" id="syrVol" value="0.05" min="0" step="0.01" oninput="syrCalc()">
+              <input type="number" id="syrVol" value="5" min="0" step="0.01" oninput="syrCalc()">
               <span class="seq-hint">&rarr; <b id="syrVolMm">&mdash;</b> mm of plunger travel</span>
             </div>
             <div class="seq-field">
               <label>Pullback / retract (mL)</label>
-              <input type="number" id="syrPull" value="0.005" min="0" step="0.001" oninput="syrCalc()">
+              <input type="number" id="syrPull" value="0.0227" min="0" step="0.0001" oninput="syrCalc()">
               <span class="seq-hint">&rarr; <b id="syrPullMm">&mdash;</b> mm retract after dispense</span>
             </div>
             <div class="seq-field">
               <label>Dispense feed (mm/min)</label>
-              <input type="number" id="syrFeed" value="300" min="0.1" max="480" step="0.1" oninput="syrCalc()">
+              <input type="number" id="syrFeed" value="15.9" min="0.1" max="480" step="0.1" oninput="syrCalc()">
               <span class="seq-hint" id="syrFeedHint">&mdash;</span>
             </div>
             <div class="seq-field">
@@ -1401,13 +1401,13 @@
             </div>
             <div class="seq-field">
               <label>Retract feed (mm/min)</label>
-              <input type="number" id="syrRetractFeed" value="300" min="0.1" max="480" step="0.1">
+              <input type="number" id="syrRetractFeed" value="1" min="0.1" max="480" step="0.1">
               <span class="seq-hint">the firmware never steps C slower than 120 steps/s = 4.5 mm/min</span>
             </div>
             <div class="seq-field">
               <label>Snap lift after retract (mm)</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-                <input type="number" id="syrSnapMm" value="0" min="0" step="0.5" style="width:78px">
+                <input type="number" id="syrSnapMm" value="4" min="0" step="0.5" style="width:78px">
                 <span class="seq-hint">at</span>
                 <input type="number" id="syrSnapFeed" value="3000" min="10" max="3000" step="10" style="width:78px">
                 <span class="seq-hint">mm/min</span>
@@ -1417,13 +1417,20 @@
             <div class="seq-field full">
               <label>Barrel &amp; guards (refused before anything is sent; 0 = no cap)</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-                <span class="seq-hint">barrel ID</span><input type="number" id="syrBarrelId" value="0" min="0" step="0.1" style="width:78px"><span class="seq-hint">mm</span>
+                <span class="seq-hint">barrel ID</span><input type="number" id="syrBarrelId" value="40" min="0" step="0.1" style="width:78px"><span class="seq-hint">mm</span>
                 <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue); padding:6px 12px" onclick="syrCalFromBarrel()">Calibrate from ID</button>
-                <span class="seq-hint">stroke</span><input type="number" id="syrStroke" value="0" min="0" step="0.1" style="width:78px"><span class="seq-hint">mm</span>
-                <span class="seq-hint">max dose</span><input type="number" id="syrMaxDose" value="0" min="0" step="0.01" style="width:78px"><span class="seq-hint">mm</span>
+                <span class="seq-hint">stroke</span><input type="number" id="syrStroke" value="120" min="0" step="0.1" style="width:78px"><span class="seq-hint">mm</span>
+                <span class="seq-hint">max dose</span><input type="number" id="syrMaxDose" value="4.18" min="0" step="0.01" style="width:78px"><span class="seq-hint">mm</span>
                 <span class="seq-hint">max retract</span><input type="number" id="syrMaxRetract" value="0.05" min="0" step="0.005" style="width:78px"><span class="seq-hint">mm</span>
               </div>
               <span class="seq-hint">A retract above 0.05 mm ingests air on a 3.8 mm tip. The stroke guard uses the last reported C position (M114).</span>
+            </div>
+            <div class="seq-field full">
+              <label>Initial purge (prime) &mdash; push by a set increment until material reaches the tip</label>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+                <input type="number" id="syrPrimeVol" value="0.5" min="0" step="0.1" style="width:78px"><span class="seq-hint">mL per press, at the purge feed &middot; no dwell, retract or lift &middot; the tip stays where it is (put a waste cup under it)</span>
+                <button class="seq-run-btn" style="border-color:var(--yellow);color:var(--yellow); padding:6px 12px" onclick="syrPrimeNow()">Initial purge +</button>
+              </div>
             </div>
             <div class="seq-field full">
               <label>Purge (put a waste cup under the tip first)</label>
@@ -1446,7 +1453,7 @@
     </details>
 
     <!-- 3 ─── Spin Coater ─── -->
-    <details class="seq-block" id="seqBlock-spin">
+    <details class="seq-block" id="seqBlock-spin" open>
       <summary>Spin Coater <span class="seq-badge on" id="badge-spin">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
@@ -1477,7 +1484,7 @@
     </details>
 
     <!-- 4 ─── UV lid & light ─── -->
-    <details class="seq-block" id="seqBlock-uv">
+    <details class="seq-block" id="seqBlock-uv" open>
       <summary>UV &middot; Lid &amp; Light <span class="seq-badge on" id="badge-uv">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
@@ -1513,7 +1520,7 @@
     </details>
 
     <!-- 5 ─── Stamp ─── -->
-    <details class="seq-block" id="seqBlock-stamp">
+    <details class="seq-block" id="seqBlock-stamp" open>
       <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
@@ -2939,6 +2946,31 @@ function syrPurgeNow() {
   runSyringePurge(false).then(() => { seqEnd('<b>Purge</b> complete.'); logInfo('Syringe: purge complete'); },
                               e => { seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message)); if (!seqAbort) logErr('Purge failed — ' + e.message); });
 }
+// Initial purge (prime): push the plunger by a set increment at the purge feed with the tip where it is —
+// press repeatedly until material reaches the tip. No dwell, retract or lift.
+async function runSyringePrime() {
+  const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1, mmPerMl = calMm / calMl;
+  const vol = numv('syrPrimeVol', 0);
+  if (!(vol > 0)) throw new Error('prime increment is 0');
+  const mm = vol * mmPerMl, pFeed = numv('syrPurgeFeed', 60) || 60;
+  syrGuard(mm, 0, true);   // stroke guard only
+  seqSetStatus('Syringe — initial purge +' + vol + ' mL…');
+  await seqCmd('G91');
+  await seqCmd('G1 C' + mm.toFixed(4) + ' F' + fmtFeed(pFeed));
+  await seqCmd('M400');
+  await seqCmd('G90');
+  rlEvent('prime', { mL: vol, mm });
+  syrNoteActivity();
+}
+function syrPrimeNow() {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Initial purge')) return;
+  const vol = numv('syrPrimeVol', 0);
+  seqBegin(); logInfo('Syringe: initial purge +' + vol + ' mL');
+  runSyringePrime().then(() => { seqEnd('<b>Initial purge</b> +' + vol + ' mL done.'); },
+                         e => { seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message)); if (!seqAbort) logErr('Initial purge failed — ' + e.message); });
+}
 // mm of plunger per mL from the barrel bore: 1 mL = 1000 mm³ over the plunger area π·ID²/4.
 function syrCalFromBarrel() {
   const id = numv('syrBarrelId', 0);
@@ -3679,7 +3711,7 @@ const rmrLog = (function () {
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
     uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 110, uvLidOpen: 30, uvArgon: false,
     syrPos: 304, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
-    syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false,
+    syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };
   const BUILTIN_PRESETS = {
     'CN9018 7.5% HDDA': {
@@ -3696,7 +3728,7 @@ const rmrLog = (function () {
       rpm: 1000, holdS: 50, cureS: 480, dispenseMl: 5, firstElectrode: 'P', feederPolarity: false, feederLeft: 'P',
       electrodeNote: 'hand press',
       notes: '150 mL catheter-tip syringe, 40 mm barrel (0.7958 mm of plunger per mL). Dose 5 mL in 15 s, 2 s dwell, 0.018 mm retract, 4 mm snap lift. Purge 2 mL into a waste cup at the start of a run and after 5 min idle. Electrodes pressed by hand. See DISPENSE_150ML.md.',
-      sequencer: Object.assign({}, SEQ_COMMON, { calMm: 0.7958, calMl: 1, syrBarrelId: 40, syrStroke: 119.4, syrVol: 5, syrPull: 0.0227, syrFeed: 15.9, syrRetractFeed: 1,
+      sequencer: Object.assign({}, SEQ_COMMON, { calMm: 0.7958, calMl: 1, syrBarrelId: 40, syrStroke: 120, syrVol: 5, syrPull: 0.0227, syrFeed: 15.9, syrRetractFeed: 1,
         syrDwell: 2, syrSnapMm: 4, syrSnapFeed: 3000, syrMaxDose: 4.18, syrMaxRetract: 0.05, syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300 }),
     },
   };
@@ -3976,6 +4008,7 @@ const rmrLog = (function () {
         journal('electrode ' + e.polarity + ' applied after layer ' + row.layer + (d.side ? ' from feeder ' + d.side : '') + (d.manual ? ' (' + (dev.device.electrodeNote || 'by hand') + ')' : ''));
         break;
       }
+      case 'prime': journal('syringe initial purge +' + num(d.mL, 2) + ' mL' + (d.mm != null ? ' (' + num(d.mm, 3) + ' mm of plunger)' : '')); break;
       case 'purge': journal('syringe purged ' + num(d.mL, 2) + ' mL' + (d.mm != null ? ' (' + num(d.mm, 3) + ' mm of plunger)' : '') + (d.auto ? ' before the first dose' : '')); break;
       case 'warn.idle': journal('syringe idle ' + d.idleS + ' s (limit ' + d.limitS + ' s) — the tip may have drained or taken in air; purge advised', 'warn'); break;
       case 'seq.stop': journal('Stop pressed (M410)', 'warn'); abortOpen('aborted' + (curPhase ? ' at ' + (BLOCK_NAMES[curPhase] || curPhase) : '')); break;
@@ -4145,7 +4178,7 @@ const rmrLog = (function () {
   // Every sequencer input that defines the process, by element id (identical ids in both pages).
   const SEQ_IDS = ['homeAll', 'homeSpin',
     'syrPos', 'syrPosFeed', 'calMm', 'calMl', 'syrVol', 'syrPull', 'syrFeed', 'syrDwell', 'syrRetractFeed', 'syrSnapMm', 'syrSnapFeed',
-    'syrBarrelId', 'syrStroke', 'syrMaxDose', 'syrMaxRetract', 'syrPurgeVol', 'syrPurgeFeed', 'syrIdleLimit', 'syrPurgeOnRun',
+    'syrBarrelId', 'syrStroke', 'syrMaxDose', 'syrMaxRetract', 'syrPurgeVol', 'syrPurgeFeed', 'syrIdleLimit', 'syrPurgeOnRun', 'syrPrimeVol',
     'seqSpinRPM', 'seqSpinDur', 'seqSpinRise', 'seqSpinSink', 'seqSpinHome',
     'uvTime', 'uvSeqPin', 'uvLid', 'uvSpinHome', 'uvLidClose', 'uvLidOpen', 'uvArgon', 'uvArgonLead', 'uvArgonLag', 'uvArgonPin',
     'stampStack', 'stampGrabDelay', 'stampHold', 'stampForce', 'stampLiftZ', 'stampBackY',

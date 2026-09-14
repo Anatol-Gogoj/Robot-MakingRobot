@@ -26,7 +26,7 @@ ok('prefill sets Run All cycles to the remaining layers', el('seqCycles').value 
 // 2 -- the real Syringe block: dispense is recorded when the M400 after the push is acknowledged
 ev('isConnected = true');
 ev('writer = { write: async () => {} }');
-el('syrVol').value = '0.05'; el('syrPull').value = '0.005'; el('calMm').value = '100'; el('calMl').value = '1';
+el('syrVol').value = '5'; el('syrPull').value = '0.0227'; el('calMm').value = '0.7958'; el('calMl').value = '1';   // the 150 mL syringe defaults
 el('syrDwell').value = '0.02';   // the post-dose dwell is a browser-side sleep; keep the test quick
 {
   const sent = [];
@@ -38,10 +38,10 @@ el('syrDwell').value = '0.02';   // the post-dose dwell is a browser-side sleep;
   await flush();
   const cmds = ev('__sent');
   ok('syringe block ran to completion', done && !err, err && err.message);
-  ok('syringe block sent the dispense push then M400', cmds.some(c => /^G1 C5\.0000 F/.test(c)) && cmds.includes('M400'), cmds);
+  ok('syringe block sent the dispense push then M400', cmds.some(c => /^G1 C3\.9790 F/.test(c)) && cmds.includes('M400'), cmds);
   const rows = log.device.rows;
   ok('one layer row opened', rows.length === 1 && rows[0].kind === 'layer' && rows[0].layer === 1, rows.map(r => r.kind));
-  ok('dispense time + volume recorded', !!rows[0].dispense.at && rows[0].dispense.mL === 0.05 && rows[0].dispense.mm === 5, rows[0].dispense);
+  ok('dispense time + volume recorded', !!rows[0].dispense.at && rows[0].dispense.mL === 5 && Math.abs(rows[0].dispense.mm - 3.979) < 1e-6, rows[0].dispense);
 }
 
 // 3 -- spin capture window: MeanRPM comes only from lines between M750 and its ok
