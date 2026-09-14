@@ -54,8 +54,25 @@ namespace Spincoater {
   /**
    * Read position + velocity via "f 0\n" → "<pos> <vel>\n".
    * Returns true on success, fills pos (turns) and vel (turns/s).
+   *
+   * Requires a complete newline-terminated reply and strictly numeric tokens:
+   * a truncated or corrupted line is a FAILED read, never a pos=0/vel=0
+   * reading. Issue #44.
    */
   bool feedback(float &pos, float &vel);
+
+  /**
+   * feedback() twice, requiring the two reads to be CONSISTENT with each
+   * other and with the measured velocity. A pure corruption filter — it works
+   * at any rotor speed, including a freewheeling coast-down, because the
+   * position window is predicted from the velocity rather than fixed.
+   *
+   * For one-shot decisions that move the datum or judge whether the rotor has
+   * stopped; too slow for telemetry loops (up to 6 UART round trips). Retries
+   * three times and calls idle(). Returns false only when no consistent pair
+   * could be obtained, which callers must treat as "refuse to act". Issue #44.
+   */
+  bool feedbackStable(float &pos, float &vel);
 
   /**
    * Command velocity: "v 0 <rps> 0\n"
@@ -75,8 +92,53 @@ namespace Spincoater {
 
   /**
    * Clear ODrive errors: "sc\n"
+   * NOTE: this wipes active_errors and disarm_reason — always call
+   * reportFault() BEFORE this if you need to know why something failed.
    */
   void clearErrors();
+
+  /**
+   * Read axis0.procedure_result (ODrive 0.6.x). 0 == SUCCESS.
+   * Returns -1 if the value could not be read or was not numeric — callers
+   * must treat -1 as "unverified", NOT as failure, so an older firmware that
+   * lacks the property cannot brick a working machine. Issue #43.
+   */
+  int getProcedureResult();
+
+  /**
+   * Dump axis0.procedure_result / active_errors / disarm_reason to serial.
+   * MUST be called before any clearErrors(). Issue #43.
+   */
+  void reportFault(const char* context);
+
+  /**
+   * Command IDLE and verify the axis actually reached it, re-issuing the
+   * request (ASCII writes are unacknowledged). Called on every failure exit
+   * so a bailing routine never leaves the ODrive executing a procedure —
+   * e.g. still rotating in ENCODER_INDEX_SEARCH. Issue #41.
+   * Returns true if IDLE was confirmed within timeout_ms.
+   */
+  bool forceIdle(uint16_t timeout_ms = 3000);
+
+  /**
+   * Emergency stop: request ODrive IDLE (disarm → freewheel).
+   * Fire-and-forget by design — callable from kill(), where blocking on a
+   * reply is not allowed. Never calls idle()/safe_delay: kill() is reached
+   * from idle(), so re-entering idle() here would recurse. Run before
+   * minkill()'s cli() so TX drains promptly (the AVR core self-polls if
+   * interrupts are off, so even a late call completes).
+   * Freewheel was chosen over commanded decel: no confirmed brake resistor,
+   * so regen from a high-RPM chuck could overvolt the DC bus (issue #40).
+   */
+  void emergencyStop();
+
+  /**
+   * Startup safety disarm, called once from setup(): if the Mega was reset
+   * mid-spin (host reconnect DTR, watchdog, power blip), the ODrive keeps
+   * spinning at the last commanded velocity. Request IDLE so a reboot never
+   * leaves the rotor running unattended (issue #40).
+   */
+  void startupSafetyDisarm();
 
   /**
    * Enter closed-loop control, running full calibration if needed.
@@ -85,7 +147,7 @@ namespace Spincoater {
   bool ensureClosedLoop();
 
   /**
-   * Encoder index search with trapezoidal settle back to index mark.
+    * Encoder index search with trapezoidal settle back to the saved home datum.
    * Does NOT reset the home datum (homePos).
    * Calls idle() internally. Returns true on success.
    */
@@ -119,6 +181,18 @@ namespace Spincoater {
    * kill(): if no spin ran this session the ODrive serial isn't begun and a
    * setVelocity() would block forever in Serial.flush(). */
   void safeStop();
+
+  /**
+   * True once a real 0° datum has been established (M751, boot, or an adopted
+   * fallback). False means getHomePos() is only its 0.0f initial value.
+   *
+   * A failed doIndexHome() leaves any EXISTING datum untouched, so callers
+   * must not re-datum on failure unless this returns false — otherwise a
+   * failed home silently re-zeroes the machine on wherever the rotor stopped
+   * (typically the index mark, up to a full turn from the operator's datum).
+   * Issue #41.
+   */
+  bool isDatumValid();
 
 } // namespace Spincoater
 
