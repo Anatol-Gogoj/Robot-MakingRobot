@@ -843,7 +843,7 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | SpincoaterStage/SpincoaterDashboard.html | `SpincoaterStage/` | Standalone spincoater dashboard v2.5 (retired reference — speaks the Nano protocol, not Marlin's) |
 | SpincoaterStage/INTEGRATION_PLAN.md | `SpincoaterStage/` | Historical Marlin/Mega integration design doc. **Its §3 M750 parameter table is WRONG** — it documents A/C as rev/s² rates; they are seconds. Use this file, not that one |
 | SpincoaterStage.ino | repo root | Original Arduino IDE sketch (reference only, superseded) |
-| ~~SpincoaterPinMap.jfif~~ | repo root | **MISSING** — referenced here, in `README.md` and twice in `PIN_MAP.md` as the ODrive J11 pinout image, but `git ls-files` finds no such file and it is not on disk. The remote-owner/on-site-colleague split makes this a real gap; either restore the image or delete all four references |
+| SpincoaterPinMap.jfif | repo root | ODrive S1 J11 connector pinout image (restored to the repo by #77, with a `.gitignore` exception) |
 | pi-panel/rmr_bridge.py | `pi-panel/` | Pi touch-panel serial↔WebSocket bridge (+ optional static server, GPIO buttons, status tower, e-stop sense) |
 | pi-panel/rmr_io.example.json | `pi-panel/` | Example GPIO config: buttons + status tower/buzzer + e-stop sense (copy to `rmr_io.json`) |
 | pi-panel/rmr-bridge.service | `pi-panel/` | systemd unit to run the bridge on boot |
