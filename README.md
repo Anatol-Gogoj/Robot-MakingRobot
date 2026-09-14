@@ -318,16 +318,11 @@ the terminal line:
 ```gcode
 M201 X500 Y200 Z100 A150 B50 C500   ; set max acceleration (mm/s²) — C = Syringe
 M203 X400 Y333 Z50 A33 B50 C8       ; set max feedrate (mm/s) — C = Syringe
-M500             ; save to EEPROM
-M501             ; load from EEPROM
-M201 X500 Y200 Z100 A150 B50 E500   ; set max acceleration (mm/s²)
-M203 X400 Y333 Z50 A33 B50 E8       ; set max feedrate (mm/s)
 M500             ; NOT AVAILABLE — EEPROM_SETTINGS is disabled (Configuration.h:2217).
                  ;   Reports "EEPROM disabled" and saves nothing.
 M501             ; DESTRUCTIVE — does NOT load from EEPROM. It resets every setting to the
                  ;   compiled-in Configuration.h defaults, discarding all runtime tuning.
 M503             ; report all active settings (works)
-M503             ; report all settings
 ```
 
 ### Diagnostics
@@ -380,12 +375,12 @@ operation). They share the same serial contract and the same spincoater panel lo
 9. **M42 hijacks hardware timers on AVR:** Stock Marlin's `M42.cpp` always falls through to `hal.set_pwm_duty(pin, pin_status)` on AVR, which maps to `analogWrite()` and grabs the pin's hardware timer compare unit — even for `S0` and `S1`. On pins tied to Timer1 (e.g. pin 11 = OC1A, used by Marlin's stepper ISR) this causes intermittent pin-fighting where `M42` appears to work once and then stops. Our patched `M42.cpp` adds a `pin_status <= 1` early return so digital-only writes always take the pure `digitalWrite` path. For relay pins, prefer pure-GPIO pads with no timer compare unit (pin 42 = PL7 is used for the solenoid valve; pin 4 = OC0B is tolerable only because of the patch).
 10. **Relay module polarity:** The current relay modules are active-HIGH (`M42 Pxx S1` = energize, `M42 Pxx S0` = de-energize). The original Bestep JQC3F-03VDC-C modules were active-LOW (reversed polarity). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values, so the correct polarity is handled by button choice regardless of module type.
 11. **`Servo::move()` vs `Servo::write()` in interpolation loops:** `move()` calls `attach + safe_delay(SERVO_DELAY) + detach` per invocation — with SERVO_DELAY=2000, that is 2s per step. For tight ramp loops, use `write()` with manual `attach(0)` before and `write(final)+safe_delay(250)+detach` after. The M280 T parameter uses this approach. Default lid ramp time in the HTML UIs is 800ms.
-12. **Sequencer homing gate:** the web UIs track "all axes homed" in the browser. A manual bare `G28` is followed by `M118 RMR:HOMED_ALL`, which Marlin prints back only after the homing finishes — that line unlocks the Syringe / UV / Stamp blocks on every client of the Pi bridge. Partial homing (`G28 X Z`) does not unlock; E-stop, `M999`, `M18`, a firmware restart or `MOTOR POWER LOST` re-lock.
 12. **M752 and `M750 ... H1` physically rotate the chuck.** After the index search the firmware re-arms closed loop and commands a slow trapezoidal move back to the saved datum — up to ~15 RPM for up to 8 seconds. Do not run either with the lid open or with anything resting on the chuck.
 13. **`ok` does not mean a spincoater command succeeded.** Every M750/M751/M752 failure path returns normally, so Marlin still emits `ok`. The Program Runner's wait-for-ok will happily continue to the next layer after a failed home. Judge success only by the terminal marker (`OK: CYCLE_COMPLETE` / `OK: INDEX_COMPLETE` / `OK: HOME_SET`).
 14. **Both UIs can render a spincoater failure as a success.** The panels match tokens by substring, and the failure tokens contain the success tokens: `CYCLE_COMPLETE_NO_HOME` matches `CYCLE_COMPLETE`, and both `HOME_SET_FAILED` and `STATE:HOME_SETTLE` match `HOME_SET`. A failed cycle shows a green "Cycle complete"; a failed Set Home shows "Home datum set". Some newer states (`MEASURE_LINK_LOST`, `DECEL_LINK_LOST`, `DECEL_STALL`) match nothing and leave the phase indicator stuck. Read the console lines, not the dot. Fix tracked as issue #47.
 15. **The spincoater datum is RAM-only.** `_homePos` is not stored in EEPROM, so it is lost on every board reset — including the DTR reset the browser triggers when it connects, and the reset that is the only recovery from `M112`. After any reconnect or E-stop, re-run `M751` before any layer that depends on angular registration.
 16. **`M112` disarms the spincoater, it does not brake it.** `kill()` requests ODrive IDLE, so the rotor **freewheels** to a stop. This is deliberate — there is no confirmed brake resistor and regen from a high-RPM chuck could overvolt the DC bus. Coast-down time from full speed has never been measured on this machine.
+17. **Sequencer homing gate:** the web UIs track "all axes homed" in the browser. A manual bare `G28` is followed by `M118 RMR:HOMED_ALL`, which Marlin prints back only after the homing finishes — that line unlocks the Syringe / UV / Stamp blocks on every client of the Pi bridge. Partial homing (`G28 X Z`) does not unlock; E-stop, `M999`, `M18`, a firmware restart or `MOTOR POWER LOST` re-lock.
 
 ## AI Attribution
 
