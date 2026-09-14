@@ -11,6 +11,11 @@ node tests/run.mjs -v     # ...with each check's own output
 
 Node 18 or newer. No dependencies, no install step, nothing to build.
 
+`harness.mjs` runs **every** inline `<script>` of a page in one vm scope, in page
+order — the pre-paint theme applier, the main UI script and the shared Run Log
+module at the end of the page — the way a browser does. (An earlier version took
+only the first script, which after the theme work was the ten-line theme applier.)
+
 ## What they actually run
 
 The shipped `<script>` is extracted from the HTML file and executed in a Node
@@ -58,6 +63,8 @@ recipe checks do not fail `feature/62-segment-runner`.
 |---|---|---|
 | `ok-attribution.test.mjs` | #48 | Only a program line's own `ok` advances the Program Runner. Covers foreign traffic mid-program, pause/resume in both orderings, a write that throws, ledger overflow halting the run, and E-stop clearing the ledger. |
 | `homing-indicator.test.mjs` | #48 | `RMR_Touch`'s homing indicator clears on `G28`'s own `ok`, not on whichever arrives first. |
+| `runlog.test.mjs` | — | The Run Log module in either UI: the real Syringe block records the dispense at its `M400`; spin statistics are captured only between `spin.start` and `spin.done` (a `Samples=0` measure leaves the cell blank); UV on/off/aborted; hand-pressed electrodes alternate P/N and close the layer; an edited cell survives a later automatic value; Hold / Break pause between commands and a Stop during a hold rejects with `RunLogAbort`; logging off / on notes the gap; CSV and XLSX exports; localStorage persistence. |
+| `runlog-sync.test.mjs` | — | The shared `RMR-RUNLOG` block is byte-identical in both pages and each page carries its glue (containers, host object, every hook, and the Touch `tabNames` order). |
 | `spin-markers.test.mjs` | #47 | `OK:`/`ERR:` are read by message class. `STATE:HOME_SETTLE` does not latch "Home datum set"; `ERR: HOME_SET_FAILED` does not read as success; `ERR: CYCLE_COMPLETE_NO_HOME` is not green; an unmapped `ERR:` still shows as an error. Marker text is taken verbatim from the firmware sources. |
 | `segment-runner.test.mjs` | #62 | Load-time validation, parameter substitution and bounds, layer expansion, execution and pausing, `ERR:` failing a segment, the four guards, preview, session split/merge, the plan-rebuild guards, and recipes — save/load/delete, export/import round trip, clamping a saved value against tightened bounds, the modified flag, and the provenance block each run writes to the log. |
 | `layercycle-equivalence.test.mjs` | #62 | At default parameters and one layer, `LayerCycle.segments.gcode` sends the same executable lines, in the same order, as `LayerCycle.gcode`. This is what makes the annotated copy trustworthy. |

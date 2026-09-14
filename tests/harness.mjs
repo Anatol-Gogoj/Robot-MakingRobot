@@ -1,19 +1,25 @@
-// Loads the real <script> out of an RMR HTML UI under a stub DOM, so the
+// Loads the real <script> blocks out of an RMR HTML UI under a stub DOM, so the
 // shipped code can be driven directly instead of re-implemented in a test.
 //
-// let/const bindings live in the script's own lexical scope, not on the sandbox
-// global, so a direct eval is appended to that same scope to reach them.
+// Every inline (non-src) <script> is run, in page order, in ONE vm scope: the
+// pre-paint theme applier, the main UI script, and the shared Run Log module at
+// the end of the page. That mirrors the browser, where top-level let/const of
+// classic scripts share the global lexical scope.
+//
+// let/const bindings live in that scope, not on the sandbox global, so a direct
+// eval is appended to the same scope to reach them.
 import { readFileSync } from 'fs';
 import vm from 'vm';
 
 export function loadUI(file) {
   const html = readFileSync(file, 'utf8');
-  const m = html.match(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/i);
+  const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
+  if (!scripts.length) throw new Error('no inline <script> in ' + file);
   const els = new Map();
 
   function mkEl(id) {
     const o = {
-      value: '', checked: false, textContent: '', innerHTML: '', disabled: false,
+      value: '', checked: false, textContent: '', innerHTML: '', disabled: false, hidden: false, open: false,
       readOnly: false, scrollTop: 0, clientHeight: 200, scrollHeight: 200, childElementCount: 0,
       style: { cssText: '' }, dataset: {}, files: [], children: [], firstChild: null,
       htmlFor: '', type: '', min: '', max: '', step: '', placeholder: '', title: '',
@@ -33,6 +39,7 @@ export function loadUI(file) {
         if (i >= 0) this.children.splice(i, 1);
         this.childElementCount = this.children.length;
       },
+      replaceWith() {}, closest() { return null; },
       focus() {}, click() {}, remove() {}, scrollIntoView() {}, insertAdjacentHTML() {},
       querySelectorAll() { return []; }, querySelector() { return null; },
       getBoundingClientRect() { return { top: 0, left: 0, width: 100, height: 100 }; },
@@ -106,10 +113,11 @@ export function loadUI(file) {
     Blob: class { constructor(p) { this.parts = p; } },
     URL: { createObjectURL: () => 'blob:stub', revokeObjectURL() {} },
     addEventListener() {}, removeEventListener() {},
+    location: { search: '', protocol: 'file:', href: 'file:///stub.html' },
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
   const ctx = vm.createContext(sandbox);
-  vm.runInContext(m[1] + '\n;globalThis.__ev = (s) => eval(s);', ctx, { filename: file });
+  vm.runInContext(scripts.join('\n;\n') + '\n;globalThis.__ev = (s) => eval(s);', ctx, { filename: file });
   return { ctx, els, document, ev: ctx.__ev, el: id => document.getElementById(id) };
 }
