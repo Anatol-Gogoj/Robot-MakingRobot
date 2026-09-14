@@ -1477,7 +1477,7 @@
           <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this per pick (once per L/R pair when alternating)</span></div>
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
-          <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="180" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
+          <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="163" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
           <div class="seq-field"><label>Post-press lift Z (mm)</label><input type="number" id="stampLiftZ" value="80" min="0" step="1"><span class="seq-hint">raise straight up after press (clears the syringe)</span></div>
           <div class="seq-field"><label>Post-press Y back-off (mm)</label><input type="number" id="stampBackY" value="20" min="0" step="1"><span class="seq-hint">then move Y- before going up &amp; over</span></div>
           <div class="seq-field full">
@@ -1512,8 +1512,8 @@
             <div class="seq-field"><label>Right pick X</label><input type="number" id="stRX" value="747"></div>
             <div class="seq-field"><label>Right pick Y</label><input type="number" id="stRY" value="143"></div>
             <div class="seq-field"><label>Right grab Z</label><input type="number" id="stRZ" value="43"></div>
-            <div class="seq-field"><label>Spincoater X</label><input type="number" id="stSX" value="117"></div>
-            <div class="seq-field"><label>Spincoater Y</label><input type="number" id="stSY" value="24"></div>
+            <div class="seq-field"><label>Spincoater X</label><input type="number" id="stSX" value="123"></div>
+            <div class="seq-field"><label>Spincoater Y</label><input type="number" id="stSY" value="18"></div>
             <div class="seq-field"><label>Approach Z (fast)</label><input type="number" id="stApproachZ" value="150"></div>
             <div class="seq-field"><label>Dispose X</label><input type="number" id="stDX" value="674"></div>
             <div class="seq-field"><label>Dispose Z</label><input type="number" id="stDZ" value="15"></div>
@@ -3143,11 +3143,11 @@ async function runStampBlock() {
   const stack = numv('stampStack', 0);
   const grabDelay = numv('stampGrabDelay', 0);
   const hold = numv('stampHold', 0);
-  const pressZ = numv('stampForce', 180);
+  const pressZ = numv('stampForce', 163);
   const approachZ = numv('stApproachZ', 150);
   const liftZ = numv('stampLiftZ', 80);   // post-press straight-up clearance (Z- = up)
   const backY = numv('stampBackY', 20);   // post-press Y- back-off to clear the syringe
-  const spinX = numv('stSX', 117), spinY = numv('stSY', 24);
+  const spinX = numv('stSX', 123), spinY = numv('stSY', 18);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
   const pickY = side === 'left' ? numv('stLY', 143) : numv('stRY', 143);
