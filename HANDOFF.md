@@ -1,5 +1,7 @@
 # HANDOFF — Robot-MakingRobot spin coater work
 
+> **Superseded by `HANDOFF-2026-09-14.md`.** The stack this document reasons about merged into `main` on 2026-09-14 (PR #106). Read this file for the reasoning; §7 (traps) still applies. Line citations here are as of 2026-08-11.
+
 **Written:** 2026-08-11. **Branch at the time of writing:** `fix/44-feedback-numeric-validation` (commit `757fdad`), plus the documentation commit that introduced this file. Line citations into `claude.md` and `README.md` refer to those files as committed alongside this one.
 
 You are taking over a body of firmware work on a 3-axis gantry that manufactures multilayer dielectric
