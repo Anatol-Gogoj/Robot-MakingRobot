@@ -1435,7 +1435,7 @@
       <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
-          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this each cycle</span></div>
+          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this per pick (once per L/R pair when alternating)</span></div>
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="155" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
@@ -2914,7 +2914,8 @@ const uvCanvas = (function () {
   }
   return { draw, cycle, init, skin: () => skin };
 })();
-let stampAltNext = 'left';
+let stampAltNext = 'left';   // side used on the next 'alternating' cycle
+let stampAltPick = 0;        // pick counter within alternating mode (for once-per-pair feed)
 function updateStampNext() {
   const sel = document.querySelector('input[name="stampSide"]:checked'), el = document.getElementById('stampNext');
   if (!sel || !el) return;
@@ -2926,25 +2927,52 @@ function stampResolveSide() {
   if (mode === 'left' || mode === 'right') return mode;
   const s = stampAltNext; stampAltNext = (s === 'left') ? 'right' : 'left'; updateStampNext(); return s;
 }
+// UI-side stamp guard, mirroring syrGuard: numv() ignores the input's max, and the post-press lift is a
+// FAST absolute Z move (zF). Smaller Z is higher, so a lift Z at or below the press / approach depth
+// (e.g. 175 typed for 75) would drive the filter deeper into the elastomer at full speed instead of lifting off.
+function stampGuard(liftZ, pressZ, approachZ) {
+  if (!(liftZ < pressZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the press Z (' + pressZ + ' mm) — smaller Z is higher; the lift must be less than the press depth');
+  if (!(liftZ < approachZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the approach Z (' + approachZ + ' mm) — smaller Z is higher; the lift must be less than the approach');
+}
 async function runStampBlock() {
+  const mode = document.querySelector('input[name="stampSide"]:checked').value;
+  const pressZ = numv('stampForce', 155), approachZ = numv('stApproachZ', 150);
+  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
+  stampGuard(liftZ, pressZ, approachZ);   // refused before the alternating side is consumed or anything is sent
   const side = stampResolveSide();
   const gOpen = Math.round(numv('stGOpen', 170)), gClose = Math.round(numv('stGClose', 90)), safeZ = numv('stSafeZ', 0);
   const xyF = Math.round(numv('stXYF', 24000)), zF = Math.round(numv('stZF', 3000)), pF = Math.round(numv('stPF', 300)), aF = Math.round(numv('stAF', 2000));
   const stack = numv('stampStack', 0), grabDelay = numv('stampGrabDelay', 0), hold = numv('stampHold', 0);
-  const pressZ = numv('stampForce', 155), approachZ = numv('stApproachZ', 150);
-  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
   const spinX = numv('stSX', 122.3), spinY = numv('stSY', 27.3), disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
   const pickY = side === 'left' ? numv('stLY', 143) : numv('stRY', 143);
   const grabZ = side === 'left' ? numv('stLZ', 41) : numv('stRZ', 43);
   logInfo('Stamp: picking from ' + side.toUpperCase() + ' feeder');
   await seqCmd('G90');
+  // Move the arm over the pick position FIRST, then open the gripper (not before moving) — the same
+  // order as RMR_Controller.html, so the gripper never travels open (cf. gotcha #3: it is closed
+  // before X homing to clear the frame).
   await seqCmd('M400');
-  await seqCmd('M280 P0 S' + gOpen);
   await seqCmd('G1 Z' + safeZ + ' F' + zF);
   await seqCmd('G1 X' + pickX + ' F' + xyF);
   await seqCmd('G1 Y' + pickY + ' F' + xyF);
-  if (stack > 0) { await seqCmd('G91'); await seqCmd('G1 A' + stack.toFixed(3) + ' F' + aF); await seqCmd('G90'); }
+  await seqCmd('M400');                 // M280 acts when parsed, not when the XY moves finish (gotcha #10)
+  await seqCmd('M280 P0 S' + gOpen);   // open now that the arm is over the pick
+  // Advance feeder by one stack height (relative).
+  // A single shared carriage (axis A) lifts BOTH the L and R stacks together, so
+  // one L + one R pick lowers both columns by one filter → the carriage should rise
+  // by one `stack` per L+R PAIR. Advancing every pick (correct for left-/right-only)
+  // double-raises in alternating mode, so there we advance only once every two picks.
+  let advanceFeed = stack > 0;
+  if (mode === 'alt') {
+    stampAltPick = (stampAltPick + 1) % 2;
+    advanceFeed = advanceFeed && (stampAltPick === 0);   // only on completion of a pair
+  }
+  if (advanceFeed) {
+    await seqCmd('G91');
+    await seqCmd('G1 A-' + stack.toFixed(3) + ' F' + aF);   // feeder homes to MAX (343); advance = A- (A+ is clamped at the max soft-endstop)
+    await seqCmd('G90');
+  }
   await seqCmd('M400');
   await seqCmd('G1 Z' + grabZ + ' F' + zF);
   await seqCmd('M400');
