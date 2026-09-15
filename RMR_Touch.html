@@ -1250,10 +1250,10 @@
       <div class="seq-body">
         <p class="seq-hint">Run does the full cycle: <b>lower</b> the nozzle to the dispense height &rarr; <b>dispense</b> &rarr; <b>retract</b> the plunger &rarr; <b>raise</b> back up. Axis B: home (0) is up, larger B is down. Axis C: +C dispenses.</p>
         <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
-          <!-- Height slider (B axis): top = 0 = up/home, bottom = 304 = down -->
+          <!-- Height slider (B axis): top = 0 = up/home, bottom = 300 = down -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>0<br>up</span><span>304<br>down</span></div>
-            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5"
+            <div class="vslider-scale"><span>0<br>up</span><span>300<br>down</span></div>
+            <input type="range" class="v-slider" id="syrPos" min="0" max="300" value="0" step="0.5"
                    oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
               <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B) &mdash; dispense height</small></div>
@@ -1267,10 +1267,10 @@
               </div>
             </div>
           </div>
-          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 135 = pushed -->
+          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 125 = pushed -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>0<br>open</span><span>135<br>pushed</span></div>
-            <input type="range" class="v-slider" id="plungerPos" min="0" max="135" value="0" step="0.5"
+            <div class="vslider-scale"><span>0<br>open</span><span>125<br>pushed</span></div>
+            <input type="range" class="v-slider" id="plungerPos" min="0" max="125" value="0" step="0.5"
                    oninput="document.getElementById('plungerPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
               <div><span class="vslider-readout" id="plungerPosVal">0.0</span><small> mm (C) &mdash; plunger</small></div>
@@ -2527,7 +2527,7 @@ async function runSyringeBlock() {
 }
 // Feed values may be fractional (15.9 mm/min); Marlin accepts a decimal F.
 function fmtFeed(f) { return String(Math.round((+f || 0) * 100) / 100); }
-// UI-side dose guards (the C axis also has firmware soft endstops 0–135 mm, but a barrel is shorter than that).
+// UI-side dose guards (the C axis also has firmware soft endstops 0–125 mm, but a barrel is shorter than that).
 function syrGuard(dispMm, pullMm, isPurge) {
   const maxDose = numv('syrMaxDose', 0), maxRet = numv('syrMaxRetract', 0), stroke = numv('syrStroke', 0);
   if (maxRet > 0 && pullMm > maxRet + 1e-9) throw new Error('retract ' + pullMm.toFixed(4) + ' mm exceeds the max-retract guard (' + maxRet + ' mm) — a larger pull-back ingests air');
@@ -3000,7 +3000,7 @@ function syrRaise() {
   sendCmd('G90');
   sendCmd('G1 B0 F' + feed);   // raise the nozzle up (B home)
 }
-// Absolute plunger jog on the homed C (K) axis: 0 = fully open, 135 = fully pushed.
+// Absolute plunger jog on the homed C (K) axis: 0 = fully open, 125 = fully pushed.
 function plungerMove() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
@@ -3233,7 +3233,7 @@ const rmrLog = (function () {
     'enable.homing': true, 'enable.syringe': true, 'enable.spin': true, 'enable.uv': true, 'enable.stamp': false, homeAll: true,
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
     uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 110, uvLidOpen: 30, uvArgon: false,
-    syrPos: 304, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
+    syrPos: 300, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
     syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };
   const BUILTIN_PRESETS = {
