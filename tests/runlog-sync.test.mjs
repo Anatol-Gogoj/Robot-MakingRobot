@@ -12,7 +12,12 @@ const c = readFileSync(CONTROLLER, 'utf8'), t = readFileSync(TOUCH, 'utf8');
 const cb = c.match(BLOCK) || [], tb = t.match(BLOCK) || [];
 ok('Controller carries exactly one RMR-RUNLOG block', cb.length === 1, cb.length);
 ok('Touch carries exactly one RMR-RUNLOG block', tb.length === 1, tb.length);
-ok('the two blocks are byte-identical', cb[0] === tb[0]);
+// Line endings are folded before comparing. On a Windows checkout (core.autocrlf=true)
+// both pages are CRLF on disk over LF blobs, and a page can be on LF alone after a tool
+// or editor rewrote it; what must be identical is the committed content, and git
+// normalises line endings on the way in.
+const lf = s => (s || '').replace(/\r\n/g, '\n');
+ok('the two blocks are identical (line endings aside)', lf(cb[0]) === lf(tb[0]));
 ok('the block defines rmrLog once', (cb[0] || '').split('const rmrLog = ').length === 2);
 
 for (const [name, html] of [['Controller', c], ['Touch', t]]) {

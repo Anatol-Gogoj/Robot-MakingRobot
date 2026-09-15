@@ -3,7 +3,7 @@
 
 The module (a <style> + <script> block) lives between the markers
     <!-- RMR-RUNLOG:BEGIN -->  ...  <!-- RMR-RUNLOG:END -->
-in RMR_Controller.html (the canonical copy) and RMR_Touch.html (a byte-identical copy).
+in RMR_Controller.html (the canonical copy) and RMR_Touch.html (an identical copy).
 
     python tools/sync_runlog.py            copy the Controller's block into the Touch page
     python tools/sync_runlog.py --check    exit 1 if the two copies differ (used by the tests)
@@ -11,6 +11,12 @@ in RMR_Controller.html (the canonical copy) and RMR_Touch.html (a byte-identical
                                            then sync the Touch page (first insertion / bulk update)
 
 A page that has no block yet gets it inserted just before its closing </body> tag.
+
+Line endings: a page is written in the convention it already uses. On a Windows checkout
+(core.autocrlf=true) both pages are CRLF on disk while the committed blobs are LF; the block
+is converted to the target page's convention on the way in, and the files are read and
+written with newline="" so nothing outside the block is touched. --check ignores CRLF/LF
+differences: it is a content check, the same comparison git makes after normalising on commit.
 """
 import argparse
 import pathlib
@@ -26,11 +32,31 @@ BLOCK_RE = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.S)
 
 
 def read(p: pathlib.Path) -> str:
-    return p.read_text(encoding="utf-8")
+    with p.open(encoding="utf-8", newline="") as f:  # newline="" keeps \r\n as \r\n
+        return f.read()
 
 
 def write(p: pathlib.Path, s: str) -> None:
-    p.write_text(s, encoding="utf-8", newline="\n")
+    with p.open("w", encoding="utf-8", newline="") as f:  # no platform translation
+        f.write(s)
+
+
+def to_lf(s: str) -> str:
+    return s.replace("\r\n", "\n")
+
+
+def eol_of(html: str) -> str:
+    """The line-ending convention a page uses: CRLF if most of its lines end that way, else LF."""
+    crlf = html.count("\r\n")
+    return "\r\n" if crlf > html.count("\n") - crlf else "\n"
+
+
+def with_eol(s: str, eol: str) -> str:
+    return to_lf(s).replace("\n", eol)
+
+
+def line_count(block: str) -> int:
+    return to_lf(block).count("\n") + 1
 
 
 def extract(html: str, name: str):
@@ -42,14 +68,23 @@ def extract(html: str, name: str):
     return m.group(0)
 
 
+def same(a, b) -> bool:
+    """Two blocks are the same when their content is, line endings aside."""
+    return a is not None and b is not None and to_lf(a) == to_lf(b)
+
+
 def replace(html: str, block: str, name: str) -> str:
+    """html with its block replaced by block (inserted before </body> if it has none),
+    the block converted to html's own line-ending convention."""
+    eol = eol_of(html)
+    block = with_eol(block, eol)
     m = BLOCK_RE.search(html)
     if m:
         return html[: m.start()] + block + html[m.end():]
     i = html.rfind("</body>")
     if i < 0:
         sys.exit(f"{name}: no RMR-RUNLOG block and no </body> to insert before")
-    return html[:i] + block + "\n" + html[i:]
+    return html[:i] + block + eol + html[i:]
 
 
 def main() -> int:
@@ -65,7 +100,7 @@ def main() -> int:
             sys.exit(f"{a.src}: no RMR-RUNLOG block")
         ctrl = replace(ctrl, block, CONTROLLER.name)
         write(CONTROLLER, ctrl)
-        print(f"{CONTROLLER.name}: block written from {a.src} ({block.count(chr(10)) + 1} lines)")
+        print(f"{CONTROLLER.name}: block written from {a.src} ({line_count(block)} lines)")
 
     block = extract(ctrl, CONTROLLER.name)
     if block is None:
@@ -73,17 +108,17 @@ def main() -> int:
     tblock = extract(touch, TOUCH.name)
 
     if a.check:
-        if tblock == block:
-            print(f"OK: RMR-RUNLOG block identical in {CONTROLLER.name} and {TOUCH.name} ({block.count(chr(10)) + 1} lines)")
+        if same(tblock, block):
+            print(f"OK: RMR-RUNLOG block identical in {CONTROLLER.name} and {TOUCH.name} ({line_count(block)} lines)")
             return 0
         print(f"DRIFT: the RMR-RUNLOG block in {TOUCH.name} differs from {CONTROLLER.name} — run python tools/sync_runlog.py")
         return 1
 
-    if tblock == block:
+    if same(tblock, block):
         print(f"{TOUCH.name}: already in sync")
         return 0
     write(TOUCH, replace(touch, block, TOUCH.name))
-    print(f"{TOUCH.name}: RMR-RUNLOG block {'updated' if tblock else 'inserted'} ({block.count(chr(10)) + 1} lines)")
+    print(f"{TOUCH.name}: RMR-RUNLOG block {'updated' if tblock else 'inserted'} ({line_count(block)} lines)")
     return 0
 
 
