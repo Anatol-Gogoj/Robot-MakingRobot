@@ -20,7 +20,7 @@ M751                         ; set current spin position as home datum
 ;                             returns "Unknown command" then ok. Commented out
 ;                             rather than deleted in case it was a placeholder.
 
-G1 B304 F3000                ; lower syringe height to dispensing position
+G1 B300 F3000                ; lower syringe height to dispensing position
 
 ; =========================
 ; 1000 RPM - layer 1 of 5

@@ -19,7 +19,7 @@ G4 S2                        ; wait 2 seconds for settling
 M751                         ; set current spin position as home datum
 M572
 
-G1 B304 F3000                ; lower syringe height to dispensing position
+G1 B300 F3000                ; lower syringe height to dispensing position
 
 ; =========================
 ; 2000 RPM — layer 1 of 5

@@ -21,7 +21,7 @@
 
 ; --- Setup ---
 G28 B                     ; home syringe height (J axis → B in G-code)
-G1 B304 F3000             ; move syringe height to 304 mm (max travel, slow feed)
+G1 B300 F3000             ; move syringe height to 300 mm (max travel, slow feed)
 M83                       ; set E to relative mode (all E moves are incremental)
 
 ; ============================================================

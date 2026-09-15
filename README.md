@@ -103,7 +103,7 @@ Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_r
 | Max feedrate (mm/s) | 400 | 333 | 50 | 33 | 50 | 8 |
 | Max feedrate (mm/min) | 24000 | 20000 | 3000 | 2000 | 3000 | 500 |
 | Max acceleration (mm/s²) | 500 | 200 | 100 | 150 | 50 | 500 |
-| Travel limit (mm) | 770 | 150 | 186 | 343 | 304 | — |
+| Travel limit (mm) | 770 | 150 | 186 | 343 | 300 | 125 |
 
 ### End Effectors and Peripherals
 
@@ -284,7 +284,7 @@ G1 C5 F300       ; dispense a further 5 mm from the current plunger position
 G90              ; back to absolute mode
 ```
 
-The syringe is a homed absolute axis (Marlin K axis, G-code letter `C`; `C0` = plunger fully open, soft-endstop limit 135 mm). Do **not** use `G92 C0` to re-zero it — that defeats the soft endstops. For a relative "dispense N mm" nudge, wrap the move in `G91` / `G90` as shown. The old extruder idioms `G1 E…` / `G92 E0` are silently ignored by the current firmware (there is no E axis).
+The syringe is a homed absolute axis (Marlin K axis, G-code letter `C`; `C0` = plunger fully open, soft-endstop limit 125 mm). Do **not** use `G92 C0` to re-zero it — that defeats the soft endstops. For a relative "dispense N mm" nudge, wrap the move in `G91` / `G90` as shown. The old extruder idioms `G1 E…` / `G92 E0` are silently ignored by the current firmware (there is no E axis).
 
 ### Servos, UV Lamp, and Solenoid
 
@@ -385,7 +385,7 @@ operation). They share the same serial contract and the same spincoater panel lo
 ## Important Gotchas
 
 1. **Axis naming:** G-code uses `A` and `B` for the Filter Feed and Syringe Height axes (not `I`/`J`). This applies to all commands: `G1`, `M201`, `M203`, `G28`, etc.
-2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0–135 mm). `G92 E0` / `G1 E…` are silently ignored — no error — so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do (see `HANDOFF-2026-09-14.md` §5).
+2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0–125 mm). `G92 E0` / `G1 E…` are silently ignored — no error — so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do (see `HANDOFF-2026-09-14.md` §5).
 3. **Filter Feed homes to MAX:** Unlike all other axes which home to MIN, the Filter Feed (A axis) homes to its far-end endstop (I_MAX, pin 15).
 4. **Servo deactivation:** Servos go limp 2 seconds after positioning. If the gripper needs to actively hold force, `DEACTIVATE_SERVOS_AFTER_MOVE` must be disabled (requires rebuild) or an external servo controller used.
 5. **E-Stop recovery:** `M112` fully kills the firmware and **cannot** be recovered with `M999` — reset the board (disconnect/reconnect USB or power-cycle). On reboot the firmware automatically disarms the spincoater. `M999` only recovers from the softer "stopped" state. `EMERGENCY_PARSER` is enabled, so `M112`/`M108`/`M410` act immediately from the serial RX path instead of queueing behind a blocking M750. Side effect: `M0`/`M1` are now compiled in and will **pause until an `M108` arrives** — previously they returned "Unknown command". Any production G-code containing `M0`/`M1` will stall. **This side effect has not been bench-checked.**
