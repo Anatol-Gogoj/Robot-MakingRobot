@@ -3302,8 +3302,20 @@ function stampResolveSide() {
   return s;
 }
 
+// UI-side stamp guard, mirroring syrGuard: numv() ignores the input's max, and the post-press lift is a
+// FAST absolute Z move (zF). Smaller Z is higher, so a lift Z at or below the press / approach depth
+// (e.g. 175 typed for 75) would drive the filter deeper into the elastomer at full speed instead of lifting off.
+function stampGuard(liftZ, pressZ, approachZ) {
+  if (!(liftZ < pressZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the press Z (' + pressZ + ' mm) — smaller Z is higher; the lift must be less than the press depth');
+  if (!(liftZ < approachZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the approach Z (' + approachZ + ' mm) — smaller Z is higher; the lift must be less than the approach');
+}
+
 async function runStampBlock() {
   const mode   = document.querySelector('input[name="stampSide"]:checked').value;
+  const pressZ = numv('stampForce', 155);
+  const approachZ = numv('stApproachZ', 150);
+  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
+  stampGuard(liftZ, pressZ, approachZ);   // refused before the alternating side is consumed or anything is sent
   const side   = stampResolveSide();
   const gOpen  = Math.round(numv('stGOpen', 170));
   const gClose = Math.round(numv('stGClose', 90));
@@ -3315,9 +3327,6 @@ async function runStampBlock() {
   const stack = numv('stampStack', 0);
   const grabDelay = numv('stampGrabDelay', 0);
   const hold = numv('stampHold', 0);
-  const pressZ = numv('stampForce', 155);
-  const approachZ = numv('stApproachZ', 150);
-  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
   const spinX = numv('stSX', 122.3), spinY = numv('stSY', 27.3);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
@@ -3331,6 +3340,7 @@ async function runStampBlock() {
   await seqCmd('G1 Z' + safeZ + ' F' + zF);
   await seqCmd('G1 X' + pickX + ' F' + xyF);
   await seqCmd('G1 Y' + pickY + ' F' + xyF);
+  await seqCmd('M400');                 // M280 acts when parsed, not when the XY moves finish (gotcha #10)
   await seqCmd('M280 P0 S' + gOpen);   // open now that the arm is over the pick
   // Advance feeder by one stack height (relative).
   // A single shared carriage (axis A) lifts BOTH the L and R stacks together, so

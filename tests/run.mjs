@@ -39,6 +39,8 @@ const checks = [
   { issue: '—',   name: 'run log: shared block in sync', script: 'runlog-sync.test.mjs',             args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '—',   name: 'syringe dose: Controller',      script: 'syringe-dose.test.mjs',            args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '—',   name: 'syringe dose: Touch',           script: 'syringe-dose.test.mjs',            args: [TOUCH],      needs: [TOUCH] },
+  { issue: '—',   name: 'stamp block: Controller',       script: 'stamp-block.test.mjs',             args: [CONTROLLER], needs: [CONTROLLER] },
+  { issue: '—',   name: 'stamp block: Touch',            script: 'stamp-block.test.mjs',             args: [TOUCH],      needs: [TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
