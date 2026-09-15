@@ -11,6 +11,13 @@
 import { readFileSync } from 'fs';
 import vm from 'vm';
 
+// A no-op canvas 2D context. Both UIs draw the UV / argon progress bar to a
+// <canvas> on load (uvProgressRender -> draw), and the stub DOM has no real
+// canvas backing. The tests don't assert pixels, so every drawing call is a
+// no-op and every property assignment (fillStyle, font, ...) is swallowed. A
+// Proxy covers the whole 2D API without having to list each method by hand.
+const CANVAS_CTX = new Proxy({}, { get: (t, k) => (k in t ? t[k] : () => {}), set: () => true });
+
 export function loadUI(file) {
   const html = readFileSync(file, 'utf8');
   const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
@@ -43,6 +50,7 @@ export function loadUI(file) {
       focus() {}, click() {}, remove() {}, scrollIntoView() {}, insertAdjacentHTML() {},
       querySelectorAll() { return []; }, querySelector() { return null; },
       getBoundingClientRect() { return { top: 0, left: 0, width: 100, height: 100 }; },
+      getContext() { return CANVAS_CTX; },
       setAttribute() {}, getAttribute() { return null; },
     };
     // Registering on id assignment is what lets a test reach an element the page
@@ -94,7 +102,11 @@ export function loadUI(file) {
       setItem(k, v) { this._m.set(k, String(v)); },
       removeItem(k) { this._m.delete(k); },
     },
-    TextEncoder, TextDecoder, TextDecoderStream,
+    TextEncoder, TextDecoder, TextDecoderStream, URLSearchParams,
+    // Share the outer realm's typed-array + buffer intrinsics into the sandbox so
+    // bytes the UI builds (e.g. the XLSX export) are `instanceof Uint8Array` when a
+    // test in this realm checks them; a vm context otherwise has its own copies.
+    ArrayBuffer, DataView, Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array,
     setTimeout, clearTimeout, setInterval, clearInterval,
     Date, Math, JSON, Promise, Set, Map,
     alert() {}, confirm: () => true, prompt: () => null,
@@ -108,7 +120,9 @@ export function loadUI(file) {
       }
     },
     performance,
-    getComputedStyle: () => ({ lineHeight: '16px' }),
+    // getPropertyValue backs the palette()/tok() reads of CSS custom properties;
+    // returning '' makes the UIs fall through to their coded default colours.
+    getComputedStyle: () => ({ lineHeight: '16px', getPropertyValue: () => '' }),
     Event: class {}, CustomEvent: class {},
     Blob: class { constructor(p) { this.parts = p; } },
     URL: { createObjectURL: () => 'blob:stub', revokeObjectURL() {} },
