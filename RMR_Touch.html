@@ -1449,6 +1449,18 @@
               <span class="seq-hint" style="align-self:center">next: <b id="stampNext">Left</b></span>
             </div>
           </div>
+          <div class="seq-field full">
+            <label>Filter feeder jog (axis A)</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <input type="number" id="feedJogMm" value="4" min="0" step="0.5" style="width:78px">
+              <span class="seq-hint">mm</span>
+              <input type="number" id="feedJogFeed" value="2000" min="10" step="10" style="width:90px">
+              <span class="seq-hint">mm/min</span>
+              <button class="seq-run-btn" style="background:var(--blue);color:var(--on-blue)" onclick="feederJog(1)">Advance &#9650;</button>
+              <button class="seq-run-btn" style="background:var(--blue);color:var(--on-blue)" onclick="feederJog(-1)">Retract &#9660;</button>
+            </div>
+            <span class="seq-hint">Advance raises the stack toward the gripper (A-); Retract lowers it (A+).</span>
+          </div>
         </div>
         <details class="config-section" style="margin-top:12px">
           <summary>Advanced positions &amp; feeds (DemoProgram.gcode)</summary>
@@ -3011,6 +3023,19 @@ function homeAllToggle() {
     c.disabled = all; if (all) c.checked = false;
     const lbl = c.closest('.seq-check'); lbl.classList.toggle('checked', c.checked); lbl.style.opacity = all ? '0.45' : '1';
   });
+}
+// Relative jog for the filter feeder (axis A). dir +1 = advance/raise the stack
+// toward the gripper (A-), dir -1 = retract (A+). A homes to MAX (343), so A+ is
+// clamped at the max soft-endstop; advancing is always A-. Same as RMR_Controller.html.
+function feederJog(dir) {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Feeder jog')) return;
+  const amt = numv('feedJogMm', 4), feed = Math.round(numv('feedJogFeed', 2000));
+  const signed = (dir > 0 ? -amt : amt);
+  sendCmd('G91');
+  sendCmd('G1 A' + signed.toFixed(3) + ' F' + feed);
+  sendCmd('G90');
 }
 function syrLower() {
   if (!isConnected) { logErr('Not connected'); return; }

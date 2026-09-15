@@ -111,5 +111,22 @@ setSide('left');
 { const r = await drive('runStampBlock'); ok('lift Z just above the approach runs and lifts to it', r.done && !r.err && r.cmds.includes('G1 Z149.000 F3000'), r.err ? r.err.message : r.cmds); }
 el('stampLiftZ').value = '75';
 
+// 7 -- filter feeder jog: Advance is A- (toward MIN, the stack rises), Retract is A+; locked until homed, refused while running
+const hasJog = ev('typeof feederJog') === 'function';
+ok('feeder jog helper and its inputs are on the page', hasJog && el('feedJogMm').value == 4 && el('feedJogFeed').value == 2000, [hasJog, el('feedJogMm').value, el('feedJogFeed').value]);
+if (hasJog) {
+  const jog = async dir => { sent.length = 0; ev('feederJog')(dir); await sleep(10); return [...sent]; };
+  ev('seqHomed = false');
+  ok('feeder jog is locked until all axes are homed', (await jog(1)).length === 0, sent);
+  ev('seqHomed = true');
+  ok('Advance jogs A- by the jog amount at the jog feed', JSON.stringify(await jog(1)) === JSON.stringify(['G91', 'G1 A-4.000 F2000', 'G90']), sent);
+  el('feedJogMm').value = '2.5'; el('feedJogFeed').value = '1000';
+  ok('Retract jogs A+ (toward the MAX home)', JSON.stringify(await jog(-1)) === JSON.stringify(['G91', 'G1 A2.500 F1000', 'G90']), sent);
+  ev('seqRunning = true');
+  ok('feeder jog is refused while a sequence runs', (await jog(1)).length === 0, sent);
+  ev('seqRunning = false');
+  el('feedJogMm').value = '4'; el('feedJogFeed').value = '2000';
+}
+
 console.log(fails ? `\n${fails} check(s) failed` : '\nall checks passed');
 process.exit(fails ? 1 : 0);
