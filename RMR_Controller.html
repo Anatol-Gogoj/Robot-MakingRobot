@@ -1528,8 +1528,7 @@
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="155" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
-          <div class="seq-field"><label>Post-press lift Z (mm)</label><input type="number" id="stampLiftZ" value="80" min="0" step="1"><span class="seq-hint">raise straight up after press (clears the syringe)</span></div>
-          <div class="seq-field"><label>Post-press Y back-off (mm)</label><input type="number" id="stampBackY" value="20" min="0" step="1"><span class="seq-hint">then move Y- before going up &amp; over</span></div>
+          <div class="seq-field"><label>Post-press lift Z &mdash; abs (mm)</label><input type="number" id="stampLiftZ" value="75" min="0" max="186" step="1"><span class="seq-hint">raise to this absolute Z after press, then Y homes to the limit switch (clears the spincoater, stays below the stowed lid)</span></div>
           <div class="seq-field full">
             <label>Filter feeder side</label>
             <div class="seq-radio-row" id="stampSideRow">
@@ -3318,8 +3317,7 @@ async function runStampBlock() {
   const hold = numv('stampHold', 0);
   const pressZ = numv('stampForce', 155);
   const approachZ = numv('stApproachZ', 150);
-  const liftZ = numv('stampLiftZ', 80);   // post-press straight-up clearance (Z- = up)
-  const backY = numv('stampBackY', 20);   // post-press Y- back-off to clear the syringe
+  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
   const spinX = numv('stSX', 122.3), spinY = numv('stSY', 27.3);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
@@ -3367,13 +3365,14 @@ async function runStampBlock() {
   await seqCmd('M400');
   rlEvent('stamp.press', { side: side === 'left' ? 'L' : 'R', holdS: hold, pressZ });   // filter is on the elastomer
   if (hold > 0) { seqSetStatus('Stamp — pressing ' + hold + ' s'); await seqSleep(hold * 1000); }
-  // Post-press clearance: raise straight up, then back off in Y-, so the gripper
-  // assembly clears the syringe before transiting up-and-over to the discard.
-  await seqCmd('G91');
-  await seqCmd('G1 Z-' + liftZ.toFixed(3) + ' F' + zF);    // raise (Z- = up) by liftZ
-  await seqCmd('G1 Y-' + backY.toFixed(3) + ' F' + xyF);   // back off in Y-
+  // Post-press clearance, three guarded absolute moves so nothing collides on the way out:
+  //  1) up to an absolute Z that clears the spincoater but stays below the stowed lid,
+  //  2) Y all the way back to the min limit switch (Y0) to clear the syringe,
+  //  3) only then go fully up to the safe Z, which clears the stowed spincoater lid.
   await seqCmd('G90');
-  await seqCmd('G1 Z' + safeZ + ' F' + zF);                // continue up to the upper safe Z
+  await seqCmd('G1 Z' + liftZ.toFixed(3) + ' F' + zF);     // 1) abs Z clear of the spincoater (Z=75 default)
+  await seqCmd('G1 Y0 F' + xyF);                           // 2) Y home to the min limit switch: clears the syringe
+  await seqCmd('G1 Z' + safeZ + ' F' + zF);                // 3) fully up to safe Z: clears the stowed spincoater lid
   // Dispose used filter
   await seqCmd('G1 Y0 F' + xyF);
   await seqCmd('G1 X' + disX + ' F' + xyF);
@@ -4181,7 +4180,7 @@ const rmrLog = (function () {
     'syrBarrelId', 'syrStroke', 'syrMaxDose', 'syrMaxRetract', 'syrPurgeVol', 'syrPurgeFeed', 'syrIdleLimit', 'syrPurgeOnRun', 'syrPrimeVol',
     'seqSpinRPM', 'seqSpinDur', 'seqSpinRise', 'seqSpinSink', 'seqSpinHome',
     'uvTime', 'uvSeqPin', 'uvLid', 'uvSpinHome', 'uvLidClose', 'uvLidOpen', 'uvArgon', 'uvArgonLead', 'uvArgonLag', 'uvArgonPin',
-    'stampStack', 'stampGrabDelay', 'stampHold', 'stampForce', 'stampLiftZ', 'stampBackY',
+    'stampStack', 'stampGrabDelay', 'stampHold', 'stampForce', 'stampLiftZ',
     'stLX', 'stLY', 'stLZ', 'stRX', 'stRY', 'stRZ', 'stSX', 'stSY', 'stApproachZ', 'stDX', 'stDZ', 'stSafeZ', 'stGOpen', 'stGClose', 'stXYF', 'stZF', 'stPF', 'stAF'];
   function seqSnapshot() {
     const o = {};
