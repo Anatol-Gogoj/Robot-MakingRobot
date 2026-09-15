@@ -2390,7 +2390,8 @@ function seqStop() {
   seqAbort = true;
   rlEvent('seq.stop', {});
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
-  logInfo('Sequencer: STOP requested. Use E-STOP for a hardware halt.');
+  sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin (same as the Controller)
+  logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
   seqSetStatus('<b>Stopping…</b>');
 }
 async function seqRunBlock(id) {

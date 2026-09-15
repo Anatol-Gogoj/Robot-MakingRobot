@@ -121,8 +121,8 @@ el('syrStroke').value = '119.4'; ev('__posC = 0'); el('posE').textContent = '---
 // 5c -- a Stop or a fault inside the relative-mode section still leaves the firmware in absolute mode
 {
   const r = await driveThenAbort('runSyringePrime', 'G1 C0.3979 F60', () => ev('seqStop')());
-  ok('Stop during the prime push: the run aborts, nothing else moves, and G90 is sent so the firmware leaves relative mode',
-     r.done && r.err && /aborted/.test(r.err.message) && r.cmds[r.cmds.length - 1] === 'G90' && !after(r.cmds, 'G1 C0.3979 F60').includes('M400'), [r.err && r.err.message, r.cmds]);
+  ok('Stop during the prime push: the run aborts, M410 quickstops the machine and G90 puts the firmware back into absolute mode (both UIs)',
+     r.done && r.err && /aborted/.test(r.err.message) && JSON.stringify(after(r.cmds, 'G1 C0.3979 F60')) === '["M410","G90"]', [r.err && r.err.message, r.cmds]);
 }
 {
   const r = await driveThenAbort('runSyringeBlock', 'G1 C3.9790 F15.9', () => ev('seqFault')('MOTOR POWER LOST — test'));
@@ -130,7 +130,7 @@ el('syrStroke').value = '119.4'; ev('__posC = 0'); el('posE').textContent = '---
 }
 {
   const r = await driveThenAbort('runSyringePurge', 'G1 C1.5916 F60', () => ev('seqStop')());
-  ok('Stop during the purge push: G90 is sent', r.done && r.err && r.cmds[r.cmds.length - 1] === 'G90', [r.err && r.err.message, r.cmds]);
+  ok('Stop during the purge push: M410 then G90, nothing else', r.done && r.err && JSON.stringify(after(r.cmds, 'G1 C1.5916 F60')) === '["M410","G90"]', [r.err && r.err.message, r.cmds]);
 }
 {
   const r = await drive('runSyringePrime');
