@@ -1337,7 +1337,7 @@
                 <span class="seq-hint">max dose</span><input type="number" id="syrMaxDose" value="4.18" min="0" step="0.01" style="width:78px"><span class="seq-hint">mm</span>
                 <span class="seq-hint">max retract</span><input type="number" id="syrMaxRetract" value="0.05" min="0" step="0.005" style="width:78px"><span class="seq-hint">mm</span>
               </div>
-              <span class="seq-hint">A retract above 0.05 mm ingests air on a 3.8 mm tip. The stroke guard uses the last reported C position (M114).</span>
+              <span class="seq-hint">A retract above 0.05 mm ingests air on a 3.8 mm tip. The stroke guard asks the firmware for the plunger position (M114) before every dose, purge and prime.</span>
             </div>
             <div class="seq-field full">
               <label>Initial purge (prime) &mdash; push by a set increment until material reaches the tip</label>
@@ -1833,7 +1833,7 @@ function processLine(line) {
     const aM=line.match(/A:([\d.-]+)/), bM=line.match(/B:([\d.-]+)/), cM=line.match(/C:([\d.-]+)/);
     if (aM) document.getElementById('posA').textContent=parseFloat(aM[1]).toFixed(1);
     if (bM) document.getElementById('posB').textContent=parseFloat(bM[1]).toFixed(1);
-    if (cM) document.getElementById('posE').textContent=parseFloat(cM[1]).toFixed(1);  // Syringe = C (K) axis
+    if (cM) { reportedC = parseFloat(cM[1]); reportedCSeq++; document.getElementById('posE').textContent=reportedC.toFixed(1); }  // Syringe = C (K) axis; also feeds the stroke guard (syrReadC)
   }
   if (line.match(/echo:\s*M92/)) parseM503(line, 'M92');
   if (line.match(/echo:\s*M203/)) parseM503(line, 'M203');
@@ -2402,7 +2402,8 @@ function seqStop() {
   seqAbort = true;
   rlEvent('seq.stop', {});
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
-  logInfo('Sequencer: STOP requested. Use E-STOP for a hardware halt.');
+  sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin (same as the Controller)
+  logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
   seqSetStatus('<b>Stopping…</b>');
 }
 async function seqRunBlock(id) {
@@ -2510,44 +2511,80 @@ async function runSyringeBlock() {
   const rFeed = numv('syrRetractFeed', eFeed) || eFeed;
   const dwell = numv('syrDwell', 2);
   const snap = Math.min(numv('syrSnapMm', 0), pos), snapFeed = Math.round(numv('syrSnapFeed', 3000));
-  syrGuard(dispMm, pullMm, false);   // dose / retract / stroke caps — refused before anything is sent
+  await syrGuard(dispMm, pullMm, false);   // dose / retract caps (nothing sent), then the stroke check against a fresh M114 position
   syrIdleCheck();
   await seqCmd('G90');
   await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);    // 1) lower to dispense height (B)
   await seqCmd('M400');
   // Plunger is the homeable C (K) axis. Dispense/retract as RELATIVE moves
   // (+C = push/dispense); no G92 on a homed axis, so soft limits [0, K_MAX_POS] hold.
-  await seqCmd('G91');
-  await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + fmtFeed(eFeed));   // 2) dose (push plunger)
-  await seqCmd('M400');
-  rlEvent('dispense', { mL: numv('syrVol', 0), mm: dispMm, pullMl: numv('syrPull', 0), pullMm, heightB: pos, feed: eFeed, dwellS: dwell, retractFeed: rFeed, snapMm: snap });   // plunger has stopped
-  syrNoteActivity();
-  // 3) dwell: let the stored pressure (barrel hoop + plunger train) bleed off BEFORE retracting —
-  //    retracting a still-pressurised system nets a suck when it relaxes afterwards.
-  if (dwell > 0) { seqSetStatus('Syringe — dwell ' + dwell + ' s (pressure bleeds off before the retract)'); await seqSleep(dwell * 1000); }
-  if (pullMm > 0) {
-    await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); // 4) retract plunger (tiny: 2 mm of tip bore)
+  // syrRelative() brackets the section with G91 / G90 and restores absolute mode however it ends.
+  await syrRelative(async () => {
+    await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + fmtFeed(eFeed));   // 2) dose (push plunger)
     await seqCmd('M400');
-  }
-  if (snap > 0) {
-    await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed);        // 5) snap lift (still relative): severs the strand
-    await seqCmd('M400');
-  }
-  await seqCmd('G90');
+    rlEvent('dispense', { mL: numv('syrVol', 0), mm: dispMm, pullMl: numv('syrPull', 0), pullMm, heightB: pos, feed: eFeed, dwellS: dwell, retractFeed: rFeed, snapMm: snap });   // plunger has stopped
+    syrNoteActivity();
+    // 3) dwell: let the stored pressure (barrel hoop + plunger train) bleed off BEFORE retracting —
+    //    retracting a still-pressurised system nets a suck when it relaxes afterwards.
+    if (dwell > 0) { seqSetStatus('Syringe — dwell ' + dwell + ' s (pressure bleeds off before the retract)'); await seqSleep(dwell * 1000); }
+    if (pullMm > 0) {
+      await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); // 4) retract plunger (tiny: 2 mm of tip bore)
+      await seqCmd('M400');
+    }
+    if (snap > 0) {
+      await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed);        // 5) snap lift (still relative): severs the strand
+      await seqCmd('M400');
+    }
+  });
   await seqCmd('G1 B0 F' + posFeed);                          // 6) raise the nozzle back up
   await seqCmd('M400');
 }
 // Feed values may be fractional (15.9 mm/min); Marlin accepts a decimal F.
 function fmtFeed(f) { return String(Math.round((+f || 0) * 100) / 100); }
+// Relative-mode bracket for the plunger moves: G91, the moves, G90 — and G90 again from a finally when the
+// section did not get there. A Stop (seqStop rejects the waiter), a seqFault or the ok-timeout used to leave
+// the firmware in G91, so the next console or Program Runner G1 moved relative. seqCmd() throws once the run
+// is aborted, so the recovery G90 is a fire-and-forget sendCmd(); its 'ok' lands after seqEnd(), unarmed.
+async function syrRelative(fn) {
+  let absolute = false;
+  try {
+    await seqCmd('G91');
+    await fn();
+    await seqCmd('G90');
+    absolute = true;
+  } finally {
+    if (!absolute) {
+      if (isConnected) { logInfo('Syringe: run ended inside the relative-mode section — sending G90'); sendCmd('G90'); }
+      else logErr('Syringe: run ended inside the relative-mode section while disconnected — the firmware may still be in G91; send G90 before any other move');
+    }
+  }
+}
 // UI-side dose guards (the C axis also has firmware soft endstops 0–125 mm, but a barrel is shorter than that).
-function syrGuard(dispMm, pullMm, isPurge) {
+// The parameter caps are refused with nothing sent. The stroke check then asks the firmware where the plunger
+// is (M114) rather than trusting the readout: the readout is only refreshed by M114, auto-report is off by
+// default and paused during a run, so a remembered value is usually stale — often the C0.00 printed by the
+// last G28 — and the only backstop past the barrel is the firmware's silent clamp at K_MAX_POS (125 mm,
+// 5 mm beyond the 120 mm stroke).
+async function syrGuard(dispMm, pullMm, isPurge) {
   const maxDose = numv('syrMaxDose', 0), maxRet = numv('syrMaxRetract', 0), stroke = numv('syrStroke', 0);
   if (maxRet > 0 && pullMm > maxRet + 1e-9) throw new Error('retract ' + pullMm.toFixed(4) + ' mm exceeds the max-retract guard (' + maxRet + ' mm) — a larger pull-back ingests air');
   if (!isPurge && maxDose > 0 && dispMm > maxDose + 1e-9) throw new Error('dose ' + dispMm.toFixed(4) + ' mm exceeds the max-dose guard (' + maxDose + ' mm)');
   if (stroke > 0) {
-    const posEl = document.getElementById('posE'), c = posEl ? parseFloat(posEl.textContent) : NaN;   // last M114 C position
-    if (!isNaN(c) && c + dispMm > stroke + 1e-9) throw new Error('plunger at C' + c.toFixed(2) + ' mm + ' + dispMm.toFixed(3) + ' mm would pass the barrel stroke (' + stroke + ' mm) — refill the syringe');
+    const c = await syrReadC();
+    if (c + dispMm > stroke + 1e-9) throw new Error('plunger at C' + c.toFixed(2) + ' mm + ' + dispMm.toFixed(3) + ' mm would pass the barrel stroke (' + stroke + ' mm) — refill the syringe');
   }
+}
+// The plunger position as the firmware last reported it (the M114 'C:' field at full precision — the readout
+// is rounded to 0.1 mm) and a counter that ticks on every report, so a fresh reply can be told from a stale value.
+let reportedC = NaN, reportedCSeq = 0;
+// Ask the firmware for the plunger position: M114 through seqCmd(), so its 'ok' is consumed here and cannot
+// advance a later step; the position line precedes the 'ok', so processLine() has stored it by then.
+// Refuses, rather than guessing, when the reply carried no C position.
+async function syrReadC() {
+  const seq = reportedCSeq;
+  await seqCmd('M114');
+  if (reportedCSeq === seq || isNaN(reportedC)) throw new Error('no C (plunger) position in the M114 reply — cannot check the barrel stroke');
+  return reportedC;
 }
 let syrLastActivity = 0;   // ms timestamp of the last dose or purge (this page)
 function syrNoteActivity() { syrLastActivity = Date.now(); }
@@ -2571,20 +2608,20 @@ async function runSyringePurge(auto) {
   const pos = numv('syrPos', 0), posFeed = Math.round(numv('syrPosFeed', 1500));
   const pFeed = numv('syrPurgeFeed', 60) || 60, rFeed = numv('syrRetractFeed', numv('syrFeed', 300)) || 300;
   const dwell = numv('syrDwell', 2), snap = Math.min(numv('syrSnapMm', 0), pos), snapFeed = Math.round(numv('syrSnapFeed', 3000));
-  syrGuard(mm, pullMm, true);
+  await syrGuard(mm, pullMm, true);
   seqSetStatus('Syringe — purging ' + vol + ' mL…');
   await seqCmd('G90');
   await seqCmd('G1 B' + pos.toFixed(3) + ' F' + posFeed);
   await seqCmd('M400');
-  await seqCmd('G91');
-  await seqCmd('G1 C' + mm.toFixed(4) + ' F' + fmtFeed(pFeed));
-  await seqCmd('M400');
-  rlEvent('purge', { mL: vol, mm, auto: !!auto });
-  syrNoteActivity();
-  if (dwell > 0) await seqSleep(dwell * 1000);
-  if (pullMm > 0) { await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); await seqCmd('M400'); }
-  if (snap > 0) { await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed); await seqCmd('M400'); }
-  await seqCmd('G90');
+  await syrRelative(async () => {
+    await seqCmd('G1 C' + mm.toFixed(4) + ' F' + fmtFeed(pFeed));
+    await seqCmd('M400');
+    rlEvent('purge', { mL: vol, mm, auto: !!auto });
+    syrNoteActivity();
+    if (dwell > 0) await seqSleep(dwell * 1000);
+    if (pullMm > 0) { await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); await seqCmd('M400'); }
+    if (snap > 0) { await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed); await seqCmd('M400'); }
+  });
   await seqCmd('G1 B0 F' + posFeed);
   await seqCmd('M400');
 }
@@ -2604,12 +2641,12 @@ async function runSyringePrime() {
   const vol = numv('syrPrimeVol', 0);
   if (!(vol > 0)) throw new Error('prime increment is 0');
   const mm = vol * mmPerMl, pFeed = numv('syrPurgeFeed', 60) || 60;
-  syrGuard(mm, 0, true);   // stroke guard only
+  await syrGuard(mm, 0, true);   // stroke guard only — against a fresh M114 position, so repeated presses cannot walk past the barrel
   seqSetStatus('Syringe — initial purge +' + vol + ' mL…');
-  await seqCmd('G91');
-  await seqCmd('G1 C' + mm.toFixed(4) + ' F' + fmtFeed(pFeed));
-  await seqCmd('M400');
-  await seqCmd('G90');
+  await syrRelative(async () => {
+    await seqCmd('G1 C' + mm.toFixed(4) + ' F' + fmtFeed(pFeed));
+    await seqCmd('M400');
+  });
   rlEvent('prime', { mL: vol, mm });
   syrNoteActivity();
 }

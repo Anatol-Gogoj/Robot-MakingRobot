@@ -31,7 +31,8 @@ el('syrDwell').value = '0.02';   // the post-dose dwell is a browser-side sleep;
 {
   const sent = [];
   ev('globalThis.__sent = []');
-  ev('writer = { write: async (b) => { globalThis.__sent.push(new TextDecoder().decode(b).trim()); } }');
+  // The fake firmware answers the block's M114 (stroke guard) with a homed plunger, C:0.00, ahead of the 'ok'.
+  ev("writer = { write: async (b) => { const c = new TextDecoder().decode(b).trim(); globalThis.__sent.push(c); if (c === 'M114') processLine('X:0.00 Y:0.00 Z:0.00 A:0.00 B:0.00 C:0.00 Count X:0 Y:0 Z:0 A:0 B:0 C:0'); } }");
   let done = false, err = null;
   ev('runSyringeBlock')().then(() => { done = true; }, e => { done = true; err = e; });
   for (let i = 0; i < 400 && !done; i++) { await sleep(5); ev('processLine')('ok'); }
