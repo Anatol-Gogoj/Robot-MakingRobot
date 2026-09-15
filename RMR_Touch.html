@@ -1250,10 +1250,10 @@
       <div class="seq-body">
         <p class="seq-hint">Run does the full cycle: <b>lower</b> the nozzle to the dispense height &rarr; <b>dispense</b> &rarr; <b>retract</b> the plunger &rarr; <b>raise</b> back up. Axis B: home (0) is up, larger B is down. Axis C: +C dispenses.</p>
         <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
-          <!-- Height slider (B axis): top = 0 = up/home, bottom = 304 = down -->
+          <!-- Height slider (B axis): top = 0 = up/home, bottom = 300 = down -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>0<br>up</span><span>304<br>down</span></div>
-            <input type="range" class="v-slider" id="syrPos" min="0" max="304" value="0" step="0.5"
+            <div class="vslider-scale"><span>0<br>up</span><span>300<br>down</span></div>
+            <input type="range" class="v-slider" id="syrPos" min="0" max="300" value="0" step="0.5"
                    oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
               <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B) &mdash; dispense height</small></div>
@@ -1267,10 +1267,10 @@
               </div>
             </div>
           </div>
-          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 135 = pushed -->
+          <!-- Plunger jog slider (C axis): top = 0 = open/retracted, bottom = 125 = pushed -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>0<br>open</span><span>135<br>pushed</span></div>
-            <input type="range" class="v-slider" id="plungerPos" min="0" max="135" value="0" step="0.5"
+            <div class="vslider-scale"><span>0<br>open</span><span>125<br>pushed</span></div>
+            <input type="range" class="v-slider" id="plungerPos" min="0" max="125" value="0" step="0.5"
                    oninput="document.getElementById('plungerPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
               <div><span class="vslider-readout" id="plungerPosVal">0.0</span><small> mm (C) &mdash; plunger</small></div>
@@ -1435,7 +1435,7 @@
       <summary>Stamp &middot; Filter Pick &amp; Press <span class="seq-badge on" id="badge-stamp">enabled</span></summary>
       <div class="seq-body">
         <div class="seq-grid">
-          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this each cycle</span></div>
+          <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this per pick (once per L/R pair when alternating)</span></div>
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
           <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="155" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
@@ -1448,6 +1448,18 @@
               <label class="seq-radio"><input type="radio" name="stampSide" value="right"> Right only</label>
               <span class="seq-hint" style="align-self:center">next: <b id="stampNext">Left</b></span>
             </div>
+          </div>
+          <div class="seq-field full">
+            <label>Filter feeder jog (axis A)</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <input type="number" id="feedJogMm" value="4" min="0" step="0.5" style="width:78px">
+              <span class="seq-hint">mm</span>
+              <input type="number" id="feedJogFeed" value="2000" min="10" step="10" style="width:90px">
+              <span class="seq-hint">mm/min</span>
+              <button class="seq-run-btn" style="background:var(--blue);color:var(--on-blue)" onclick="feederJog(1)">Advance &#9650;</button>
+              <button class="seq-run-btn" style="background:var(--blue);color:var(--on-blue)" onclick="feederJog(-1)">Retract &#9660;</button>
+            </div>
+            <span class="seq-hint">Advance raises the stack toward the gripper (A-); Retract lowers it (A+).</span>
           </div>
         </div>
         <details class="config-section" style="margin-top:12px">
@@ -2951,7 +2963,8 @@ const uvCanvas = (function () {
   }
   return { draw, cycle, init, skin: () => skin };
 })();
-let stampAltNext = 'left';
+let stampAltNext = 'left';   // side used on the next 'alternating' cycle
+let stampAltPick = 0;        // pick counter within alternating mode (for once-per-pair feed)
 function updateStampNext() {
   const sel = document.querySelector('input[name="stampSide"]:checked'), el = document.getElementById('stampNext');
   if (!sel || !el) return;
@@ -2963,25 +2976,52 @@ function stampResolveSide() {
   if (mode === 'left' || mode === 'right') return mode;
   const s = stampAltNext; stampAltNext = (s === 'left') ? 'right' : 'left'; updateStampNext(); return s;
 }
+// UI-side stamp guard, mirroring syrGuard: numv() ignores the input's max, and the post-press lift is a
+// FAST absolute Z move (zF). Smaller Z is higher, so a lift Z at or below the press / approach depth
+// (e.g. 175 typed for 75) would drive the filter deeper into the elastomer at full speed instead of lifting off.
+function stampGuard(liftZ, pressZ, approachZ) {
+  if (!(liftZ < pressZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the press Z (' + pressZ + ' mm) — smaller Z is higher; the lift must be less than the press depth');
+  if (!(liftZ < approachZ)) throw new Error('post-press lift Z ' + liftZ + ' mm is not above the approach Z (' + approachZ + ' mm) — smaller Z is higher; the lift must be less than the approach');
+}
 async function runStampBlock() {
+  const mode = document.querySelector('input[name="stampSide"]:checked').value;
+  const pressZ = numv('stampForce', 155), approachZ = numv('stApproachZ', 150);
+  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
+  stampGuard(liftZ, pressZ, approachZ);   // refused before the alternating side is consumed or anything is sent
   const side = stampResolveSide();
   const gOpen = Math.round(numv('stGOpen', 170)), gClose = Math.round(numv('stGClose', 90)), safeZ = numv('stSafeZ', 0);
   const xyF = Math.round(numv('stXYF', 24000)), zF = Math.round(numv('stZF', 3000)), pF = Math.round(numv('stPF', 300)), aF = Math.round(numv('stAF', 2000));
   const stack = numv('stampStack', 0), grabDelay = numv('stampGrabDelay', 0), hold = numv('stampHold', 0);
-  const pressZ = numv('stampForce', 155), approachZ = numv('stApproachZ', 150);
-  const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
   const spinX = numv('stSX', 122.3), spinY = numv('stSY', 27.3), disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
   const pickY = side === 'left' ? numv('stLY', 143) : numv('stRY', 143);
   const grabZ = side === 'left' ? numv('stLZ', 41) : numv('stRZ', 43);
   logInfo('Stamp: picking from ' + side.toUpperCase() + ' feeder');
   await seqCmd('G90');
+  // Move the arm over the pick position FIRST, then open the gripper (not before moving) — the same
+  // order as RMR_Controller.html, so the gripper never travels open (cf. gotcha #3: it is closed
+  // before X homing to clear the frame).
   await seqCmd('M400');
-  await seqCmd('M280 P0 S' + gOpen);
   await seqCmd('G1 Z' + safeZ + ' F' + zF);
   await seqCmd('G1 X' + pickX + ' F' + xyF);
   await seqCmd('G1 Y' + pickY + ' F' + xyF);
-  if (stack > 0) { await seqCmd('G91'); await seqCmd('G1 A' + stack.toFixed(3) + ' F' + aF); await seqCmd('G90'); }
+  await seqCmd('M400');                 // M280 acts when parsed, not when the XY moves finish (gotcha #10)
+  await seqCmd('M280 P0 S' + gOpen);   // open now that the arm is over the pick
+  // Advance feeder by one stack height (relative).
+  // A single shared carriage (axis A) lifts BOTH the L and R stacks together, so
+  // one L + one R pick lowers both columns by one filter → the carriage should rise
+  // by one `stack` per L+R PAIR. Advancing every pick (correct for left-/right-only)
+  // double-raises in alternating mode, so there we advance only once every two picks.
+  let advanceFeed = stack > 0;
+  if (mode === 'alt') {
+    stampAltPick = (stampAltPick + 1) % 2;
+    advanceFeed = advanceFeed && (stampAltPick === 0);   // only on completion of a pair
+  }
+  if (advanceFeed) {
+    await seqCmd('G91');
+    await seqCmd('G1 A-' + stack.toFixed(3) + ' F' + aF);   // feeder homes to MAX (343); advance = A- (A+ is clamped at the max soft-endstop)
+    await seqCmd('G90');
+  }
   await seqCmd('M400');
   await seqCmd('G1 Z' + grabZ + ' F' + zF);
   await seqCmd('M400');
@@ -3021,6 +3061,19 @@ function homeAllToggle() {
     const lbl = c.closest('.seq-check'); lbl.classList.toggle('checked', c.checked); lbl.style.opacity = all ? '0.45' : '1';
   });
 }
+// Relative jog for the filter feeder (axis A). dir +1 = advance/raise the stack
+// toward the gripper (A-), dir -1 = retract (A+). A homes to MAX (343), so A+ is
+// clamped at the max soft-endstop; advancing is always A-. Same as RMR_Controller.html.
+function feederJog(dir) {
+  if (!isConnected) { logErr('Not connected'); return; }
+  if (seqRunning) { logErr('Sequencer is busy'); return; }
+  if (!seqHomeGate('Feeder jog')) return;
+  const amt = numv('feedJogMm', 4), feed = Math.round(numv('feedJogFeed', 2000));
+  const signed = (dir > 0 ? -amt : amt);
+  sendCmd('G91');
+  sendCmd('G1 A' + signed.toFixed(3) + ' F' + feed);
+  sendCmd('G90');
+}
 function syrLower() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
@@ -3037,7 +3090,7 @@ function syrRaise() {
   sendCmd('G90');
   sendCmd('G1 B0 F' + feed);   // raise the nozzle up (B home)
 }
-// Absolute plunger jog on the homed C (K) axis: 0 = fully open, 135 = fully pushed.
+// Absolute plunger jog on the homed C (K) axis: 0 = fully open, 125 = fully pushed.
 function plungerMove() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
@@ -3270,7 +3323,7 @@ const rmrLog = (function () {
     'enable.homing': true, 'enable.syringe': true, 'enable.spin': true, 'enable.uv': true, 'enable.stamp': false, homeAll: true,
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
     uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 110, uvLidOpen: 30, uvArgon: false,
-    syrPos: 304, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
+    syrPos: 300, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
     syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };
   const BUILTIN_PRESETS = {

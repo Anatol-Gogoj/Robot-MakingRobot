@@ -62,12 +62,12 @@ ok('calibration from the barrel ID', Math.abs(parseFloat(el('calMm').value) - 0.
 
 // 3 -- the 150 mL dose: 5 mL in 15 s, 0.02 s dwell (kept short for the test), 0.018 mm retract at 1 mm/min, 4 mm snap
 Object.entries({ syrVol: '5', syrPull: '0.0227', syrFeed: '15.9', syrRetractFeed: '1', syrDwell: '0.02', syrSnapMm: '4', syrSnapFeed: '3000',
-                 syrPos: '304', syrPosFeed: '1500', syrMaxDose: '4.18', syrMaxRetract: '0.05', syrStroke: '119.4' }).forEach(([k, v]) => { el(k).value = v; });
+                 syrPos: '300', syrPosFeed: '1500', syrMaxDose: '4.18', syrMaxRetract: '0.05', syrStroke: '119.4' }).forEach(([k, v]) => { el(k).value = v; });
 ev('__posC = 0'); el('posE').textContent = '118.0';   // the readout is stale (it would fail the guard); the firmware says C0
 {
   const r = await drive('runSyringeBlock');
   ok('dose block completed', r.done && !r.err, r.err && r.err.message);
-  const want = ['M114', 'G90', 'G1 B304.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G1 B-4.000 F3000', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
+  const want = ['M114', 'G90', 'G1 B300.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G1 B-4.000 F3000', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
   ok('exact command order: position query · lower · dose · M400 · (dwell) · retract at its own feed · snap lift · raise', JSON.stringify(r.cmds) === JSON.stringify(want), r.cmds);
   ok('the stroke guard used the M114 reply, not the stale readout, and the reply refreshed the readout', el('posE').textContent === '0.0', el('posE').textContent);
 }

@@ -23,6 +23,7 @@ export function loadUI(file) {
   const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
   if (!scripts.length) throw new Error('no inline <script> in ' + file);
   const els = new Map();
+  const byName = new Map();   // radio groups (name -> elements); they carry no id
 
   function mkEl(id) {
     const o = {
@@ -66,15 +67,25 @@ export function loadUI(file) {
 
   const document = {
     getElementById(id) { if (!els.has(id)) mkEl(id); return els.get(id); },
-    // Only the one selector shape the UIs actually use: [id^="prefix"]. The
-    // layer table is built with innerHTML, so this is the only way its cells are
+    // Only the selector shapes the UIs actually use. [id^="prefix"]: the layer
+    // table is built with innerHTML, so this is the only way its cells are
     // reachable, and both renderLayerTable() and clearLayerCells() depend on it.
+    // input[name="x"]: a radio group (the stamp feeder side).
     querySelectorAll(sel) {
-      const m = /^\[id\^=["']?([^"'\]]+)["']?\]$/.exec(String(sel || '').trim());
-      if (!m) return [];
-      return [...els.entries()].filter(([id]) => id.startsWith(m[1])).map(([, el]) => el);
+      const s = String(sel || '').trim();
+      const m = /^\[id\^=["']?([^"'\]]+)["']?\]$/.exec(s);
+      if (m) return [...els.entries()].filter(([id]) => id.startsWith(m[1])).map(([, el]) => el);
+      const n = /^input\[name=["']([^"'\]]+)["']\]$/.exec(s);
+      if (n) return [...(byName.get(n[1]) || [])];
+      return [];
     },
-    querySelector() { return null; },
+    // input[name="x"]:checked and input[name="x"][value="y"] -- how both UIs read
+    // and set the stamp feeder side. Anything else is unresolved, as before.
+    querySelector(sel) {
+      const m = /^input\[name=["']([^"'\]]+)["']\](?::checked|\[value=["']([^"'\]]*)["']\])$/.exec(String(sel || '').trim());
+      if (!m) return null;
+      return (byName.get(m[1]) || []).find(e => (m[2] === undefined ? e.checked : e.value === m[2])) || null;
+    },
     createElement(t) { const e = mkEl(''); e.tag = t; return e; },
     createElementNS(ns, t) { const e = mkEl(''); e.tag = t; return e; },
     addEventListener() {}, body: mkEl('body'), documentElement: mkEl('html'),
@@ -91,6 +102,27 @@ export function loadUI(file) {
     if (v) el.value = v[1];
     const ty = t[2].match(/\btype="([^"]*)"/);
     if (ty) el.type = ty[1];
+  }
+  // Radio groups have a name but no id (the stamp feeder side). Seed them too, so
+  // input[name="x"]:checked / [value="y"] resolve, and give each radio a checked
+  // setter that unchecks the rest of its group, as a browser does.
+  const INPUT_WITH_NAME = /<input\b([^>]*\bname="([^"]+)"[^>]*)>/g;
+  for (const t of html.matchAll(INPUT_WITH_NAME)) {
+    const attrs = t[1], name = t[2];
+    const idm = attrs.match(/\bid="([^"]+)"/);
+    const e = idm ? document.getElementById(idm[1]) : mkEl('');
+    e.tag = 'input'; e.name = name;
+    const ty = attrs.match(/\btype="([^"]*)"/); if (ty) e.type = ty[1];
+    const v = attrs.match(/\bvalue="([^"]*)"/); if (v) e.value = v[1];
+    if (!byName.has(name)) byName.set(name, []);
+    const group = byName.get(name); group.push(e);
+    let checked = /\bchecked\b/.test(attrs);
+    if (e.type === 'radio') Object.defineProperty(e, 'checked', {
+      get() { return checked; },
+      set(x) { checked = !!x; if (checked) group.forEach(o => { if (o !== e) o.checked = false; }); },
+      enumerable: true, configurable: true,
+    });
+    else e.checked = checked;
   }
 
   const sandbox = {

@@ -5,7 +5,7 @@ device preset the Run Log can push into the sequencer in a few clicks. **Not yet
 machine.** The analysis below came from a separate discussion of drooling and dose precision with
 the acrylic (CN9018 7.5 % HDDA); this file records the numbers, what they became in the UI, and
 how each item maps onto this machine, whose plunger is the **C axis** (a homed linear axis, 1 mm/rev
-lead screw, 1600 steps/mm, soft endstops 0–135 mm) and whose syringe height is the **B axis**.
+lead screw, 1600 steps/mm, soft endstops 0–125 mm) and whose syringe height is the **B axis**.
 
 ## 1. The three defects the retune fixes
 
@@ -74,7 +74,7 @@ D_crit = √(0.84·σ / (ρ·g)) = 1.62 mm, and the 3.8 mm tip is well above it,
 | Lateral shear `G1 X1.5` | **not available** | the syringe is fixed over the chuck: only B (height) and C (plunger) move; the snap lift alone severs the strand |
 | Wiper drag at a park XY | **not available** | no wiper hardware and no XY motion at the syringe |
 | `PurgeBarrel` at start of run and after idle > `IdleLimit` | **Purge** button (2 mL at 60 mm/min → same dwell / retract / snap) and **Purge before the first dose of a Run All** (opt-in); **idle limit** 300 s → a dose after longer idle *warns* (toast + journal) but never blocks | there is no waste position: the purge dispenses onto whatever is under the tip — put a waste cup there first (the button asks; the run-all option is the consent) |
-| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (0.05 mm), **barrel stroke** (120 mm by default, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–135 mm, but the barrel is shorter than the axis |
+| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (0.05 mm), **barrel stroke** (120 mm by default, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–125 mm, but the barrel is shorter than the axis |
 
 All of these are inputs in the Syringe block, so they travel with a Run Log preset: the built-in
 **`CN9018 7.5% HDDA · 150 mL syringe`** preset sets calibration 0.7958 mm/mL (barrel ID 40),
@@ -121,7 +121,7 @@ press is journaled by the Run Log.
 ## 7. Safety notes
 
 - The dose / retract / stroke caps live in the UI. Hand-written G-code bypasses them (the firmware
-  soft endstops 0–135 mm on C still apply).
+  soft endstops 0–125 mm on C still apply).
 - The 150 mL barrel is roughly 30 doses of residence time in the machine: wrap it against ambient UV
   and confirm the material has equilibrated to room temperature — η is strongly temperature dependent
   and every number above assumes η ≈ 20–30 Pa·s.

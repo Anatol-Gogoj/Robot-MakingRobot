@@ -71,7 +71,7 @@ M751                         ; set current spin position as home datum
 
 ;SEGMENT: Lower syringe to dispensing height
 ;REQUIRES: homed
-G1 B304 F3000                ; lower syringe height to dispensing position
+G1 B300 F3000                ; lower syringe height to dispensing position
 
 
 ; ════════════════════════════════════════════════════════════════════════════

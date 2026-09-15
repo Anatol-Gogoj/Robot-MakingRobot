@@ -84,7 +84,7 @@ log.mark('press');
 
 // 6 -- next dispense opens layer 2; a failed measure leaves RPM blank (never the previous value)
 log.event('cycle.begin', { cycle: 2, cycles: 3, blocks: ['syringe', 'spin', 'uv'] });
-log.event('dispense', { mL: 0.05, mm: 5, pullMl: 0.005, pullMm: 0.5, heightB: 304 });
+log.event('dispense', { mL: 0.05, mm: 5, pullMl: 0.005, pullMm: 0.5, heightB: 300 });
 {
   const L = log.device.rows.filter(r => r.kind === 'layer');
   ok('layer 2 opened by the next dispense', L.length === 2 && L[1].layer === 2 && !!L[1].dispense.at, L.map(r => r.layer));
