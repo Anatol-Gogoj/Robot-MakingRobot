@@ -1732,7 +1732,7 @@
 
 // The size of the printable area
 #define X_BED_SIZE 770   // Measured travel limit
-#define Y_BED_SIZE 150   // Measured travel limit
+#define Y_BED_SIZE 200   // Measured travel limit (raised ~50 mm from 150)
 
 // Travel limits (linear=mm, rotational=°) after homing, corresponding to endstop positions.
 #define X_MIN_POS 0

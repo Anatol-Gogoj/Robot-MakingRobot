@@ -67,8 +67,8 @@ ev('__posC = 0'); el('posE').textContent = '118.0';   // the readout is stale (i
 {
   const r = await drive('runSyringeBlock');
   ok('dose block completed', r.done && !r.err, r.err && r.err.message);
-  const want = ['M114', 'G90', 'G1 B300.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G1 B-4.000 F3000', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
-  ok('exact command order: position query · lower · dose · M400 · (dwell) · retract at its own feed · snap lift · raise', JSON.stringify(r.cmds) === JSON.stringify(want), r.cmds);
+  const want = ['M114', 'G90', 'G1 X385 F24000', 'M400', 'G1 B300.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G1 B-4.000 F3000', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
+  ok('exact command order: position query · center X · lower · dose · M400 · (dwell) · retract at its own feed · snap lift · raise', JSON.stringify(r.cmds) === JSON.stringify(want), r.cmds);
   ok('the stroke guard used the M114 reply, not the stale readout, and the reply refreshed the readout', el('posE').textContent === '0.0', el('posE').textContent);
 }
 

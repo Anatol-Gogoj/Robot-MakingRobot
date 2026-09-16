@@ -103,7 +103,9 @@ Steps/mm formula: `(motor_steps_per_rev × microstepping) ÷ linear_travel_per_r
 | Max feedrate (mm/s) | 400 | 333 | 50 | 33 | 50 | 8 |
 | Max feedrate (mm/min) | 24000 | 20000 | 3000 | 2000 | 3000 | 500 |
 | Max acceleration (mm/s²) | 500 | 200 | 100 | 150 | 50 | 500 |
-| Travel limit (mm) | 770 | 150 | 186 | 343 | 300 | 125 |
+| Travel limit (mm) | 770 | 200 | 186 | 343 | 300 | 125 |
+
+> Y travel reaches 200 mm only on the right half (X ≥ 350); on the left half keep Y ≤ 150 mm to clear fixtures.
 
 ### End Effectors and Peripherals
 
