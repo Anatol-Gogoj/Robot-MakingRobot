@@ -20,6 +20,8 @@ M751                         ; set current spin position as home datum
 ;                             returns "Unknown command" then ok. Commented out
 ;                             rather than deleted in case it was a placeholder.
 
+G1 X385 F24000               ; center gantry on X (bed mid = 770/2) before the syringe lowers
+M400                         ; reach mid-X before B descends
 G1 B300 F3000                ; lower syringe height to dispensing position
 
 ; =========================
@@ -65,8 +67,8 @@ G1 Y0 F24000
 
 ; --- Hover over spincoater ---
 G1 Y0 F24000
-G1 X122.5 F24000
-G1 Y21.5 F24000
+G1 X121 F24000
+G1 Y15 F24000
 G1 Z0 F3000
 
 ; --- Press filter onto spincoater ---
