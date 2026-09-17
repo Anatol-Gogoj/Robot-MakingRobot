@@ -23,7 +23,7 @@
 G28                       ; home all axes (Z, Y, B, X, A, then syringe C) — X homed before the centering move
 G1 X385 F24000            ; center gantry on X (bed mid = 770/2) before the syringe lowers
 M400                      ; reach mid-X before B descends
-G1 B300 F3000             ; move syringe height to 300 mm (B capped at 300, was 304)
+G1 B295 F3000             ; move syringe height to 295 mm (B capped at 295, was 304)
 M83                       ; set E to relative mode (all E moves are incremental)
 
 ; ============================================================

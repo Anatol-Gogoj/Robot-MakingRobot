@@ -73,7 +73,7 @@ M751                         ; set current spin position as home datum
 ;REQUIRES: homed
 G1 X385 F24000               ; center gantry on X (bed mid = 770/2) before the syringe lowers
 M400                         ; reach mid-X before B descends
-G1 B300 F3000                ; lower syringe height to dispensing position
+G1 B295 F3000                ; lower syringe height to dispensing position
 
 
 ; ════════════════════════════════════════════════════════════════════════════
@@ -136,15 +136,15 @@ G1 Y0 F24000
 ;SEGMENT: Hover over spincoater
 ;REQUIRES: gripper-loaded
 G1 Y0 F24000
-G1 X121 F24000
-G1 Y15 F24000
+G1 X111 F24000
+G1 Y23 F24000
 G1 Z0 F3000
 
 
 ;SEGMENT: Press filter onto spincoater
 ;REQUIRES: gripper-loaded
 G1 Z140 F3000                ; fast approach to contact height
-G1 Z165 F300                 ; slow press
+G1 Z167 F300                 ; slow press
 M400                         ; wait for press to complete
 G4 S{adhere_s}               ; hold for the filter to adhere
 

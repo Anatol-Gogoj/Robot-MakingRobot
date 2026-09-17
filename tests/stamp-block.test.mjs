@@ -34,8 +34,8 @@ const feedLines = cmds => cmds.filter(c => /^G1 A/.test(c));
 el('stampGrabDelay').value = '0'; el('stampHold').value = '0';
 
 // 1 -- defaults
-ok('defaults: stack 4 mm, press Z165, approach Z150, lift Z75, alternating',
-   el('stampStack').value == 4 && el('stampForce').value == 165 && el('stApproachZ').value == 150 && el('stampLiftZ').value == 75 && document.querySelector('input[name="stampSide"]:checked').value === 'alt',
+ok('defaults: stack 4 mm, press Z167, approach Z150, lift Z75, alternating',
+   el('stampStack').value == 4 && el('stampForce').value == 167 && el('stApproachZ').value == 150 && el('stampLiftZ').value == 75 && document.querySelector('input[name="stampSide"]:checked').value === 'alt',
    [el('stampStack').value, el('stampForce').value, el('stApproachZ').value, el('stampLiftZ').value]);
 
 // 2 -- left only: exact order, and the feeder advances A- on every pick
@@ -45,7 +45,7 @@ setSide('left');
   ok('left-only run completed', r.done && !r.err, r.err && r.err.message);
   const head = ['G90', 'M400', 'G1 Z0 F3000', 'G1 X607 F24000', 'G1 Y143 F24000', 'M400', 'M280 P0 S170',
                 'G91', 'G1 A-4.000 F2000', 'G90', 'M400', 'G1 Z41 F3000', 'M400', 'M280 P0 S90',
-                'G1 Z0 F3000', 'G1 Y0 F24000', 'G1 X121 F24000', 'G1 Y15 F24000', 'G1 Z150 F3000', 'G1 Z165 F300', 'M400',
+                'G1 Z0 F3000', 'G1 Y0 F24000', 'G1 X111 F24000', 'G1 Y23 F24000', 'G1 Z150 F3000', 'G1 Z167 F300', 'M400',
                 'G90', 'G1 Z75.000 F3000', 'G1 Y0 F24000', 'G1 Z0 F3000'];
   ok('exact order through the retreat: travel · M400 · open · feed A- · descend · grab · transit · press · 3-step retreat',
      JSON.stringify(r.cmds.slice(0, head.length)) === JSON.stringify(head), r.cmds);
@@ -102,7 +102,7 @@ el('stampLiftZ').value = '175';   // a typo for 75: at or below the press it wou
   ok('lift Z below the press is refused with nothing sent', r.err && /lift Z/.test(r.err.message) && r.cmds.length === 0, [r.err && r.err.message, r.cmds]);
   ok('a refused run does not consume the alternating side', ev('stampAltNext') === altBefore && ev('stampAltPick') === 0, [ev('stampAltNext'), ev('stampAltPick')]);
 }
-el('stampLiftZ').value = '165';   // equal to the press depth
+el('stampLiftZ').value = '167';   // equal to the press depth
 { const r = await drive('runStampBlock'); ok('lift Z equal to the press is refused', r.err && /press Z/.test(r.err.message) && r.cmds.length === 0, r.err && r.err.message); }
 el('stampLiftZ').value = '150';   // equal to the approach
 { const r = await drive('runStampBlock'); ok('lift Z equal to the approach is refused', r.err && /approach Z/.test(r.err.message) && r.cmds.length === 0, r.err && r.err.message); }

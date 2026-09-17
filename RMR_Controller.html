@@ -1154,7 +1154,7 @@
       <div class="pos-cell"><div class="axis-label">B Syr.Ht</div><div class="axis-val" id="posB">---</div></div>
     </div>
     <div class="pos-limits" style="margin-top:6px; font-size:12px; color:var(--text-dim)">
-      Firmware travel limits: X 0&ndash;770 &middot; Y 0&ndash;200 &middot; Z 0&ndash;186 &middot; A 0&ndash;343 &middot; B 0&ndash;300 &middot; C 0&ndash;125 mm.
+      Firmware travel limits: X 0&ndash;770 &middot; Y 0&ndash;200 &middot; Z 0&ndash;186 &middot; A 0&ndash;343 &middot; B 0&ndash;295 &middot; C 0&ndash;125 mm.
       <b>Y above 150 only on the right half (X &ge; 350)</b> &mdash; the left half fouls at high Y.
     </div>
     <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
@@ -1340,10 +1340,10 @@
       <div class="seq-body">
         <p class="seq-hint">Run does the full cycle: <b>lower</b> the nozzle to the dispense height &rarr; <b>dispense</b> &rarr; <b>retract</b> the plunger &rarr; <b>raise</b> back up. Axis B: home (0) is up, larger B is down. Axis C: +C dispenses.</p>
         <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; margin-top:8px">
-          <!-- Height slider (B axis): top = 0 = up/home, bottom = 300 = down -->
+          <!-- Height slider (B axis): top = 0 = up/home, bottom = 295 = down -->
           <div class="vslider-wrap">
-            <div class="vslider-scale"><span>0<br>up</span><span>300<br>down</span></div>
-            <input type="range" class="v-slider" id="syrPos" min="0" max="300" value="0" step="0.5"
+            <div class="vslider-scale"><span>0<br>up</span><span>295<br>down</span></div>
+            <input type="range" class="v-slider" id="syrPos" min="0" max="295" value="0" step="0.5"
                    oninput="document.getElementById('syrPosVal').textContent=(+this.value).toFixed(1)">
             <div class="vslider-track">
               <div><span class="vslider-readout" id="syrPosVal">0.0</span><small> mm (B) &mdash; dispense height</small></div>
@@ -1531,7 +1531,7 @@
           <div class="seq-field"><label>Stack height / cycle (mm)</label><input type="number" id="stampStack" value="4" min="0" step="0.1"><span class="seq-hint">feeder A advances this per pick (once per L/R pair when alternating)</span></div>
           <div class="seq-field"><label>Grab &rarr; move delay (s)</label><input type="number" id="stampGrabDelay" value="1" min="0" step="0.1"><span class="seq-hint">dwell after grip, before transit</span></div>
           <div class="seq-field"><label>Press hold time (s)</label><input type="number" id="stampHold" value="2" min="0" step="0.1"><span class="seq-hint">held against elastomer</span></div>
-          <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="165" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
+          <div class="seq-field"><label>Press force &mdash; Z depth (mm)</label><input type="number" id="stampForce" value="167" min="0" max="186" step="0.5"><span class="seq-hint">deeper = more force</span></div>
           <div class="seq-field"><label>Post-press lift Z &mdash; abs (mm)</label><input type="number" id="stampLiftZ" value="75" min="0" max="186" step="1"><span class="seq-hint">raise to this absolute Z after press, then Y homes to the limit switch (clears the spincoater, stays below the stowed lid)</span></div>
           <div class="seq-field full">
             <label>Filter feeder side</label>
@@ -1565,8 +1565,8 @@
             <div class="seq-field"><label>Right pick X</label><input type="number" id="stRX" value="747"></div>
             <div class="seq-field"><label>Right pick Y</label><input type="number" id="stRY" value="143"></div>
             <div class="seq-field"><label>Right grab Z</label><input type="number" id="stRZ" value="43"></div>
-            <div class="seq-field"><label>Spincoater X</label><input type="number" id="stSX" value="121"></div>
-            <div class="seq-field"><label>Spincoater Y</label><input type="number" id="stSY" value="15"></div>
+            <div class="seq-field"><label>Spincoater X</label><input type="number" id="stSX" value="111"></div>
+            <div class="seq-field"><label>Spincoater Y</label><input type="number" id="stSY" value="23"></div>
             <div class="seq-field"><label>Approach Z (fast)</label><input type="number" id="stApproachZ" value="150"></div>
             <div class="seq-field"><label>Dispose X</label><input type="number" id="stDX" value="674"></div>
             <div class="seq-field"><label>Dispose Z</label><input type="number" id="stDZ" value="15"></div>
@@ -3356,7 +3356,7 @@ function stampGuard(liftZ, pressZ, approachZ) {
 
 async function runStampBlock() {
   const mode   = document.querySelector('input[name="stampSide"]:checked').value;
-  const pressZ = numv('stampForce', 165);
+  const pressZ = numv('stampForce', 167);
   const approachZ = numv('stApproachZ', 150);
   const liftZ = numv('stampLiftZ', 75);   // post-press clearance: absolute Z that clears the spincoater (smaller Z = higher)
   stampGuard(liftZ, pressZ, approachZ);   // refused before the alternating side is consumed or anything is sent
@@ -3371,7 +3371,7 @@ async function runStampBlock() {
   const stack = numv('stampStack', 0);
   const grabDelay = numv('stampGrabDelay', 0);
   const hold = numv('stampHold', 0);
-  const spinX = numv('stSX', 121), spinY = numv('stSY', 15);
+  const spinX = numv('stSX', 111), spinY = numv('stSY', 23);
   const disX = numv('stDX', 674), disZ = numv('stDZ', 15);
   const pickX = side === 'left' ? numv('stLX', 607) : numv('stRX', 747);
   const pickY = side === 'left' ? numv('stLY', 143) : numv('stRY', 143);
@@ -3763,7 +3763,7 @@ const rmrLog = (function () {
     'enable.homing': true, 'enable.syringe': true, 'enable.spin': true, 'enable.uv': true, 'enable.stamp': false, homeAll: true,
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
     uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 110, uvLidOpen: 30, uvArgon: false,
-    syrPos: 300, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
+    syrPos: 295, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
     syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };
   const BUILTIN_PRESETS = {
