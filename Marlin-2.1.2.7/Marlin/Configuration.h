@@ -1744,7 +1744,7 @@
 #define I_MIN_POS 0
 #define I_MAX_POS 343    // Filter Feed measured travel limit (mm)
 #define J_MIN_POS 0
-#define J_MAX_POS 300    // Syringe Height measured travel limit (mm)
+#define J_MAX_POS 295    // Syringe Height travel limit (mm) — capped at 295
 #define K_MIN_POS 0
 #define K_MAX_POS 125   // Syringe plunger stroke (mm) — travel limit capped at 125 (screw measures ~135 full open→closed, 1 mm/rev).
                         // Soft-endstop-enforced.

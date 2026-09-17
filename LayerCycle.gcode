@@ -22,7 +22,7 @@ M751                         ; set current spin position as home datum
 
 G1 X385 F24000               ; center gantry on X (bed mid = 770/2) before the syringe lowers
 M400                         ; reach mid-X before B descends
-G1 B300 F3000                ; lower syringe height to dispensing position
+G1 B295 F3000                ; lower syringe height to dispensing position
 
 ; =========================
 ; 1000 RPM - layer 1 of 5
@@ -67,13 +67,13 @@ G1 Y0 F24000
 
 ; --- Hover over spincoater ---
 G1 Y0 F24000
-G1 X121 F24000
-G1 Y15 F24000
+G1 X111 F24000
+G1 Y23 F24000
 G1 Z0 F3000
 
 ; --- Press filter onto spincoater ---
 G1 Z140 F3000             ; fast approach to contact height
-G1 Z165 F300              ; slow press
+G1 Z167 F300              ; slow press
 M400                      ; wait for press to complete
 G4 S50                    ; hold 50 s for filter to adhere
 
