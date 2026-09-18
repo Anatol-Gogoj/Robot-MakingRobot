@@ -73,7 +73,7 @@ M751                         ; set current spin position as home datum
 ;REQUIRES: homed
 G1 X385 F24000               ; center gantry on X (bed mid = 770/2) before the syringe lowers
 M400                         ; reach mid-X before B descends
-G1 B300 F3000                ; lower syringe height to dispensing position
+G1 B295 F3000                ; lower syringe height to dispensing position
 
 
 ; ════════════════════════════════════════════════════════════════════════════
@@ -94,7 +94,7 @@ G4 S{presoak_s}                      ; soak before spinning
 ;LAYER-SEGMENT: Spin and cure
 ;REQUIRES: homed spin-datum
 M400                         ; drain planner before servo command
-M280 P1 S116                 ; CLOSE lid before spinning
+M280 P1 S115                 ; CLOSE lid before spinning
 G4 P{lid_settle_ms}          ; lid settle
 M750 S{spin_rpm} D{spin_dwell} A{spin_rise} C{spin_sink} H1   ; spin, then return to the saved datum
 M42 P4 S1                    ; UV_ON  (active-high: S1 = energized. Never S255 — that bypasses
@@ -136,15 +136,15 @@ G1 Y0 F24000
 ;SEGMENT: Hover over spincoater
 ;REQUIRES: gripper-loaded
 G1 Y0 F24000
-G1 X121 F24000
-G1 Y15 F24000
+G1 X111 F24000
+G1 Y23 F24000
 G1 Z0 F3000
 
 
 ;SEGMENT: Press filter onto spincoater
 ;REQUIRES: gripper-loaded
 G1 Z140 F3000                ; fast approach to contact height
-G1 Z165 F300                 ; slow press
+G1 Z167 F300                 ; slow press
 M400                         ; wait for press to complete
 G4 S{adhere_s}               ; hold for the filter to adhere
 

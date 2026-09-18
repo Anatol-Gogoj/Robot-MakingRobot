@@ -21,7 +21,7 @@ M572
 
 G1 X385 F24000               ; center gantry on X (bed mid = 770/2) before the syringe lowers
 M400                         ; reach mid-X before B descends
-G1 B300 F3000                ; lower syringe height to dispensing position
+G1 B295 F3000                ; lower syringe height to dispensing position
 
 ; =========================
 ; 2000 RPM — layer 1 of 5
@@ -33,7 +33,7 @@ G4 P300                      ; 300 ms pause
 G1 E-2 F300                  ; retract 2 mm (E goes from -4 to -2)
 G4 S10                       ; 10 s pause
 M400                         ; drain planner before servo command
-M280 P1 S116                 ; CLOSE lid before spinning
+M280 P1 S115                 ; CLOSE lid before spinning
 G4 P1000                     ; lid settle 1000 ms
 M750 S1000 D50 A3 C3 H1      ; spin: 1000 RPM, 50s dwell, 3s accel, 3s decel, return to saved home
 M42 P4 S1                    ; UV ON  (active-high: S1 = energized; S255 would bypass the M42 digital-write patch and hijack Timer0 — see CLAUDE.md gotcha #12)
@@ -65,13 +65,13 @@ G1 Y0 F24000
 
 ; --- Hover over spincoater ---
 G1 Y0 F24000
-G1 X121 F24000
-G1 Y15 F24000
+G1 X111 F24000
+G1 Y23 F24000
 G1 Z0 F3000
 
 ; --- Press filter onto spincoater ---
 G1 Z140 F3000             ; fast approach to contact height
-G1 Z165 F300              ; slow press
+G1 Z167 F300              ; slow press
 M400                      ; wait for press to complete
 G4 S50                    ; hold 50s for filter to adhere
 
