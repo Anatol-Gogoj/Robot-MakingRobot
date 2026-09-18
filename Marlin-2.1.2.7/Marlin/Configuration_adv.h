@@ -3527,8 +3527,13 @@
  * Lid switch: NO microswitch, COM -> Mega GND, NO -> LID_SWITCH_PIN, internal pull-up,
  * positioned so a fully-closed lid actuates it (contact closed -> pin reads LOW).
  * Fail-safe: a broken/unplugged switch floats HIGH -> reads "open" -> UV inhibited.
+ *
+ * DISABLED 2026-09-17: no lid switch is installed yet, so the fail-safe above refused every
+ * M42 P4 S1 ("UV inhibited: lid open (interlock)") and the UV lamp could never be energized.
+ * Re-enable (uncomment the define) only once the pin-39 microswitch is wired and is actuated
+ * by the lid at its closed angle (115 deg, see the UIs' uvLidClose). The feature code stays.
  */
-#define UV_LID_INTERLOCK
+//#define UV_LID_INTERLOCK
 #if ENABLED(UV_LID_INTERLOCK)
   #define UV_LAMP_PIN         4     // UV relay pin (matches M42 P4 in the UI / G-code)
   #define UV_LAMP_ON_VALUE    1     // M42 S-value that energizes UV (1 for active-HIGH modules)

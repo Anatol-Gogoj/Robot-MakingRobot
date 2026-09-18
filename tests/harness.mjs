@@ -102,6 +102,11 @@ export function loadUI(file) {
     if (v) el.value = v[1];
     const ty = t[2].match(/\btype="([^"]*)"/);
     if (ty) el.type = ty[1];
+    // min / max: the servo sliders' soft limits are declared in the markup only.
+    const mn = t[2].match(/\bmin="([^"]*)"/);
+    if (mn) el.min = mn[1];
+    const mx = t[2].match(/\bmax="([^"]*)"/);
+    if (mx) el.max = mx[1];
   }
   // Radio groups have a name but no id (the stamp feeder side). Seed them too, so
   // input[name="x"]:checked / [value="y"] resolve, and give each radio a checked

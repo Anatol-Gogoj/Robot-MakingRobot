@@ -41,6 +41,8 @@ const checks = [
   { issue: '—',   name: 'syringe dose: Touch',           script: 'syringe-dose.test.mjs',            args: [TOUCH],      needs: [TOUCH] },
   { issue: '—',   name: 'stamp block: Controller',       script: 'stamp-block.test.mjs',             args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '—',   name: 'stamp block: Touch',            script: 'stamp-block.test.mjs',             args: [TOUCH],      needs: [TOUCH] },
+  { issue: '—',   name: 'lid angle: Controller',         script: 'lid-angle.test.mjs',               args: [CONTROLLER], needs: [CONTROLLER] },
+  { issue: '—',   name: 'lid angle: Touch',              script: 'lid-angle.test.mjs',               args: [TOUCH],      needs: [TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
