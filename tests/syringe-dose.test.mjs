@@ -1,5 +1,5 @@
 // Drives the retuned Syringe block in either UI: the post-dose dwell, the separate retract feed, the
-// snap lift, the dose / retract / stroke guards, the purge and prime routines, the barrel calibration, and
+// dose / retract / stroke guards (max retract loosened to 2 mm on 2026-09-17; the B snap lift is gone), the purge and prime routines, the barrel calibration, and
 // the preset → Process Sequencer apply path used by the Run Log. The stroke guard is checked against the
 // position the fake firmware reports to M114 (not the readout), and a Stop / fault inside the relative-mode
 // section must still put the firmware back into G90.
@@ -49,10 +49,10 @@ const after = (cmds, c) => cmds.slice(cmds.indexOf(c) + 1);
 
 // 1 -- defaults
 ok('dwell defaults to 2 s', el('syrDwell').value == 2, el('syrDwell').value);
-ok('max-retract guard defaults to 0.05 mm', el('syrMaxRetract').value == 0.05, el('syrMaxRetract').value);
+ok('max-retract guard defaults to 2 mm (a sanity cap, not the old 0.05 mm air-ingestion rule)', el('syrMaxRetract').value == 2, el('syrMaxRetract').value);
 ok('purge defaults: 2 mL at 60 mm/min, idle limit 300 s', el('syrPurgeVol').value == 2 && el('syrPurgeFeed').value == 60 && el('syrIdleLimit').value == 300);
-ok('the 150 mL syringe is the default: 0.7958 mm/mL, 5 mL at 15.9 mm/min, 0.0227 mL retract at 1 mm/min, 4 mm snap, 120 mm stroke, 4.18 mm max dose, 0.5 mL prime',
-   el('calMm').value == 0.7958 && el('syrVol').value == 5 && el('syrFeed').value == 15.9 && el('syrPull').value == 0.0227 && el('syrRetractFeed').value == 1 && el('syrSnapMm').value == 4 && el('syrStroke').value == 120 && el('syrMaxDose').value == 4.18 && el('syrPrimeVol').value == 0.5,
+ok('the 150 mL syringe is the default: 0.7958 mm/mL, 5 mL at 15.9 mm/min, 0.0227 mL retract at 1 mm/min, 120 mm stroke, 4.18 mm max dose, 0.5 mL prime',
+   el('calMm').value == 0.7958 && el('syrVol').value == 5 && el('syrFeed').value == 15.9 && el('syrPull').value == 0.0227 && el('syrRetractFeed').value == 1 && el('syrStroke').value == 120 && el('syrMaxDose').value == 4.18 && el('syrPrimeVol').value == 0.5,
    [el('calMm').value, el('syrVol').value, el('syrFeed').value, el('syrStroke').value, el('syrPrimeVol').value]);
 
 // 2 -- barrel calibration: 40 mm ID → 0.7958 mm of plunger per mL
@@ -60,15 +60,15 @@ el('syrBarrelId').value = '40';
 ev('syrCalFromBarrel')();
 ok('calibration from the barrel ID', Math.abs(parseFloat(el('calMm').value) - 0.7958) < 0.0005 && el('calMl').value == 1, [el('calMm').value, el('calMl').value]);
 
-// 3 -- the 150 mL dose: 5 mL in 15 s, 0.02 s dwell (kept short for the test), 0.018 mm retract at 1 mm/min, 4 mm snap
-Object.entries({ syrVol: '5', syrPull: '0.0227', syrFeed: '15.9', syrRetractFeed: '1', syrDwell: '0.02', syrSnapMm: '4', syrSnapFeed: '3000',
+// 3 -- the 150 mL dose: 5 mL in 15 s, 0.02 s dwell (kept short for the test), 0.018 mm retract at 1 mm/min, then straight up
+Object.entries({ syrVol: '5', syrPull: '0.0227', syrFeed: '15.9', syrRetractFeed: '1', syrDwell: '0.02',
                  syrPos: '295', syrPosFeed: '1500', syrMaxDose: '4.18', syrMaxRetract: '0.05', syrStroke: '119.4' }).forEach(([k, v]) => { el(k).value = v; });
 ev('__posC = 0'); el('posE').textContent = '118.0';   // the readout is stale (it would fail the guard); the firmware says C0
 {
   const r = await drive('runSyringeBlock');
   ok('dose block completed', r.done && !r.err, r.err && r.err.message);
-  const want = ['M114', 'G90', 'G1 X385 F24000', 'M400', 'G1 B295.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G1 B-4.000 F3000', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
-  ok('exact command order: position query · center X · lower · dose · M400 · (dwell) · retract at its own feed · snap lift · raise', JSON.stringify(r.cmds) === JSON.stringify(want), r.cmds);
+  const want = ['M114', 'G90', 'G1 X385 F24000', 'M400', 'G1 B295.000 F1500', 'M400', 'G91', 'G1 C3.9790 F15.9', 'M400', 'G1 C-0.0181 F1', 'M400', 'G90', 'G1 B0 F1500', 'M400'];
+  ok('exact command order: position query · center X · lower · dose · M400 · (dwell) · retract at its own feed · raise (no B snap lift)', JSON.stringify(r.cmds) === JSON.stringify(want), r.cmds);
   ok('the stroke guard used the M114 reply, not the stale readout, and the reply refreshed the readout', el('posE').textContent === '0.0', el('posE').textContent);
 }
 
@@ -77,6 +77,17 @@ el('syrPull').value = '0.1';   // 0.0796 mm of plunger > 0.05 mm
 {
   const r = await drive('runSyringeBlock');
   ok('retract above the guard is refused with nothing sent', r.err && /max-retract/.test(r.err.message) && r.cmds.length === 0, [r.err && r.err.message, r.cmds]);
+}
+el('syrMaxRetract').value = '2';   // the page default since 2026-09-17: a pullback big enough to stop the drip has to pass
+el('syrPull').value = '0.5';       // 0.398 mm of plunger, 8x the old 0.05 mm cap
+{
+  const r = await drive('runSyringeBlock');
+  ok('a 0.5 mL pullback passes the default guard and is sent as G1 C-0.3979 at the retract feed', r.done && !r.err && r.cmds.includes('G1 C-0.3979 F1'), r.err ? r.err.message : r.cmds);
+}
+el('syrPull').value = '3';         // 2.387 mm > 2 mm
+{
+  const r = await drive('runSyringeBlock');
+  ok('a pullback above the loosened cap is still refused with nothing sent', r.err && /max-retract/.test(r.err.message) && r.cmds.length === 0, [r.err && r.err.message, r.cmds]);
 }
 el('syrPull').value = '0.0227'; el('syrVol').value = '6';   // 4.775 mm > 4.18 mm
 {
@@ -100,11 +111,11 @@ el('syrStroke').value = '0';
 }
 el('syrStroke').value = '119.4'; ev('__posC = 0'); el('posE').textContent = '---';
 
-// 5 -- purge: 2 mL at 60 mm/min with the same dwell / retract / snap
+// 5 -- purge: 2 mL at 60 mm/min with the same dwell / retract, no B snap lift
 {
   const r = await drive('runSyringePurge', false);
   ok('purge completed', r.done && !r.err, r.err && r.err.message);
-  ok('purge queries the position, pushes 2 mL = 1.5916 mm at 60 mm/min then retracts and snaps', r.cmds[0] === 'M114' && r.cmds.includes('G1 C1.5916 F60') && r.cmds.includes('G1 C-0.0181 F1') && r.cmds.includes('G1 B-4.000 F3000'), r.cmds);
+  ok('purge queries the position, pushes 2 mL = 1.5916 mm at 60 mm/min then retracts; no B snap lift', r.cmds[0] === 'M114' && r.cmds.includes('G1 C1.5916 F60') && r.cmds.includes('G1 C-0.0181 F1') && !r.cmds.some(c => /^G1 B-/.test(c)), r.cmds);
 }
 
 // 5b -- initial purge (prime): the increment only, tip stays put, no dwell / retract / lift

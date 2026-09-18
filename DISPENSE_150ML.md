@@ -66,26 +66,26 @@ D_crit = √(0.84·σ / (ρ·g)) = 1.62 mm, and the 3.8 mm tip is well above it,
 
 | Analysis item | Implementation (Syringe block, both UIs) | Note |
 |---|---|---|
-| `RetractE = 0.0180` mm | **Pullback (mL)** = 0.0227 mL × 0.7958 mm/mL = 0.0181 mm; **max retract guard** 0.05 mm refuses anything larger before a byte is sent | 29 microsteps; a retract > 0.05 mm (62.8 µL) ingests air |
+| `RetractE = 0.0180` mm | **Pullback (mL)** = 0.0227 mL × 0.7958 mm/mL = 0.0181 mm in the preset; the **max retract guard** is a sanity cap, **2 mm** since 2026-09-17 (0 = none) | 29 microsteps. The analysis's 0.05 mm (62.8 µL) "air ingestion" cap was tried and left the tip dripping between doses, so the guard was loosened and the pullback is set on the bench to whatever stops the drip |
 | `DoseFeedE = 15.9` mm/min (5 mL in 15 s) | **Dispense feed** 15.9 mm/min (feeds accept decimals) — 424 steps/s, inside the planner's budget; the hint shows the dose time | `DEFAULT_MINIMUMFEEDRATE` is 0.0 and `MIN_STEPS_PER_SEGMENT` 6, so a 6366-step dose is never clamped |
 | `G4 P800` after the dose, **before** the retract | **Dwell after dispense**, default **2 s** (owner's choice; ~3τ ≈ 0.8 s is the physics floor), a browser-side abortable sleep after the dose's `M400` | order matters: retracting a still-pressurised system nets a suck when it relaxes |
 | `G1 E-0.0180 F1.0` | retract at its own **retract feed** (1 mm/min in the preset) | the planner never steps below 120 steps/s (`MINIMAL_STEP_RATE`) = 4.5 mm/min on C, so the retract effectively runs at ~4.5 mm/min (0.24 s) — still gentle |
-| Z snap (fast 50 mm/s lift) | **Snap lift after retract**: `G1 B-4 F3000` (B max is 3000 mm/min = 50 mm/s exactly), then the normal raise to B0 | B = 0 is up; the lift is clamped to the dispense height |
-| Lateral shear `G1 X1.5` | **not available** | the syringe is fixed over the chuck: only B (height) and C (plunger) move; the snap lift alone severs the strand |
+| Z snap (fast 50 mm/s lift) | **removed 2026-09-17** — it was built (`G1 B-4 F3000` before the raise to B0) and did nothing for the strand on the bench; the raise to B0 at the positioning feed is the only lift now | — |
+| Lateral shear `G1 X1.5` | **not available** | the syringe is fixed over the chuck: only B (height) and C (plunger) move; the strand is left to the pullback and the dwell |
 | Wiper drag at a park XY | **not available** | no wiper hardware and no XY motion at the syringe |
-| `PurgeBarrel` at start of run and after idle > `IdleLimit` | **Purge** button (2 mL at 60 mm/min → same dwell / retract / snap) and **Purge before the first dose of a Run All** (opt-in); **idle limit** 300 s → a dose after longer idle *warns* (toast + journal) but never blocks | there is no waste position: the purge dispenses onto whatever is under the tip — put a waste cup there first (the button asks; the run-all option is the consent) |
-| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (0.05 mm), **barrel stroke** (120 mm by default, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–125 mm, but the barrel is shorter than the axis |
+| `PurgeBarrel` at start of run and after idle > `IdleLimit` | **Purge** button (2 mL at 60 mm/min → same dwell / retract) and **Purge before the first dose of a Run All** (opt-in); **idle limit** 300 s → a dose after longer idle *warns* (toast + journal) but never blocks | there is no waste position: the purge dispenses onto whatever is under the tip — put a waste cup there first (the button asks; the run-all option is the consent) |
+| Generator-side E caps | **Max dose** (4.18 mm = 5.25 mL), **max retract** (2 mm, a sanity cap), **barrel stroke** (120 mm by default, checked against the last `M114` C position) — enforced in the UI before sending | the C axis also has firmware soft endstops 0–125 mm, but the barrel is shorter than the axis |
 
 All of these are inputs in the Syringe block, so they travel with a Run Log preset: the built-in
 **`CN9018 7.5% HDDA · 150 mL syringe`** preset sets calibration 0.7958 mm/mL (barrel ID 40),
-dose 5 mL, pullback 0.0227 mL, dose feed 15.9, retract feed 1, dwell 2 s, snap 4 mm at 3000,
-max dose 4.18 mm, max retract 0.05 mm, stroke 120 mm, purge 2 mL at 60 mm/min, idle limit 300 s, prime 0.5 mL,
+dose 5 mL, pullback 0.0227 mL, dose feed 15.9, retract feed 1, dwell 2 s,
+max dose 4.18 mm, max retract 2 mm, stroke 120 mm, purge 2 mL at 60 mm/min, idle limit 300 s, prime 0.5 mL,
 spin 1000 RPM / 50 s / 3 / 3 / H1, cure 480 s with the lid closed, Stamp block disabled (hand
 pressing). New device → preset → Apply → Create pushes all of it into the Process Sequencer. **These are also the
 Syringe block's page defaults** (2026-09-14): a fresh page is already set up for the 150 mL syringe.
 
 **Initial purge (prime).** A separate button pushes the plunger by a user-set increment (default 0.5 mL)
-at the purge feed with the tip where it is — no dwell, retract or lift — for priming a fresh barrel:
+at the purge feed with the tip where it is — no dwell or retract — for priming a fresh barrel:
 press until material reaches the tip, then run the full purge. Only the stroke guard applies. Every
 press is journaled by the Run Log.
 
@@ -105,15 +105,17 @@ press is journaled by the Run Log.
 
 ## 6. Test plan (unchanged, with this machine's numbers)
 
-1. **Retract audit.** Every `G1 C-` the sequencer emits is ≤ 0.05 mm (the guard makes a larger one
-   impossible; the Node test asserts `G1 C-0.0181 F1`).
+1. **Retract audit.** Every `G1 C-` the sequencer emits is the pullback set in the block, capped by the
+   max-retract guard (2 mm by default; the Node test asserts `G1 C-0.0181 F1` for the preset and
+   `G1 C-0.3979 F1` for a 0.5 mL drip-stopping pullback).
 2. **Dry run.** One dose with an empty barrel; confirm the 15.9 mm/min move is not clipped (watch the
    dose take ~15 s).
 3. **Gravimetric calibration.** n = 20 doses at 80 %, 50 % and 20 % fill on a 0.01 g balance; target
    5.25 g at ρ ≈ 1.05; accept if CV < 2 % at every fill level **and** no trend with fill level (a trend
    means residual gas in the barrel).
-4. **Strand check.** 20 consecutive doses, visual; no strand on the substrate. If strands persist, raise
-   the snap lift or its feed (already at the B maximum) — there is no lateral shear on this machine.
+4. **Strand check.** 20 consecutive doses, visual; no strand on the substrate. If strands persist, tune the
+   pullback and the dwell — the fast snap lift was removed (no effect on the bench) and there is no lateral
+   shear on this machine.
 5. **Drain test.** Park the loaded tip over a tared weigh boat for 10 min and weigh; bounds are
    0.05 mL/min (air-ingress limited) to 1.52 mL/min (tube-resistance limited). The measurement sets the
    **idle limit**; 300 s is a placeholder.
