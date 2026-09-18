@@ -35,7 +35,7 @@ G4 P300                      ; 300 ms pause
 G1 E-2 F300                  ; retract 4 mm (E goes from -6 to -2)
 G4 S10                       ; 10 s pause
 M400                         ; drain planner before servo command
-M280 P1 S116                 ; CLOSE lid before spinning
+M280 P1 S115                 ; CLOSE lid before spinning
 G4 P1000                     ; lid settle 1000 ms
 M750 S1000 D50 A3 C3 H1      ; spin: 1000 RPM, 50s dwell, 3s accel, 3s decel, return to saved home
 M42 P4 S1                    ; UV ON  (active-high: S1 = energized; S255 would bypass the M42 digital-write patch and hijack Timer0 - see CLAUDE.md gotcha #12)

@@ -1500,7 +1500,7 @@
           <div class="seq-field full">
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvSpinHome"> Home spincoater during cure (set Spin &ldquo;home after spin&rdquo; OFF)</label>
           </div>
-          <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="110" min="0" max="180"></div>
+          <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="115" min="0" max="180"></div>
           <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
           <div class="seq-field full" style="margin-top:4px">
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0" title="Open the argon solenoid around the cure for an inert atmosphere"><input type="checkbox" id="uvArgon" onchange="uvArgonToggle()"> Argon purge &mdash; open the solenoid around the cure (inert atmosphere)</label>
@@ -3109,7 +3109,7 @@ async function runUvBlock() {
   if (!(p.t > 0)) throw new Error('UV cure time must be greater than 0 s');
   if (!p.valid) throw new Error('argon timing is invalid — the solenoid would close before it opens (check the lead / lag values)');
   const manageLid = document.getElementById('uvLid').checked;
-  const lidClose = Math.round(numv('uvLidClose', 110));
+  const lidClose = Math.round(numv('uvLidClose', 115));
   const lidOpen  = Math.round(numv('uvLidOpen', 30));
   const lidMs = parseInt(localStorage.getItem('rmr.lidMoveMs') || '800', 10);
   const spinEl = document.getElementById('uvSpinHome');
@@ -3762,7 +3762,7 @@ const rmrLog = (function () {
   const SEQ_COMMON = {
     'enable.homing': true, 'enable.syringe': true, 'enable.spin': true, 'enable.uv': true, 'enable.stamp': false, homeAll: true,
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
-    uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 110, uvLidOpen: 30, uvArgon: false,
+    uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 115, uvLidOpen: 30, uvArgon: false,
     syrPos: 295, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
     syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };

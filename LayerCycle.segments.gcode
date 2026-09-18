@@ -94,7 +94,7 @@ G4 S{presoak_s}                      ; soak before spinning
 ;LAYER-SEGMENT: Spin and cure
 ;REQUIRES: homed spin-datum
 M400                         ; drain planner before servo command
-M280 P1 S116                 ; CLOSE lid before spinning
+M280 P1 S115                 ; CLOSE lid before spinning
 G4 P{lid_settle_ms}          ; lid settle
 M750 S{spin_rpm} D{spin_dwell} A{spin_rise} C{spin_sink} H1   ; spin, then return to the saved datum
 M42 P4 S1                    ; UV_ON  (active-high: S1 = energized. Never S255 — that bypasses
