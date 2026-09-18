@@ -148,7 +148,7 @@ Pins below are verified free in the current build (`pins_RAMPS.h` + custom `pins
 |-----|----------|---------------|----------------|----------------------|--------------------------|
 | 18  | PD3      | OC3A (Timer3) | Serial1 TX     | Free (EMI-sensitive — avoid for inputs; OK for slow outputs) | A Z or I MIN endstop is re-enabled without undef |
 | 37  | PC0      | none          | AUX4_09        | Free                 | LCD display defined (becomes `EXP2_05_PIN` / `EXP1_01_PIN`) |
-| 39  | PG2      | none          | AUX4_08        | **Used: UV lid interlock switch** | — |
+| 39  | PG2      | none          | AUX4_08        | **Reserved: UV lid interlock switch** — `UV_LID_INTERLOCK` disabled 2026-09-17 (no switch installed; with the feature on, an open pin 39 refuses every UV-on). Re-enable once the switch is wired and actuated at the 115° closed angle | — |
 | 41  | PG0      | none          | AUX4_07        | Free                 | LCD display defined (becomes `EXP2_08_PIN`) |
 | 42  | **PL7**  | **none**      | AUX2_08        | **Used: solenoid valve relay** | — |
 | 43  | PL6      | none          | AUX4_06        | **Used: motor-power sense (E-stop)** | — |
