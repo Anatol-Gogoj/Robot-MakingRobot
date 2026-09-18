@@ -275,7 +275,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Per-axis auxiliary feed sliders:** A (max 2000), B (max 3000), C (max 480 mm/min)
 - **Acceleration tuning panel** (collapsible) — per-axis M201 sliders with Set/Set All/Save to EEPROM
 - **Gripper servo** — slider (90°-170°), Open/Close quick buttons, override textbox (0-180°)
-- **Lid servo** — slider (0°-180°) with T<ms> timed ramp (default 800ms)
+- **Lid servo** — slider (30°-115°; 115° = closed over the relocated spincoater, 30° = open) with Open/Close quick buttons, override textbox (0-180°), T<ms> timed ramp (default 800ms). The Touch page's Lid OPEN/CLOSE buttons and long-press servo sheet use the same 30/115 presets (`servoConfig`); `tests/lid-angle.test.mjs` keeps every lid-close path on the same angle as the UV block
 - **Relay controls** — explicit ON/OFF button pairs for solenoid valve (OPEN/SHUT) and UV lamp (ON/OFF), with configurable pin numbers. Last-pressed button highlights via CSS. No internal state tracking — each button sends a hardcoded S value.
 - **Position readout** with auto-report (1s polling via M114)
 - **E-Stop** button (M112) — recovery requires a board reset (disconnect/reconnect USB); the **Reset (M999)** button only clears the softer "stopped" state

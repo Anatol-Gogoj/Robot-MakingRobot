@@ -1553,11 +1553,11 @@ function wsUrlFromConfig() {
 }
 
 // Servo state with localStorage persistence
-let servoPositions = { 0: 90, 1: 110 };
+let servoPositions = { 0: 90, 1: 115 };
 let activeServoSheet = null;
 const servoConfig = {
   0: { name: 'Gripper', min: 90, max: 170, openVal: 170, closeVal: 90 },
-  1: { name: 'Lid', min: 30, max: 110, openVal: 30, closeVal: 110 }
+  1: { name: 'Lid', min: 30, max: 115, openVal: 30, closeVal: 115 }
 };
 (function restoreServos() {
   try {
