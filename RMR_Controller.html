@@ -2098,6 +2098,10 @@ function setServo(idx) {
 function relayCmd(relay, sVal) {
   const pin = document.getElementById(relay === 'sol' ? 'solPin' : 'uvPin').value;
   sendCmd(`M42 P${pin} S${sVal}`);
+  relayMark(relay, sVal);
+}
+// Highlight the ON or OFF button of a relay pair: the state we believe the relay is in.
+function relayMark(relay, sVal) {
   const onBtn  = document.getElementById(relay + 'OnBtn');
   const offBtn = document.getElementById(relay + 'OffBtn');
   onBtn.classList.toggle('on', sVal === 1);
@@ -2651,9 +2655,22 @@ function homedTrackRx(line) {
   if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); return; }
   if (/MOTOR POWER LOST/.test(line)) { seqSetHomed(false, 'motor power lost'); seqFault('MOTOR POWER LOST — the firmware halted motion; re-home (G28)'); return; }
   if (/Move refused: re-home/.test(line)) { seqSetHomed(false, 'the firmware refused a move'); seqFault('the firmware refused a move — re-home (G28) after the motor-power loss'); return; }
-  if (/UV inhibited: lid open/.test(line)) { uvInterlockMsg = 'the firmware lid interlock refused UV — the lid is not closed'; return; }
-  if (/UV cut: lid opened/.test(line)) { uvInterlockMsg = 'the lid interlock cut the UV lamp — the lid opened during the cure'; seqFault(uvInterlockMsg); return; }
+  if (/UV inhibited: lid open/.test(line)) { uvRefusedRx(false); return; }
+  if (/UV cut: lid opened/.test(line)) { uvRefusedRx(true); return; }
   if (/^Error:/.test(line) && seqRunning) seqFault(line);
+}
+// The firmware's UV lid interlock refused a UV-on ("UV inhibited: lid open") or cut the lamp
+// ("UV cut: lid opened"). Either way the lamp is OFF now, whatever button was pressed last:
+// say so where the operator is looking (error toast + console) and put the UV relay pair in
+// the OFF state, so a refused manual ON does not stay highlighted as if the lamp were lit.
+// The sequencer's UV block reads uvInterlockMsg after its M42 ok and fails the step.
+function uvRefusedRx(cut) {
+  uvInterlockMsg = cut ? 'the lid interlock cut the UV lamp — the lid opened during the cure'
+                       : 'the firmware lid interlock refused UV — the lid is not closed';
+  relayMark('uv', 0);
+  logErr('UV: ' + uvInterlockMsg);
+  showToast(cut ? 'UV CUT: the lid opened during the cure' : 'UV refused: the firmware lid interlock reads the lid as open', 'error');
+  if (cut) seqFault(uvInterlockMsg);
 }
 // Fail the running sequence immediately (instead of waiting out the 'ok' timeout).
 function seqFault(reason) {
