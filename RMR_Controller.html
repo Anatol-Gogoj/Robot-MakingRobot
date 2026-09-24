@@ -1408,16 +1408,6 @@
               <input type="number" id="syrRetractFeed" value="1" min="0.1" max="480" step="0.1">
               <span class="seq-hint">the firmware never steps C slower than 120 steps/s = 4.5 mm/min</span>
             </div>
-            <div class="seq-field">
-              <label>Snap lift after retract (mm)</label>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-                <input type="number" id="syrSnapMm" value="4" min="0" step="0.5" style="width:78px">
-                <span class="seq-hint">at</span>
-                <input type="number" id="syrSnapFeed" value="3000" min="10" max="3000" step="10" style="width:78px">
-                <span class="seq-hint">mm/min</span>
-              </div>
-              <span class="seq-hint">fast B lift that severs the strand (3000 = 50 mm/s); 0 = off</span>
-            </div>
             <div class="seq-field full">
               <label>Barrel &amp; guards (refused before anything is sent; 0 = no cap)</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
@@ -1425,14 +1415,14 @@
                 <button class="seq-run-btn" style="border-color:var(--blue);color:var(--blue); padding:6px 12px" onclick="syrCalFromBarrel()">Calibrate from ID</button>
                 <span class="seq-hint">stroke</span><input type="number" id="syrStroke" value="120" min="0" step="0.1" style="width:78px"><span class="seq-hint">mm</span>
                 <span class="seq-hint">max dose</span><input type="number" id="syrMaxDose" value="4.18" min="0" step="0.01" style="width:78px"><span class="seq-hint">mm</span>
-                <span class="seq-hint">max retract</span><input type="number" id="syrMaxRetract" value="0.05" min="0" step="0.005" style="width:78px"><span class="seq-hint">mm</span>
+                <span class="seq-hint">max retract</span><input type="number" id="syrMaxRetract" value="2" min="0" step="0.05" style="width:78px"><span class="seq-hint">mm</span>
               </div>
-              <span class="seq-hint">A retract above 0.05 mm ingests air on a 3.8 mm tip. The stroke guard asks the firmware for the plunger position (M114) before every dose, purge and prime.</span>
+              <span class="seq-hint">Max retract is only a sanity cap on the pullback (0 = none). The old 0.05 mm rule (air ingestion on a 3.8 mm tip) left the tip dripping on the bench: set the pullback to whatever stops the drip. The stroke guard asks the firmware for the plunger position (M114) before every dose, purge and prime.</span>
             </div>
             <div class="seq-field full">
               <label>Initial purge (prime) &mdash; push by a set increment until material reaches the tip</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-                <input type="number" id="syrPrimeVol" value="0.5" min="0" step="0.1" style="width:78px"><span class="seq-hint">mL per press, at the purge feed &middot; no dwell, retract or lift &middot; the tip stays where it is (put a waste cup under it)</span>
+                <input type="number" id="syrPrimeVol" value="0.5" min="0" step="0.1" style="width:78px"><span class="seq-hint">mL per press, at the purge feed &middot; no dwell or retract &middot; the tip stays where it is (put a waste cup under it)</span>
                 <button class="seq-run-btn" style="border-color:var(--yellow);color:var(--yellow); padding:6px 12px" onclick="syrPrimeNow()">Initial purge +</button>
               </div>
             </div>
@@ -2878,7 +2868,6 @@ async function runSyringeBlock() {
   const eFeed = numv('syrFeed', 300);
   const rFeed = numv('syrRetractFeed', eFeed) || eFeed;
   const dwell = numv('syrDwell', 2);
-  const snap = Math.min(numv('syrSnapMm', 0), pos), snapFeed = Math.round(numv('syrSnapFeed', 3000));
   await syrGuard(dispMm, pullMm, false);   // dose / retract caps (nothing sent), then the stroke check against a fresh M114 position
   syrIdleCheck();
   await seqCmd('G90');
@@ -2892,21 +2881,17 @@ async function runSyringeBlock() {
   await syrRelative(async () => {
     await seqCmd('G1 C' + dispMm.toFixed(4) + ' F' + fmtFeed(eFeed));   // 2) dose (push plunger)
     await seqCmd('M400');
-    rlEvent('dispense', { mL: numv('syrVol', 0), mm: dispMm, pullMl: numv('syrPull', 0), pullMm, heightB: pos, feed: eFeed, dwellS: dwell, retractFeed: rFeed, snapMm: snap });   // plunger has stopped
+    rlEvent('dispense', { mL: numv('syrVol', 0), mm: dispMm, pullMl: numv('syrPull', 0), pullMm, heightB: pos, feed: eFeed, dwellS: dwell, retractFeed: rFeed });   // plunger has stopped
     syrNoteActivity();
     // 3) dwell: let the stored pressure (barrel hoop + plunger train) bleed off BEFORE retracting —
     //    retracting a still-pressurised system nets a suck when it relaxes afterwards.
     if (dwell > 0) { seqSetStatus('Syringe — dwell ' + dwell + ' s (pressure bleeds off before the retract)'); await seqSleep(dwell * 1000); }
     if (pullMm > 0) {
-      await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); // 4) retract plunger (tiny: 2 mm of tip bore)
-      await seqCmd('M400');
-    }
-    if (snap > 0) {
-      await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed);        // 5) snap lift (still relative): severs the strand
+      await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); // 4) retract plunger (the pullback that stops the drip)
       await seqCmd('M400');
     }
   });
-  await seqCmd('G1 B0 F' + posFeed);                          // 6) raise the nozzle back up
+  await seqCmd('G1 B0 F' + posFeed);                          // 5) raise the nozzle back up
   await seqCmd('M400');
 }
 // Feed values may be fractional (15.9 mm/min); Marlin accepts a decimal F.
@@ -2937,7 +2922,7 @@ async function syrRelative(fn) {
 // 5 mm beyond the 120 mm stroke).
 async function syrGuard(dispMm, pullMm, isPurge) {
   const maxDose = numv('syrMaxDose', 0), maxRet = numv('syrMaxRetract', 0), stroke = numv('syrStroke', 0);
-  if (maxRet > 0 && pullMm > maxRet + 1e-9) throw new Error('retract ' + pullMm.toFixed(4) + ' mm exceeds the max-retract guard (' + maxRet + ' mm) — a larger pull-back ingests air');
+  if (maxRet > 0 && pullMm > maxRet + 1e-9) throw new Error('retract ' + pullMm.toFixed(4) + ' mm exceeds the max-retract guard (' + maxRet + ' mm)');
   if (!isPurge && maxDose > 0 && dispMm > maxDose + 1e-9) throw new Error('dose ' + dispMm.toFixed(4) + ' mm exceeds the max-dose guard (' + maxDose + ' mm)');
   if (stroke > 0) {
     const c = await syrReadC();
@@ -2968,7 +2953,7 @@ function syrIdleCheck() {
     rlEvent('warn.idle', { idleS: Math.round(idle), limitS: lim });
   }
 }
-// Purge: a larger push into a waste cup, same dwell / retract / snap as a dose. Used before the first
+// Purge: a larger push into a waste cup, same dwell / retract as a dose. Used before the first
 // dose of a Run All (opt-in) and from the Purge button.
 async function runSyringePurge(auto) {
   const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1, mmPerMl = calMm / calMl;
@@ -2977,7 +2962,7 @@ async function runSyringePurge(auto) {
   const mm = vol * mmPerMl, pullMm = numv('syrPull', 0) * mmPerMl;
   const pos = numv('syrPos', 0), posFeed = Math.round(numv('syrPosFeed', 1500));
   const pFeed = numv('syrPurgeFeed', 60) || 60, rFeed = numv('syrRetractFeed', numv('syrFeed', 300)) || 300;
-  const dwell = numv('syrDwell', 2), snap = Math.min(numv('syrSnapMm', 0), pos), snapFeed = Math.round(numv('syrSnapFeed', 3000));
+  const dwell = numv('syrDwell', 2);
   await syrGuard(mm, pullMm, true);
   seqSetStatus('Syringe — purging ' + vol + ' mL…');
   await seqCmd('G90');
@@ -2992,7 +2977,6 @@ async function runSyringePurge(auto) {
     syrNoteActivity();
     if (dwell > 0) await seqSleep(dwell * 1000);
     if (pullMm > 0) { await seqCmd('G1 C-' + pullMm.toFixed(4) + ' F' + fmtFeed(rFeed)); await seqCmd('M400'); }
-    if (snap > 0) { await seqCmd('G1 B-' + snap.toFixed(3) + ' F' + snapFeed); await seqCmd('M400'); }
   });
   await seqCmd('G1 B0 F' + posFeed);
   await seqCmd('M400');
@@ -3007,7 +2991,7 @@ function syrPurgeNow() {
                               e => { seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message)); if (!seqAbort) logErr('Purge failed — ' + e.message); });
 }
 // Initial purge (prime): push the plunger by a set increment at the purge feed with the tip where it is —
-// press repeatedly until material reaches the tip. No dwell, retract or lift.
+// press repeatedly until material reaches the tip. No dwell or retract.
 async function runSyringePrime() {
   const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1, mmPerMl = calMm / calMl;
   const vol = numv('syrPrimeVol', 0);
@@ -3780,7 +3764,7 @@ const rmrLog = (function () {
     'enable.homing': true, 'enable.syringe': true, 'enable.spin': true, 'enable.uv': true, 'enable.stamp': false, homeAll: true,
     seqSpinRPM: 1000, seqSpinDur: 50, seqSpinRise: 3, seqSpinSink: 3, seqSpinHome: true,
     uvTime: 480, uvSeqPin: 4, uvLid: true, uvLidClose: 115, uvLidOpen: 30, uvArgon: false,
-    syrPos: 295, syrPosFeed: 1500, syrDwell: 2, syrSnapMm: 0, syrSnapFeed: 3000, syrMaxRetract: 0.05, syrMaxDose: 0, syrStroke: 0,
+    syrPos: 295, syrPosFeed: 1500, syrDwell: 2, syrMaxRetract: 2, syrMaxDose: 0, syrStroke: 0,
     syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300, syrPurgeOnRun: false, syrPrimeVol: 0.5,
   };
   const BUILTIN_PRESETS = {
@@ -3792,14 +3776,14 @@ const rmrLog = (function () {
       sequencer: Object.assign({}, SEQ_COMMON, { calMm: 100, calMl: 1, syrBarrelId: 0, syrVol: 0.05, syrPull: 0.005, syrFeed: 300, syrRetractFeed: 300 }),
     },
     // 150 mL catheter-tip syringe (40 mm barrel, 3.8 mm tip): 5 mL in 15 s, 2 s dwell, 0.018 mm retract
-    // (2 mm of tip bore), 4 mm snap lift, guards, 2 mL purge. Numbers and derivation: DISPENSE_150ML.md.
+    // (2 mm of tip bore), guards, 2 mL purge. Numbers and derivation: DISPENSE_150ML.md.
     'CN9018 7.5% HDDA · 150 mL syringe': {
       material: 'CN9018 7.5% HDDA', materialType: 'Acrylic', thicknessUm: 70, thicknessTolUm: 10, targetLayers: 31,
       rpm: 1000, holdS: 50, cureS: 480, dispenseMl: 5, firstElectrode: 'P', feederPolarity: false, feederLeft: 'P',
       electrodeNote: 'hand press',
-      notes: '150 mL catheter-tip syringe, 40 mm barrel (0.7958 mm of plunger per mL). Dose 5 mL in 15 s, 2 s dwell, 0.018 mm retract, 4 mm snap lift. Purge 2 mL into a waste cup at the start of a run and after 5 min idle. Electrodes pressed by hand. See DISPENSE_150ML.md.',
+      notes: '150 mL catheter-tip syringe, 40 mm barrel (0.7958 mm of plunger per mL). Dose 5 mL in 15 s, 2 s dwell, 0.018 mm retract. Purge 2 mL into a waste cup at the start of a run and after 5 min idle. Electrodes pressed by hand. See DISPENSE_150ML.md.',
       sequencer: Object.assign({}, SEQ_COMMON, { calMm: 0.7958, calMl: 1, syrBarrelId: 40, syrStroke: 120, syrVol: 5, syrPull: 0.0227, syrFeed: 15.9, syrRetractFeed: 1,
-        syrDwell: 2, syrSnapMm: 4, syrSnapFeed: 3000, syrMaxDose: 4.18, syrMaxRetract: 0.05, syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300 }),
+        syrDwell: 2, syrMaxDose: 4.18, syrMaxRetract: 2, syrPurgeVol: 2, syrPurgeFeed: 60, syrIdleLimit: 300 }),
     },
   };
   const HOLD_POINTS = { block: 'after the current block', cured: 'after the next UV cure', layer: 'at the end of this layer' };
@@ -4247,7 +4231,7 @@ const rmrLog = (function () {
   // ─── Process Sequencer ↔ device / preset ───
   // Every sequencer input that defines the process, by element id (identical ids in both pages).
   const SEQ_IDS = ['homeAll', 'homeSpin',
-    'syrPos', 'syrPosFeed', 'calMm', 'calMl', 'syrVol', 'syrPull', 'syrFeed', 'syrDwell', 'syrRetractFeed', 'syrSnapMm', 'syrSnapFeed',
+    'syrPos', 'syrPosFeed', 'calMm', 'calMl', 'syrVol', 'syrPull', 'syrFeed', 'syrDwell', 'syrRetractFeed',
     'syrBarrelId', 'syrStroke', 'syrMaxDose', 'syrMaxRetract', 'syrPurgeVol', 'syrPurgeFeed', 'syrIdleLimit', 'syrPurgeOnRun', 'syrPrimeVol',
     'seqSpinRPM', 'seqSpinDur', 'seqSpinRise', 'seqSpinSink', 'seqSpinHome',
     'uvTime', 'uvSeqPin', 'uvLid', 'uvSpinHome', 'uvLidClose', 'uvLidOpen', 'uvArgon', 'uvArgonLead', 'uvArgonLag', 'uvArgonPin',
