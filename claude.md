@@ -4,6 +4,10 @@
 
 A custom gantry-based robot driven by Marlin firmware on an Arduino Mega 2560. It is NOT a 3D printer — it's a pick-and-place / dispensing system with a 3-axis gantry, three auxiliary linear actuators, two servos, and a solenoid valve. Marlin is used as the motion controller because it provides production-grade G-code parsing, trapezoidal motion planning, and multi-axis stepper coordination out of the box.
 
+## Session state
+
+Session state is kept outside the repo: no new handoff docs, session logs or status banners, in this file or anywhere else. The `HANDOFF*.md` files at the repo root are frozen history (firmware comments cite their decisions by number); `RUN_SHEET.md` keeps its dated bench results.
+
 ## Hardware
 
 ### Stepper Drivers
@@ -358,7 +362,7 @@ The touchscreen variant is `RMR_Touch.html` at repo root. Its spincoater parsing
 
 ## Spin Coater Subsystem
 
-> **Status (2026-09-14):** the six-PR stack described below, plus #70 (M754) and #76 (measure liveness), was merged into `main` on 2026-09-14 as the consolidation PR #106; the September UI work followed as #107. Hardware evidence is unchanged from the 2026-08-17/19 sessions (`HANDOFF-2026-08-19.md`): the merged firmware **compiles** but nothing has been flashed since the merge — see `HANDOFF-2026-09-14.md` §4–§5. Line citations in this section were taken at the stack tip and have drifted with every merge since; trust the function names and re-grep the numbers.
+> **Note:** the six-PR stack described below, plus #70 (M754) and #76 (measure liveness), was merged into `main` on 2026-09-14 as the consolidation PR #106; the September UI work followed as #107. Line citations in this section were taken at the stack tip and have drifted with every merge since; trust the function names and re-grep the numbers.
 
 ### Status: merged 2026-09-14 (PR #106)
 
@@ -883,7 +887,7 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | RMR_SegmentRunner.html | repo root | Standalone Web Serial segment runner + named recipes (PRs #85, #88); shares no code with the two UIs. Never run against this firmware; its dispense template is E-axis (`:1640-1641`) |
 | SpinCoatUVCure.gcode | repo root | April 2026 Copilot protocol (2000/3000/4000/5000 RPM × 5 cycles). E-axis syringe moves, never run |
 | tests/ | `tests/` | Stub-DOM harness for the browser pages (PR #87): `run.mjs` + nine `*.test.mjs` (`stamp-block.test.mjs` added 2026-09-15). Needs Node; never run in this repo since the merge. `harness.mjs` now runs **every** inline script of a page in one vm scope (it used to pick the first one — the pre-paint theme script — so nothing worked). `ok-attribution` and `spin-markers` were written against the excluded UI chain and are expected to fail against `main`; `runlog.test.mjs` + `runlog-sync.test.mjs` cover the Run Log |
-| HANDOFF-2026-09-14.md | repo root | **Current handoff** — what merged on 2026-09-14, what was excluded and why, what to do next |
+| HANDOFF-2026-09-14.md | repo root | Frozen handoff from 2026-09-14: what merged, what was excluded and why. Its next-steps list is dated and not maintained |
 | HANDOFF-2026-08-19.md | repo root | Superseded handoff: the August bench results (T3, Task 6/8, first clean cycle), USB fault, GUI problem |
 | HANDOFF-2026-08-14.md | repo root | Superseded handoff: the modulo-one-turn index finding |
 | HANDOFF.md | repo root | Original 2026-08-11 handoff: the reasoning behind the spincoater stack; §7 traps still apply |
