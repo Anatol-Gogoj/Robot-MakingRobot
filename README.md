@@ -49,7 +49,7 @@ Robot-MakingRobot/
 ├── SpincoaterPinMap.jfif         # ODrive S1 J11 connector pinout image
 ├── ODRIVE_CONFIG.md              # ODrive S1 configuration as recorded 2026-08-13
 ├── RUN_SHEET.md                  # Bench run sheet (four lanes, Tasks 1–15) with dated results
-├── HANDOFF-2026-09-14.md         # CURRENT handoff — read this first
+├── HANDOFF-2026-09-14.md         # Frozen: the 2026-09-14 consolidation handoff
 ├── HANDOFF-2026-08-19.md         # Superseded: August bench results
 ├── HANDOFF-2026-08-14.md         # Superseded: the modulo-one-turn index finding
 ├── HANDOFF.md                    # Original 2026-08-11 handoff: reasoning behind the spincoater stack
@@ -71,13 +71,13 @@ parses them as ramp *times* in seconds. Treat `claude.md` as authoritative.
 The spincoater firmware stack that was open all summer (#38, #39, #51, #56, #57, #58, plus #70 M754
 and #76) was merged into `main` on 2026-09-14 as one consolidation, PR #106; the September UI work
 (sequencer homing gate, argon purge, colour themes, Touch UI syringe C-axis port) followed as PR #107.
-The merged firmware compiles (`pio run -e mega2560`) but **has not been flashed since the merge** — the
-last hardware evidence is the 2026-08-17/19 bench sessions. The Spin Coater Subsystem section below
-now describes `main`.
+The merged firmware compiles (`pio run -e mega2560`); the last hardware evidence recorded in this repo is
+from the 2026-08-17/19 bench sessions. The Spin Coater Subsystem section below describes `main`.
 
-See `HANDOFF-2026-09-14.md` for the work-state detail: what merged, the conflict resolutions that were
-decisions, the four UI pull requests that were deliberately left out, and the ordered list of what to do
-next. `RUN_SHEET.md` is the bench checklist; `HANDOFF-2026-08-19.md` holds the August results.
+`HANDOFF-2026-09-14.md` records the consolidation: what merged, the conflict resolutions that were
+decisions, and the four UI pull requests that were deliberately left out. It and the older `HANDOFF*.md`
+files are frozen history; session state is not kept in the repo. `RUN_SHEET.md` is the bench checklist;
+`HANDOFF-2026-08-19.md` holds the August results.
 
 ## Hardware Overview
 
