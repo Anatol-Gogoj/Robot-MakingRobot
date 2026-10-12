@@ -485,6 +485,17 @@ stop.
 
 **Step 6.7** — Record all the results.
 
+### Results — 2026-08-19
+
+Steps 6.2, 6.3, 6.5 and 6.6 pass. Step 6.5 fills the command buffer before `M112`, which is the
+claim that `EMERGENCY_PARSER` makes. Pull request #51 is validated. After `M112`, a GUI disconnect
+and reconnect is enough to recover the board. A USB replug is not necessary.
+
+Step 6.4 fails. The chuck did not stop when the USB cable was disconnected: the cycle ran to the end
+and homed. `M750` does not check for the host, so the firmware did what its code specifies. The
+cable was connected again only after the cycle had finished, so the reset path was not tested.
+Issue #81.
+
 ---
 
 ## Task 7 — Test the honest failure exits (pull request #56, issues #41 and #43)
@@ -535,6 +546,17 @@ must not stop for a long time.
 
 **Step 8.4** — Make sure that `M750` never stops the machine for more than 2 minutes in any of
 the tests above.
+
+### Results — 2026-08-19
+
+All four steps pass. Pull request #57 is validated.
+
+- Step 8.1 was the first clean cycle on this machine. `M750 S1000 D10 A3 C3 H1` ended with
+  `OK: INDEX_COMPLETE` and then `OK: CYCLE_COMPLETE`: `Samples=100`, `MeanRPM=1010.02`,
+  `StdDevRPM=4.54`, `DatumNormalised turns=-442`, `HomeSettleErr=0.88 deg`.
+- Step 8.2 passed two times. `MEASURE_LINK_LOST` came within 3 seconds, and no statistics block
+  came.
+- Step 8.3 passed. `DECEL_LINK_LOST` came, last seen at 58.59 RPM.
 
 ---
 
@@ -594,7 +616,7 @@ just merged into.
 ### Results — 2026-09-14
 
 Done, but not in this sequence. The owner merged the whole stack, with #70 and #76, at once as one
-consolidation pull request, #106, after Tasks 4 to 8 had passed in August (see `HANDOFF-2026-08-19.md`).
+consolidation pull request, #106, after the August bench work (the Task 6 and Task 8 results are above; Step 6.4 failed).
 Tasks 9 and 10, and 7.4 to 7.7 (T5), are still open. The six pull requests remain open on GitHub and
 can be closed; their content is in `main`. The merged firmware compiles and has not been installed on
 the machine — repeat Tasks 5, 6 and 8 after the first install (the merge changed the measure-phase
