@@ -311,7 +311,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Lid servo** — slider (30°-115°; 115° = closed over the relocated spincoater, 30° = open) with Open/Close quick buttons, override textbox (0-180°), T<ms> timed ramp (default 800ms). The Touch page's Lid OPEN/CLOSE buttons and long-press servo sheet use the same 30/115 presets (`servoConfig`); `tests/lid-angle.test.mjs` keeps every lid-close path on the same angle as the UV block
 - **Relay controls** — explicit ON/OFF button pairs for solenoid valve (OPEN/SHUT) and UV lamp (ON/OFF), with configurable pin numbers. Last-pressed button highlights via CSS (`relayMark`). No internal state tracking — each button sends a hardcoded S value. If the firmware answers with `UV inhibited: lid open` or prints `UV cut: lid opened` (the `UV_LID_INTERLOCK` lines), both UIs raise an error toast, log it, and put the UV pair in the OFF state (`uvRefusedRx`), so a refused ON never stays highlighted as if the lamp were lit; `tests/uv-refusal-feedback.test.mjs` covers it.
 - **Position readout** with auto-report (1s polling via M114)
-- **E-Stop** button (M112) — recovery requires a board reset (disconnect/reconnect USB); the **Reset (M999)** button only clears the softer "stopped" state
+- **E-Stop** button (M112) — recovery requires a board reset (disconnect/reconnect USB). There is deliberately no Reset (M999) button (#133): `M999` cannot recover from `M112` (gotcha #6). Type `M999` in the console for the softer "stopped" state
 - **Raw G-code** input with command history
 - **Spincoater panel** (collapsible, starts open) — M750/M751/M752 controls:
   - Parameter inputs: RPM, Duration, Rise Time, Sink Time, Encoder homing toggle
