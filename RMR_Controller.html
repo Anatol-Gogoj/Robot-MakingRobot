@@ -916,6 +916,8 @@ async function toggleConnection() {
 async function teardown() {
   if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
   if (identityTimer) { clearTimeout(identityTimer); identityTimer = null; }
+  autoReportSuspended = false;
+  okLedgerReset();   // no ok is coming for anything outstanding on a dead port
 
   try { if (reader) await reader.cancel(); } catch (e) { /* device already gone */ }
   try { if (reader) reader.releaseLock(); } catch (e) { /* already released */ }
@@ -1153,9 +1155,9 @@ function processLine(line) {
     if (eMatch) document.getElementById('posE').textContent = parseFloat(eMatch[1]).toFixed(1);
   }
 
-  // Detect 'ok' for program runner sequencing
+  // Detect 'ok' and attribute it to whichever command earned it (#48).
   if (line === 'ok' || (line.startsWith('ok') && line.length < 5)) {
-    progOnOk();
+    onOkReceived();
     if (!verbose) return;
   }
 
@@ -1168,18 +1170,80 @@ function processLine(line) {
   logRx(line);
 }
 
+// ─── ok attribution (issue #48) ───
+//
+// Marlin answers exactly one `ok` per command it accepts, in the order the
+// commands arrived. So the k-th `ok` belongs to the k-th command we wrote --
+// but only if we account for EVERY command, not just the program's.
+//
+// The Program Runner used to advance on any `ok` at all. The 1 Hz M114
+// auto-report poll therefore drove it: during a blocking M750 the poll keeps
+// writing, Marlin's idle() does NOT dispatch serial commands (MarlinCore.cpp:778
+// -- it services steppers, temperature and the LCD, and never calls
+// queue.get_serial_commands()), so the M114s sit in the 128-byte hardware ring
+// until the cycle ends. The main loop then drains them in a burst and answers
+// each with `ok`. Every one of those advanced a program line. A 60 s spin can
+// bank ~25 of them, which is enough to fire an entire dispense-and-press
+// sequence back to back with nothing waiting for anything.
+//
+// The ledger below is the fix that holds regardless of who is sending: the
+// operator jogging mid-program, a spincoater panel button, or the M115 identity
+// check on connect all enqueue their own entry and consume their own `ok`.
+let okLedger = [];
+const OK_LEDGER_MAX = 64;   // a desync guard, not a queue depth -- see sendCmd()
+
+function okLedgerReset(why) {
+  if (okLedger.length && why) logInfo(`ok ledger cleared (${why}) — ${okLedger.length} unanswered`);
+  okLedger = [];
+}
+
+// Called for every `ok` off the wire. Returns nothing; advances the program only
+// when the ok is the one the program was waiting for.
+function onOkReceived() {
+  const token = okLedger.shift();
+  // An `ok` we never accounted for. Marlin does not volunteer these, so this is
+  // either a reconnect artefact or a desync. Ignoring it is the safe direction:
+  // a missed advance stalls the program visibly, a spurious one moves the machine.
+  if (!token) return;
+  if (token.tag === 'prog') progOnOk();
+}
+
 // ─── Command Sending ───
-async function sendCmd(cmd) {
+// tag 'prog' marks a line sent by the Program Runner; everything else is 'ui'.
+async function sendCmd(cmd, tag = 'ui') {
   if (!isConnected || !writer) {
     logErr('Not connected');
-    return;
+    return false;
+  }
+  // Enqueue BEFORE awaiting the write so the ledger's order is the call order,
+  // which is the order the bytes reach Marlin. Awaiting first would let two
+  // concurrent sendCmd() calls record themselves out of order.
+  const token = { tag };
+  okLedger.push(token);
+  if (okLedger.length > OK_LEDGER_MAX) {
+    // More than OK_LEDGER_MAX commands outstanding cannot happen while the link
+    // is healthy -- BUFSIZE is 4 and every accepted command is answered. Getting
+    // here means acks have gone missing (a killed board, or bytes dropped by the
+    // 128-byte RX ring, which Marlin discards silently). The ledger is no longer
+    // trustworthy, so stop driving the machine from it.
+    logErr(`ok ledger overflow (${okLedger.length} unanswered) — serial sequence lost`);
+    okLedgerReset();
+    if (progRunning) {
+      logErr('Program halted: cannot tell which command each ok belongs to.');
+      progStop();
+    }
   }
   try {
     const encoder = new TextEncoder();
     await writer.write(encoder.encode(cmd + '\n'));
     logTx(cmd);
+    return true;
   } catch (e) {
+    // The bytes never went out, so no `ok` is coming for this one.
+    const i = okLedger.indexOf(token);
+    if (i !== -1) okLedger.splice(i, 1);
     logErr('Send error: ' + e.message);
+    return false;
   }
 }
 
@@ -1289,22 +1353,63 @@ function relayCmd(relay, sVal) {
 // ─── Emergency Stop ───
 function emergencyStop() {
   sendCmd('M112');
+  // M112 reaches kill(), which never answers `ok`, so its ledger entry would be
+  // stranded and offset every attribution after it. And a program must not go on
+  // firing lines at a killed board -- that was true before #48 and simply was
+  // not handled.
+  if (progRunning) progStop();
+  // ...and after progStop() has resumed it, stop polling a board that is now
+  // halted in kill() and will answer nothing but M999. Left running, the poll
+  // would push an unanswered M114 into the ledger every second.
+  autoReportSuspend('board halted');
+  okLedgerReset();
   logErr('>>> EMERGENCY STOP SENT — press Reset (M999) to recover without replug <<<');
 }
 
 // ─── Firmware Reset ───
 function resetFirmware() {
   sendCmd('M999');
+  okLedgerReset();   // the board restarts; outstanding acks died with it
   logInfo('>>> M999 firmware reset sent <<<');
 }
 
 // ─── Auto Report ───
+//
+// The poll is suspended for the duration of a program run (#48). It is not just
+// that its `ok`s used to advance the runner -- the ledger handles that now --
+// but that nothing drains them while a blocking command runs. Marlin's idle()
+// does not dispatch serial commands, so a 1 Hz poll during a minutes-long M750
+// pours into a 128-byte RX ring that no one is emptying, and MarlinSerial
+// discards the overflow silently (MarlinSerial.cpp:170; SERIAL_STATS_DROPPED_RX
+// is off, so not even a counter moves). The position readout is frozen during a
+// blocking command anyway, because M114 cannot be answered until it returns.
+let autoReportSuspended = false;
+
 function toggleAutoReport() {
-  if (document.getElementById('autoReport').checked) {
-    autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
-  } else {
-    if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  // Always tear the old timer down first, so this is idempotent.
+  if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  if (!document.getElementById('autoReport').checked) { autoReportSuspended = false; return; }
+  if (progRunning) {
+    autoReportSuspended = true;
+    logInfo('Auto-report held until the program finishes');
+    return;
   }
+  autoReportSuspended = false;
+  autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+}
+
+function autoReportSuspend(why) {
+  if (!autoReportInterval) return;
+  clearInterval(autoReportInterval);
+  autoReportInterval = null;
+  autoReportSuspended = true;
+  logInfo('Auto-report suspended (' + why + ')');
+}
+
+function autoReportResume() {
+  if (!autoReportSuspended) return;
+  autoReportSuspended = false;
+  toggleAutoReport();   // restores whatever the checkbox says now
 }
 
 // ─── Advanced Settings ───
@@ -1409,7 +1514,11 @@ function progRun() {
     progPaused = false;
     document.getElementById('progPauseBtn').textContent = 'Pause';
     document.getElementById('progStatus').textContent = 'Running...';
-    progSendNext();
+    // Only send if the line we paused on has already been answered. If it has
+    // not, its `ok` is still outstanding and progOnOk() will do this for us --
+    // sending here would put a second line on the wire while the first is still
+    // running, which is the same early-fire this issue is about.
+    if (!progWaitingOk) progSendNext();
     return;
   }
   progParseLines();
@@ -1417,6 +1526,7 @@ function progRun() {
   progRunning = true;
   progPaused = false;
   progWaitingOk = false;
+  autoReportSuspend('program running');
   document.getElementById('progRunBtn').disabled = true;
   document.getElementById('progPauseBtn').disabled = false;
   document.getElementById('progStopBtn').disabled = false;
@@ -1439,6 +1549,7 @@ function progStop() {
   progRunning = false;
   progPaused = false;
   progWaitingOk = false;
+  autoReportResume();
   document.getElementById('progRunBtn').disabled = false;
   document.getElementById('progPauseBtn').disabled = true;
   document.getElementById('progPauseBtn').textContent = 'Pause';
@@ -1452,6 +1563,7 @@ function progComplete() {
   progRunning = false;
   progPaused = false;
   progWaitingOk = false;
+  autoReportResume();
   document.getElementById('progRunBtn').disabled = false;
   document.getElementById('progPauseBtn').disabled = true;
   document.getElementById('progStopBtn').disabled = true;
@@ -1494,7 +1606,7 @@ function progSendNext() {
   const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 16;
   textarea.scrollTop = Math.max(0, rawLineIdx * lineHeight - textarea.clientHeight / 2);
 
-  sendCmd(cmd);
+  sendCmd(cmd, 'prog');
   progIndex++;
 
   const waitOk = document.getElementById('progWaitOk').checked;
@@ -1508,11 +1620,12 @@ function progSendNext() {
 }
 
 // Hook into the serial read to detect 'ok' responses for program sequencing
+// Called only for an `ok` the ledger attributed to a program line.
 function progOnOk() {
-  if (progWaitingOk && progRunning && !progPaused) {
-    progWaitingOk = false;
-    progSendNext();
-  }
+  if (!progRunning || !progWaitingOk) return;
+  progWaitingOk = false;      // the line we sent has finished, paused or not
+  if (progPaused) return;     // Resume will send the next one
+  progSendNext();
 }
 
 function progLoadFile(event) {
