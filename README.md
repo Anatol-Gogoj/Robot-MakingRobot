@@ -365,7 +365,7 @@ operation). They share the same serial contract and the same spincoater panel lo
 - Spincoater panel — RPM/Duration/Rise/Sink inputs, live RPM gauge, SVG circular position dial, Welford stats cards, phase indicator, and four buttons:
   - **Start Spin** (M750), **Set Home** (M751), **Index Home** (M752 — rotates the chuck)
   - **Stop** — sends **M112**. This is not a soft stop: it kills the firmware, freewheels the chuck, needs a board reset to recover, and loses the datum. The Process Sequencer's Stop is the soft one: it sends `M410`, which a running `M750` polls and honours by zeroing the rotor (`STATE:STOPPED` + `OK: ABORTED`, untested on hardware).
-- E-Stop (M112) — recover via board reset (disconnect/reconnect USB); the M999 Reset button only clears the softer "stopped" state
+- E-Stop (M112) — recover via board reset (disconnect/reconnect USB). There is no Reset (M999) button (#133): `M999` cannot recover from `M112`; type it in the console for the softer "stopped" state
 - Position readout with auto-report polling
 - G-code program runner with Load .gcode, Run/Pause/Stop, and wait-for-ok sequencing
 - Raw G-code input with command history
