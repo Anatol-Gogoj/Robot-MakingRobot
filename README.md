@@ -49,10 +49,7 @@ Robot-MakingRobot/
 ├── SpincoaterPinMap.jfif         # ODrive S1 J11 connector pinout image
 ├── ODRIVE_CONFIG.md              # ODrive S1 configuration as recorded 2026-08-13
 ├── RUN_SHEET.md                  # Bench run sheet (four lanes, Tasks 1–15) with dated results
-├── HANDOFF-2026-09-14.md         # Frozen: the 2026-09-14 consolidation handoff
-├── HANDOFF-2026-08-19.md         # Superseded: August bench results
-├── HANDOFF-2026-08-14.md         # Superseded: the modulo-one-turn index finding
-├── HANDOFF.md                    # Original 2026-08-11 handoff: reasoning behind the spincoater stack
+├── docs/adr/                     # Architecture decision records (index in docs/adr/README.md)
 ├── AI_ATTRIBUTION.md             # AI assistance disclosure
 ├── CAD/                          # FreeCAD sources + STEP exports for printed parts
 ├── claude.md                     # Detailed firmware architecture & project docs
@@ -71,13 +68,12 @@ parses them as ramp *times* in seconds. Treat `claude.md` as authoritative.
 The spincoater firmware stack that was open all summer (#38, #39, #51, #56, #57, #58, plus #70 M754
 and #76) was merged into `main` on 2026-09-14 as one consolidation, PR #106; the September UI work
 (sequencer homing gate, argon purge, colour themes, Touch UI syringe C-axis port) followed as PR #107.
-The merged firmware compiles (`pio run -e mega2560`); the last hardware evidence recorded in this repo is
-from the 2026-08-17/19 bench sessions. The Spin Coater Subsystem section below describes `main`.
+The merged firmware compiles (`pio run -e mega2560`); the last hardware tests were the 2026-08-17/19
+bench sessions. The Spin Coater Subsystem section below describes `main`.
 
-`HANDOFF-2026-09-14.md` records the consolidation: what merged, the conflict resolutions that were
-decisions, and the four UI pull requests that were deliberately left out. It and the older `HANDOFF*.md`
-files are frozen history; session state is not kept in the repo. `RUN_SHEET.md` is the bench checklist;
-`HANDOFF-2026-08-19.md` holds the August results.
+Session state is not kept in the repo; the August and September handoffs were moved out in issue #129.
+Durable decisions are in `docs/adr/`, durable bench findings are in `claude.md`, and `RUN_SHEET.md` is
+the bench checklist.
 
 ## Hardware Overview
 
@@ -205,18 +201,17 @@ without two consistent position reads, and refuses if the axis is turning faster
 **M752** — runs the ODrive encoder index search, verifies `axis0.procedure_result`, then
 re-arms closed loop and commands a slow trapezoidal move **back to the saved datum**
 (vel_limit 0.25 turns/s ≈ 15 RPM, 8 s watchdog). **The chuck physically rotates.** It never
-moves an existing datum; it only establishes one if none exists. Success prints
+moves an existing datum, and with no datum it refuses the move (`ERR: No valid home datum -- refusing
+settle. Run M751 (Set Home).`). Success prints
 `OK: INDEX_COMPLETE`; any failure *after the ODrive boots* prints `ERR: INDEX_HOME_FAILED` (and,
 if it was the settle that timed out, `ERR: INDEX_INCOMPLETE -- datum not reached` immediately
-before it). If the deferred `boot()` itself fails — a dead link, the most likely bench failure and
-the leading suspect in issue #46 — M752 prints only `ERR: ODrive boot failed` and emits **no
-terminal marker at all**.
+before it). If the deferred `boot()` itself fails — a dead link is the most likely bench failure —
+M752 prints only `ERR: ODrive boot failed` and emits **no terminal marker at all**.
 
-A common M752 refusal is `ERR: Position <n> is >1 turn from home datum <n> -- refusing settle`.
-It means the reported position and the datum are in different encoder frames, so the move
-would crawl for thousands of turns. The only way out is `M751`. Whether an ODrive 0.6.x index
-search actually re-references `pos_estimate` is **unverified on this machine** and is the
-open bench question behind this behaviour.
+The index search references position modulo one turn: it corrects the fractional turn and leaves
+the turn count accumulating. So before the move, M752 drops whole turns from the datum
+(`DATA: DatumNormalised turns=…`), which keeps the angle and makes the settle a sub-turn move.
+This replaced the old `>1 turn from home datum` refusal, which fired on every post-spin home.
 
 **M753** — UART diagnostic only. It calls `Spincoater::init()`, sends `r vbus_voltage`, and
 dumps raw bytes as `DIAG:` lines for up to 2 s. It does not boot the ODrive, does not touch
@@ -387,7 +382,7 @@ operation). They share the same serial contract and the same spincoater panel lo
 ## Important Gotchas
 
 1. **Axis naming:** G-code uses `A` and `B` for the Filter Feed and Syringe Height axes (not `I`/`J`). This applies to all commands: `G1`, `M201`, `M203`, `G28`, etc.
-2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0–125 mm). `G92 E0` / `G1 E…` are silently ignored — no error — so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do (see `HANDOFF-2026-09-14.md` §5).
+2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0–125 mm). `G92 E0` / `G1 E…` are silently ignored — no error — so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do.
 3. **Filter Feed homes to MAX:** Unlike all other axes which home to MIN, the Filter Feed (A axis) homes to its far-end endstop (I_MAX, pin 15).
 4. **Servo deactivation:** Servos go limp 2 seconds after positioning. If the gripper needs to actively hold force, `DEACTIVATE_SERVOS_AFTER_MOVE` must be disabled (requires rebuild) or an external servo controller used.
 5. **E-Stop recovery:** `M112` fully kills the firmware and **cannot** be recovered with `M999` — reset the board (disconnect/reconnect USB or power-cycle). On reboot the firmware automatically disarms the spincoater. `M999` only recovers from the softer "stopped" state. `EMERGENCY_PARSER` is enabled, so `M112`/`M108`/`M410` act immediately from the serial RX path instead of queueing behind a blocking M750. Side effect: `M0`/`M1` are now compiled in and will **pause until an `M108` arrives** — previously they returned "Unknown command". Any production G-code containing `M0`/`M1` will stall. **This side effect has not been bench-checked.**

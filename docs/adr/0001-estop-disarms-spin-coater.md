@@ -1,0 +1,8 @@
+# ADR-0001: Spin coater E-stop disarms the ODrive to IDLE; no commanded braking
+Status: Accepted; Date: 2026-08-05 (owner decision on #40; handoff decision 1); Scope: spincoater firmware, `kill()`, `startupSafetyDisarm()`
+Context: Issue #40 found that `M112` could not stop the spin coater. When the fix was designed it was unknown whether a brake resistor is fitted on the ODrive S1. Commanding a fast deceleration of a chuck at up to 5000 RPM sends regenerated energy into the DC bus, and with no resistor that can overvolt it.
+Decision: An E-stop disarms the axis. `kill()` calls `Spincoater::safeStop()` (a zero-velocity setpoint, added later for the cooperative abort) and then `Spincoater::emergencyStop()`, which writes `w axis0.requested_state 1` twice without reading a reply (`spincoater.cpp:101-122`). IDLE arrives within a few milliseconds, the ODrive disarms and the chuck freewheels to a stop. The same disarm runs at every board start (`startupSafetyDisarm()`).
+Rejected: A commanded ramp to zero as the E-stop: it needs the link and the drive to stay healthy for the whole ramp, and without a confirmed brake resistor the regen can overvolt the bus
+Consequences: Easier: the stop works with a half-dead link and never adds energy to the bus. A hardware E-stop that cuts ODrive power behaves the same way (the chuck coasts).
+Consequences: Harder: the coast-down time from full speed has never been measured (run-sheet Task 9). `M112` is terminal on this board: recovery is a DTR reset or a power cycle, never `M999` (`claude.md` gotcha 6).
+Revisit if: a brake resistor is confirmed fitted and the coast-down time is measured; active braking is the eventual goal.

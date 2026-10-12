@@ -219,7 +219,7 @@ bool Spincoater::boot() {
       else if (pr < 0) {
         // Unreadable means UNVERIFIED, not failed: an ODrive firmware
         // lacking the property must not brick a working machine.
-        // HANDOFF decision 7.
+        // docs/adr/0003-unreadable-procedure-result-is-unverified.md
         SERIAL_ECHOLNPGM("echo:SPIN WARN: procedure_result unreadable -- boot index search UNVERIFIED");
         bootHomed = true;
       }
