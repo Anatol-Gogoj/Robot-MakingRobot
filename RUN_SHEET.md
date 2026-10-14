@@ -445,8 +445,8 @@ minimum. When the axis was moved off the limit, the end stop reported `open`. Th
 `M114` reported `A:343.00`. This is correct. The A axis homes to MAX, so Marlin uses the maximum
 travel as its start position.
 
-`M115` also reported `Cap:EEPROM:0`. This is issue #59. The buttons `M500` and `M501` in both UIs
-cannot do anything. Do not use them.
+`M115` also reported `Cap:EEPROM:0`. This is issue #59. EEPROM is off, so neither UI has a Save or Load
+EEPROM button. Every reset erases `M201`, `M203` and `M92` changes. Do not send `M500` or `M501`.
 
 > **NOTE — the serial port stops after you install firmware**
 > The Mega gets a new device number when the new firmware starts. The browser keeps the old one.

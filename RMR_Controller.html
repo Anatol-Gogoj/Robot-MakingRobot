@@ -962,7 +962,7 @@
   <div class="panel" style="grid-column: 1 / -1">
     <details>
     <summary style="cursor:pointer;font-weight:bold;font-size:15px;user-select:none">Acceleration Tuning (M201)</summary>
-    <p style="font-size:11px;color:var(--text-dim);margin:6px 0 8px 0">Adjust max acceleration per axis (mm/s&sup2;). Changes take effect immediately via M201 — not saved to EEPROM until you send M500.</p>
+    <p style="font-size:11px;color:var(--text-dim);margin:6px 0 8px 0">Adjust max acceleration per axis (mm/s&sup2;). Changes take effect immediately via M201 and last only until the next controller reset, including the reset on connect. EEPROM is disabled in this firmware, so permanent values must be set in Configuration.h.</p>
     <div style="display:grid;grid-template-columns:90px 1fr 70px 60px;gap:6px 8px;align-items:center">
       <label>X</label>
       <input type="range" id="accelX" min="50" max="5000" value="500" step="50"
@@ -1002,7 +1002,6 @@
     </div>
     <div style="margin-top:10px;display:flex;gap:8px">
       <button class="toggle-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' C'+document.getElementById('accelE').value)">Set All</button>
-      <button class="toggle-btn" onclick="sendCmd('M500')">Save to EEPROM (M500)</button>
       <button class="toggle-btn" onclick="sendCmd('M503')">Report Settings (M503)</button>
     </div>
     </details>
@@ -1191,8 +1190,6 @@
       <button class="quick-btn" onclick="sendCmd('M119')">Endstops</button>
       <button class="quick-btn" onclick="sendCmd('M503')">Settings</button>
       <button class="quick-btn" onclick="sendCmd('M92')">Steps/mm</button>
-      <button class="quick-btn" onclick="sendCmd('M500')">Save EEPROM</button>
-      <button class="quick-btn" onclick="sendCmd('M501')">Load EEPROM</button>
       <button class="quick-btn" onclick="sendCmd('M17')">Enable Motors</button>
       <button class="quick-btn" onclick="sendCmd('M18')">Disable Motors</button>
     </div>
@@ -2142,7 +2139,7 @@ function applySteps() {
   const e = document.getElementById('stepsE').value;
   const b = document.getElementById('stepsB').value;
   sendCmd(`M92 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
-  logInfo('Steps/mm updated. Use M500 to save to EEPROM.');
+  logInfo('Steps/mm updated. RAM only: lost on every controller reset, including the reset on connect (EEPROM disabled).');
 }
 
 function applyFeedrates() {
@@ -2153,7 +2150,7 @@ function applyFeedrates() {
   const e = document.getElementById('frE').value;
   const b = document.getElementById('frB').value;
   sendCmd(`M203 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
-  logInfo('Max feedrates updated. Use M500 to save to EEPROM.');
+  logInfo('Max feedrates updated. RAM only: lost on every controller reset, including the reset on connect (EEPROM disabled).');
 }
 
 function applyAccel() {
@@ -2164,7 +2161,7 @@ function applyAccel() {
   const e = document.getElementById('accE').value;
   const b = document.getElementById('accB').value;
   sendCmd(`M201 X${x} Y${y} Z${z} A${a} B${b} C${e}`);
-  logInfo('Max acceleration updated. Use M500 to save to EEPROM.');
+  logInfo('Max acceleration updated. RAM only: lost on every controller reset, including the reset on connect (EEPROM disabled).');
 }
 
 // ─── Console Logging ───
