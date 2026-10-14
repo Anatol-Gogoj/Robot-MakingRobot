@@ -840,8 +840,6 @@
     <button class="quick-btn" onclick="sendCmd('M503');closeQcmd()">Settings</button>
     <button class="quick-btn" onclick="sendCmd('M17');closeQcmd()">Motors On</button>
     <button class="quick-btn" onclick="sendCmd('M18');closeQcmd()">Motors Off</button>
-    <button class="quick-btn" onclick="sendCmd('M500');closeQcmd()">Save EEPROM</button>
-    <button class="quick-btn" onclick="sendCmd('M501');closeQcmd()">Load EEPROM</button>
   </div>
 </header>
 
@@ -1135,6 +1133,7 @@
     <details class="config-section">
       <summary>Acceleration (M201, mm/s&sup2;)</summary>
       <div class="config-body">
+        <p style="font-size:11px;color:var(--text-dim);margin:0 0 6px 0">RAM only: lost on every controller reset, including the reset on connect. EEPROM is disabled; permanent values go in Configuration.h.</p>
         <div class="accel-row"><label>X:</label><input type="range" id="accelX" min="50" max="5000" value="500" step="50" oninput="document.getElementById('accelXVal').textContent=this.value"><span class="accel-val" id="accelXVal">500</span><button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value)">Set</button></div>
         <div class="accel-row"><label>Y:</label><input type="range" id="accelY" min="50" max="5000" value="200" step="50" oninput="document.getElementById('accelYVal').textContent=this.value"><span class="accel-val" id="accelYVal">200</span><button class="touch-btn" onclick="sendCmd('M201 Y'+document.getElementById('accelY').value)">Set</button></div>
         <div class="accel-row"><label>Z:</label><input type="range" id="accelZ" min="50" max="2000" value="100" step="50" oninput="document.getElementById('accelZVal').textContent=this.value"><span class="accel-val" id="accelZVal">100</span><button class="touch-btn" onclick="sendCmd('M201 Z'+document.getElementById('accelZ').value)">Set</button></div>
@@ -1143,9 +1142,7 @@
         <div class="accel-row"><label>C (Syringe):</label><input type="range" id="accelE" min="50" max="5000" value="500" step="50" oninput="document.getElementById('accelEVal').textContent=this.value"><span class="accel-val" id="accelEVal">500</span><button class="touch-btn" onclick="sendCmd('M201 C'+document.getElementById('accelE').value)">Set</button></div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
           <button class="touch-btn" onclick="sendCmd('M201 X'+document.getElementById('accelX').value+' Y'+document.getElementById('accelY').value+' Z'+document.getElementById('accelZ').value+' A'+document.getElementById('accelA').value+' B'+document.getElementById('accelB').value+' C'+document.getElementById('accelE').value)">Set All Accel</button>
-          <button class="touch-btn" onclick="sendCmd('M500')">Save EEPROM</button>
           <button class="touch-btn" onclick="sendCmd('M503')">Report (M503)</button>
-          <button class="touch-btn" onclick="loadFromEEPROM()">Load from EEPROM</button>
         </div>
       </div>
     </details>
@@ -1863,7 +1860,6 @@ function parseM503(line, type) {
     if(b!==null){document.getElementById('accelB').value=b;document.getElementById('accelBVal').textContent=b;}
   }
 }
-function loadFromEEPROM() { sendCmd('M503'); showToast('Loading settings from EEPROM...', 'info'); }
 
 // ─── Send Commands ───
 // opts.tracked: the caller waits for this command's 'ok' itself (sequencer / program
@@ -2017,11 +2013,11 @@ function toggleAutoReport() {
 function applySteps() {
   const ids = ['stepsX','stepsY','stepsZ','stepsA','stepsE','stepsB'], axes = ['X','Y','Z','A','C','B'];
   sendCmd('M92 ' + axes.map((a,i) => a + document.getElementById(ids[i]).value).join(' '));
-  showToast('Steps/mm updated. M500 to save.', 'info');
+  showToast('Steps/mm updated. RAM only, lost on reset.', 'info');
 }
 function applyFeedrates() {
   sendCmd('M203 X'+document.getElementById('frX').value+' Y'+document.getElementById('frY').value+' Z'+document.getElementById('frZ').value+' A'+document.getElementById('frA').value+' B'+document.getElementById('frB').value+' C'+document.getElementById('frE').value);
-  showToast('Max feedrates updated. M500 to save.', 'info');
+  showToast('Max feedrates updated. RAM only, lost on reset.', 'info');
 }
 
 // ─── Console ───

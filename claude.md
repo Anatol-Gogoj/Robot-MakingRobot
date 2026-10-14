@@ -306,7 +306,7 @@ Browser-based unified control interface using Web Serial API (Chrome/Edge requir
 - **Z jog** with feed slider (max 3000 mm/min), arrows inverted to match physical reality (up arrow = platform down)
 - **Y axis arrows** swapped to match physical motion direction
 - **Per-axis auxiliary feed sliders:** A (max 2000), B (max 3000), C (max 480 mm/min)
-- **Acceleration tuning panel** (collapsible) — per-axis M201 sliders with Set/Set All/Save to EEPROM
+- **Acceleration tuning panel** (collapsible) — per-axis M201 sliders with Set/Set All/Report (M503). No EEPROM buttons in either UI (#59): values are RAM-only and lost on every reset, including the DTR reset on connect
 - **Gripper servo** — slider (90°-170°), Open/Close quick buttons, override textbox (0-180°)
 - **Lid servo** — slider (30°-115°; 115° = closed over the relocated spincoater, 30° = open) with Open/Close quick buttons, override textbox (0-180°), T<ms> timed ramp (default 800ms). The Touch page's Lid OPEN/CLOSE buttons and long-press servo sheet use the same 30/115 presets (`servoConfig`); `tests/lid-angle.test.mjs` keeps every lid-close path on the same angle as the UV block
 - **Relay controls** — explicit ON/OFF button pairs for solenoid valve (OPEN/SHUT) and UV lamp (ON/OFF), with configurable pin numbers. Last-pressed button highlights via CSS (`relayMark`). No internal state tracking — each button sends a hardcoded S value. If the firmware answers with `UV inhibited: lid open` or prints `UV cut: lid opened` (the `UV_LID_INTERLOCK` lines), both UIs raise an error toast, log it, and put the UV pair in the OFF state (`uvRefusedRx`), so a refused ON never stays highlighted as if the lamp were lit; `tests/uv-refusal-feedback.test.mjs` covers it.
