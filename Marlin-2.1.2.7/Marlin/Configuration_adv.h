@@ -3516,6 +3516,27 @@
 #endif
 
 /**
+ * Relay outputs (RMR): UV lamp and argon solenoid valve, switched from G-code with M42.
+ *
+ * The firmware drives both pins to their OFF level early in setup(), in kill() (M112),
+ * and when MOTOR_POWER_SENSE sees motor power drop, so neither relay stays energized
+ * after an E-stop or relights when the motor contactor is reset. Issue #131.
+ *
+ * The OFF level depends on the relay module, so it is set here and never hard-coded:
+ *   active-HIGH modules (current):          OFF = LOW,  M42 Pxx S1 = ON
+ *   active-LOW modules (original Bestep):   OFF = HIGH, M42 Pxx S0 = ON
+ * Driving the wrong level here turns the relay ON at boot and on every E-stop.
+ *
+ * From reset until setup() runs (the bootloader window after any reset, including the DTR
+ * reset on connect) the pins are floating inputs. If a module pulls in on a floating IN,
+ * only a pull-down (active-HIGH) or pull-up (active-LOW) resistor on IN fixes that window.
+ */
+#define UV_LAMP_PIN                 4     // UV lamp relay (RAMPS SERVO3 slot, OC0B)
+#define UV_LAMP_OFF_LEVEL         LOW     // pin level that de-energizes the UV relay
+#define SOLENOID_VALVE_PIN         42     // argon solenoid valve relay (AUX2_08, PL7)
+#define SOLENOID_VALVE_OFF_LEVEL  LOW     // pin level that de-energizes the valve relay
+
+/**
  * UV lamp lid interlock (RMR)
  *
  * Firmware refuses to energize the UV lamp (M42 P<UV_LAMP_PIN> S<UV_LAMP_ON_VALUE>)
@@ -3535,9 +3556,9 @@
  */
 //#define UV_LID_INTERLOCK
 #if ENABLED(UV_LID_INTERLOCK)
-  #define UV_LAMP_PIN         4     // UV relay pin (matches M42 P4 in the UI / G-code)
-  #define UV_LAMP_ON_VALUE    1     // M42 S-value that energizes UV (1 for active-HIGH modules)
-  #define UV_LAMP_ON_LEVEL    HIGH  // pin level when UV is energized (HIGH for active-HIGH modules)
+  // UV_LAMP_PIN and its polarity come from the relay block above (UV_LAMP_OFF_LEVEL).
+  #define UV_LAMP_ON_LEVEL    (UV_LAMP_OFF_LEVEL == LOW ? HIGH : LOW)  // pin level when UV is energized
+  #define UV_LAMP_ON_VALUE    UV_LAMP_ON_LEVEL  // M42 S-value that energizes UV (S0/S1 write the level)
   #define LID_SWITCH_PIN      39    // lid-closed switch input (free GPIO on the AUX-4 header)
   #define LID_CLOSED_STATE    LOW   // pin level when the lid is fully closed (switch actuated)
 #endif
@@ -3547,7 +3568,8 @@
  *
  * Reads the motor-contactor aux contact so the firmware knows when the E-stop has
  * removed motor power (layered E-stop: motors cut, logic + Pi stay live). On loss it
- * aborts motion, clears the command queue, marks all axes unhomed, and refuses moves
+ * drives the UV lamp and valve relays OFF (issue #131), aborts motion, clears the
+ * command queue, marks all axes unhomed, and refuses moves
  * until re-homed (G28) — the open-loop steppers lose position the instant power drops.
  *
  * Boot-safe / fail-safe: the watcher only ARMS after it first sees motor power present,
@@ -4302,12 +4324,12 @@
 
 //
 // M42 - Set pin states
-// Enabled for relay control: D4 = UV lamp, D42 = solenoid valve
-// (ACTIVE-LOW via Bestep JQC3F-03VDC-C relay module on 3.3V buck rail)
-// i.e. M42 Pxx S0 = relay ENERGIZED, M42 Pxx S1 = relay OFF.
-// The opto LED cathode ties to the IN pin, so pulling IN to GND lights
-// the opto and drives the coil transistor. Boot-time floating inputs
-// read HIGH (via the module's internal pullup) = safe de-energized state.
+// Enabled for relay control: D4 = UV lamp, D42 = solenoid valve.
+// The current modules are ACTIVE-HIGH: M42 Pxx S1 = relay ENERGIZED,
+// M42 Pxx S0 = relay OFF. (The original Bestep JQC3F-03VDC-C modules were
+// active-LOW.) The relay pins and their OFF levels, which the firmware
+// drives at boot, on M112 and on a motor-power loss, are set in the
+// "Relay outputs (RMR)" block above (issue #131).
 // NOTE: D42 chosen over D11 because D11 = OC1A collides with Marlin's
 // stepper ISR (Timer1). D42 = PL7, pure GPIO on the Mega, no timer unit,
 // not claimed by any stock RAMPS function (AUX2_08 header pin).

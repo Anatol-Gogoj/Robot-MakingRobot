@@ -174,15 +174,21 @@
 #define SERVO1_PIN   6    // M280 P1 S<angle>
 
 // ==========================================================
-//  Relay outputs (M42 DIRECT_PIN_CONTROL, ACTIVE-LOW)
+//  Relay outputs (M42 DIRECT_PIN_CONTROL)
 // ==========================================================
 //
-// Driven by Bestep JQC3F-03VDC-C relay modules on a shared 3.3V buck rail.
-// These modules are ACTIVE-LOW: the opto LED cathode ties to the IN pin,
-// so pulling IN to GND energizes the relay.
-// Triggered from G-code via M42 Pxx S0 (ENERGIZE) / S1 (DE-ENERGIZE).
-// Boot-time floating inputs read HIGH via the module's internal pullup,
-// which is the safe de-energized state — no chatter on reset.
+// Opto-isolated relay modules powered from a dedicated 3.3V buck rail that
+// shares ground with the Mega. The current modules are ACTIVE-HIGH:
+// M42 Pxx S1 energizes the relay, M42 Pxx S0 de-energizes it. (The original
+// Bestep JQC3F-03VDC-C modules were active-LOW, S0 = ON; see claude.md
+// gotcha 13.) The pin numbers and each relay's OFF level are set in
+// Configuration_adv.h (UV_LAMP_PIN / SOLENOID_VALVE_PIN and their
+// *_OFF_LEVEL); change the OFF level there if the module type changes.
+//
+// The firmware drives both pins to their OFF level early in setup(), in
+// kill() (M112) and on a motor-power loss (issue #131). Between reset and
+// setup() (the bootloader window) the pins are floating inputs; only a
+// pull resistor on the module's IN pin holds the relay off there.
 //
 //   D4  = UV lamp relay        (RAMPS SERVO3 slot, OC0B / Timer0)
 //   D42 = Solenoid valve relay (AUX2_08 header, PL7, pure GPIO)
@@ -194,5 +200,6 @@
 // skips set_pwm_duty() for S<=1 so digital-only writes stay clean.
 //
 // Do NOT reclaim D4 or D42 for servos, fans, endstops, or other outputs
-// without also updating the relay wiring and any G-code that references
-// them. No #define is emitted here because M42 uses raw pin numbers.
+// without also updating the relay wiring, Configuration_adv.h, and any
+// G-code that references them. No #define is emitted here because M42 uses
+// raw pin numbers.
