@@ -404,7 +404,7 @@ Override with `?transport=serial|ws` or `?ws=ws://host:port`. The Controller als
 
 - XY/Z jog pads with configurable step sizes and per-axis feed sliders
 - Per-axis auxiliary motor controls with individual feed sliders (A, B, C)
-- Collapsible acceleration tuning panel (M201) with per-axis sliders. Its "Save to EEPROM (M500)" button and the "Save/Load EEPROM" quick buttons do not work with this firmware (EEPROM is disabled), and **Load EEPROM sends `M501`, which resets all runtime tuning to the compiled defaults.** Do not use them
+- Collapsible acceleration tuning panel (M201) with per-axis sliders. Tuning is RAM-only: EEPROM is disabled, so there are no save or load buttons, and every reset (including connecting) restores the compiled defaults (#59)
 - Gripper servo slider (90° to 170°) and lid servo slider (30° open to 115° closed), each with Open/Close buttons and a full-range override textbox; the lid also takes a T<ms> ramp time (default 800 ms)
 - UV lamp and solenoid valve ON/OFF button pairs. If the firmware refuses or cuts the UV lamp (`UV inhibited: lid open`, `UV cut: lid opened`), the page raises an error and shows the lamp OFF
 - Spincoater panel: RPM/Duration/Rise/Sink inputs, live RPM gauge, SVG circular position dial, Welford stats cards, phase indicator, and four buttons:
