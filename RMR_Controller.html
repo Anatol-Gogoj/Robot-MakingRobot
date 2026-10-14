@@ -2086,7 +2086,9 @@ function relayCmd(relay, sVal) {
   sendCmd(`M42 P${pin} S${sVal}`);
   relayMark(relay, sVal);
 }
-// Highlight the ON or OFF button of a relay pair: the state we believe the relay is in.
+// Highlight the ON or OFF button of a relay pair. This is not a readback (the firmware never
+// reports the pins): it is the last level this page sent, or OFF after an event on which the
+// firmware is known to have turned the relay off itself (uvRefusedRx, relaysOffByFirmware).
 function relayMark(relay, sVal) {
   const onBtn  = document.getElementById(relay + 'OnBtn');
   const offBtn = document.getElementById(relay + 'OffBtn');
@@ -2094,6 +2096,15 @@ function relayMark(relay, sVal) {
   offBtn.classList.toggle('on', sVal === 0);
   onBtn.setAttribute('aria-pressed', sVal === 1 ? 'true' : 'false');
   offBtn.setAttribute('aria-pressed', sVal === 0 ? 'true' : 'false');
+}
+// The firmware drives both relays to OFF by itself, and prints no line for it, at boot (the
+// 'start' line), in kill() (M112, then 'kill() called') and on a motor-power loss ('MOTOR
+// POWER LOST'), #131. homedTrackTx / homedTrackRx call this on those events, so a UV ON or
+// valve OPEN pressed earlier does not stay highlighted. Correct only with the #131 firmware:
+// older builds leave both relays energized through M112 and a motor-power loss.
+function relaysOffByFirmware() {
+  relayMark('uv', 0);
+  relayMark('sol', 0);
 }
 
 // ─── Emergency Stop ───
@@ -2622,22 +2633,24 @@ function seqHomeAllNow() {
   seqRunBlock('homing');
 }
 // Commands (from this UI, or echoed by the bridge from another client / a physical button)
-// that invalidate the homed position.
+// that invalidate the homed position. M112 also makes the firmware drop both relays (#131).
 function homedTrackTx(cmd) {
   const u = String(cmd || '').trim().toUpperCase();
-  if (/^M112\b/.test(u)) seqSetHomed(false, 'emergency stop');
+  if (/^M112\b/.test(u)) { seqSetHomed(false, 'emergency stop'); relaysOffByFirmware(); }
   else if (/^M999\b/.test(u)) seqSetHomed(false, 'firmware reset');
   else if (/^M(18|84)\b/.test(u)) seqSetHomed(false, 'steppers disabled — the axes may have moved');
 }
 // Firmware lines that confirm / invalidate homing, or that should fail a running sequence fast.
+// 'start', MOTOR POWER LOST and 'kill() called' also mean the firmware has dropped both relays.
 function homedTrackRx(line) {
   if (line.indexOf(HOME_MARKER) >= 0) { seqSetHomed(true, 'full G28 confirmed by the firmware'); return; }
-  if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); return; }
-  if (/MOTOR POWER LOST/.test(line)) { seqSetHomed(false, 'motor power lost'); seqFault('MOTOR POWER LOST — the firmware halted motion; re-home (G28)'); return; }
+  if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); relaysOffByFirmware(); return; }
+  if (/MOTOR POWER LOST/.test(line)) { seqSetHomed(false, 'motor power lost'); seqFault('MOTOR POWER LOST — the firmware halted motion; re-home (G28)'); relaysOffByFirmware(); return; }
   if (/Move refused: re-home/.test(line)) { seqSetHomed(false, 'the firmware refused a move'); seqFault('the firmware refused a move — re-home (G28) after the motor-power loss'); return; }
   if (/UV inhibited: lid open/.test(line)) { uvRefusedRx(false); return; }
   if (/UV cut: lid opened/.test(line)) { uvRefusedRx(true); return; }
   if (/^Error:/.test(line) && seqRunning) seqFault(line);
+  if (/kill\(\) called/.test(line)) relaysOffByFirmware();
 }
 // The firmware's UV lid interlock refused a UV-on ("UV inhibited: lid open") or cut the lamp
 // ("UV cut: lid opened"). Either way the lamp is OFF now, whatever button was pressed last:
