@@ -79,9 +79,9 @@ September UI work (sequencer homing gate, argon purge, color themes, Touch UI sy
 port) followed as PR #107, and the Run Log as #109.
 
 The run sheet's spincoater tasks were last run on hardware on 2026-08-19, before the
-consolidation. Later September changes were made at the machine (the UV lid interlock was
-disabled on 2026-09-17 after it refused every UV-on), but no run-sheet task has been repeated
-on the merged firmware. `RUN_SHEET.md` lists what to repeat. The Spin Coater Subsystem section
+consolidation. The merged firmware was first flashed on 2026-09-17, as the build that disabled
+the UV lid interlock after it refused every UV-on; the only firmware change since is a comment.
+No run-sheet task has been repeated on it yet. `RUN_SHEET.md` lists what to repeat. The Spin Coater Subsystem section
 below describes `main`.
 
 Session state is not kept in the repo; the August and September handoffs were moved out in
