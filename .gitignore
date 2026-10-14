@@ -6,3 +6,9 @@ DemoProgram.txt
 # Exception: the ODrive S1 J11 pinout is a wiring reference cited by
 # PIN_MAP.md, claude.md and README.md. It must travel with the repo.
 !SpincoaterPinMap.jfif
+
+# SolidWorks lock files, present while a part is open
+~$*
+
+# Slicer print files (3MF); the SLDPRT and STEP are the sources
+*.3mf
