@@ -79,7 +79,7 @@ Both modules share a dedicated 3.3 V buck converter rail (grounded to the Mega).
 | UV lamp     | 4   | PG5      | OC0B (Timer0) | `M42 P4 S1`  | `M42 P4 S0`  | RAMPS SERVO3 slot. Only safe with the M42.cpp patch because OC0B shares Timer0 with `millis()`. |
 | Solenoid valve | 42 | PL7      | **none**      | `M42 P42 S1` | `M42 P42 S0` | AUX2_08 header. Pure GPIO — no timer compare unit. Preferred for future relay expansion. |
 
-**Current modules (active-HIGH):** `S1` = energize (ON), `S0` = de-energize (OFF). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values — no internal state tracking.
+**Current modules (active-HIGH):** `S1` = energize (ON), `S0` = de-energize (OFF). The HTML UI uses explicit ON/OFF button pairs with hardcoded S values — no internal state tracking. The firmware also drives both relays to their OFF level at boot, on `M112` and on a motor-power loss (issue #131), using `UV_LAMP_OFF_LEVEL` / `SOLENOID_VALVE_OFF_LEVEL` in `Configuration_adv.h`, so a module swap must change those levels too.
 
 **Original modules (Bestep JQC3F-03VDC-C, active-LOW, replaced):** The opto LED cathode tied to the IN pin with anode on VCC, so pulling IN to GND lit the opto and energized the coil. `S0` = energized, `S1` = de-energized. Boot-time floating inputs were pulled HIGH by the module's internal pullup (safe de-energized state, no chatter on Mega reset).
 

@@ -57,6 +57,7 @@
 
 #include "feature/pause.h"
 #include "feature/spincoater.h"   // RMR: stop the spincoater on kill()/E-STOP
+#include "feature/rmr_relays.h"   // RMR: UV lamp + valve relays off at boot and on kill()/E-STOP
 
 #if ENABLED(UV_LID_INTERLOCK)
   #include "feature/uv_interlock.h"
@@ -910,6 +911,7 @@ void idle(const bool no_stepper_sleep/*=false*/) {
  * After this the machine will need to be reset.
  */
 void kill(FSTR_P const lcd_error/*=nullptr*/, FSTR_P const lcd_component/*=nullptr*/, const bool steppers_off/*=false*/) {
+  RmrRelays::allOff(); // RMR: UV lamp + valve relays off first; no G-code is read after kill(). Issue #131.
   thermalManager.disable_all_heaters();
   TERN_(SPINCOATER, Spincoater::safeStop()); // RMR: stop a spinning spincoater on any kill/E-STOP (no-op if never spun)
 
@@ -952,6 +954,8 @@ void minkill(const bool steppers_off/*=false*/) {
 
   // Reiterate heaters off
   thermalManager.disable_all_heaters();
+
+  RmrRelays::allOff(); // RMR: reiterate relays off; would also cover a direct minkill() caller (WATCHDOG_RESET_MANUAL ISR, disabled here)
 
   TERN_(HAS_CUTTER, cutter.kill());  // Reiterate cutter shutdown
 
@@ -1167,6 +1171,10 @@ void setup() {
   #ifdef BOARD_PREINIT
     BOARD_PREINIT(); // Low-level init (before serial init)
   #endif
+
+  // RMR: UV lamp and valve relays OFF before anything else (issue #131). This does not
+  // cover the bootloader window before setup(), when the relay pins float as inputs.
+  RmrRelays::allOff();
 
   tmc_standby_setup();  // TMC Low Power Standby pins must be set early or they're not usable
 

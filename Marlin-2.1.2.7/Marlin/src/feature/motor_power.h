@@ -2,8 +2,8 @@
  * motor_power.h — RMR motor-power (E-stop) sense
  *
  * Watches the motor-contactor aux contact. When the layered E-stop removes motor
- * power (logic stays live), the firmware aborts motion, marks all axes unhomed, and
- * refuses moves until re-homed. See Configuration_adv.h (MOTOR_POWER_SENSE) for wiring.
+ * power (logic stays live), the firmware drives the UV lamp and valve relays OFF, aborts
+ * motion, marks all axes unhomed, and refuses moves until re-homed. See Configuration_adv.h (MOTOR_POWER_SENSE) for wiring.
  */
 #pragma once
 

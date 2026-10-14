@@ -3,14 +3,15 @@
  *
  * On the layered E-stop, the second contactor removes 24V from the drivers + ODrive
  * while logic (Mega, Pi, tower) stays live. This feature reads the contactor aux so the
- * firmware reacts in software: abort motion, drop the queue, mark axes unhomed, and block
- * further moves until re-homed. See Configuration_adv.h (MOTOR_POWER_SENSE).
+ * firmware reacts in software: drive the UV lamp and valve relays OFF, abort motion, drop
+ * the queue, mark axes unhomed, and block further moves until re-homed. See Configuration_adv.h (MOTOR_POWER_SENSE).
  */
 #include "../inc/MarlinConfig.h"
 
 #if ENABLED(MOTOR_POWER_SENSE)
 
 #include "motor_power.h"
+#include "rmr_relays.h"
 #include "../module/planner.h"
 #include "../module/motion.h"
 #include "../gcode/queue.h"
@@ -57,6 +58,9 @@ namespace motor_power {
     if (!present) {
       // Motor power just dropped (E-stop). Steppers are already de-energized; stop the
       // firmware from stepping into dead drivers and invalidate the now-unknown position.
+      // Drop the UV lamp and valve relays too, so neither stays commanded ON through the
+      // E-stop or relights when the contactor is reset (issue #131).
+      RmrRelays::allOff();
       planner.quick_stop();
       queue.clear();
       set_all_unhomed();
