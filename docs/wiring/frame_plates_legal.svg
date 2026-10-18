@@ -58,9 +58,9 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <circle cx="105.4" cy="43.67" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="82" cy="66" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="25.98" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="50.79" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="75.59" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="100.4" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="50.72" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="75.46" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="100.2" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="21.58" cy="56.6" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="21.58" cy="37.2" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <path class="sg" d="M16 96.5 L16 97.6"/>
@@ -69,13 +69,13 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M25.98 96.5 L25.98 97.6"/>
 <path class="sg" d="M28.34 96.5 L28.34 97.6"/>
 <path class="sg" d="M45.02 96.5 L45.02 97.6"/>
-<path class="sg" d="M50.78 96.5 L50.78 97.6"/>
+<path class="sg" d="M50.72 96.5 L50.72 97.6"/>
 <path class="sg" d="M61.7 96.5 L61.7 97.6"/>
-<path class="sg" d="M75.6 96.5 L75.6 97.6"/>
+<path class="sg" d="M75.46 96.5 L75.46 97.6"/>
 <path class="sg" d="M78.38 96.5 L78.38 97.6"/>
 <path class="sg" d="M82 96.5 L82 97.6"/>
 <path class="sg" d="M95.06 96.5 L95.06 97.6"/>
-<path class="sg" d="M100.4 96.5 L100.4 97.6"/>
+<path class="sg" d="M100.2 96.5 L100.2 97.6"/>
 <path class="sg" d="M105.4 96.5 L105.4 97.6"/>
 <path class="sg" d="M107.4 96.5 L107.4 97.6"/>
 <path class="sg" d="M14.4 96 L15.5 96"/>
@@ -288,13 +288,13 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="26.37" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 26.37 97.9)">49.9</text>
 <text x="28.73" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 28.73 97.9)">61.7</text>
 <text x="45.4" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 45.4 97.9)">145.1</text>
-<text x="51.16" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 51.16 97.9)">173.9</text>
+<text x="51.1" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 51.1 97.9)">173.6</text>
 <text x="62.09" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 62.09 97.9)">228.5</text>
-<text x="75.98" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 75.98 97.9)">298</text>
+<text x="75.85" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 75.85 97.9)">297.3</text>
 <text x="78.77" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 78.77 97.9)">311.9</text>
 <text x="82.39" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 82.39 97.9)">330</text>
 <text x="95.45" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 95.45 97.9)">395.3</text>
-<text x="100.79" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 100.79 97.9)">422</text>
+<text x="100.59" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 100.59 97.9)">421</text>
 <text x="105.79" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 105.79 97.9)">447</text>
 <text x="107.79" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 107.79 97.9)">457</text>
 <text x="14.1" y="96.39" font-size="1.1" text-anchor="end">0</text>
