@@ -1607,6 +1607,7 @@ DinRailBaseT = 1.0                 # TS35 x 7.5 steel rail base, assumed
 DuctBaseT = 2.5                    # McMaster slotted duct base, assumed
 FootH = 0.51 * 25.4                # the rubber feet: the base plate's underside stands this high
 DeckPlateT = {"base": BasePlateT, "upper": UpPlateT}
+ScrewEnd = 15.0                    # least distance from a rail or duct screw to either end of its rail or duct
 ThroughScrews = [
     # (joint, thread, length, stack under the head over the plate, the DeckSolids kind it holds down,
     #  the deck plates it goes through: a DIN rail or duct is on either deck)
@@ -1644,34 +1645,39 @@ def NutFits():
 
 
 def HangGaps():
-    """{joint: (gap, upper solid, lower solid)} for each screw through the upper plate: the least
-    height from the top of a lower deck solid to the tip of its tail, over every upper rail or duct it
-    holds down and every lower solid under that one's plan. The holes come from the final layout, so a
-    screw may sit anywhere in its rail or duct, and its nyloc reaches half across corners past the edge.
-    The mains wall pieces that ThroughBoltKeepOut keeps these screws off are left to it. Raises if a
-    gap is under PartClear."""
-    solids, r, out = DeckSolids(), NylocAcross / 2, {}
+    """{joint: (gap, upper solid, name)} for each screw through the upper plate: the least height from
+    the top of anything under the plate to the tip of its tail, with the plate sagged by PlateSag, over
+    every upper rail or duct it holds down. The holes come from the final layout, so a screw may sit
+    anywhere in its rail or duct at least ScrewEnd from either end, and its nyloc reaches half across
+    corners past that. Under the plate stand the lower deck's solids, the mid ring and the corner
+    brackets around the lower bay; the mains wall pieces that ThroughBoltKeepOut keeps these screws off
+    are left to it. Raises if a gap is under PartClear."""
+    solids, r, out, F = DeckSolids(), NylocAcross / 2, {}, Frame
     banded = {label for label, _ in ThroughBoltKeepOut()[0]}
-    lower = [s for s in solids if s["deck"] == "lower" and s["label"] not in banded]
+    under = [(s["box"], s["top"], "lower deck's " + (s["label"] or s["key"] or s["kind"])) for s in solids
+             if s["deck"] == "lower" and s["label"] not in banded]
+    under += [(b, LowBay, "mid ring") for b in ((0, 0, BoxD, F), (0, BoxW - F, BoxD, BoxW), (0, 0, F, BoxW),
+                                                (BoxD - F, 0, BoxD, BoxW))]
+    under += [((b[0], b[1], b[3], b[4]), b[5], "corner bracket") for b in CornerBrackets()]
+    sag = PlateSag(E5052, Nu5052, UpPlateT)
     for joint, thread, length, stack, kind, plates in ThroughScrews:
         if "upper" not in plates:
             continue
-        tip = UpPlate0 - LoDeck - ScrewTail(length, stack, "upper")    # over the lower deck
+        tip = UpPlate0 - LoDeck - sag - ScrewTail(length, stack, "upper")    # over the lower deck
         for u in solids:
             if u["deck"] != "upper" or u["kind"] != kind:
                 continue
             x0, y0, x1, y1 = u["box"]
-            for s in lower:
-                a0, b0, a1, b1 = s["box"]
-                if a0 < x1 + r and x0 - r < a1 and b0 < y1 + r and y0 - r < b1:
-                    if joint not in out or tip - s["top"] < out[joint][0]:
-                        out[joint] = (tip - s["top"], u, s)
+            ea, eb = (ScrewEnd - r, -r) if u["alongX"] else (-r, ScrewEnd - r)
+            for (a0, b0, a1, b1), top, name in under:
+                if a0 < x1 - ea and x0 + ea < a1 and b0 < y1 - eb and y0 + eb < b1:
+                    if joint not in out or tip - top < out[joint][0]:
+                        out[joint] = (tip - top, u, name)
         if joint in out and out[joint][0] < PartClear - 1e-6:
-            gap, u, s = out[joint]
+            gap, u, name = out[joint]
             where = "%.1f mm over" % gap if gap >= 0 else "%.1f mm into" % -gap
-            raise ValueError("%s: an %s x %d under the upper deck's %s ends %s the lower deck's %s; PartClear "
-                             "is %s mm" % (joint, thread, length, u["label"] or u["block"], where,
-                                           s["label"] or s["key"] or s["kind"], Mm(PartClear)))
+            raise ValueError("%s: an %s x %d under the upper deck's %s ends %s the %s; PartClear is %s mm"
+                             % (joint, thread, length, u["label"] or u["block"], where, name, Mm(PartClear)))
     return out
 
 
@@ -1770,12 +1776,14 @@ WallOSSB = 2 * WallT               # outside setback with the inside radius equa
 WallBA = math.pi / 2 * (WallT + WallK * WallT)
 WallBD = 2 * WallOSSB - WallBA     # bend deduction: flat = the outside legs summed, less WallBD
 WallTabClear, CornerTab, WallRelief = 2.0, 20.0, 2.0
-# B's corner (issue #152): the corner tab and the bend that turns it onto A run down to CornerFoot over
-# the deck, so that a flange which bends long does not stand the tab on the base plate. B's flange
-# starts WallRelief past the corner bend, and the relief slot between them runs WallRelief past the
-# flange's bend, which reaches WallOSSB up the web. CornerGap() holds what that leaves open at B's
-# foot to the gap over the wall.
-CornerFoot = WallRelief
+# B's corner (issue #152): B is folded flange first and the corner tab after it, with the folded
+# flange hanging past the end of the brake, so the tab and its bend start CornerFoot over the deck:
+# 12.8 mm above the top of the flange's bend (WallOSSB up the web), room for a hand brake's end plate
+# (assumed; check the shop's brake). B's flange starts WallRelief past the corner bend. That leaves B's
+# foot open by the corner, and CornerGap() holds the opening under IEC 60529's IP2X probes: the jointed
+# test finger, 12 mm across, and a 12.5 mm sphere.
+CornerFoot = 16.0
+TestFingerD = 12.0
 HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
                                    # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
 TabH = (Frame + WallTabClear, LowPostL - WallTabClear)   # the end tabs, between the rings, over the deck
@@ -1830,16 +1838,6 @@ def PassThroughX():
     return (PsuX0 + PartSize["PSU24"][0] + LowerRails()["110 V"]["a0"]) / 2
 
 
-def CornerRelief():
-    """B's corner in its flat pattern's (u, v), as WallFlat("B") cuts it: the corner bend's line uB and
-    where the bend ends on the web uC, where the flange starts uFl past the relief slot, the foot of
-    the corner tab and its bend vFoot, the slot's top vSlot, and the flange's bend line vBend."""
-    off = WallFlange - WallBD                # v of a point on the web = its height over the deck + off
-    uC = CornerTab - WallOSSB + WallBA
-    return dict(uB=CornerTab - WallBD / 2, uC=uC, uFl=uC + WallRelief, vFoot=CornerFoot + off,
-                vSlot=WallOSSB + WallRelief + off, vBend=WallFlange - WallBD / 2)
-
-
 def WallFlat(piece):
     """Flat pattern of wall "A" or "B" in its own (u, v), seen from the mains side: u along the wall
     from its left end as seen from there (A: the tip of its back tab, since from +y the back is on the
@@ -1867,14 +1865,15 @@ def WallFlat(piece):
     def U(y):
         return y - by0 + CornerTab - WallBD
     L, Lt = U(by1), U(BoxW - WallTabClear)
-    cr = CornerRelief()
-    uB, uC, uFl, vFoot, vSlot = cr["uB"], cr["uC"], cr["uFl"], cr["vFoot"], cr["vSlot"]
+    uFl = CornerTab - WallOSSB + WallBA + WallRelief      # the flange starts past the corner bend and its relief
+    vTab = CornerFoot + off                               # the corner tab starts CornerFoot over the deck
     b0, b1, vN = TabHB[0] + off, TabHB[1] + off, BNotch[1] + off   # the end tab and the notch clear the brackets
     outline = [(uFl, 0.0), (L, 0.0), (L, b0), (Lt, b0), (Lt, b1), (L, b1), (L, vN), (L - BNotch[0], vN),
-               (L - BNotch[0], vTop), (0.0, vTop), (0.0, vFoot), (uC, vFoot), (uC, vSlot), (uFl, vSlot)]
+               (L - BNotch[0], vTop), (0.0, vTop), (0.0, vTab), (uFl, vTab)]
     hs = [(U(y), d, HoleRing) for _, y in holes["B"]]
     hs += [((CornerTab - WallOSSB) / 2, v, HoleRing) for v in corner]
-    return outline, hs, [], [(uB, vFoot, uB, vTop, "corner tab: 90 deg toward the mains side"),
+    uB = CornerTab - WallBD / 2
+    return outline, hs, [], [(uB, vTab, uB, vTop, "corner tab: 90 deg toward the mains side"),
                              (uFl, vBend, L, vBend, flangeNote)]
 
 
@@ -2947,7 +2946,7 @@ def WallChecks():
     """Raise unless the DC pass-through lies on wall A's web, clear of its ends, the bend and the top
     by PanelWeb; the flange screws' heads fit the flange's flat; the gap over the wall takes the upper
     plate's sag under DeckLoadKg and a short post; the corner screws sit on B's tab, over its foot;
-    B's corner relief passes no rod thicker than the gap over the wall (CornerGap); the wall clears
+    the opening at B's foot keeps out the IP2X test finger (CornerGap); the wall clears
     the corner brackets (BracketChecks); the upper plate's PE stud keeps off the wall's top edge
     (ThroughBoltKeepOut); and each piece has a flange screw with no part over it for its PE lug
     (WallLugHoles)."""
@@ -2968,9 +2967,9 @@ def WallChecks():
         if h - HoleRing / 2 < CornerFoot + PanelWeb or h + HoleRing / 2 > WallH - PanelWeb:
             raise ValueError("a corner screw at %s mm runs off B's tab" % Mm(h))
     gap = CornerGap()
-    if gap > WallTopGap + 1e-6:
-        raise ValueError("B's corner relief passes a %.2f mm rod at its foot, more than the %s mm gap over the wall"
-                         % (gap, Mm(WallTopGap)))
+    if gap >= TestFingerD:
+        raise ValueError("B's corner relief passes a %.2f mm rod at its foot: the %s mm IP2X test finger enters"
+                         % (gap, Mm(TestFingerD)))
     BracketChecks()
     ThroughBoltKeepOut()
     WallLugHoles()
@@ -2981,15 +2980,14 @@ def CornerGap(step=0.05):
     the largest circle in the empty part of B's plane between the line where the corner bend leaves
     A's mains face, the deck and B's outline, with the bend zone taken flat as developed. It is found
     on a grid of the given step and rounded up by the most the grid can miss, half a cell's diagonal.
-    The barrier rule (ADR-0012): no opening in the wall passes more than the gap the wall already
-    leaves under the upper plate, apart from the DC pass-through, which its leads fill."""
+    The barrier rule (ADR-0012): the opening keeps out IEC 60529's IP2X probes."""
     shape = ("pg", WallFlat("B")[0], None, 0.0, 0.0)
     off, uA = WallFlange - WallBD, CornerTab - WallOSSB
-    span = CornerTab                           # the window: past the relief, from the deck up
-    edges = Edges(shape) + [((uA, off), (uA, off + span)), ((uA, off), (uA + span, off))]
+    wu, wv = CornerTab, CornerFoot + CornerTab    # the window: past the relief, and past the tab's foot
+    edges = Edges(shape) + [((uA, off), (uA, off + wv)), ((uA, off), (uA + wu, off))]
     best = 0.0
-    for i in range(int(span / step) + 1):
-        for k in range(int(span / step) + 1):
+    for i in range(int(wu / step) + 1):
+        for k in range(int(wv / step) + 1):
             p = (uA + i * step, off + k * step)
             if not Inside(p, shape):
                 best = max(best, min(PtSeg(p, a, b) for a, b in edges))
@@ -3873,8 +3871,7 @@ def BuildWall():
     off = WallFlange - WallBD
     holes = WallHoles()
 
-    def Flat(v, piece, title, sub, skip=()):
-        """skip: ordinate values left to a detail view, where they would crowd at this scale."""
+    def Flat(v, piece, title, sub):
         out, hs, slots, bends = WallFlat(piece)
         v.Title(title, sub)
         v.Poly(out, fill="#EEEEEE", stroke=0.3)
@@ -3894,8 +3891,8 @@ def BuildWall():
         us = {r(u) for u, _ in out} | {r(u) for u, _, _ in hs} | {r(x) for q in slots for x in (q[0], q[2])}
         vs = {r(w) for _, w in out} | {r(w) for _, w, _ in hs} | {r(y) for q in slots for y in (q[1], q[3])}
         vs |= {r(b[1]) for b in bends if b[1] == b[3]}
-        v.OrdX(sorted(us - {r(x) for x in skip}), 0)
-        v.OrdY(sorted(vs - {r(x) for x in skip}), 0)
+        v.OrdX(sorted(us), 0)
+        v.OrdY(sorted(vs), 0)
 
     va = View(sh, 18.0, 32.0, 421.09, 116.19, 2.0)
     Flat(va, "A", "A  Wall A, flat, seen from the mains side", "%s x %s; along x, mains face at y %s"
@@ -3912,38 +3909,9 @@ def BuildWall():
             anchor="end", halo=True)
 
     vb = View(sh, 18.0, 113.0, 164.19, 116.19, 2.0)
-    cr = CornerRelief()
     Flat(vb, "B", "B  Wall B, flat, mains side", "%s x %s; along y"
-         % (Mm(round(WallFlatSize("B")[0], 1)), Mm(round(WallFlatSize("B")[1], 1))),
-         skip=(cr["uC"], cr["vFoot"], cr["vSlot"]))
+         % (Mm(round(WallFlatSize("B")[0], 1)), Mm(round(WallFlatSize("B")[1], 1))))
     sh.Text(vb.X(152), vb.Y(64.0) + 0.4, "tab to the right panel", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(vb.X(cr["uFl"]) + 1.0, vb.Y(cr["vSlot"]) - 0.8, "relief: detail E", size=1.05, halo=True)
-
-    # ------------------------------------------------ B's corner relief, 3:1
-    eu0, eu1, ev0, ev1 = cr["uB"] - 5.0, cr["uFl"] + 5.0, cr["vBend"] - 6.0, cr["vSlot"] + 7.0
-    ex, ey, es = 230.0, 112.0, 1 / 3.0
-    ve = View(sh, ex - eu0 / es, ey, eu1 - eu0, ev1, es)      # a at eu0 lands on ex, b at ev1 on ey
-    sh.Text(ex, ey - 1.6, "E  B's corner relief", size=2.2, weight="bold")
-    x0, y0, x1, y1 = ve.X(eu0), ve.Y(ev1), ve.X(eu1), ve.Y(ev0)
-    sh.Add('<clipPath id="cornerE"><rect x="%s" y="%s" width="%s" height="%s"/></clipPath><g clip-path="url(#cornerE)">'
-           % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0)))
-    out = WallFlat("B")[0]
-    ve.Poly(out, fill="#EEEEEE", stroke=0.3)
-    for u0, v0, u1, v1, _ in WallFlat("B")[3]:
-        sh.Wire([(ve.X(u0), ve.Y(v0)), (ve.X(u1), ve.Y(v1))], "sg", ' stroke-dasharray="1.6 .8"')
-    sh.Add('</g>')
-    sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" stroke-width="0.12" '
-           'stroke-dasharray="0.8 0.6"/>' % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0)))
-    ve.OrdX([round(cr[k], 1) for k in ("uB", "uC", "uFl")], ev0)
-    ve.OrdY([round(cr[k], 1) for k in ("vBend", "vFoot", "vSlot")], eu0)
-    sh.Text(ve.X(cr["uB"]) - 0.7, ve.Y(ev1 - 6.0), "corner bend", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(ve.X(eu1) - 0.8, ve.Y(cr["vBend"]) - 0.7, "flange bend", size=1.05, anchor="end", halo=True)
-    for k, s2 in enumerate([
-            "3:1, seen from the mains side; v as on flat B.",
-            "The corner tab and its bend stop %s over the deck;" % Mm(CornerFoot),
-            "a %s wide slot to %s over the deck relieves the" % (Mm(WallRelief), Mm(WallOSSB + WallRelief)),
-            "flange. Saw both sides of the slot and file."]):
-        sh.Text(ex, y1 + 7.0 + 1.8 * k, s2, size=1.2)
 
     # ------------------------------------------------ the wall on the base plate, from above
     pv = View(sh, 120.0, 113.0, BoxD, BoxW, 5.0)
@@ -4019,10 +3987,9 @@ def BuildWall():
             "1/16 in 5052-H32 from the offcut of aluminum 2,",
             "beside the upper plate (sheet 4): flat A %s x %s," % (Mm(round(wa[0], 1)), Mm(round(wa[1], 1))),
             "B %s x %s. Shear the blanks, nibble the end" % (Mm(round(wb[0], 1)), Mm(round(wb[1], 1))),
-            "tabs, saw B's corner relief slot (detail E),",
-            "drill the %s4.5 holes, cut the pass-through," % Dia,
-            "deburr; DXF: wall_mains_flat.dxf (layers CUT",
-            "and BEND)."]),
+            "tabs and B's corner relief, drill the %s4.5" % Dia,
+            "holes, cut the pass-through, deburr; DXF:",
+            "wall_mains_flat.dxf (layers CUT and BEND)."]),
         ("Bends", [
             "90 deg on a brake, inside radius one thickness.",
             "K %s is assumed: bend deduction %s per bend." % (WallK, Mm(round(WallBD, 2))),
@@ -4030,8 +3997,9 @@ def BuildWall():
             "its legs come out long or short. Flanges fold",
             "away from the mains side; B's corner tab folds",
             "toward it and lies on A's mains face. Fold B's",
-            "corner tab before its flange: the tab's bend",
-            "runs down past the flange's start."]),
+            "flange first, then its corner tab with the",
+            "flange past the end of the brake: the tab's",
+            "bend stops %s mm over the flange's bend." % Mm(round(CornerFoot - WallOSSB, 1))]),
         ("Fastening and PE", [
             "Flanges: %d M4 x 12 into the base plate, nyloc" % (len(holes["A"]) + len(holes["B"])),
             "below, %s mm past the nut (NutFits). Corner:" % Mm(round(fits["mains wall flange to the base plate"], 1)),
@@ -4060,18 +4028,25 @@ def BuildWall():
             "Move it to the PSU's terminal end once that",
             "face is known. The 110 V door cable leaves by",
             "an M20 gland in the back panel (u %s), not" % Mm(DoorGland[0]),
-            "through the wall. B's corner relief (E) passes",
-            "a %s mm rod at most (CornerGap). The rule: no" % Mm(math.ceil(CornerGap() * 10) / 10),
-            "opening wider than the %s mm gap over the wall," % Mm(WallTopGap),
-            "but the pass-through, which its leads fill."]),
+            "through the wall. B's corner relief leaves its",
+            "foot open %s x %s mm by A's mains face; it" % (Mm(round(WallOSSB + WallRelief, 1)),
+                                                            Mm(CornerFoot)),
+            "passes a %s mm rod at most (CornerGap). The" % Mm(math.ceil(CornerGap() * 10) / 10),
+            "rule: no opening passes IEC 60529's IP2X",
+            "probes, a %s mm test finger and a 12.5 mm" % Mm(TestFingerD),
+            "sphere. The pass-through is %s mm high before" % Mm(PassThrough[1]),
+            "its edge trim: check that the trim leaves it",
+            "under %s mm." % Mm(TestFingerD)]),
         ("Upper plate", [
             "Drill no DIN rail or duct screw in these bands:",
             "its nyloc and tail hang %s mm under the plate," % Mm(round(hang, 1)),
             "and the wall stops %s mm under it." % Mm(WallTopGap)] +
             ["%s: x %s to %s, y %s to %s" % ((label[5:],) + tuple(Mm(round(v, 1)) for v in (b[0], b[2], b[1], b[3])))
              for label, b in bands] +
-            ["Elsewhere they end %s mm or more over the" % Mm(round(hangGap[0], 1)),
-             "lower deck's parts, the least over %s (HangGaps)." % (hangGap[2]["label"] or hangGap[2]["key"])]),
+            ["Keep each such screw %s mm or more from the" % Mm(ScrewEnd),
+             "ends of its rail or duct. Then, with the plate's",
+             "sag, they end %s mm or more over what stands" % Mm(round(hangGap[0], 1)),
+             "under the plate, the least over %s (HangGaps)." % hangGap[2].replace("lower deck's ", "")]),
         ("Fit", [
             "Before the lower deck's parts: flange screws,",
             "then B's corner tab to A, then the PE jumpers.",
