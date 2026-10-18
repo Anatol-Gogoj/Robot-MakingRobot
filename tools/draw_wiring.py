@@ -1594,6 +1594,35 @@ def ScrewFits():
     return out
 
 
+# Screws through a plate into a nyloc nut under it (DIN rails, ducts): each must carry the nut's full
+# height and two threads past it, and stay clear of the floor under the base plate. DIN 985 makes an
+# M4 nyloc 5.0 mm tall (the TFC, McMaster and RS DIN 985 tables, read 2026-10-18). The DIN rail's and
+# the duct's base thicknesses are assumed: measure one of each.
+NylocH = {"M4": 5.0}
+DinRailBaseT = 1.0                 # TS35 x 7.5 steel rail base, assumed
+DuctBaseT = 2.5                    # McMaster slotted duct base, assumed
+FootH = 0.51 * 25.4                # the rubber feet: the base plate's underside stands this high
+ThroughScrews = [
+    # (joint, thread, length, stack under the head, on the base plate)
+    ("DIN rail to its plate", "M4", 12, [DinRailBaseT, BasePlateT], True),
+    ("duct to its plate", "M4", 12, [DuctBaseT, BasePlateT], True),
+]
+
+
+def NutFits():
+    """[(joint, screw, thread past the nut)]; raises if a screw leaves under two threads past its
+    nyloc, or its tip reaches the floor under the base plate."""
+    out = []
+    for joint, thread, length, stack, onBase in ThroughScrews:
+        past = length - sum(stack) - NylocH[thread]
+        if past < 2 * ThreadPitch[thread]:
+            raise ValueError("%s: %s x %d leaves %.1f mm past the nyloc" % (joint, thread, length, past))
+        if onBase and length - sum(stack) > FootH - 1.0:
+            raise ValueError("%s: %s x %d reaches the floor under the base plate" % (joint, thread, length))
+        out.append((joint, "%s x %d" % (thread, length), past))
+    return out
+
+
 # Plate stiffness. Timoshenko and Woinowsky-Krieger, Theory of Plates and Shells, Table 8: a
 # simply supported rectangular plate under a uniform load q sags w_max = alpha q a^4 / D at the
 # centre, a the shorter side, alpha by the side ratio b / a. The spans run between the ring's
@@ -3190,7 +3219,7 @@ def BuildFrame():
                      "%d x %s%s: M4 x 6 into the bottom ring T-nuts, from below" % (nRing, Dia, Mm(HoleRing)),
                      "%s%s at (%s, %s): PE stud, first screw of the lower ground bar" % (Dia, Mm(HoleM5), Mm(px), Mm(py)),
                      "Drill through the acrylic template (sheet B's DXF plus this PE stud).",
-                     "DIN-rail holes from the final layout: M4 x 8, tooth washer, nut below"]
+                     "DIN-rail holes from the final layout: M4 x 12, nyloc nut below (NutFits)"]
         else:
             px, py = PeStud[kind]
             sched = ["%d x %s%s: the locating studs. %d x %s%s: M4 x 6 into the mid ring T-nuts"
@@ -3547,14 +3576,16 @@ def BomRows():
          "Kadrick 300 pcs M4 x 6, 8, 10, 12, 16, 20 button head socket cap screws with nuts and washers",
          "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
          "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack"),
-        ("Frame", Amz, "Button head M4 x 8, 304, 100", "B0H8JK1W52",
-         "iexcell 100 pcs M4 x 8 304 stainless button head socket cap screws, black oxide", dinScrews + ductScrews,
-         "pack of 100", 1, 5.98,
+        ("Frame", Amz, "Button head M4 x 12, 304, 100", "B0GH69B43K",
+         "HEXPHANT 100 pcs M4 x 12 304 stainless button head socket cap screws, fully threaded",
+         dinScrews + ductScrews, "pack of 100", 1, 8.69,
          "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate"
          % (dinScrews, ductScrews), read),
-        ("Frame", Amz, "Nylon insert lock nut M4, 304, 100", "B0CX16DGB1",
-         "Hordion 100 pcs M4-0.7 nylon insert lock nuts, 304 stainless", dinScrews + ductScrews, "pack of 100", 1,
-         4.49, "under the plate, on each M4 x 8", read),
+        ("Frame", Amz, "Nylon insert lock nut M4, DIN 985, 304, 120", "B09PF5WCZL",
+         "STORMCUBE 120 pcs M4-0.7 DIN 985 nylon insert lock nuts, 304 (A2-70)", dinScrews + ductScrews,
+         "pack of 120", 1, 6.99, "under the plate, on each M4 x 12",
+         "M4 x 12 leaves %s mm or more past the 5 mm nut (NutFits). %s"
+         % (Mm(round(min(p for _, _, p in NutFits()), 1)), read)),
         ("Frame", Amz, "Button head M4 x 6, 304, 100", "B0975M8LYK",
          "iexcell 100 pcs M4 x 6 304 stainless button head socket cap screws", 2 * ringScrews,
          "pack of 100", 1, 8.86, "both plates to their rings, %d each" % ringScrews, ""),
@@ -3715,7 +3746,7 @@ def BomCsv():
         w.writerow(["", "", "Total, %s" % key, "", "", "", "", "", "", "%.2f" % bySec.get(key, 0.0), "", "",
                     ""])
     w.writerow(["", "", "Total, all priced lines", "", "", "", "", "", "", "%.2f" % sum(bySrc.values()), "",
-                "Amazon prices read on %s (the cutting tools and the M4 x 8 and nut packs on %s), McMaster on "
+                "Amazon prices read on %s (the cutting tools and the M4 x 12 and nut packs on %s), McMaster on "
                 "2026-10-15; shipping and tax extra" % (BomDate, ToolDate), ""])
     return out.getvalue()
 
