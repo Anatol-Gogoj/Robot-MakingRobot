@@ -19,7 +19,8 @@ ID | title | status | scope
 0009 | The control box is built from Amazon parts: shop-cut 6 mm-slot 2020, 1/16 in aluminum decks, acrylic walls, every metal part home-run to PE | Accepted | `docs/wiring` sheets 3 and 4, `bom_frame.csv`
 0010 | The control box layout lays the 24 V PSU flat and follows the CP-SAT packing study | Accepted, on the PSU mounting flat | `docs/wiring` sheets 3 and 4, plate and panel DXFs
 0011 | The lower bay is set by the lower wall's grommet, not by the tallest lower part | Accepted | `tools/draw_wiring.py` frame stack, `docs/wiring` sheets 3 and 4, plate and panel DXFs
-0012 | A bent 5052 wall closes the 110 VAC compartment, and the 110 V door cable leaves through the back panel | Proposed | `tools/draw_wiring.py`, `docs/wiring` sheets 3 to 5, base plate, back panel and wall DXFs
+0012 | A bent 5052 wall closes the 110 VAC compartment, and the 110 V door cable leaves through the back panel | Rejected by the owner; see 0013 | `tools/draw_wiring.py`, `docs/wiring` sheets 3 to 5, base plate, back panel and wall DXFs
+0013 | No wall around the 110 VAC parts: the compartment is a zone of the lower deck | Accepted | `tools/draw_wiring.py`, `docs/wiring` sheets 3 and 4, base plate DXF, `bom_frame.csv`
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an
