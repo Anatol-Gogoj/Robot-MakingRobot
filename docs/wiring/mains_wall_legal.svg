@@ -257,26 +257,30 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="285" y="83.8" font-size="1.35">short of the rings. B's tab, and a notch in the</text>
 <text x="285" y="85.6" font-size="1.35">top of B's right end, keep 1 mm from the front</text>
 <text x="285" y="87.4" font-size="1.35">right corner brackets and their screw heads,</text>
-<text x="285" y="89.2" font-size="1.35">taken as 20 mm legs (BracketChecks): measure</text>
-<text x="285" y="91" font-size="1.35">a bracket before cutting B.</text>
-<text x="285" y="92.8" font-size="1.35">The top stops 3 mm under the upper plate.</text>
-<text x="285" y="94.6" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
-<text x="285" y="96.4" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
-<text x="285" y="98.2" font-size="1.35">Move it to the PSU's terminal end once that</text>
-<text x="285" y="100" font-size="1.35">face is known. The 110 V door cable leaves by</text>
-<text x="285" y="101.8" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
-<text x="285" y="103.6" font-size="1.35">through the wall.</text>
-<text x="285" y="106.4" font-size="1.7" font-weight="bold">Upper plate</text>
-<text x="285" y="108.7" font-size="1.35">Drill no DIN rail or duct screw in these bands:</text>
-<text x="285" y="110.5" font-size="1.35">its nyloc and tail hang 9.4 mm under the plate,</text>
-<text x="285" y="112.3" font-size="1.35">and the wall stops 3 mm under it.</text>
-<text x="285" y="114.1" font-size="1.35">A: x 29.9 to 441, y 175.4 to 187</text>
-<text x="285" y="115.9" font-size="1.35">B: x 29.9 to 41.5, y 177 to 305.5</text>
-<text x="285" y="117.7" font-size="1.35">B corner tab: x 31.5 to 60, y 177 to 188.6</text>
-<text x="285" y="120.5" font-size="1.7" font-weight="bold">Fit</text>
-<text x="285" y="122.8" font-size="1.35">Before the lower deck's parts: flange screws,</text>
-<text x="285" y="124.6" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
-<text x="285" y="126.4" font-size="1.35">Check that the upper module drops on clear.</text>
+<text x="285" y="89.2" font-size="1.35">taken as 20 mm legs (BracketChecks). Measure</text>
+<text x="285" y="91" font-size="1.35">a bracket before cutting B: a 4 mm key must</text>
+<text x="285" y="92.8" font-size="1.35">reach both screws of the front right post to</text>
+<text x="285" y="94.6" font-size="1.35">mid ring bracket past B's tab, its post screw</text>
+<text x="285" y="96.4" font-size="1.35">along x and its rail screw from below; if not,</text>
+<text x="285" y="98.2" font-size="1.35">lower the tab's top (TabHB) until it does.</text>
+<text x="285" y="100" font-size="1.35">The top stops 3 mm under the upper plate.</text>
+<text x="285" y="101.8" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
+<text x="285" y="103.6" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
+<text x="285" y="105.4" font-size="1.35">Move it to the PSU's terminal end once that</text>
+<text x="285" y="107.2" font-size="1.35">face is known. The 110 V door cable leaves by</text>
+<text x="285" y="109" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
+<text x="285" y="110.8" font-size="1.35">through the wall.</text>
+<text x="285" y="113.6" font-size="1.7" font-weight="bold">Upper plate</text>
+<text x="285" y="115.9" font-size="1.35">Drill no DIN rail or duct screw in these bands:</text>
+<text x="285" y="117.7" font-size="1.35">its nyloc and tail hang 9.4 mm under the plate,</text>
+<text x="285" y="119.5" font-size="1.35">and the wall stops 3 mm under it.</text>
+<text x="285" y="121.3" font-size="1.35">A: x 29.9 to 441, y 175.4 to 187</text>
+<text x="285" y="123.1" font-size="1.35">B: x 29.9 to 41.5, y 177 to 305.5</text>
+<text x="285" y="124.9" font-size="1.35">B corner tab: x 31.5 to 60, y 177 to 188.6</text>
+<text x="285" y="127.7" font-size="1.7" font-weight="bold">Fit</text>
+<text x="285" y="130" font-size="1.35">Before the lower deck's parts: flange screws,</text>
+<text x="285" y="131.8" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
+<text x="285" y="133.6" font-size="1.35">Check that the upper module drops on clear.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Mains compartment wall</text>
 <text x="290" y="194.4" font-size="2">Sheet 5. Legal, landscape, 100 %.</text>
 <text x="290" y="197.15" font-size="2">Flat patterns and section 1:2, plan 1:5.</text>
