@@ -1603,6 +1603,13 @@ def ScrewFits():
 # DIN rail's and the duct's base thicknesses are assumed: measure one of each.
 NylocH = {"M4": 5.0}
 NylocAcross = 7 / math.cos(math.radians(30))   # M4 nyloc across corners, sharp: 7 across flats (DIN 985)
+# The ground bars' screws take a plain nut from the M5 assortment (ISO 4032: 4.7 tall, 8 across flats)
+# and an external tooth washer (DIN 6797 A, 0.6 thick; measure one) between bar and plate. The bar is
+# not chosen, so sheet 4 gives their length from its foot (OpenScrews). The shield clamp's fasteners
+# are taken as M4 into a nyloc, like a duct's.
+PlainNutH = {"M5": 4.7}
+HexNutAcross = {"M5": 8 / math.cos(math.radians(30))}
+ToothWasherT = 0.6
 DinRailBaseT = 1.0                 # TS35 x 7.5 steel rail base, assumed
 DuctBaseT = 2.5                    # McMaster slotted duct base, assumed
 FootH = 0.51 * 25.4                # the rubber feet: the base plate's underside stands this high
@@ -1621,7 +1628,7 @@ def NutFits():
     """[(joint, screw, thread past the nut)]; raises if a screw leaves under two threads past its
     nyloc, if its tip under the base plate ends within 1 mm of the floor where that plate sags most
     (PlateSag), or if its nut and tail under the upper plate end within PartClear of what stands
-    under them (HangGaps)."""
+    under them (HangGaps); OpenScrews checks the plate screws not chosen yet."""
     floor = FootH - PlateSag(E5052, Nu5052, BasePlateT) - 1.0
     out = []
     for joint, thread, length, stack, _ in ThroughScrews:
@@ -1635,52 +1642,96 @@ def NutFits():
                              % (joint, thread, length, tails["base"], floor))
         out.append((joint, "%s x %d" % (thread, length), past))
     HangGaps()
+    OpenScrews()
     return out
 
 
-def HangGaps():
-    """{joint: (gap, upper solid, name)} for each screw through the upper plate: the least height from
-    the top of anything under the plate to the tip of its tail, with the plate sagged by PlateSag, over
-    every upper rail or duct it holds down. The holes come from the final layout, so a screw may sit
-    anywhere along its rail or duct at least ScrewEnd from either end: on a rail's centre line, where
-    its slots are, and across a duct's base with its head on the base. Its nyloc reaches half across
-    corners past that.
-    Under the plate stand the lower deck's solids, the mid ring and the ring's inside corner brackets
-    (MidBracket). Raises if a run is too short to take a screw ScrewEnd from both ends, or if a gap is
-    under PartClear."""
-    solids, r, F, out = DeckSolids(), NylocAcross / 2, Frame, {}
+def UnderUpperPlate():
+    """[(box, top, name)]: what stands under the upper plate, top as a height over the lower deck: the
+    lower deck's solids, the mid ring and the ring's inside corner brackets (MidBracket)."""
+    F = Frame
     under = [(s["box"], s["top"], "lower deck's " + (s["label"] or s["key"] or s["kind"]))
-             for s in solids if s["deck"] == "lower"]
+             for s in DeckSolids() if s["deck"] == "lower"]
     under += [(b, LowBay, "mid ring") for b in ((0, 0, BoxD, F), (0, BoxW - F, BoxD, BoxW), (0, 0, F, BoxW),
                                                 (BoxD - F, 0, BoxD, BoxW))]
     under += [((x, y, x + MidBracket, y + MidBracket), LowBay, "mid ring's corner bracket")
               for x in (F, BoxD - F - MidBracket) for y in (F, BoxW - F - MidBracket)]
-    sag = PlateSag(E5052, Nu5052, UpPlateT)
+    return under
+
+
+def TailRoom(fp):
+    """(longest tail, name): how far a screw may reach under the upper plate over the plan footprint fp
+    (x0, y0, x1, y1) of its nut, PartClear over the tallest thing under it with the plate sagged by
+    PlateSag; name says what that is."""
+    tops = [(top, name) for (c0, d0, c1, d1), top, name in UnderUpperPlate()
+            if c0 < fp[2] and fp[0] < c1 and d0 < fp[3] and fp[1] < d1]
+    top, name = max(tops, default=(0.0, "lower deck"))
+    return LowBay - PlateSag(E5052, Nu5052, UpPlateT) - PartClear - top, name
+
+
+def RunFootprint(s, r, onCentre):
+    """Plan footprint of the nuts of screws along an upper run s (a DeckSolids dict) whose holes come from
+    the final layout: anywhere along it at least ScrewEnd from either end, on its centre line (a DIN
+    rail's slots) or across its base with an M4 head on the base, and the nut's half across corners r
+    past that. Raises if the run is too short to take a screw ScrewEnd from both ends."""
+    x0, y0, x1, y1 = s["box"]
+    a0, b0, a1, b1 = (x0, y0, x1, y1) if s["alongX"] else (y0, x0, y1, x1)   # a along the run
+    if a1 - a0 < 2 * ScrewEnd:
+        raise ValueError("the upper deck's %s is %.1f mm long, too short for a screw %s mm from each end"
+                         % (s["label"] or s["block"], a1 - a0, Mm(ScrewEnd)))
+    b0, b1 = ((b0 + b1) / 2, (b0 + b1) / 2) if onCentre else (b0 + HeadM4 / 2, b1 - HeadM4 / 2)
+    fp = (a0 + ScrewEnd - r, b0 - r, a1 - ScrewEnd + r, b1 + r)
+    return fp if s["alongX"] else (fp[1], fp[0], fp[3], fp[2])
+
+
+def HangGaps():
+    """{joint: (gap, upper solid, name)} for each screw through the upper plate: the least height from
+    the top of anything under the plate (UnderUpperPlate) to the tip of its tail, with the plate sagged
+    by PlateSag, over every upper rail or duct it holds down (RunFootprint: on a rail's centre line,
+    across a duct's base). Raises if a run is too short for its screws (RunFootprint) or a gap is under
+    PartClear."""
+    out = {}
     for joint, thread, length, stack, kind in ThroughScrews:
-        tip = UpPlate0 - LoDeck - sag - (length - sum(stack) - UpPlateT)    # over the lower deck
-        for u in solids:
+        tail = length - sum(stack) - UpPlateT
+        for u in DeckSolids():
             if u["deck"] != "upper" or u["kind"] != kind:
                 continue
-            x0, y0, x1, y1 = u["box"]
-            a0, b0, a1, b1 = (x0, y0, x1, y1) if u["alongX"] else (y0, x0, y1, x1)   # a along the run
-            if a1 - a0 < 2 * ScrewEnd:
-                raise ValueError("the upper deck's %s is %.1f mm long, too short for a screw %s mm from each end"
-                                 % (u["label"] or u["block"], a1 - a0, Mm(ScrewEnd)))
-            if kind == "rail":
-                b0 = b1 = (b0 + b1) / 2
-            else:
-                b0, b1 = b0 + HeadM4 / 2, b1 - HeadM4 / 2
-            fp = (a0 + ScrewEnd - r, b0 - r, a1 - ScrewEnd + r, b1 + r)
-            fx0, fy0, fx1, fy1 = fp if u["alongX"] else (fp[1], fp[0], fp[3], fp[2])
-            for (c0, d0, c1, d1), top, name in under:
-                if c0 < fx1 and fx0 < c1 and d0 < fy1 and fy0 < d1:
-                    if joint not in out or tip - top < out[joint][0]:
-                        out[joint] = (tip - top, u, name)
+            room, name = TailRoom(RunFootprint(u, NylocAcross / 2, kind == "rail"))
+            if joint not in out or room + PartClear - tail < out[joint][0]:
+                out[joint] = (room + PartClear - tail, u, name)
         if joint in out and out[joint][0] < PartClear - 1e-6:
             gap, u, name = out[joint]
             where = "%.1f mm over" % gap if gap >= 0 else "%.1f mm into" % -gap
             raise ValueError("%s: an %s x %d under the upper deck's %s ends %s the %s; PartClear is %s mm"
                              % (joint, thread, length, u["label"] or u["block"], where, name, Mm(PartClear)))
+    return out
+
+
+def OpenScrews():
+    """[(screws, thread, plate, least tail, longest tail, what sets it)] for the plate screws whose
+    hardware is not chosen: each ground bar's, at its plate's PE stud and, for the upper bars' other
+    screws, anywhere over the lower deck off the mid ring and its brackets; and the shield clamp's,
+    anywhere in its box. The least tail carries the nut and two threads past it; the longest ends 1 mm
+    over the floor where the base plate sags most, or keeps TailRoom under the upper plate. Raises if no
+    length fits."""
+    floor = FootH - PlateSag(E5052, Nu5052, BasePlateT) - 1.0
+    bar = PlainNutH["M5"] + 2 * ThreadPitch["M5"]
+    px, py = PeStud["upper"]
+    r = HexNutAcross["M5"] / 2
+    c0, d0, c1, d1 = ClampBox()
+    rc = NylocAcross / 2
+    top, name = max((s["top"], "lower deck's " + (s["label"] or s["key"] or s["kind"]))
+                    for s in DeckSolids() if s["deck"] == "lower")
+    out = [("ground bar", "M5", "base", bar, floor, "floor"),
+           ("ground bar", "M5", "upper", bar) + TailRoom((px - r, py - r, px + r, py + r)),
+           ("other ground bar", "M5", "upper", bar,
+            LowBay - PlateSag(E5052, Nu5052, UpPlateT) - PartClear - top, name),
+           ("shield clamp", "M4", "upper", NylocH["M4"] + 2 * ThreadPitch["M4"])
+           + TailRoom((c0 - rc, d0 - rc, c1 + rc, d1 + rc))]
+    for what, thread, plate, least, room, name in out:
+        if room < least - 1e-6:
+            raise ValueError("%s screws through the %s plate: no %s fits; the nut and two threads need %.1f mm "
+                             "under the plate, and the %s leaves %.1f" % (what, plate, thread, least, name, room))
     return out
 
 
@@ -1765,8 +1816,9 @@ SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V"
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
 # plate's stands outside the 110 VAC compartment, behind the 5 V PSU; the upper plate's behind the
-# motor cables' back run.
-PeStud = {"base": (330.0, 150.0), "upper": (425.0, 300.0)}
+# motor cables' back run, clear of the mid ring's back right corner bracket under the plate, which
+# its nut would meet at (425, 300) (OpenScrews, issue #154).
+PeStud = {"base": (330.0, 150.0), "upper": (425.0, 280.0)}
 HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
                                    # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
 HoleRing, HoleM5 = 4.5, 5.5        # clearance: M4 into the ring T-nuts; M5 into posts, PE studs
@@ -3306,6 +3358,12 @@ def BuildFrame():
         tails = [length - sum(stack) - BasePlateT for _, _, length, stack, _ in ThroughScrews]
         floorGap = FootH - PlateSag(E5052, Nu5052, BasePlateT) - max(tails)
         hangGap = min((g for g, _, _ in HangGaps().values()), default=LowBay)
+        openWin = OpenScrews()
+        bars = [w for w in openWin if "ground bar" in w[0]]
+        barLen = [math.ceil((ToothWasherT + max(BasePlateT, UpPlateT) + max(w[3] for w in bars)) * 10) / 10,
+                  math.floor((ToothWasherT + min(BasePlateT, UpPlateT) + min(w[4] for w in bars)) * 10) / 10]
+        clampW = [w for w in openWin if w[0] == "shield clamp"][0]
+        clampLen = [math.ceil((UpPlateT + clampW[3]) * 10) / 10, math.floor((UpPlateT + clampW[4]) * 10) / 10]
         if kind == "base":
             px, py = PeStud[kind]
             sched = ["%d x %s%s: M5 into the lower posts, with the feet" % (len(PostCentres), Dia, Mm(HoleM5)),
@@ -3313,7 +3371,9 @@ def BuildFrame():
                      "%s%s at (%s, %s): PE stud, first screw of the lower ground bar" % (Dia, Mm(HoleM5), Mm(px), Mm(py)),
                      "Drill through the acrylic template (sheet B's DXF plus this PE stud).",
                      "DIN rail and duct holes from the final layout: M4 x 12, nyloc nut below; the tails end %s mm "
-                     "or more over the floor with the plate's sag (NutFits)" % Mm(math.floor(floorGap * 10) / 10)]
+                     "or more over the floor with the plate's sag (NutFits)" % Mm(math.floor(floorGap * 10) / 10),
+                     "Ground bar screws, both plates: M5, plain nut below, tooth washer under the bar; the bar's foot "
+                     "+ %s to + %s long (OpenScrews)" % (Mm(barLen[0]), Mm(barLen[1]))]
         else:
             px, py = PeStud[kind]
             sched = ["%d x %s%s: the locating studs. %d x %s%s: M4 x 6 into the mid ring T-nuts"
@@ -3325,6 +3385,8 @@ def BuildFrame():
                      % Mm(ScrewEnd),
                      "of the run; the tails end %s mm or more over what stands below (HangGaps)"
                      % Mm(math.floor(hangGap * 10) / 10),
+                     "Shield clamp: M4 into a nyloc, the clamp's base + %s to + %s long; ground bar screws off the mid "
+                     "ring and its corner brackets (OpenScrews)" % (Mm(clampLen[0]), Mm(clampLen[1])),
                      "Cable slots, round ends, edge trim:  " +
                      ";  ".join("%d: x %s-%s, y %s-%s" % (i + 1, Mm(a0), Mm(a1), Mm(b0), Mm(b1))
                                 for i, (a0, b0, a1, b1) in enumerate(CableSlots)),
@@ -3768,7 +3830,9 @@ def BomRows():
          "the part end of each jumper; the bar end goes bare into its clamp", "Also the gantry jumpers"),
         ("PE bonding", Amz, Buy, "External tooth lock washers, 304, M2.5 to M12", "B0CP7YZ9JY",
          "500 pcs external tooth (star) lock washer assortment", lugs + 2 * nBars, "kit", 1, 9.99,
-         "under each ring lug, under the bars on the base plate", "Per-size counts are not listed"),
+         "under each ring lug, under the bars on both plates",
+         "Per-size counts are not listed; DIN 6797 A, taken as 0.6 thick for M5 (measure one: sheet 4's ground "
+         "bar screw length counts it)"),
         ("PE bonding", "original BoM", NotBought, "PE terminal block, one per DIN rail", "-", "", len(dinRails),
          "-", 0, None, "bonds each DIN rail; its jumper lands bare", ""),
         # ---- PE bonding of the gantry
