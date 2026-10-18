@@ -1594,6 +1594,35 @@ def ScrewFits():
     return out
 
 
+# Screws through a plate into a nyloc nut under it (DIN rails, ducts): each must carry the nut's full
+# height and two threads past it, and stay clear of the floor under the base plate. DIN 985 makes an
+# M4 nyloc 5.0 mm tall (the TFC, McMaster and RS DIN 985 tables, read 2026-10-18). The DIN rail's and
+# the duct's base thicknesses are assumed: measure one of each.
+NylocH = {"M4": 5.0}
+DinRailBaseT = 1.0                 # TS35 x 7.5 steel rail base, assumed
+DuctBaseT = 2.5                    # McMaster slotted duct base, assumed
+FootH = 0.51 * 25.4                # the rubber feet: the base plate's underside stands this high
+ThroughScrews = [
+    # (joint, thread, length, stack under the head, on the base plate)
+    ("DIN rail to its plate", "M4", 12, [DinRailBaseT, BasePlateT], True),
+    ("duct to its plate", "M4", 12, [DuctBaseT, BasePlateT], True),
+]
+
+
+def NutFits():
+    """[(joint, screw, thread past the nut)]; raises if a screw leaves under two threads past its
+    nyloc, or its tip reaches the floor under the base plate."""
+    out = []
+    for joint, thread, length, stack, onBase in ThroughScrews:
+        past = length - sum(stack) - NylocH[thread]
+        if past < 2 * ThreadPitch[thread]:
+            raise ValueError("%s: %s x %d leaves %.1f mm past the nyloc" % (joint, thread, length, past))
+        if onBase and length - sum(stack) > FootH - 1.0:
+            raise ValueError("%s: %s x %d reaches the floor under the base plate" % (joint, thread, length))
+        out.append((joint, "%s x %d" % (thread, length), past))
+    return out
+
+
 # Plate stiffness. Timoshenko and Woinowsky-Krieger, Theory of Plates and Shells, Table 8: a
 # simply supported rectangular plate under a uniform load q sags w_max = alpha q a^4 / D at the
 # centre, a the shorter side, alpha by the side ratio b / a. The spans run between the ring's
@@ -3190,7 +3219,7 @@ def BuildFrame():
                      "%d x %s%s: M4 x 6 into the bottom ring T-nuts, from below" % (nRing, Dia, Mm(HoleRing)),
                      "%s%s at (%s, %s): PE stud, first screw of the lower ground bar" % (Dia, Mm(HoleM5), Mm(px), Mm(py)),
                      "Drill through the acrylic template (sheet B's DXF plus this PE stud).",
-                     "DIN-rail holes from the final layout: M4 x 8, tooth washer, nut below"]
+                     "DIN-rail holes from the final layout: M4 x 12, nyloc nut below (NutFits)"]
         else:
             px, py = PeStud[kind]
             sched = ["%d x %s%s: the locating studs. %d x %s%s: M4 x 6 into the mid ring T-nuts"
@@ -3436,7 +3465,40 @@ def BuildFrame():
 # Quantities come from the frame, panel and bonding constants above.
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
+# Purchase plan per line (issue #145), the CSV's Plan column; BomCsv sums the totals by it. Buy:
+# order it. LabFirst: the control box's screws, nuts and rod; take them from the lab's bins first
+# and buy only what is missing. Optional: the cutting tools, since the shop's saw or Misumi cut to
+# order would do instead. AfterSurvey: the gantry PE wire, which waits for the bond survey.
+# NotBought: every unpriced line.
+Buy, LabFirst, Optional, AfterSurvey, NotBought = ("buy", "lab stock first", "optional", "after the survey",
+                                                   "not bought")
 RollM = 15.24                      # one 50 ft roll of wire
+# Cutting the 2020 sticks in house (issue #145): a 10 in miter saw whose maker lists aluminum, a blade
+# made for thin aluminum, and an engineer's square to set the saw and check each end. From the
+# Metabo HPT C10FCG2 owner's manual (p. 6 specifications; p. 7 "Applications: Wood and aluminum
+# sash.") and the Amazon listings of the blade (Diablo D10100N) and the square (Kinex 4034-12-010),
+# read on ToolDate, as were the M4 packs added with them.
+ToolDate = "2026-10-18"
+SawRpm, SawMaxKerf = 5000.0, 7 / 64 * 25.4    # C10FCG2: no-load speed; the widest kerf it takes
+BladeMaxRpm, BladeKerf = 6000.0, 0.091 * 25.4  # D10100N: 10 in, 100 TCG teeth, 5/8 in arbor
+SquareErr, SquareL = 0.015, 100.0              # Kinex 4034-12-010, DIN 875/1: 15 um over its 100 mm blade
+EndSquare = 0.1                                # wanted: a cut end within 0.1 mm across the 20 mm face
+
+
+def CutToolChecks():
+    """Raise unless the blade is rated above the saw's speed, its kerf fits the saw and stays within
+    the cut list's Kerf, and the square's error is under a tenth of the end tolerance. Returns (the
+    end tolerance, the square's error) in degrees."""
+    if BladeMaxRpm < SawRpm:
+        raise ValueError("blade rated %d rpm on a %d rpm saw" % (BladeMaxRpm, SawRpm))
+    if BladeKerf > SawMaxKerf or BladeKerf > Kerf:
+        raise ValueError("blade kerf %.2f mm: the saw takes %.2f, the cut list allows %.2f"
+                         % (BladeKerf, SawMaxKerf, Kerf))
+    endDeg = math.degrees(math.atan(EndSquare / Frame))
+    sqDeg = math.degrees(math.atan(SquareErr / SquareL))
+    if sqDeg > endDeg / 10:
+        raise ValueError("the square (%.3f deg) cannot set a %.2f deg end" % (sqDeg, endDeg))
+    return endDeg, sqDeg
 
 
 def Link(src, part):
@@ -3448,8 +3510,8 @@ def Link(src, part):
 
 
 def BomRows():
-    """(section, source, item, part or ASIN, description, qty needed, order unit, units to order,
-    price per unit or None, used for, notes)."""
+    """(section, source, plan, item, part or ASIN, description, qty needed, order unit, units to
+    order, price per unit or None, used for, notes)."""
     brackets = 8 + 8 + 4 + 8 + 4   # bottom ring, lower posts to mid ring, mid ring, upper posts, lid
     ringScrews = len(RingHoles())  # per plate
     legs = len(BracketSlots())
@@ -3472,71 +3534,91 @@ def BomRows():
                + math.pi * min(s[2] - s[0], s[3] - s[1]) for s in CableSlots)
     wireM = jumpers * JumperM
     narrowDuct, wideDuct = ductLen[DuctNarrow], ductLen[DuctWide]
+    ductScrews = sum(max(2, 1 + math.ceil(max(b[2] - b[0], b[3] - b[1]) / 150.0)) for _, b, _, _, _ in Ducts())
+    clipNames = {"TB6600": "TB6600", "Mega": "Mega carrier", "PSU24": "24 V PSU", "PSU6": "servo PSU",
+                 "PSU5": "5 V PSU"}
+    clips = {}
+    for s in DeckSolids():
+        if s["mount"] == "clip":
+            clips[s["key"]] = clips.get(s["key"], 0) + 1
+    endDeg, sqDeg = CutToolChecks()
+    read = "Price read %s" % ToolDate
     return [
         # ---- frame
-        ("Frame", Amz, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
+        ("Frame", Amz, Buy, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
          "IXGNIJ 10 pcs 1000 mm T-slot 2020 European standard anodized rail, 6063-T5, cut +/-0.5 mm",
          "%d sticks" % len(sticks), "10-pack", 1, 74.99,
          "%d pieces, %d mm: the sheet 4 cut list" % (nPieces, round(sum(n * L for _, n, L, _ in pieces))),
          "%d sticks spare. 6 mm slot per the brand's comparison table; measure depth and lip on the first"
          % (10 - len(sticks))),
-        ("Frame", Amz, "Corner bracket kit, 2020, 40 sets", "B0FK9W8KGW",
+        ("Frame", Amz, Buy, "Corner bracket kit, 2020, 40 sets", "B0FK9W8KGW",
          "TOCLUX 40 cast corner brackets 17 x 20 mm, 80 M5 sliding T-nuts, 80 M5 socket cap screws, hex key",
          brackets, "kit of 40", 1, 24.99,
          "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4",
          "Slide the kit's nuts in from the rail ends before each joint closes"),
-        ("Frame", Amz, "Roll-in spring T-nut M5, 2020, 100", "B0DX7B5ZNN",
+        ("Frame", Amz, Buy, "Roll-in spring T-nut M5, 2020, 100", "B0DX7B5ZNN",
          "Yaocom 100 pcs 2020 series M5 half roll-in spring T-nuts",
          panelScrews, "pack of 100", 1, 9.99, "panels %d" % panelScrews,
          "Spring-leaf roll-in nut: drops in after assembly. Ball-spring nuts were $8.89 for 25 (B082F9B1TZ)"),
-        ("Frame", Amz, "Roll-in spring T-nut M4, 2020, 100", "B0FLP1BW2M",
+        ("Frame", Amz, Buy, "Roll-in spring T-nut M4, 2020, 100", "B0FLP1BW2M",
          "Yaocom 100 pcs 2020 series M4 half roll-in spring T-nuts",
          2 * ringScrews + legs, "pack of 100", 1, 9.99,
          "plate screws %d, upper-post bracket legs %d" % (2 * ringScrews, legs), ""),
-        ("Frame", Amz, "Button head M5 x 8, 304, 100", "B0BJVN1VDS",
+        ("Frame", Amz, LabFirst, "Button head M5 x 8, 304, 100", "B0BJVN1VDS",
          "iexcell 100 pcs M5 x 8 304 stainless button head socket cap screws",
          panelScrews, "pack of 100", 1, 8.86, "panels %d" % panelScrews, "Back panel: add a flat washer"),
-        ("Frame", Amz, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
+        ("Frame", Amz, LabFirst, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
          "100 pcs M5-0.8 x 16 304 stainless socket head cap screws",
          len(PostCentres) + railBonds, "pack of 100", 1, 8.60,
          "feet %d, rail bond holes %d" % (len(PostCentres), railBonds), "Also the gantry bond holes"),
-        ("Frame", Amz, "M5 socket head assortment, nuts and washers", "B0FGV561HZ",
+        ("Frame", Amz, LabFirst, "M5 socket head assortment, nuts and washers", "B0FGV561HZ",
          "Fgruh 272 pcs: 72 M5 socket cap screws 8 to 35 mm (9 per size), 40 nuts, 80 flat, 80 spring washers",
          "M5 x 35: %d" % len(PostCentres), "kit", 1, 9.99,
          "lid ring to the upper posts, back panel washers and PE stud, ground bar screws (x 12) and nuts",
          "Black 12.9 alloy steel"),
-        ("Frame", Amz, "Threaded rod M5 x 50, 304, 5-pack", "B0BLGQLPDF",
+        ("Frame", Amz, LabFirst, "Threaded rod M5 x 50, 304, 5-pack", "B0BLGQLPDF",
          "MECCANIXITY fully threaded rod M5 x 50, 304 stainless", len(PostCentres), "pack of 5", 1, 6.59,
          "locating studs, lower posts to upper posts", "Blue threadlocker into the lower posts"),
-        ("Frame", Amz, "M4 button head assortment, 304", "B0BZ6Y8KRD",
+        ("Frame", Amz, LabFirst, "M4 button head assortment, 304", "B0BZ6Y8KRD",
          "Kadrick 300 pcs M4 x 6, 8, 10, 12, 16, 20 button head socket cap screws with nuts and washers",
-         "x 8: %d, x 10: %d" % (dinScrews, legs), "kit", 1, 9.99,
-         "DIN rails (x 8, tooth washer, nut below the plate), upper-post bracket legs (x 10)",
-         "Per-size counts are not listed on the page"),
-        ("Frame", Amz, "Button head M4 x 6, 304, 100", "B0975M8LYK",
+         "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
+         "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack"),
+        ("Frame", Amz, LabFirst, "Button head M4 x 12, 304, 100", "B0GH69B43K",
+         "HEXPHANT 100 pcs M4 x 12 304 stainless button head socket cap screws, fully threaded",
+         dinScrews + ductScrews, "pack of 100", 1, 8.69,
+         "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate"
+         % (dinScrews, ductScrews), read),
+        ("Frame", Amz, LabFirst, "Nylon insert lock nut M4, DIN 985, 304, 120", "B09PF5WCZL",
+         "STORMCUBE 120 pcs M4-0.7 DIN 985 nylon insert lock nuts, 304 (A2-70)", dinScrews + ductScrews,
+         "pack of 120", 1, 6.99, "under the plate, on each M4 x 12",
+         "M4 x 12 leaves %s mm or more past the nut (NutFits). A nut from lab stock must keep NutFits "
+         "passing: DIN 985 is %s mm tall, so if the lab's nuts are taller, set NylocH to their height and "
+         "rerun NutFits. %s" % (Mm(round(min(p for _, _, p in NutFits()), 1)), Mm(NylocH["M4"]), read)),
+        ("Frame", Amz, LabFirst, "Button head M4 x 6, 304, 100", "B0975M8LYK",
          "iexcell 100 pcs M4 x 6 304 stainless button head socket cap screws", 2 * ringScrews,
          "pack of 100", 1, 8.86, "both plates to their rings, %d each" % ringScrews, ""),
-        ("Frame", Amz, "Rubber feet 1 x 0.51 in, steel washer, 10-pack", "B08B87SRRG",
+        ("Frame", Amz, Buy, "Rubber feet 1 x 0.51 in, steel washer, 10-pack", "B08B87SRRG",
          "Round rubber bumper feet with built-in stainless washer, 0.51 in high, 1 in diameter",
          len(PostCentres), "pack of 10", 1, 9.99, "feet under the lower posts",
          "They add 0.51 in below the 11 in envelope"),
-        ("Frame", "on hand", "Blue threadlocker", "-", "", 1, "-", 0, None, "studs into the lower posts", ""),
+        ("Frame", "on hand", NotBought, "Blue threadlocker", "-", "", 1, "-", 0, None,
+         "studs into the lower posts", ""),
         # ---- plates and panels
-        ("Plates and panels", Amz, "Aluminum 5052, 1/16 x 18 x 24 in", "B084KZ756P",
+        ("Plates and panels", Amz, Buy, "Aluminum 5052, 1/16 x 18 x 24 in", "B084KZ756P",
          "2TWENTYTWO STEEL DESIGNS 1/16 in 5052 aluminum plate, 18 x 24 in, laser-cut blank", 2, "each", 2,
          23.81, "base plate and lower back panel %s x %s; upper plate" % (Mm(BoxW), Mm(LowerPanelH)),
          "Shear in the shop; drill and nibble through an acrylic template cut on the laser"),
-        ("Plates and panels", Amz, "Edge trim, 1/16 in U-channel, 10 ft", "B0CQLC4P4S",
+        ("Plates and panels", Amz, Buy, "Edge trim, 1/16 in U-channel, 10 ft", "B0CQLC4P4S",
          "Rubber U-channel edge trim, fits 0 to 5/64 in edges, 10 ft, black", "%d mm" % round(trim), "10 ft", 1,
          7.99, "the %d cable slots in the upper plate" % len(CableSlots), ""),
-        ("Plates and panels", Amz, "Cast acrylic 1/8 x 18 x 24 in, clear, 4-pack", "B0CZLDGK69",
+        ("Plates and panels", Amz, Buy, "Cast acrylic 1/8 x 18 x 24 in, clear, 4-pack", "B0CZLDGK69",
          "Langaelex 4 cast acrylic sheets 18 x 24 x 1/8 in (3 mm)", "%d sheets" % nSheets, "4-pack", 1, 49.99,
          "%d panels and %d grommet rings on %d sheets (sheet 4, NestPlan)"
          % (sum(n for _, n, _, _, m, _ in EnclosurePanels() if m == "acrylic"), nEntries, nSheets),
          "The spare sheet: the drilling templates, the upper plate's (both plates) and the lower back "
          "panel's beside it. All fit the %s x %s mm bed, 24 in along %s"
          % (Mm(LaserBed[0]), Mm(LaserBed[1]), Mm(LaserBed[0]))),
-        ("Plates and panels", Amz, "Desk grommet 2 in (50 mm), 4-pack", "B0DYZP4256",
+        ("Plates and panels", Amz, Buy, "Desk grommet 2 in (50 mm), 4-pack", "B0DYZP4256",
          "ZLTASYRY 4 desk grommets: 2 in (50 mm) hole, 2.36 in overall, ABS, removable cable cover, "
          "slit rubber base; a hole saw and 6 cable ties included", nEntries, "4-pack",
          math.ceil(nEntries / GrommetsInPack), 7.59,
@@ -3545,63 +3627,107 @@ def BomRows():
          "DXFs, each grommet held by a %s mm acrylic ring on its sleeve; caliper one first"
          % (Mm(GrommetHole), Mm(RingOD))),
         # ---- duct
-        ("Cable duct", Mc, "Slotted wire duct 1/2 W x 1 H, gray", "7578K114",
+        ("Cable duct", Mc, Buy, "Slotted wire duct 1/2 W x 1 H, gray", "7578K114",
          "Slotted wire duct with snap-on cover, 1 in high x 1/2 in wide, gray", "%d mm" % round(narrowDuct),
          "6 1/2 ft length", math.ceil(narrowDuct / (6.5 * 304.8)), 25.51,
          "upper signal, field, SSR and 24 V feed runs; both lower runs",
          "McMaster price of 2026-10-15; shipping extra"),
-        ("Cable duct", Mc, "Slotted wire duct 1 W x 1 1/2 H", "7578K14",
+        ("Cable duct", Mc, Buy, "Slotted wire duct 1 W x 1 1/2 H", "7578K14",
          "Slotted wire duct with snap-on cover, 1 1/2 in high x 1 in wide", "%d mm" % round(wideDuct),
          "3 1/4 ft length", math.ceil(wideDuct / (3.25 * 304.8)), 23.74,
          "motor duct behind the drivers, past the clamp, and the back run to the upper left grommet",
          "McMaster price of 2026-10-15; gray or white"),
         # ---- PE bonding of the box
-        ("PE bonding", "owner, elsewhere", "Ground bar, %d terminals or more" % BarTerminals, "-",
+        ("PE bonding", "owner, elsewhere", NotBought, "Ground bar, %d terminals or more" % BarTerminals, "-",
          "Listed ground bar for 12 AWG copper; priced reference: Siemens EC2GB152 (B007ZZGSQI), $10.38",
          "lower %d, upper %d" % (bonds["lower"][1], bonds["upper"][1]), "each", 0, None,
          "on the plates' PE studs; home runs: lower %d, upper %d" % (bonds["lower"][0], bonds["upper"][0]),
          "Bar counts assume %d terminals each; with smaller bars, add bars, never two parts per terminal"
          % BarTerminals),
-        ("PE bonding", Amz, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
+        ("PE bonding", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
          "THHN wire 12 gauge 50 ft, stranded copper, green", "%.0f m" % wireM, "50 ft roll",
          math.ceil(wireM / RollM) - 1, 29.99,
          "%d jumpers at about %.1f m, both module links" % (jumpers, JumperM),
          "Start with the 12 AWG PE wire on hand; with one roll, it must cover the last %.1f m. 12 AWG is "
          "3.31 mm2, above the 2.5 mm2 floor of IEC 60364-5-54 543.1.3 for a separate PE conductor"
          % (wireM - (math.ceil(wireM / RollM) - 1) * RollM)),
-        ("PE bonding", Amz, "Ring terminal 12-10 AWG, #10, heat shrink, 100", "B0DM8FW4LV",
+        ("PE bonding", Amz, Buy, "Ring terminal 12-10 AWG, #10, heat shrink, 100", "B0DM8FW4LV",
          "12-10 AWG #10 stud heat-shrink ring terminals", lugs, "pack of 100", 1, 9.99,
          "the part end of each jumper; the bar end goes bare into its clamp", "Also the gantry jumpers"),
-        ("PE bonding", Amz, "External tooth lock washers, 304, M2.5 to M12", "B0CP7YZ9JY",
+        ("PE bonding", Amz, Buy, "External tooth lock washers, 304, M2.5 to M12", "B0CP7YZ9JY",
          "500 pcs external tooth (star) lock washer assortment", lugs + 2 * nBars, "kit", 1, 9.99,
          "under each ring lug, under the bars on the base plate", "Per-size counts are not listed"),
-        ("PE bonding", "original BoM", "PE terminal block, one per DIN rail", "-", "", len(dinRails), "-", 0,
-         None, "bonds each DIN rail; its jumper lands bare", ""),
+        ("PE bonding", "original BoM", NotBought, "PE terminal block, one per DIN rail", "-", "", len(dinRails),
+         "-", 0, None, "bonds each DIN rail; its jumper lands bare", ""),
         # ---- PE bonding of the gantry
-        ("Gantry PE", "owner, elsewhere", "Ground bar, %d terminals or more" % BarTerminals, "-",
+        ("Gantry PE", "owner, elsewhere", NotBought, "Ground bar, %d terminals or more" % BarTerminals, "-",
          "Listed ground bar for 12 AWG copper", 1, "each", 0, None,
          "the gantry PE point, fed by the trunk from the upper bar",
          "Jumper count from a survey: measure every metal part to this bar; bond each that reads open"),
-        ("Gantry PE", Amz, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
+        ("Gantry PE", Amz, AfterSurvey, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
          "THHN wire 12 gauge 50 ft, stranded copper, green", "after the survey", "50 ft roll", 1, 29.99,
          "trunk and stationary gantry parts", "Rail bond holes as in the box: M5 x 16, lug, tooth washer"),
-        ("Gantry PE", Amz, "12 AWG silicone wire, green, 25 ft", "B06XDLS4TC",
+        ("Gantry PE", Amz, AfterSurvey, "12 AWG silicone wire, green, 25 ft", "B06XDLS4TC",
          "BNTECHGO 12 gauge silicone wire, green, 25 ft, fine-stranded tinned copper", "after the survey",
          "25 ft roll", 1, 18.98, "carriages: one flexible jumper along each moving cable run",
          "V-wheels and belts isolate a carriage from its rail"),
+        ("Plates and panels", "printed", NotBought, "Printed DIN clips and carriers", "-",
+         ", ".join("%s %d" % (clipNames[k], n) for k, n in clips.items()), sum(clips.values()), "-", 0, None,
+         "the parts without DIN feet (PartSize mount clip), each %s mm over its rail" % Mm(Clip),
+         "Printed in house like CAD/PSU DIN mount, which is for the PSU standing: the flat 24 V PSU's "
+         "mount is not designed yet (ADR-0010)"),
+        # ---- cutting the 2020 sticks
+        ("Cutting tools", Amz, Optional, "Miter saw, 10 in, single bevel", "B0FBPB1MJ8",
+         "Metabo HPT C10FCG2 10 in compound miter saw, 15 A, 5000 rpm, wood blade and vise included", 1, "each",
+         1, 169.00, "the %d frame pieces of the sheet 4 cut list" % nPieces,
+         "Its owner's manual lists wood and aluminum sash (p. 7) and takes a 10 in, 5/8 in arbor blade up to "
+         "7/64 in kerf (p. 6). Bolt it to a level bench (p. 7: four 5/16 in bolts, not included) and clamp "
+         "each piece in its vise. " + read),
+        ("Cutting tools", Amz, Optional, "Saw blade, 10 in, 100 TCG, thin aluminum", "B0798GY3VQ",
+         "Diablo D10100N: 10 in, 100 TCG teeth, 5/8 in arbor, .091 in kerf, .071 in plate, 6000 max rpm",
+         1, "each", 1, 59.94, "in place of the saw's wood blade for every aluminum cut",
+         "Rated %d rpm on the %d rpm saw; its %s mm kerf is within the saw's %s and the cut list's %s. %s"
+         % (BladeMaxRpm, SawRpm, Mm(round(BladeKerf, 1)), Mm(round(SawMaxKerf, 1)), Mm(Kerf), read)),
+        ("Cutting tools", Amz, Optional, "Engineer's try square, 4 in, DIN 875/1", "B079R9ZHRZ",
+         "Kinex 4034-12-010, 100 x 70 mm with a base, square within 15 um, inspection certificate", 1, "each", 1,
+         28.67, "set the blade square to the table and to the fence; check each cut end",
+         "An end within %s mm across the 20 mm face is %.2f deg; the square is good to %.3f deg. %s"
+         % (Mm(EndSquare), endDeg, sqDeg, read)),
+        ("Cutting tools", "spare parts", NotBought, "Length stop", "-",
+         "a spare stick clamped to the bench in line with the saw fence, shimmed to the table's height, with a "
+         "spare corner bracket on a T-nut in its top slot as the stop", 1, "-", 0, None,
+         "cut each set of equal pieces against one stop, up to %s mm" % Mm(max(L for _, _, L, _ in pieces)),
+         "%d sticks and %d brackets are spare" % (10 - len(sticks), 40 - brackets)),
+        ("Cutting tools", Amz, Optional, "Bar clamp, 12 in, 2-pack", "B001NP9S7M",
+         "IRWIN QUICK-GRIP one-handed mini bar clamps, 12 in, 2-pack (1964745)", 2, "2-pack", 1, 19.87,
+         "the stop stick to the bench", read),
+        ("Cutting tools", Amz, Optional, "Deburring tool", "B01L2XR4P2",
+         "AFA Tooling deburring tool, anodized aluminum handle, 11 M2 HSS blades", 1, "each", 1, 9.99,
+         "every cut end, so it seats flat on its bracket and plate", read),
+        ("Cutting tools", Amz, Optional, "Face shield, ANSI Z87.1", "B08P7MPWZ7",
+         "NoCry face shield, clear anti-fog visor, adjustable headgear, ANSI Z87.1", 1, "each", 1, 32.37,
+         "over safety glasses: the saw throws aluminum chips", "Safety glasses and hearing protection: on hand. "
+         + read),
         # ---- tools and parts not in this BoM
-        ("Tools", "on hand", "M5 x 0.8 hand tap", "-", "", 1, "-", 0, None,
+        ("Tools", "on hand", NotBought, "M5 x 0.8 hand tap", "-", "", 1, "-", 0, None,
          "post ends and every bond hole", ""),
-        ("Tools", "shop", "4.2 mm and 7/32 in (5.56 mm) drills", "-", "", "", "-", 0, None,
+        ("Tools", "shop", NotBought, "Sheet shear, hand nibbler, files", "-", "", "", "-", 0, None,
+         "shear the plates and the back panel from the 18 x 24 in sheets; nibble and file the plate slots and "
+         "the inlet cut-out", "Check the shop has them before ordering the sheet"),
+        ("Tools", "shop", NotBought, "4.2 mm and 7/32 in (5.56 mm) drills", "-", "", "", "-", 0, None,
          "bond holes (4.2, then tap M5); mid and lid rail holes and upper post sockets (5.56)", ""),
-        ("Not in this BoM", "original BoM", "Electrical parts", "-",
+        ("Not in this BoM", "original BoM", NotBought, "Electrical parts", "-",
          "terminal blocks, PE blocks, fuse holder, distribution block, wire", "", "-", 0, None, "", ""),
-        ("Not in this BoM", "on hand", "Steel DIN rails, 16 in", "-", "%d on hand" % DinRailsOnHand,
-         len(dinCuts), "each", 0, None,
+        ("Not in this BoM", "on hand", NotBought, "Steel DIN rails, 16 in", "-",
+         "%d on hand" % DinRailsOnHand, len(dinCuts), "each", 0, None,
          "%d rail pieces, %d mm: %s" % (len(dinRails), round(sum(dinLen)),
                                        "; ".join(" + ".join(Mm(L) for L in r) for r in dinCuts)),
          "Cut from the rails on hand, first fit with a 3 mm kerf (NestDinRails)"),
-        ("Not in this BoM", "not chosen", "Pluggable inter-deck terminals, USB isolator", "-",
+        ("Not in this BoM", "not designed", NotBought, "Mains compartment wall", "-", "", "", "-", 0, None,
+         "the 110 VAC compartment's wall on the lower deck (sheet 3, view B, red)",
+         "Not designed yet: %s mm along x and %s mm along y, %s mm tall; metal, for the reason ADR-0009 keeps "
+         "the decks metal" % (Mm(BoxD - Frame - MainsWallX), Mm(BoxW - Frame - MainsWallY), Mm(LowBay))),
+        ("Not in this BoM", "not chosen", NotBought, "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]
 
@@ -3609,27 +3735,43 @@ def BomRows():
 def BomCsv():
     out = io.StringIO()
     w = csv.writer(out, lineterminator="\n")
-    w.writerow(["Section", "Source", "Item", "Part or ASIN", "Description", "Qty needed", "Order unit",
-                "Units to order", "Price per unit (USD, %s)" % BomDate, "Line total", "Used for", "Notes",
-                "Link"])
-    bySrc, bySec = {}, {}
-    for sec, src, item, part, desc, need, unit, units, price, use, note in BomRows():
+    w.writerow(["Section", "Source", "Plan", "Item", "Part or ASIN", "Description", "Qty needed",
+                "Order unit", "Units to order", "Price per unit (USD, %s)" % BomDate, "Line total", "Used for",
+                "Notes", "Link"])
+    bySrc, byPlan = {}, {}
+    for sec, src, plan, item, part, desc, need, unit, units, price, use, note in BomRows():
+        # The plan must agree with the price and the section, or the totals below mean nothing.
+        want = ((NotBought,) if price is None else
+                {"Cutting tools": (Optional,), "Gantry PE": (AfterSurvey,)}.get(sec, (Buy, LabFirst)))
+        if plan not in want:
+            raise ValueError("%s, %s: plan %r, expected %s" % (sec, item, plan, " or ".join(want)))
         line = units * price if (price is not None and units) else None
         if line:
             bySrc[src] = bySrc.get(src, 0.0) + line
-            grp = "gantry PE" if sec == "Gantry PE" else "control box"
-            bySec[grp] = bySec.get(grp, 0.0) + line
-        w.writerow([sec, src, item, part, desc, need, unit, units,
+            byPlan[plan] = byPlan.get(plan, 0.0) + line
+        w.writerow([sec, src, plan, item, part, desc, need, unit, units,
                     "" if price is None else "%.2f" % price, "" if line is None else "%.2f" % line,
                     use, note, Link(src, part)])
+
+    def Total(label, usd, note=""):
+        w.writerow(["", "", "", label, "", "", "", "", "", "", "%.2f" % usd, "", note, ""])
+
+    box, lab = byPlan.get(Buy, 0.0) + byPlan.get(LabFirst, 0.0), byPlan.get(LabFirst, 0.0)
     for key in (Amz, Mc):
-        w.writerow(["", "", "Total, %s" % key, "", "", "", "", "", "", "%.2f" % bySrc.get(key, 0.0), "", "",
-                    ""])
-    for key in ("control box", "gantry PE"):
-        w.writerow(["", "", "Total, %s" % key, "", "", "", "", "", "", "%.2f" % bySec.get(key, 0.0), "", "",
-                    ""])
-    w.writerow(["", "", "Total, all priced lines", "", "", "", "", "", "", "%.2f" % sum(bySrc.values()), "",
-                "Amazon prices read on %s, McMaster on 2026-10-15; shipping and tax extra" % BomDate, ""])
+        Total("Total, %s" % key, bySrc.get(key, 0.0))
+    Total("Total, control box", box)
+    Total("Total, lab stock first (control box fasteners)", lab,
+          "Take these from the lab's bins first; buy only what is missing")
+    Total("New spend: control box, fasteners from lab stock, no cutting tools", box - lab,
+          "New spend is what has to be bought new for the control box: its total less the lab-stock "
+          "fasteners. The optional cutting tools and the gantry PE wire (after the survey) are not in it")
+    Total("Total, cutting tools", byPlan.get(Optional, 0.0),
+          "Optional: the alternatives are the shop's saw (no cost) or Misumi cut to order, which ADR-0009 "
+          "priced at $146 against $75 for the sticks (+$71)")
+    Total("Total, gantry PE", byPlan.get(AfterSurvey, 0.0))
+    Total("Total, all priced lines", sum(bySrc.values()),
+          "Amazon prices read on %s (the cutting tools and the M4 x 12 and nut packs on %s), McMaster on "
+          "2026-10-15; shipping and tax extra" % (BomDate, ToolDate))
     return out.getvalue()
 
 
