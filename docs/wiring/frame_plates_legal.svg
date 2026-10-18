@@ -62,7 +62,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <circle cx="75.59" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="100.4" cy="61.32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="21.58" cy="56.6" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="21.58" cy="37" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="21.58" cy="37.2" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <path class="sg" d="M16 96.5 L16 97.6"/>
 <path class="sg" d="M18 96.5 L18 97.6"/>
 <path class="sg" d="M21.58 96.5 L21.58 97.6"/>
@@ -86,7 +86,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M14.4 61.32 L15.5 61.32"/>
 <path class="sg" d="M14.4 56.6 L15.5 56.6"/>
 <path class="sg" d="M14.4 43.66 L15.5 43.66"/>
-<path class="sg" d="M14.4 37 L15.5 37"/>
+<path class="sg" d="M14.4 37.2 L15.5 37.2"/>
 <path class="sg" d="M14.4 32 L15.5 32"/>
 <path class="sg" d="M14.4 30 L15.5 30"/>
 <path class="sg" d="M110 96 L110 30"/>
@@ -305,7 +305,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="14.1" y="61.7" font-size="1.1" text-anchor="end">173.4</text>
 <text x="14.1" y="56.98" font-size="1.1" text-anchor="end">197</text>
 <text x="14.1" y="44.05" font-size="1.1" text-anchor="end">261.7</text>
-<text x="14.1" y="37.38" font-size="1.1" text-anchor="end">295</text>
+<text x="14.1" y="37.59" font-size="1.1" text-anchor="end">294</text>
 <text x="14.1" y="32.38" font-size="1.1" text-anchor="end">320</text>
 <text x="14.1" y="30.39" font-size="1.1" text-anchor="end">330</text>
 <text x="110.6" y="63" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 110.6 63)">330</text>

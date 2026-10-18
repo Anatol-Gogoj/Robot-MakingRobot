@@ -1725,6 +1725,17 @@ WallTabClear, CornerTab, WallRelief = 2.0, 20.0, 2.0
 HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
                                    # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
 TabH = (Frame + WallTabClear, LowPostL - WallTabClear)   # the end tabs, between the rings, over the deck
+# The lower module's cast corner brackets (sheet 4): beside each lower post, one on top of each
+# bottom-ring rail and one under each mid-ring rail; and one in each inside corner of the mid ring, on
+# its two rails' inner faces (the way an L bracket joins two rails in one plane; sheet 4 does not draw
+# it). TOCLUX lists them as 17 x 20 mm: taken here as 20 long across the rail's full width, so either
+# reading clears. The wall keeps BracketClear from each (BracketChecks). At the front right corner
+# that shortens B's end tab (TabHB) and notches the top of B's right end (BNotch: the notch's width
+# along y from B's end, which WallSpan stops BracketClear short of the ring, and the height over the
+# deck that the web stops at inside it).
+BracketLeg, BracketClear = 20.0, 1.0
+TabHB = (Frame + BracketLegT + BracketClear, LowPostL - BracketLegT - BracketClear)
+BNotch = (BracketLegT, LowPostL - BracketClear)
 # The DC pass-through in wall A: an obround (long, high, centre height over the deck), centred on the
 # mains duct, on the assumption that the PSU's terminals face the 110 V rail; move it once the PSU's
 # terminal face is known. Edge trim lines it.
@@ -1733,8 +1744,9 @@ PassThrough = (40.0, 13.0, 20.0)
 
 def WallSpan():
     """(ax0, ax1, by0, by1): wall A from B's low-voltage face to the back ring, wall B from A's mains
-    face to the right ring, outside faces."""
-    return MainsWallX - WallT, BoxD - Frame, MainsWallY, BoxW - Frame
+    face to BracketClear short of the right ring, outside faces. B's length rides on its corner
+    bend's deduction and its end passes the front right corner brackets, so it does not touch the ring."""
+    return MainsWallX - WallT, BoxD - Frame, MainsWallY, BoxW - Frame - BracketClear
 
 
 def WallHoles():
@@ -1762,8 +1774,9 @@ def PassThroughX():
 
 def WallFlat(piece):
     """Flat pattern of wall "A" or "B" in its own (u, v), seen from the mains side: u along the wall
-    from its front (A) or left (B) end, v up from the flange's free edge. Returns (outline [(u, v)],
-    holes [(u, v, dia)], slots [(u0, v0, u1, v1)], bends [(u0, v0, u1, v1, note)])."""
+    from its left end as seen from there (A: the tip of its back tab, since from +y the back is on the
+    left; B: its corner tab end), v up from the flange's free edge. Returns (outline [(u, v)], holes
+    [(u, v, dia)], slots [(u0, v0, u1, v1)], bends [(u0, v0, u1, v1, note)])."""
     ax0, ax1, by0, by1 = WallSpan()
     off = WallFlange - WallBD                # v of a point on the web = its height over the deck + off
     vTop, vBend = WallH + off, WallFlange - WallBD / 2
@@ -1772,22 +1785,25 @@ def WallFlat(piece):
     corner = [(h + off) for _, h in holes["corner"]]
     flangeNote = "flange: 90 deg away from the mains side"
     if piece == "A":
-        L, Lt = ax1 - ax0, BoxD - WallTabClear - ax0
-        outline = [(0.0, 0.0), (L, 0.0), (L, t0), (Lt, t0), (Lt, t1), (L, t1), (L, vTop), (0.0, vTop)]
-        hs = [(x - ax0, d, HoleRing) for x, _ in holes["A"]]
-        hs += [(holes["corner"][0][0] - ax0, v, HoleRing) for v in corner]
-        uc, vc = PassThroughX() - ax0, PassThrough[2] + off
+        def UA(x):
+            return BoxD - WallTabClear - x
+        Lw, Lt = UA(ax1), UA(ax0)            # the web's back end, beside the tab; the front end
+        outline = [(Lw, 0.0), (Lt, 0.0), (Lt, vTop), (Lw, vTop), (Lw, t1), (0.0, t1), (0.0, t0), (Lw, t0)]
+        hs = [(UA(x), d, HoleRing) for x, _ in holes["A"]]
+        hs += [(UA(holes["corner"][0][0]), v, HoleRing) for v in corner]
+        uc, vc = UA(PassThroughX()), PassThrough[2] + off
         slots = [(uc - PassThrough[0] / 2, vc - PassThrough[1] / 2, uc + PassThrough[0] / 2,
                   vc + PassThrough[1] / 2)]
-        return outline, hs, slots, [(0.0, vBend, L, vBend, flangeNote)]
+        return outline, hs, slots, [(Lw, vBend, Lt, vBend, flangeNote)]
 
     def U(y):
         return y - by0 + CornerTab - WallBD
     L, Lt = U(by1), U(BoxW - WallTabClear)
     uFl = CornerTab - WallOSSB + WallBA + WallRelief      # the flange starts past the corner bend and its relief
     vTab = WallFlange + WallRelief + off                  # the corner tab starts above the flange and its relief
-    outline = [(uFl, 0.0), (L, 0.0), (L, t0), (Lt, t0), (Lt, t1), (L, t1), (L, vTop), (0.0, vTop),
-               (0.0, vTab), (uFl, vTab)]
+    b0, b1, vN = TabHB[0] + off, TabHB[1] + off, BNotch[1] + off   # the end tab and the notch clear the brackets
+    outline = [(uFl, 0.0), (L, 0.0), (L, b0), (Lt, b0), (Lt, b1), (L, b1), (L, vN), (L - BNotch[0], vN),
+               (L - BNotch[0], vTop), (0.0, vTop), (0.0, vTab), (uFl, vTab)]
     hs = [(U(y), d, HoleRing) for _, y in holes["B"]]
     hs += [((CornerTab - WallOSSB) / 2, v, HoleRing) for v in corner]
     uB = CornerTab - WallBD / 2
@@ -2779,8 +2795,9 @@ def DeckSolids():
             ("wall A", (ax0, MainsWallY - t, ax1, MainsWallY), 0.0, WallH),
             ("wall A tab", (ax1, MainsWallY - t, BoxD - WallTabClear, MainsWallY), TabH[0], TabH[1]),
             ("wall A flange", (ax0, MainsWallY - WallFlange, ax1, MainsWallY - t), 0.0, flTop),
-            ("wall B", (MainsWallX - t, by0, MainsWallX, by1), 0.0, WallH),
-            ("wall B tab", (MainsWallX - t, by1, MainsWallX, BoxW - WallTabClear), TabH[0], TabH[1]),
+            ("wall B", (MainsWallX - t, by0, MainsWallX, by1 - BNotch[0]), 0.0, WallH),
+            ("wall B end", (MainsWallX - t, by1 - BNotch[0], MainsWallX, by1), 0.0, BNotch[1]),
+            ("wall B tab", (MainsWallX - t, by1, MainsWallX, BoxW - WallTabClear), TabHB[0], TabHB[1]),
             ("wall B corner tab", (MainsWallX, by0, ax0 + CornerTab, by0 + t), WallFlange + WallRelief, WallH),
             ("wall B flange", (MainsWallX - WallFlange, by0, MainsWallX - t, by1), 0.0, flTop)]:
         flange = "flange" in label
@@ -2859,15 +2876,18 @@ def StudyScore():
 
 
 def WallChecks():
-    """Raise unless the DC pass-through lies on wall A's web, clear of the bend and the top by
-    PanelWeb; the flange screws' heads fit the flange's flat; the gap over the wall takes the upper
-    plate's sag under DeckLoadKg and a short post; the corner screws sit on B's tab, over the
-    flange and its relief; and each piece has a flange screw with no part over it for its PE lug."""
+    """Raise unless the DC pass-through lies on wall A's web, clear of its ends, the bend and the top
+    by PanelWeb; the flange screws' heads fit the flange's flat; the gap over the wall takes the upper
+    plate's sag under DeckLoadKg and a short post; the corner screws sit on B's tab, over the flange
+    and its relief; the wall clears the corner brackets (BracketChecks); the upper plate's PE stud
+    keeps off the wall's top edge (ThroughBoltKeepOut); and each piece has a flange screw with no
+    part over it for its PE lug (WallLugHoles)."""
     off = WallFlange - WallBD
     out, _, slots, _ = WallFlat("A")
-    L = max(u for u, _ in out if _ <= off)
+    web = [u for u, v in out if v <= off]
     for u0, v0, u1, v1 in slots:
-        if u0 < PanelWeb or u1 > L - PanelWeb or v0 < off + WallOSSB + PanelWeb or v1 > WallH + off - PanelWeb:
+        if (u0 < min(web) + PanelWeb or u1 > max(web) - PanelWeb or v0 < off + WallOSSB + PanelWeb
+                or v1 > WallH + off - PanelWeb):
             raise ValueError("the DC pass-through runs off wall A's web")
     if HeadM4 > WallFlange - WallOSSB - 2 * 0.5:
         raise ValueError("an M4 head does not fit the %s mm flange" % Mm(WallFlange))
@@ -2878,7 +2898,73 @@ def WallChecks():
     for _, h in WallHoles()["corner"]:
         if h - HoleRing / 2 < WallFlange + WallRelief + PanelWeb or h + HoleRing / 2 > WallH - PanelWeb:
             raise ValueError("a corner screw at %s mm runs off B's tab" % Mm(h))
+    BracketChecks()
+    ThroughBoltKeepOut()
     WallLugHoles()
+
+
+def CornerBrackets():
+    """Boxes (x0, y0, z0, x1, y1, z1) of the lower module's corner brackets, z over the lower deck:
+    beside each lower post, one on top of each bottom-ring rail and one under each mid-ring rail, each
+    with a leg along its rail and a leg on the post; and one in each inside corner of the mid ring, its
+    legs on the two rails' inner faces."""
+    F, T, Lg, out = Frame, BracketLegT, BracketLeg, []
+
+    def Box3(xs, ys, zs):
+        return (min(xs), min(ys), min(zs), max(xs), max(ys), max(zs))
+
+    for px, sx in ((0.0, 1), (BoxD - F, -1)):
+        for py, sy in ((0.0, 1), (BoxW - F, -1)):
+            ix, iy = (px + F if sx > 0 else px), (py + F if sy > 0 else py)   # the post's inner faces
+            alongX, alongY = (ix, ix + sx * Lg), (iy, iy + sy * Lg)
+            for z, dz in ((F, 1), (LowPostL, -1)):     # on the bottom ring; under the mid ring
+                out.append(Box3(alongX, (py, py + F), (z, z + dz * T)))
+                out.append(Box3((ix, ix + sx * T), (py, py + F), (z, z + dz * Lg)))
+                out.append(Box3((px, px + F), alongY, (z, z + dz * T)))
+                out.append(Box3((px, px + F), (iy, iy + sy * T), (z, z + dz * Lg)))
+            out.append(Box3(alongX, (iy, iy + sy * T), (LowPostL, LowPostL + F)))
+            out.append(Box3((ix, ix + sx * T), alongY, (LowPostL, LowPostL + F)))
+    return out
+
+
+def BracketChecks():
+    """Raise unless every piece of the mains wall stays BracketClear from every corner bracket."""
+    c = BracketClear - 1e-6
+    for s in DeckSolids():
+        if s["kind"] not in ("wall", "flange"):
+            continue
+        x0, y0, x1, y1 = s["box"]
+        z0, z1 = s["bottom"], s["top"]
+        for b in CornerBrackets():
+            if (x0 < b[3] + c and b[0] - c < x1 and y0 < b[4] + c and b[1] - c < y1
+                    and z0 < b[5] + c and b[2] - c < z1):
+                raise ValueError("%s comes within %s mm of a corner bracket at x %.1f-%.1f, y %.1f-%.1f, "
+                                 "z %.1f-%.1f" % (s["label"], Mm(BracketClear), b[0], b[3], b[1], b[4], b[2], b[5]))
+
+
+NylocAcross = 7.66                 # M4 nyloc nut across corners (DIN 985 takes ISO 4032's 7 across flats)
+
+
+def ThroughBoltKeepOut():
+    """([(x0, y0, x1, y1)], hang): bands on the upper plate where no DIN rail or duct screw may go, and
+    how far such a screw hangs under the plate. Each goes through the plate into a nyloc under it, as
+    NutFits has it on the base plate, so its nut and tail hang deeper than the wall's top gap: a band
+    is the plan of each wall solid that reaches that deep, widened by half the nut across corners and
+    BracketClear. The plate DXF places their holes nowhere (sheet 4: from the final layout), so the
+    bands go on sheet 5 as a rule; this raises if the one bolt it does place with a nut under it, the
+    upper PE stud, lies in a band."""
+    hang = max(length - sum(stack[:-1]) - UpPlateT for joint, _, length, stack, _ in ThroughScrews
+               if joint in ("DIN rail to its plate", "duct to its plate"))
+    reach, r, out = LowBay - hang, NylocAcross / 2 + BracketClear, []
+    for s in DeckSolids():
+        if s["kind"] == "wall" and s["top"] > reach - BracketClear:
+            x0, y0, x1, y1 = s["box"]
+            out.append((x0 - r, y0 - r, x1 + r, y1 + r))
+    px, py = PeStud["upper"]
+    for x0, y0, x1, y1 in out:
+        if x0 < px < x1 and y0 < py < y1:
+            raise ValueError("the upper PE stud at (%s, %s) is over the mains wall's top" % (Mm(px), Mm(py)))
+    return out, hang
 
 
 def WallLugHoles():
@@ -3714,13 +3800,16 @@ def BuildWall():
     va = View(sh, 18.0, 32.0, 421.09, 116.19, 2.0)
     Flat(va, "A", "A  Wall A, flat, seen from the mains side", "%s x %s; along x, mains face at y %s"
          % (Mm(round(WallFlatSize("A")[0], 1)), Mm(round(WallFlatSize("A")[1], 1)), Mm(MainsWallY)))
-    sh.Text(va.X(PassThroughX() - WallSpan()[0]), va.Y(PassThrough[2] + off) - 4.4, "DC pass-through,", size=1.1,
+    uA = lambda x: BoxD - WallTabClear - x      # WallFlat("A"): u from the back tab's tip
+    sh.Text(va.X(uA(PassThroughX())), va.Y(PassThrough[2] + off) - 4.4, "DC pass-through,", size=1.1,
             anchor="middle", halo=True)
-    sh.Text(va.X(PassThroughX() - WallSpan()[0]), va.Y(PassThrough[2] + off) - 2.8, "edge trim", size=1.1,
+    sh.Text(va.X(uA(PassThroughX())), va.Y(PassThrough[2] + off) - 2.8, "edge trim", size=1.1,
             anchor="middle", halo=True)
-    sh.Text(va.X(408), va.Y(64.0) + 0.4, "tab to the", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(va.X(415), va.Y(64.0) + 0.4, "back panel", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(va.X(30), va.Y(100), "front end: B's corner tab screws on here", size=1.1, halo=True)
+    tw = uA(WallSpan()[1])                      # the back tab's width
+    sh.Text(va.X(tw / 3), va.Y(64.0) + 0.4, "tab to the", size=1.05, anchor="middle", rot=-90, halo=True)
+    sh.Text(va.X(2 * tw / 3), va.Y(64.0) + 0.4, "back panel", size=1.05, anchor="middle", rot=-90, halo=True)
+    sh.Text(va.X(uA(WallSpan()[0]) - 10), va.Y(100), "front end: B's corner tab screws on here", size=1.1,
+            anchor="end", halo=True)
 
     vb = View(sh, 18.0, 113.0, 164.19, 116.19, 2.0)
     Flat(vb, "B", "B  Wall B, flat, mains side", "%s x %s; along y"
@@ -3793,6 +3882,7 @@ def BuildWall():
     # ------------------------------------------------ notes
     fits = {j: p2 for j, _, p2 in NutFits()}
     lug = WallLugHoles()
+    _, hang = ThroughBoltKeepOut()
     wa, wb = WallFlatSize("A"), WallFlatSize("B")
     notes = [
         ("Material and cut", [
@@ -3820,13 +3910,22 @@ def BuildWall():
             "it, since the lug lifts the head."]),
         ("Openings", [
             "End tabs reach between the rings to %s mm from" % Mm(WallTabClear),
-            "the back and right panels; the top stops %s mm" % Mm(WallTopGap),
-            "under the upper plate. DC pass-through %s x %s," % (Mm(PassThrough[0]), Mm(PassThrough[1])),
-            "%s over the deck, centred on the mains duct:" % Mm(PassThrough[2]),
-            "PSU V+ and V- out. Move it to the PSU's",
-            "terminal end once that face is known. The",
-            "110 V door cable leaves by an M20 gland in",
-            "the back panel (u %s), not through the wall." % Mm(DoorGland[0])]),
+            "the back and right panels. B's tab, and a notch",
+            "in the top of B's right end, keep %s mm from the" % Mm(BracketClear),
+            "front right corner brackets (BracketChecks).",
+            "The top stops %s mm under the upper plate." % Mm(WallTopGap),
+            "DC pass-through %s x %s, %s over the deck," % (Mm(PassThrough[0]), Mm(PassThrough[1]),
+                                                        Mm(PassThrough[2])),
+            "centred on the mains duct: PSU V+ and V- out.",
+            "Move it to the PSU's terminal end once that",
+            "face is known. The 110 V door cable leaves by",
+            "an M20 gland in the back panel (u %s), not" % Mm(DoorGland[0]),
+            "through the wall."]),
+        ("Upper plate", [
+            "Drill no DIN rail or duct screw within %s mm" % Mm(round(NylocAcross / 2 + BracketClear, 1)),
+            "of the wall's top edge: A at y %s to %s," % (Mm(round(MainsWallY - WallT, 1)), Mm(MainsWallY)),
+            "B at x %s to %s. Its nyloc and tail hang" % (Mm(round(MainsWallX - WallT, 1)), Mm(MainsWallX)),
+            "%s mm; the wall stops %s under the plate." % (Mm(round(hang, 1)), Mm(WallTopGap))]),
         ("Fit", [
             "Before the lower deck's parts: flange screws,",
             "then B's corner tab to A, then the PE jumpers.",
