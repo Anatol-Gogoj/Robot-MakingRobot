@@ -3437,6 +3437,32 @@ def BuildFrame():
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
 RollM = 15.24                      # one 50 ft roll of wire
+# Cutting the 2020 sticks in house (issue #145): a 10 in miter saw whose maker lists aluminum, a blade
+# made for thin aluminum, and an engineer's square to set the saw and check each end. From the
+# Metabo HPT C10FCG2 owner's manual (p. 6 specifications; p. 7 "Applications: Wood and aluminum
+# sash.") and the Amazon listings of the blade (Diablo D10100N) and the square (Kinex 4034-12-010),
+# read on ToolDate, as were the M4 packs added with them.
+ToolDate = "2026-10-18"
+SawRpm, SawMaxKerf = 5000.0, 7 / 64 * 25.4    # C10FCG2: no-load speed; the widest kerf it takes
+BladeMaxRpm, BladeKerf = 6000.0, 0.091 * 25.4  # D10100N: 10 in, 100 TCG teeth, 5/8 in arbor
+SquareErr, SquareL = 0.015, 100.0              # Kinex 4034-12-010, DIN 875/1: 15 um over its 100 mm blade
+EndSquare = 0.1                                # wanted: a cut end within 0.1 mm across the 20 mm face
+
+
+def CutToolChecks():
+    """Raise unless the blade is rated above the saw's speed, its kerf fits the saw and stays within
+    the cut list's Kerf, and the square's error is under a tenth of the end tolerance. Returns (the
+    end tolerance, the square's error) in degrees."""
+    if BladeMaxRpm < SawRpm:
+        raise ValueError("blade rated %d rpm on a %d rpm saw" % (BladeMaxRpm, SawRpm))
+    if BladeKerf > SawMaxKerf or BladeKerf > Kerf:
+        raise ValueError("blade kerf %.2f mm: the saw takes %.2f, the cut list allows %.2f"
+                         % (BladeKerf, SawMaxKerf, Kerf))
+    endDeg = math.degrees(math.atan(EndSquare / Frame))
+    sqDeg = math.degrees(math.atan(SquareErr / SquareL))
+    if sqDeg > endDeg / 10:
+        raise ValueError("the square (%.3f deg) cannot set a %.2f deg end" % (sqDeg, endDeg))
+    return endDeg, sqDeg
 
 
 def Link(src, part):
@@ -3472,6 +3498,15 @@ def BomRows():
                + math.pi * min(s[2] - s[0], s[3] - s[1]) for s in CableSlots)
     wireM = jumpers * JumperM
     narrowDuct, wideDuct = ductLen[DuctNarrow], ductLen[DuctWide]
+    ductScrews = sum(max(2, 1 + math.ceil(max(b[2] - b[0], b[3] - b[1]) / 150.0)) for _, b, _, _, _ in Ducts())
+    clipNames = {"TB6600": "TB6600", "Mega": "Mega carrier", "PSU24": "24 V PSU", "PSU6": "servo PSU",
+                 "PSU5": "5 V PSU"}
+    clips = {}
+    for s in DeckSolids():
+        if s["mount"] == "clip":
+            clips[s["key"]] = clips.get(s["key"], 0) + 1
+    endDeg, sqDeg = CutToolChecks()
+    read = "Price read %s" % ToolDate
     return [
         # ---- frame
         ("Frame", Amz, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
@@ -3510,9 +3545,16 @@ def BomRows():
          "locating studs, lower posts to upper posts", "Blue threadlocker into the lower posts"),
         ("Frame", Amz, "M4 button head assortment, 304", "B0BZ6Y8KRD",
          "Kadrick 300 pcs M4 x 6, 8, 10, 12, 16, 20 button head socket cap screws with nuts and washers",
-         "x 8: %d, x 10: %d" % (dinScrews, legs), "kit", 1, 9.99,
-         "DIN rails (x 8, tooth washer, nut below the plate), upper-post bracket legs (x 10)",
-         "Per-size counts are not listed on the page"),
+         "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
+         "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack"),
+        ("Frame", Amz, "Button head M4 x 8, 304, 100", "B0H8JK1W52",
+         "iexcell 100 pcs M4 x 8 304 stainless button head socket cap screws, black oxide", dinScrews + ductScrews,
+         "pack of 100", 1, 5.98,
+         "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate"
+         % (dinScrews, ductScrews), read),
+        ("Frame", Amz, "Nylon insert lock nut M4, 304, 100", "B0CX16DGB1",
+         "Hordion 100 pcs M4-0.7 nylon insert lock nuts, 304 stainless", dinScrews + ductScrews, "pack of 100", 1,
+         4.49, "under the plate, on each M4 x 8", read),
         ("Frame", Amz, "Button head M4 x 6, 304, 100", "B0975M8LYK",
          "iexcell 100 pcs M4 x 6 304 stainless button head socket cap screws", 2 * ringScrews,
          "pack of 100", 1, 8.86, "both plates to their rings, %d each" % ringScrews, ""),
@@ -3589,9 +3631,49 @@ def BomRows():
          "BNTECHGO 12 gauge silicone wire, green, 25 ft, fine-stranded tinned copper", "after the survey",
          "25 ft roll", 1, 18.98, "carriages: one flexible jumper along each moving cable run",
          "V-wheels and belts isolate a carriage from its rail"),
+        ("Plates and panels", "printed", "Printed DIN clips and carriers", "-",
+         ", ".join("%s %d" % (clipNames[k], n) for k, n in clips.items()), sum(clips.values()), "-", 0, None,
+         "the parts without DIN feet (PartSize mount clip), each %s mm over its rail" % Mm(Clip),
+         "Printed in house like CAD/PSU DIN mount, which is for the PSU standing: the flat 24 V PSU's "
+         "mount is not designed yet (ADR-0010)"),
+        # ---- cutting the 2020 sticks
+        ("Cutting tools", Amz, "Miter saw, 10 in, single bevel", "B0FBPB1MJ8",
+         "Metabo HPT C10FCG2 10 in compound miter saw, 15 A, 5000 rpm, wood blade and vise included", 1, "each",
+         1, 169.00, "the %d frame pieces of the sheet 4 cut list" % nPieces,
+         "Its owner's manual lists wood and aluminum sash (p. 7) and takes a 10 in, 5/8 in arbor blade up to "
+         "7/64 in kerf (p. 6). Bolt it to a level bench (p. 7: four 5/16 in bolts, not included) and clamp "
+         "each piece in its vise. " + read),
+        ("Cutting tools", Amz, "Saw blade, 10 in, 100 TCG, thin aluminum", "B0798GY3VQ",
+         "Diablo D10100N: 10 in, 100 TCG teeth, 5/8 in arbor, .091 in kerf, .071 in plate, 6000 max rpm",
+         1, "each", 1, 59.94, "in place of the saw's wood blade for every aluminum cut",
+         "Rated %d rpm on the %d rpm saw; its %s mm kerf is within the saw's %s and the cut list's %s. %s"
+         % (BladeMaxRpm, SawRpm, Mm(round(BladeKerf, 1)), Mm(round(SawMaxKerf, 1)), Mm(Kerf), read)),
+        ("Cutting tools", Amz, "Engineer's try square, 4 in, DIN 875/1", "B079R9ZHRZ",
+         "Kinex 4034-12-010, 100 x 70 mm with a base, square within 15 um, inspection certificate", 1, "each", 1,
+         28.67, "set the blade square to the table and to the fence; check each cut end",
+         "An end within %s mm across the 20 mm face is %.2f deg; the square is good to %.3f deg. %s"
+         % (Mm(EndSquare), endDeg, sqDeg, read)),
+        ("Cutting tools", "spare parts", "Length stop", "-",
+         "a spare stick clamped to the bench in line with the saw fence, shimmed to the table's height, with a "
+         "spare corner bracket on a T-nut in its top slot as the stop", 1, "-", 0, None,
+         "cut each set of equal pieces against one stop, up to %s mm" % Mm(max(L for _, _, L, _ in pieces)),
+         "%d sticks and %d brackets are spare" % (10 - len(sticks), 40 - brackets)),
+        ("Cutting tools", Amz, "Bar clamp, 12 in, 2-pack", "B001NP9S7M",
+         "IRWIN QUICK-GRIP one-handed mini bar clamps, 12 in, 2-pack (1964745)", 2, "2-pack", 1, 19.87,
+         "the stop stick to the bench", read),
+        ("Cutting tools", Amz, "Deburring tool", "B01L2XR4P2",
+         "AFA Tooling deburring tool, anodized aluminum handle, 11 M2 HSS blades", 1, "each", 1, 9.99,
+         "every cut end, so it seats flat on its bracket and plate", read),
+        ("Cutting tools", Amz, "Face shield, ANSI Z87.1", "B08P7MPWZ7",
+         "NoCry face shield, clear anti-fog visor, adjustable headgear, ANSI Z87.1", 1, "each", 1, 32.37,
+         "over safety glasses: the saw throws aluminum chips", "Safety glasses and hearing protection: on hand. "
+         + read),
         # ---- tools and parts not in this BoM
         ("Tools", "on hand", "M5 x 0.8 hand tap", "-", "", 1, "-", 0, None,
          "post ends and every bond hole", ""),
+        ("Tools", "shop", "Sheet shear, hand nibbler, files", "-", "", "", "-", 0, None,
+         "shear the plates and the back panel from the 18 x 24 in sheets; nibble and file the plate slots and "
+         "the inlet cut-out", "Check the shop has them before ordering the sheet"),
         ("Tools", "shop", "4.2 mm and 7/32 in (5.56 mm) drills", "-", "", "", "-", 0, None,
          "bond holes (4.2, then tap M5); mid and lid rail holes and upper post sockets (5.56)", ""),
         ("Not in this BoM", "original BoM", "Electrical parts", "-",
@@ -3601,6 +3683,10 @@ def BomRows():
          "%d rail pieces, %d mm: %s" % (len(dinRails), round(sum(dinLen)),
                                        "; ".join(" + ".join(Mm(L) for L in r) for r in dinCuts)),
          "Cut from the rails on hand, first fit with a 3 mm kerf (NestDinRails)"),
+        ("Not in this BoM", "not designed", "Mains compartment wall", "-", "", "", "-", 0, None,
+         "the 110 VAC compartment's wall on the lower deck (sheet 3, view B, red)",
+         "Not designed yet: %s mm along x and %s mm along y, %s mm tall; metal, for the reason ADR-0009 keeps "
+         "the decks metal" % (Mm(BoxD - Frame - MainsWallX), Mm(BoxW - Frame - MainsWallY), Mm(LowBay))),
         ("Not in this BoM", "not chosen", "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]
@@ -3617,7 +3703,7 @@ def BomCsv():
         line = units * price if (price is not None and units) else None
         if line:
             bySrc[src] = bySrc.get(src, 0.0) + line
-            grp = "gantry PE" if sec == "Gantry PE" else "control box"
+            grp = {"Gantry PE": "gantry PE", "Cutting tools": "cutting tools"}.get(sec, "control box")
             bySec[grp] = bySec.get(grp, 0.0) + line
         w.writerow([sec, src, item, part, desc, need, unit, units,
                     "" if price is None else "%.2f" % price, "" if line is None else "%.2f" % line,
@@ -3625,11 +3711,12 @@ def BomCsv():
     for key in (Amz, Mc):
         w.writerow(["", "", "Total, %s" % key, "", "", "", "", "", "", "%.2f" % bySrc.get(key, 0.0), "", "",
                     ""])
-    for key in ("control box", "gantry PE"):
+    for key in ("control box", "cutting tools", "gantry PE"):
         w.writerow(["", "", "Total, %s" % key, "", "", "", "", "", "", "%.2f" % bySec.get(key, 0.0), "", "",
                     ""])
     w.writerow(["", "", "Total, all priced lines", "", "", "", "", "", "", "%.2f" % sum(bySrc.values()), "",
-                "Amazon prices read on %s, McMaster on 2026-10-15; shipping and tax extra" % BomDate, ""])
+                "Amazon prices read on %s (the cutting tools and the M4 x 8 and nut packs on %s), McMaster on "
+                "2026-10-15; shipping and tax extra" % (BomDate, ToolDate), ""])
     return out.getvalue()
 
 
