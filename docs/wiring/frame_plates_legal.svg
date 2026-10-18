@@ -237,7 +237,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="240" y="43.83" width="52" height="3.17" fill="#999999" stroke="#000" stroke-width="0.25"/>
 <rect x="252" y="50.6" width="16" height="7" fill="#666666" stroke="#000" stroke-width="0.2"/>
 <rect x="256" y="43.83" width="8" height="12" fill="#BBBBBB" stroke="#000" stroke-width="0.2"/>
-<rect x="252.4" y="39.43" width="15.2" height="4.4" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="253" y="35.83" width="14" height="8" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
 <path class="sg" d="M254 89.4 L266 89.4"/>
 <path class="sg" d="M254 88.5 L254 90.3"/>
 <path class="sg" d="M266 88.5 L266 90.3"/>
@@ -393,7 +393,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="237.4" y="51.41" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 237.4 51.41)">4.4 tip</text>
 <text x="294.6" y="45.41" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 294.6 45.41)">1.6</text>
 <text x="284" y="45.83" font-size="1.1" text-anchor="middle">plate</text>
-<text x="269.2" y="42.08" font-size="1.2">M4 x 6 button head</text>
+<text x="269.2" y="42.08" font-size="1.2">M4 x 6 socket head</text>
 <text x="260" y="54.5" font-size="1" text-anchor="middle" fill="#fff">T-nut</text>
 <text x="266" y="79.8" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">2020, simplified</text>
 <text x="240" y="94.6" font-size="1.2">Euro 2020, 6 mm slot. Depth 6, lip 1.8, bore 4.2:</text>

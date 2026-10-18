@@ -127,7 +127,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="267" y="54.46" width="5" height="25" fill="#FFAABB" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="261.21" y="36.71" width="0.79" height="51.5" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
 <rect x="255" y="87.41" width="6.21" height="0.79" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
-<rect x="255.81" y="86.31" width="3.8" height="1.1" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
+<rect x="255.96" y="85.41" width="3.5" height="2" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
 <rect x="256.71" y="87.41" width="2" height="6" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
 <rect x="255.96" y="89" width="3.5" height="2.5" fill="#888888" stroke="#000" stroke-width="0.15"/>
 <path class="sg" d="M273.5 95.21 L273.5 43.71"/>
@@ -243,20 +243,22 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="285" y="66.1" font-size="1.35">2 M4 x 12 through B's tab and A, heads on the</text>
 <text x="285" y="67.9" font-size="1.35">mains side. Drill the base plate through the</text>
 <text x="285" y="69.7" font-size="1.35">flange holes in place. Each piece is its own</text>
-<text x="285" y="71.5" font-size="1.35">PE part: a ring lug under a flange screw.</text>
-<text x="285" y="74.3" font-size="1.7" font-weight="bold">Openings</text>
-<text x="285" y="76.6" font-size="1.35">End tabs reach between the rings to 2 mm from</text>
-<text x="285" y="78.4" font-size="1.35">the back and right panels; the top stops 3 mm</text>
-<text x="285" y="80.2" font-size="1.35">under the upper plate. DC pass-through 40 x 13,</text>
-<text x="285" y="82" font-size="1.35">20 over the deck, centred on the mains duct:</text>
-<text x="285" y="83.8" font-size="1.35">PSU V+ and V- out. Move it to the PSU's</text>
-<text x="285" y="85.6" font-size="1.35">terminal end once that face is known. The</text>
-<text x="285" y="87.4" font-size="1.35">110 V door cable leaves by an M20 gland in</text>
-<text x="285" y="89.2" font-size="1.35">the back panel (u 205), not through the wall.</text>
-<text x="285" y="92" font-size="1.7" font-weight="bold">Fit</text>
-<text x="285" y="94.3" font-size="1.35">Before the lower deck's parts: flange screws,</text>
-<text x="285" y="96.1" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
-<text x="285" y="97.9" font-size="1.35">Check that the upper module drops on clear.</text>
+<text x="285" y="71.5" font-size="1.35">PE part: a ring lug under the flange screw at</text>
+<text x="285" y="73.3" font-size="1.35">x 49.9 on A and y 197 on B, with no part over</text>
+<text x="285" y="75.1" font-size="1.35">it, since the lug lifts the head.</text>
+<text x="285" y="77.9" font-size="1.7" font-weight="bold">Openings</text>
+<text x="285" y="80.2" font-size="1.35">End tabs reach between the rings to 2 mm from</text>
+<text x="285" y="82" font-size="1.35">the back and right panels; the top stops 3 mm</text>
+<text x="285" y="83.8" font-size="1.35">under the upper plate. DC pass-through 40 x 13,</text>
+<text x="285" y="85.6" font-size="1.35">20 over the deck, centred on the mains duct:</text>
+<text x="285" y="87.4" font-size="1.35">PSU V+ and V- out. Move it to the PSU's</text>
+<text x="285" y="89.2" font-size="1.35">terminal end once that face is known. The</text>
+<text x="285" y="91" font-size="1.35">110 V door cable leaves by an M20 gland in</text>
+<text x="285" y="92.8" font-size="1.35">the back panel (u 205), not through the wall.</text>
+<text x="285" y="95.6" font-size="1.7" font-weight="bold">Fit</text>
+<text x="285" y="97.9" font-size="1.35">Before the lower deck's parts: flange screws,</text>
+<text x="285" y="99.7" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
+<text x="285" y="101.5" font-size="1.35">Check that the upper module drops on clear.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Mains compartment wall</text>
 <text x="290" y="194.4" font-size="2">Sheet 5. Legal, landscape, 100 %.</text>
 <text x="290" y="197.15" font-size="2">Flat patterns and section 1:2, plan 1:5.</text>
