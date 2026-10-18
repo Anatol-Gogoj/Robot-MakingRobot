@@ -130,7 +130,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="267" y="54.46" width="5" height="25" fill="#FFAABB" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="261.21" y="36.71" width="0.79" height="51.5" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
 <rect x="255" y="87.41" width="6.21" height="0.79" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
-<rect x="255.81" y="86.31" width="3.8" height="1.1" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
+<rect x="255.96" y="85.41" width="3.5" height="2" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
 <rect x="256.71" y="87.41" width="2" height="6" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
 <rect x="255.96" y="89" width="3.5" height="2.5" fill="#888888" stroke="#000" stroke-width="0.15"/>
 <path class="sg" d="M273.5 95.21 L273.5 43.71"/>
@@ -248,37 +248,39 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="285" y="66.1" font-size="1.35">2 M4 x 12 through B's tab and A, heads on the</text>
 <text x="285" y="67.9" font-size="1.35">mains side. Drill the base plate through the</text>
 <text x="285" y="69.7" font-size="1.35">flange holes in place. Each piece is its own</text>
-<text x="285" y="71.5" font-size="1.35">PE part: a ring lug under a flange screw.</text>
-<text x="285" y="74.3" font-size="1.7" font-weight="bold">Openings</text>
-<text x="285" y="76.6" font-size="1.35">End tabs reach between the rings to 2 mm from</text>
-<text x="285" y="78.4" font-size="1.35">the back and right panels; A and B stop 1 mm</text>
-<text x="285" y="80.2" font-size="1.35">short of the rings. B's tab, and a notch in the</text>
-<text x="285" y="82" font-size="1.35">top of B's right end, keep 1 mm from the front</text>
-<text x="285" y="83.8" font-size="1.35">right corner brackets and their screw heads,</text>
-<text x="285" y="85.6" font-size="1.35">taken as 20 mm legs (BracketChecks). Measure</text>
-<text x="285" y="87.4" font-size="1.35">a bracket before cutting B: a 4 mm key must</text>
-<text x="285" y="89.2" font-size="1.35">reach both screws of the front right post to</text>
-<text x="285" y="91" font-size="1.35">mid ring bracket past B's tab, its post screw</text>
-<text x="285" y="92.8" font-size="1.35">along x and its rail screw from below; if not,</text>
-<text x="285" y="94.6" font-size="1.35">lower the tab's top (TabHB) until it does.</text>
-<text x="285" y="96.4" font-size="1.35">The top stops 3 mm under the upper plate.</text>
-<text x="285" y="98.2" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
-<text x="285" y="100" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
-<text x="285" y="101.8" font-size="1.35">Move it to the PSU's terminal end once that</text>
-<text x="285" y="103.6" font-size="1.35">face is known. The 110 V door cable leaves by</text>
-<text x="285" y="105.4" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
-<text x="285" y="107.2" font-size="1.35">through the wall.</text>
-<text x="285" y="110" font-size="1.7" font-weight="bold">Upper plate</text>
-<text x="285" y="112.3" font-size="1.35">Drill no DIN rail or duct screw in these bands:</text>
-<text x="285" y="114.1" font-size="1.35">its nyloc and tail hang 9.4 mm under the plate,</text>
-<text x="285" y="115.9" font-size="1.35">and the wall stops 3 mm under it.</text>
-<text x="285" y="117.7" font-size="1.35">A: x 29.9 to 441, y 175.4 to 187</text>
-<text x="285" y="119.5" font-size="1.35">B: x 29.9 to 41.5, y 177 to 305.5</text>
-<text x="285" y="121.3" font-size="1.35">B corner tab: x 31.5 to 60, y 177 to 188.6</text>
-<text x="285" y="124.1" font-size="1.7" font-weight="bold">Fit</text>
-<text x="285" y="126.4" font-size="1.35">Before the lower deck's parts: flange screws,</text>
-<text x="285" y="128.2" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
-<text x="285" y="130" font-size="1.35">Check that the upper module drops on clear.</text>
+<text x="285" y="71.5" font-size="1.35">PE part: a ring lug under the flange screw at</text>
+<text x="285" y="73.3" font-size="1.35">x 49.9 on A and y 197 on B, with no part over</text>
+<text x="285" y="75.1" font-size="1.35">it, since the lug lifts the head.</text>
+<text x="285" y="77.9" font-size="1.7" font-weight="bold">Openings</text>
+<text x="285" y="80.2" font-size="1.35">End tabs reach between the rings to 2 mm from</text>
+<text x="285" y="82" font-size="1.35">the back and right panels; A and B stop 1 mm</text>
+<text x="285" y="83.8" font-size="1.35">short of the rings. B's tab, and a notch in the</text>
+<text x="285" y="85.6" font-size="1.35">top of B's right end, keep 1 mm from the front</text>
+<text x="285" y="87.4" font-size="1.35">right corner brackets and their screw heads,</text>
+<text x="285" y="89.2" font-size="1.35">taken as 20 mm legs (BracketChecks). Measure</text>
+<text x="285" y="91" font-size="1.35">a bracket before cutting B: a 4 mm key must</text>
+<text x="285" y="92.8" font-size="1.35">reach both screws of the front right post to</text>
+<text x="285" y="94.6" font-size="1.35">mid ring bracket past B's tab, its post screw</text>
+<text x="285" y="96.4" font-size="1.35">along x and its rail screw from below; if not,</text>
+<text x="285" y="98.2" font-size="1.35">lower the tab's top (TabHB) until it does.</text>
+<text x="285" y="100" font-size="1.35">The top stops 3 mm under the upper plate.</text>
+<text x="285" y="101.8" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
+<text x="285" y="103.6" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
+<text x="285" y="105.4" font-size="1.35">Move it to the PSU's terminal end once that</text>
+<text x="285" y="107.2" font-size="1.35">face is known. The 110 V door cable leaves by</text>
+<text x="285" y="109" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
+<text x="285" y="110.8" font-size="1.35">through the wall.</text>
+<text x="285" y="113.6" font-size="1.7" font-weight="bold">Upper plate</text>
+<text x="285" y="115.9" font-size="1.35">Drill no DIN rail or duct screw in these bands:</text>
+<text x="285" y="117.7" font-size="1.35">its nyloc and tail hang 9.4 mm under the plate,</text>
+<text x="285" y="119.5" font-size="1.35">and the wall stops 3 mm under it.</text>
+<text x="285" y="121.3" font-size="1.35">A: x 29.9 to 441, y 175.4 to 187</text>
+<text x="285" y="123.1" font-size="1.35">B: x 29.9 to 41.5, y 177 to 305.5</text>
+<text x="285" y="124.9" font-size="1.35">B corner tab: x 31.5 to 60, y 177 to 188.6</text>
+<text x="285" y="127.7" font-size="1.7" font-weight="bold">Fit</text>
+<text x="285" y="130" font-size="1.35">Before the lower deck's parts: flange screws,</text>
+<text x="285" y="131.8" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
+<text x="285" y="133.6" font-size="1.35">Check that the upper module drops on clear.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Mains compartment wall</text>
 <text x="290" y="194.4" font-size="2">Sheet 5. Legal, landscape, 100 %.</text>
 <text x="290" y="197.15" font-size="2">Flat patterns and section 1:2, plan 1:5.</text>

@@ -1519,7 +1519,8 @@ GrommetFlange = 2.36 * 25.4
 GrommetSleeve = 1.97 * 25.4
 RingOD, RingGrip = 64.0, 0.2       # ring bore = sleeve - RingGrip, a press fit: cut one ring first
 GrommetsInPack = 4
-ButtonHeadM5 = 9.5                 # ISO 7380 M5 button head across: each flange clears the screws
+HeadM5 = 8.7                       # M5 socket head across, as its pack lists it (ISO 4762 allows 8.72
+                                   # knurled): each grommet flange clears the panel screws
 EntryEdge = 1.0                    # from a ring's edge to the rail behind the panel
 RingName = "Grommet ring"
 # One grommet per entry, halfway up its panel's window: (panel, u of the centre, what leaves there,
@@ -1712,7 +1713,7 @@ PeStud = {"base": (330.0, 150.0), "upper": (425.0, 300.0)}
 # aluminum back panel and the right panel. The top stops WallTopGap under the upper plate, so the
 # upper module drops on without touching it. Bends: inside radius one thickness, K factor assumed
 # (bend a test strip and correct WallK before cutting).
-WallFlange = 14.0                  # outside: an M4 button head (7.6 across) clears the bend
+WallFlange = 14.0                  # outside: an M4 socket head (7.0 across) clears the bend
 WallTopGap = 3.0                   # the upper plate's sag, the post cut tolerance and 1 mm (WallChecks)
 PostCutTol = 0.5                   # a post cut against a stop, as the IXGNIJ listing gives its own cuts
 WallH = LowBay - WallTopGap        # outside height over the deck
@@ -1721,7 +1722,8 @@ WallOSSB = 2 * WallT               # outside setback with the inside radius equa
 WallBA = math.pi / 2 * (WallT + WallK * WallT)
 WallBD = 2 * WallOSSB - WallBA     # bend deduction: flat = the outside legs summed, less WallBD
 WallTabClear, CornerTab, WallRelief = 2.0, 20.0, 2.0
-HeadM4H = 2.2                      # ISO 7380 M4 button head height
+HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
+                                   # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
 TabH = (Frame + WallTabClear, LowPostL - WallTabClear)   # the end tabs, between the rings, over the deck
 # The cast corner brackets around the lower bay (sheet 4): beside each lower post, one on top of each
 # bottom-ring rail and one under each mid-ring rail; and one in each inside corner of the mid ring (the
@@ -2209,7 +2211,7 @@ def PanelChecks():
         if u - r < w0 or v - r < w1 or u + r > w2 or v + r > w3:
             raise ValueError("%s: the grommet ring on %s runs over a rail" % (cables, panel))
         for su, sv in PanelScrews(panel):
-            if math.hypot(su - u, sv - v) < (GrommetFlange + ButtonHeadM5) / 2 + EntryEdge:
+            if math.hypot(su - u, sv - v) < (GrommetFlange + HeadM5) / 2 + EntryEdge:
                 raise ValueError("%s: the grommet flange on %s meets a panel screw" % (cables, panel))
         for panel2, u2, v2, cables2 in entries[i + 1:]:
             if panel2 == panel and math.hypot(u2 - u, v2 - v) < RingOD + EntryEdge:
@@ -2881,8 +2883,9 @@ def WallChecks():
     """Raise unless the DC pass-through lies on wall A's web, clear of its ends, the bend and the top
     by PanelWeb; the flange screws' heads fit the flange's flat; the gap over the wall takes the upper
     plate's sag under DeckLoadKg and a short post; the corner screws sit on B's tab, over the flange
-    and its relief; the wall clears the corner brackets (BracketChecks); and the upper plate's PE
-    stud keeps off the wall's top edge (ThroughBoltKeepOut)."""
+    and its relief; the wall clears the corner brackets (BracketChecks); the upper plate's PE stud
+    keeps off the wall's top edge (ThroughBoltKeepOut); and each piece has a flange screw with no
+    part over it for its PE lug (WallLugHoles)."""
     off = WallFlange - WallBD
     out, _, slots, _ = WallFlat("A")
     web = [u for u, v in out if v <= off]
@@ -2890,7 +2893,7 @@ def WallChecks():
         if (u0 < min(web) + PanelWeb or u1 > max(web) - PanelWeb or v0 < off + WallOSSB + PanelWeb
                 or v1 > WallH + off - PanelWeb):
             raise ValueError("the DC pass-through runs off wall A's web")
-    if ButtonHeadM4 > WallFlange - WallOSSB - 2 * 0.5:
+    if HeadM4 > WallFlange - WallOSSB - 2 * 0.5:
         raise ValueError("an M4 head does not fit the %s mm flange" % Mm(WallFlange))
     need = PlateSag(E5052, Nu5052, UpPlateT) + PostCutTol + 1.0
     if WallTopGap < need:
@@ -2901,6 +2904,7 @@ def WallChecks():
             raise ValueError("a corner screw at %s mm runs off B's tab" % Mm(h))
     BracketChecks()
     ThroughBoltKeepOut()
+    WallLugHoles()
 
 
 def CornerBrackets():
@@ -2973,7 +2977,19 @@ def ThroughBoltKeepOut():
     return out, hang
 
 
-ButtonHeadM4 = 7.6                 # ISO 7380 M4 head across
+def WallLugHoles():
+    """{"A": (x, y), "B": (x, y)}: the flange screw that carries each piece's PE ring lug, the first
+    one with no part over its head. The lug and its tooth washer lift the head, and a socket head on
+    the bare flange already stands within 2 mm of a part on its rail (issue #149)."""
+    over = [s["box"] for s in DeckSolids() if s["deck"] == "lower" and s["kind"] not in ("wall", "flange")]
+    r, out = HeadM4 / 2, {}
+    for k in "AB":
+        free = [(x, y) for x, y in WallHoles()[k]
+                if not any(b[0] - r < x < b[2] + r and b[1] - r < y < b[3] + r for b in over)]
+        if not free:
+            raise ValueError("every flange screw of wall %s has a part over it: no place for its PE lug" % k)
+        out[k] = free[0]
+    return out
 
 
 def RunChecks():
@@ -3555,13 +3571,13 @@ def BuildFrame():
     scr, tipLen = fits["upper plate to mid ring"]
     tip = 20 - tipLen
     de.Box(8.0, tip, 12.0, top, fill="#BBBBBB", stroke=0.2)
-    de.Box(6.2, top, 13.8, top + 2.2, fill="#BBBBBB", stroke=0.25)
+    de.Box(10 - HeadM4 / 2, top, 10 + HeadM4 / 2, top + HeadM4H, fill="#BBBBBB", stroke=0.25)
     de.DimH(10 - SlotOpen / 2, 10 + SlotOpen / 2, 0, "%s opening" % Mm(SlotOpen), off=2.4)
     de.DimV(20 - SlotDepth, 20, 20, "%s slot" % Mm(SlotDepth), off=2.0)
     de.DimV(tip, 20, 0, "%s tip" % Mm(tipLen), right=False, off=2.0)
     de.DimV(20, top, 26, Mm(UpPlateT), off=2.0)
     sh.Text(de.X(22), de.Y(20 + UpPlateT / 2) + 0.42, "plate", size=1.1, anchor="middle")
-    sh.Text(de.X(14.6), de.Y(top + 1.1) + 0.45, "%s button head" % scr, size=1.2)
+    sh.Text(de.X(14.6), de.Y(top + 1.1) + 0.45, "%s socket head" % scr, size=1.2)
     sh.Text(de.X(10), de.Y(20 - SlotLip - 1.75) + 0.4, "T-nut", size=1.0, anchor="middle", fill="#fff")
     sh.Text(de.X(13), de.Y(3.6), "2020, simplified", size=1.1, anchor="middle", halo=True)
     sh.Lines(de.X(0), de.Y(-1) + 5.6, [
@@ -3858,7 +3874,7 @@ def BuildWall():
     sv.Box(A(MainsWallY - WallT), Z(LoDeck), A(MainsWallY), Z(LoDeck + WallH), fill=TolRed, stroke=0.1)
     sv.Box(A(MainsWallY - WallFlange), Z(LoDeck), A(MainsWallY - WallT), Z(LoDeck + WallT), fill=TolRed, stroke=0.1)
     hy = holes["A"][0][1]
-    sv.Box(A(hy - ButtonHeadM4 / 2), Z(LoDeck + WallT), A(hy + ButtonHeadM4 / 2), Z(LoDeck + WallT + HeadM4H),
+    sv.Box(A(hy - HeadM4 / 2), Z(LoDeck + WallT), A(hy + HeadM4 / 2), Z(LoDeck + WallT + HeadM4H),
            fill="#BBBBBB", stroke=0.15)
     sv.Box(A(hy - 2.0), Z(LoDeck + WallT - 12.0), A(hy + 2.0), Z(LoDeck + WallT), fill="#BBBBBB", stroke=0.15)
     sv.Box(A(hy - 3.5), Z(-NylocH["M4"]), A(hy + 3.5), Z(0.0), fill="#888888", stroke=0.15)
@@ -3875,6 +3891,7 @@ def BuildWall():
 
     # ------------------------------------------------ notes
     fits = {j: p2 for j, _, p2 in NutFits()}
+    lug = WallLugHoles()
     bands, hang = ThroughBoltKeepOut()
     wa, wb = WallFlatSize("A"), WallFlatSize("B")
     notes = [
@@ -3898,7 +3915,9 @@ def BuildWall():
             "2 M4 x 12 through B's tab and A, heads on the",
             "mains side. Drill the base plate through the",
             "flange holes in place. Each piece is its own",
-            "PE part: a ring lug under a flange screw."]),
+            "PE part: a ring lug under the flange screw at",
+            "x %s on A and y %s on B, with no part over" % (Mm(lug["A"][0]), Mm(lug["B"][1])),
+            "it, since the lug lifts the head."]),
         ("Openings", [
             "End tabs reach between the rings to %s mm from" % Mm(WallTabClear),
             "the back and right panels; A and B stop %s mm" % Mm(WallEndClear),
@@ -3961,18 +3980,19 @@ def BuildWall():
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
 # Purchase plan per line (issue #145), the CSV's Plan column; BomCsv sums the totals by it. Buy:
-# order it. LabFirst: the control box's screws, nuts and rod; take them from the lab's bins first
-# and buy only what is missing. Optional: the cutting tools, since the shop's saw or Misumi cut to
-# order would do instead. AfterSurvey: the gantry PE wire, which waits for the bond survey.
-# NotBought: every unpriced line.
-Buy, LabFirst, Optional, AfterSurvey, NotBought = ("buy", "lab stock first", "optional", "after the survey",
-                                                   "not bought")
+# order it; the gantry PE wire is bought with the box (owner, 2026-10-18, issue #149), and the bond
+# survey only sets how much of it the gantry takes. LabFirst: the control box's screws, nuts and
+# rod; take them from the lab's bins first and buy only what is missing. Optional: the cutting
+# tools, since the shop's saw or Misumi cut to order would do instead. NotBought: every unpriced
+# line.
+Buy, LabFirst, Optional, NotBought = "buy", "lab stock first", "optional", "not bought"
 RollM = 15.24                      # one 50 ft roll of wire
 # Cutting the 2020 sticks in house (issue #145): a 10 in miter saw whose maker lists aluminum, a blade
 # made for thin aluminum, and an engineer's square to set the saw and check each end. From the
 # Metabo HPT C10FCG2 owner's manual (p. 6 specifications; p. 7 "Applications: Wood and aluminum
 # sash.") and the Amazon listings of the blade (Diablo D10100N) and the square (Kinex 4034-12-010),
-# read on ToolDate, as were the M4 packs added with them.
+# read on ToolDate, as were the M4 packs added with them, the socket head packs that replaced the
+# button heads (issue #149) and the gantry PE wire.
 ToolDate = "2026-10-18"
 SawRpm, SawMaxKerf = 5000.0, 7 / 64 * 25.4    # C10FCG2: no-load speed; the widest kerf it takes
 BladeMaxRpm, BladeKerf = 6000.0, 0.091 * 25.4  # D10100N: 10 in, 100 TCG teeth, 5/8 in arbor
@@ -4028,6 +4048,7 @@ def BomRows():
     trim = sum(2 * (max(s[2] - s[0], s[3] - s[1]) - min(s[2] - s[0], s[3] - s[1]))
                + math.pi * min(s[2] - s[0], s[3] - s[1]) for s in CableSlots)
     wireM = jumpers * JumperM
+    boxRolls = math.ceil(wireM / RollM) - 1   # the wire on hand covers what is left
     narrowDuct, wideDuct = ductLen[DuctNarrow], ductLen[DuctWide]
     ductScrews = sum(max(2, 1 + math.ceil(max(b[2] - b[0], b[3] - b[1]) / 150.0)) for _, b, _, _, _ in Ducts())
     clipNames = {"TB6600": "TB6600", "Mega": "Mega carrier", "PSU24": "24 V PSU", "PSU6": "servo PSU",
@@ -4061,9 +4082,11 @@ def BomRows():
          "Yaocom 100 pcs 2020 series M4 half roll-in spring T-nuts",
          2 * ringScrews + legs, "pack of 100", 1, 9.99,
          "plate screws %d, upper-post bracket legs %d" % (2 * ringScrews, legs), ""),
-        ("Frame", Amz, LabFirst, "Button head M5 x 8, 304, 100", "B0BJVN1VDS",
-         "iexcell 100 pcs M5 x 8 304 stainless button head socket cap screws",
-         panelScrews, "pack of 100", 1, 8.86, "panels %d" % panelScrews, "Back panel: add a flat washer"),
+        ("Frame", Amz, LabFirst, "Socket head M5 x 8, 304, 100", "B0DF75LXL4",
+         "Joamang 100 pcs M5-0.8 x 8 304 (A2-70) stainless socket head cap screws, fully threaded, head %s "
+         "across, 5 tall" % Mm(HeadM5),
+         panelScrews, "pack of 100", 1, 9.88, "panels %d" % panelScrews,
+         "Back panel: add a flat washer. Acrylic panels: snug by hand. " + read),
         ("Frame", Amz, LabFirst, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
          "100 pcs M5-0.8 x 16 304 stainless socket head cap screws",
          len(PostCentres) + railBonds, "pack of 100", 1, 8.60,
@@ -4076,24 +4099,32 @@ def BomRows():
         ("Frame", Amz, LabFirst, "Threaded rod M5 x 50, 304, 5-pack", "B0BLGQLPDF",
          "MECCANIXITY fully threaded rod M5 x 50, 304 stainless", len(PostCentres), "pack of 5", 1, 6.59,
          "locating studs, lower posts to upper posts", "Blue threadlocker into the lower posts"),
-        ("Frame", Amz, LabFirst, "M4 button head assortment, 304", "B0BZ6Y8KRD",
-         "Kadrick 300 pcs M4 x 6, 8, 10, 12, 16, 20 button head socket cap screws with nuts and washers",
+        ("Frame", Amz, LabFirst, "M4 socket head assortment, 304", "B0CLM7VMB8",
+         "Sutemribor 385 pcs M4 x 5, 6, 8, 10, 12, 16, 20 304 stainless socket head cap screws with nuts, "
+         "lock and flat washers",
          "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
-         "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack"),
-        ("Frame", Amz, LabFirst, "Button head M4 x 12, 304, 100", "B0GH69B43K",
-         "HEXPHANT 100 pcs M4 x 12 304 stainless button head socket cap screws, fully threaded",
-         dinScrews + ductScrews + wallScrews, "pack of 100", 1, 8.69,
+         "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack. "
+         "No hex key in the kit. " + read),
+        ("Frame", Amz, LabFirst, "Socket head M4 x 12, 304, 100", "B089M2LTHX",
+         "iexcell 100 pcs M4-0.7 x 12 304 stainless socket head cap screws, head 7.00 across, 3.91 tall, "
+         "3 mm hex key",
+         dinScrews + ductScrews + wallScrews, "pack of 100", 1, 8.86,
          "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate; mains wall %d"
-         % (dinScrews, ductScrews, wallScrews), read),
+         % (dinScrews, ductScrews, wallScrews),
+         "In a DIN rail the head stands %s mm over the plate, %s under the rail's top face: check that a "
+         "part's foot clears one before fitting the rest. %s"
+         % (Mm(DinRailBaseT + HeadM4H), Mm(DinRailH - DinRailBaseT - HeadM4H), read)),
         ("Frame", Amz, LabFirst, "Nylon insert lock nut M4, DIN 985, 304, 120", "B09PF5WCZL",
          "STORMCUBE 120 pcs M4-0.7 DIN 985 nylon insert lock nuts, 304 (A2-70)", dinScrews + ductScrews + wallScrews,
          "pack of 120", 1, 6.99, "under the plate, on each M4 x 12",
          "M4 x 12 leaves %s mm or more past the nut (NutFits). A nut from lab stock must keep NutFits "
          "passing: DIN 985 is %s mm tall, so if the lab's nuts are taller, set NylocH to their height and "
          "rerun NutFits. %s" % (Mm(round(min(p for _, _, p in NutFits()), 1)), Mm(NylocH["M4"]), read)),
-        ("Frame", Amz, LabFirst, "Button head M4 x 6, 304, 100", "B0975M8LYK",
-         "iexcell 100 pcs M4 x 6 304 stainless button head socket cap screws", 2 * ringScrews,
-         "pack of 100", 1, 8.86, "both plates to their rings, %d each" % ringScrews, ""),
+        ("Frame", Amz, LabFirst, "Socket head M4 x 6, 304, 100", "B07CK187DR",
+         "FULLERKREG 100 pcs M4-0.7 x 6 18-8 (304) stainless socket head cap screws, DIN 912, fully threaded",
+         2 * ringScrews, "pack of 100", 1, 8.99, "both plates to their rings, %d each" % ringScrews,
+         "Under the base plate the heads stand %s mm clear of the floor on the feet. %s"
+         % (Mm(FootH - HeadM4H), read)),
         ("Frame", Amz, Buy, "Rubber feet 1 x 0.51 in, steel washer, 10-pack", "B08B87SRRG",
          "Round rubber bumper feet with built-in stainless washer, 0.51 in high, 1 in diameter",
          len(PostCentres), "pack of 10", 1, 9.99, "feet under the lower posts",
@@ -4142,12 +4173,12 @@ def BomRows():
          "Bar counts assume %d terminals each; with smaller bars, add bars, never two parts per terminal"
          % BarTerminals),
         ("PE bonding", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
-         "THHN wire 12 gauge 50 ft, stranded copper, green", "%.0f m" % wireM, "50 ft roll",
-         math.ceil(wireM / RollM) - 1, 29.99,
+         "THHN wire 12 gauge 50 ft, stranded copper, green", "%.1f m" % wireM, "50 ft roll",
+         boxRolls, 29.99,
          "%d jumpers at about %.1f m, both module links" % (jumpers, JumperM),
          "Start with the 12 AWG PE wire on hand; with one roll, it must cover the last %.1f m. 12 AWG is "
          "3.31 mm2, above the 2.5 mm2 floor of IEC 60364-5-54 543.1.3 for a separate PE conductor"
-         % (wireM - (math.ceil(wireM / RollM) - 1) * RollM)),
+         % (wireM - boxRolls * RollM)),
         ("PE bonding", Amz, Buy, "Ring terminal 12-10 AWG, #10, heat shrink, 100", "B0DM8FW4LV",
          "12-10 AWG #10 stud heat-shrink ring terminals", lugs, "pack of 100", 1, 9.99,
          "the part end of each jumper; the bar end goes bare into its clamp", "Also the gantry jumpers"),
@@ -4161,13 +4192,16 @@ def BomRows():
          "Listed ground bar for 12 AWG copper", 1, "each", 0, None,
          "the gantry PE point, fed by the trunk from the upper bar",
          "Jumper count from a survey: measure every metal part to this bar; bond each that reads open"),
-        ("Gantry PE", Amz, AfterSurvey, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
-         "THHN wire 12 gauge 50 ft, stranded copper, green", "after the survey", "50 ft roll", 1, 29.99,
-         "trunk and stationary gantry parts", "Rail bond holes as in the box: M5 x 16, lug, tooth washer"),
-        ("Gantry PE", Amz, AfterSurvey, "12 AWG silicone wire, green, 25 ft", "B06XDLS4TC",
-         "BNTECHGO 12 gauge silicone wire, green, 25 ft, fine-stranded tinned copper", "after the survey",
+        ("Gantry PE", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
+         "THHN wire 12 gauge 50 ft, stranded copper, green", "the survey sets it", "50 ft roll", 1, 29.99,
+         "trunk and stationary gantry parts",
+         "Rail bond holes as in the box: M5 x 16, lug, tooth washer. With the box's roll this makes %.1f m; "
+         "the box takes %.1f, which leaves %.1f for the gantry, more with the wire on hand. %s"
+         % ((boxRolls + 1) * RollM, wireM, (boxRolls + 1) * RollM - wireM, read)),
+        ("Gantry PE", Amz, Buy, "12 AWG silicone wire, green, 25 ft", "B06XDLS4TC",
+         "BNTECHGO 12 gauge silicone wire, green, 25 ft, fine-stranded tinned copper", "the survey sets it",
          "25 ft roll", 1, 18.98, "carriages: one flexible jumper along each moving cable run",
-         "V-wheels and belts isolate a carriage from its rail"),
+         "V-wheels and belts isolate a carriage from its rail. " + read),
         ("Plates and panels", "offcut", NotBought, "Mains compartment wall, 2 pieces", "-",
          "1/16 in 5052 from aluminum 2's offcut: A %s x %s, B %s x %s, flat"
          % tuple(Mm(round(x, 1)) for k in "AB" for x in WallFlatSize(k)), 2, "-", 0, None,
@@ -4241,17 +4275,20 @@ def BomCsv():
     w.writerow(["Section", "Source", "Plan", "Item", "Part or ASIN", "Description", "Qty needed",
                 "Order unit", "Units to order", "Price per unit (USD, %s)" % BomDate, "Line total", "Used for",
                 "Notes", "Link"])
-    bySrc, byPlan = {}, {}
+    bySrc, byPlan, gantry = {}, {}, 0.0
     for sec, src, plan, item, part, desc, need, unit, units, price, use, note in BomRows():
         # The plan must agree with the price and the section, or the totals below mean nothing.
         want = ((NotBought,) if price is None else
-                {"Cutting tools": (Optional,), "Gantry PE": (AfterSurvey,)}.get(sec, (Buy, LabFirst)))
+                {"Cutting tools": (Optional,), "Gantry PE": (Buy,)}.get(sec, (Buy, LabFirst)))
         if plan not in want:
             raise ValueError("%s, %s: plan %r, expected %s" % (sec, item, plan, " or ".join(want)))
         line = units * price if (price is not None and units) else None
         if line:
             bySrc[src] = bySrc.get(src, 0.0) + line
-            byPlan[plan] = byPlan.get(plan, 0.0) + line
+            if sec == "Gantry PE":
+                gantry += line
+            else:
+                byPlan[plan] = byPlan.get(plan, 0.0) + line
         w.writerow([sec, src, plan, item, part, desc, need, unit, units,
                     "" if price is None else "%.2f" % price, "" if line is None else "%.2f" % line,
                     use, note, Link(src, part)])
@@ -4265,16 +4302,17 @@ def BomCsv():
     Total("Total, control box", box)
     Total("Total, lab stock first (control box fasteners)", lab,
           "Take these from the lab's bins first; buy only what is missing")
-    Total("New spend: control box, fasteners from lab stock, no cutting tools", box - lab,
-          "New spend is what has to be bought new for the control box: its total less the lab-stock "
-          "fasteners. The optional cutting tools and the gantry PE wire (after the survey) are not in it")
+    Total("Total, gantry PE", gantry, "Bought with the box; the survey sets how much of it the gantry takes")
+    Total("New spend: control box and gantry PE, fasteners from lab stock, no cutting tools", box - lab + gantry,
+          "New spend is what has to be bought new: the control box total less the lab-stock fasteners, "
+          "plus the gantry PE wire. The optional cutting tools are not in it")
     Total("Total, cutting tools", byPlan.get(Optional, 0.0),
           "Optional: the alternatives are the shop's saw (no cost) or Misumi cut to order, which ADR-0009 "
           "priced at $146 against $75 for the sticks (+$71)")
-    Total("Total, gantry PE", byPlan.get(AfterSurvey, 0.0))
     Total("Total, all priced lines", sum(bySrc.values()),
-          "Amazon prices read on %s (the cutting tools and the M4 x 12 and nut packs on %s), McMaster on "
-          "2026-10-15; shipping and tax extra" % (BomDate, ToolDate))
+          "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
+          "cable gland and the gantry PE wire on %s), McMaster on 2026-10-15; shipping and tax extra"
+          % (BomDate, ToolDate))
     return out.getvalue()
 
 
