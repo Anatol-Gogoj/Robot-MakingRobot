@@ -106,8 +106,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="236.57" y="96.86" width="21.71" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
 <rect x="163.29" y="43" width="61.43" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
 <rect x="229.86" y="43" width="44.14" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
-<rect x="159.97" y="67.74" width="114.6" height="3.55" fill="#CCCCCC" stroke="#000" stroke-width="0.25"/>
-<rect x="156.43" y="31" width="3.55" height="36.29" fill="#CCCCCC" stroke="#000" stroke-width="0.25"/>
 <rect x="156.57" y="94.67" width="74.86" height="3.63" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="225.47" y="31.57" width="3.63" height="32.86" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="158" y="99.06" width="43.71" height="13.66" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
@@ -124,13 +122,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="245.97" y="36.29" width="10.31" height="23.43" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
 <rect x="257.43" y="36.57" width="5.14" height="22.86" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="263.71" y="41.93" width="8.86" height="12.14" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
-<rect x="159.97" y="67.29" width="114.6" height="0.45" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="274.57" y="67.29" width="5.43" height="0.45" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="159.97" y="33.43" width="0.45" height="33.86" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="159.97" y="31" width="0.45" height="2.43" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="159.97" y="25.57" width="0.45" height="5.43" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="160.43" y="66.83" width="5.26" height="0.45" fill="#CC3311" stroke="#000" stroke-width="0.25"/>
-<rect x="221.57" y="67.29" width="11.43" height="0.45" fill="#fff" stroke="#000" stroke-width="0.2"/>
+<path d="M274.86 67.29 L160.43 67.29 L160.43 30.71" fill="none" stroke="#CC3311" stroke-width=".6" stroke-dasharray="2.4 1.2"/>
 <rect x="274.86" y="56.43" width="5.71" height="8.57" fill="#fff" stroke="#000" stroke-width="0.3"/>
 <rect x="274.86" y="42" width="5.71" height="12" fill="#FFAABB" stroke="#000" stroke-width="0.35"/>
 <rect x="163.29" y="24.43" width="61.43" height="0.57" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
@@ -150,7 +142,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="98.57" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
 <rect x="10" y="206.88" width="94.29" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
 <rect x="10" y="176.14" width="94.29" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
-<rect x="61.55" y="182.88" width="0.45" height="17.71" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
 <rect x="75.21" y="194.88" width="12.14" height="12" fill="#FFAABB" stroke="#000" stroke-width="0.2"/>
 <rect x="16.57" y="165.25" width="73.11" height="10.89" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="69.86" y="187.59" width="22.86" height="17.14" fill="#FFAABB" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
@@ -220,12 +211,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="17.64" y="173.99" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
 <rect x="29.47" y="168.88" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="36.43" y="173.99" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
-<rect x="62" y="177.45" width="0.45" height="24.86" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="61.55" y="177.45" width="0.45" height="29.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="58" y="206.42" width="3.55" height="0.45" fill="#CCCCCC" stroke="#000" stroke-width="0.12"/>
-<rect x="62" y="177.45" width="33.86" height="29.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="95.86" y="182.59" width="2.43" height="24.29" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="98.29" y="185.02" width="5.43" height="13.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
 <rect x="54.14" y="171.14" width="27.43" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="54.14" y="151.71" width="27.43" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.2"/>
 <rect x="16.57" y="192.39" width="13.66" height="12.34" fill="#EEDD88" stroke="#000" stroke-width="0.2"/>
@@ -234,7 +219,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="49.76" y="168.88" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="82.43" y="165.25" width="7.26" height="10.89" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="30.99" y="199.62" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
-<rect x="62" y="206.42" width="36.29" height="0.45" fill="#CCCCCC" stroke="#000" stroke-width="0.12"/>
 <path class="sg" d="M106.89 206.88 L106.89 176.59"/>
 <path class="sg" d="M105.99 206.88 L107.79 206.88"/>
 <path class="sg" d="M105.99 176.59 L107.79 176.59"/>
@@ -256,8 +240,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="274.86" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
 <rect x="150" y="206.88" width="130.57" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
 <rect x="150" y="176.14" width="130.57" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
-<rect x="159.97" y="185.02" width="0.45" height="13.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="159.97" y="182.59" width="0.45" height="24.29" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
 <rect x="156.57" y="165.25" width="74.29" height="10.89" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="237.14" y="165.25" width="20.66" height="10.89" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="163.29" y="204.73" width="61.43" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
@@ -271,13 +253,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="163.29" y="187.59" width="61.43" height="14.29" fill="#FFAABB" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="225.47" y="199.62" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="156.57" y="173.99" width="69.14" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
-<rect x="159.97" y="177.45" width="0.45" height="29.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="160.43" y="177.45" width="5.26" height="24.86" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="156.43" y="206.42" width="3.55" height="0.45" fill="#CCCCCC" stroke="#000" stroke-width="0.12"/>
-<rect x="159.97" y="177.45" width="114.6" height="29.43" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
-<rect x="274.57" y="182.88" width="5.43" height="17.71" fill="none" stroke="#CC3311" stroke-width="0.3" stroke-dasharray="1.2 .7"/>
 <rect x="226.47" y="168.88" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
-<rect x="159.97" y="206.42" width="114.6" height="0.45" fill="#CCCCCC" stroke="#000" stroke-width="0.12"/>
 <rect x="158" y="171.14" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="158" y="151.71" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.2"/>
 <rect x="167.71" y="171.14" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
@@ -452,10 +428,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="251.13" y="48.4" font-size="1.15" text-anchor="middle" font-weight="bold">K1</text>
 <text x="260" y="48.4" font-size="1.15" text-anchor="middle" font-weight="bold">F0</text>
 <text x="268.14" y="48.4" font-size="1.15" text-anchor="middle" font-weight="bold">X0</text>
-<text x="227.29" y="73.19" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle">DC pass-through</text>
-<text x="257.14" y="73.19" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle" fill="#CC3311">mains wall, sheet 5</text>
 <text x="281.37" y="61.21" font-size="1.1" text-anchor="middle" transform="rotate(-90 281.37 61.21)">door 110 V</text>
-<text x="252.36" y="64" font-size="1.3" text-anchor="middle" font-weight="bold" fill="#CC3311">110 VAC compartment</text>
+<text x="252.36" y="64" font-size="1.3" text-anchor="middle" font-weight="bold" fill="#CC3311">110 VAC compartment, no wall</text>
 <text x="281.37" y="48.5" font-size="1.2" text-anchor="middle" transform="rotate(-90 281.37 48.5)">mains in</text>
 <text x="171.86" y="28.26" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PSU vent (dashed)</text>
 <text x="241" y="116.83" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">ODrive, Pi, E-stop</text>
@@ -553,24 +527,25 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="291" y="135.5" font-size="1.45">tower), lower left (ODrive 24 V, Pi 5 V,</text>
 <text x="291" y="137.45" font-size="1.45">E-stop). Mains in at the back wall in line with</text>
 <text x="291" y="139.4" font-size="1.45">the 110 V rail; the 110 V door cable leaves</text>
-<text x="291" y="141.35" font-size="1.45">beside it by an M20 gland. Mains wall: sheet 5.</text>
-<text x="291" y="144.4" font-size="1.75" font-weight="bold">Sizes: along x across x high (mm)</text>
-<text x="291" y="146.8" font-size="1.45">TB6600 28 x 96 x 68, measured. From the</text>
-<text x="291" y="148.75" font-size="1.45">listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U</text>
-<text x="291" y="150.7" font-size="1.45">36 x 85 x 68; FB1 / FB2 93 / 153 x 48 x 43;</text>
-<text x="291" y="152.65" font-size="1.45">uxcell bar 20 x 78 x 53; SSR 6.1 x 88 x 71</text>
-<text x="291" y="154.6" font-size="1.45">(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;</text>
-<text x="291" y="156.55" font-size="1.45">5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega</text>
-<text x="291" y="158.5" font-size="1.45">99 x 53 (A000067). Assumed (dashed): 24 V PSU</text>
-<text x="291" y="160.45" font-size="1.45">215 x 115 x 50, F0, end clamps, PE blocks,</text>
-<text x="291" y="162.4" font-size="1.45">shield clamp, Mega height. Heights add the rail.</text>
-<text x="291" y="165.45" font-size="1.75" font-weight="bold">Layout 3b (ADR-0010)</text>
-<text x="291" y="167.85" font-size="1.45">From the CP-SAT packing study: 35,761</text>
-<text x="291" y="169.8" font-size="1.45">conductor-mm as drawn (34,912 at the study's</text>
-<text x="291" y="171.75" font-size="1.45">78.6 bay), against 57,478 for the hand layout.</text>
-<text x="291" y="173.7" font-size="1.45">Each block centre is held to layout3b_build</text>
-<text x="291" y="175.65" font-size="1.45">.json; no box overlaps another, and no plate</text>
-<text x="291" y="177.6" font-size="1.45">slot lies over the mains (y 182 and up).</text>
+<text x="291" y="141.35" font-size="1.45">beside it by an M20 gland; no wall around</text>
+<text x="291" y="143.3" font-size="1.45">the mains parts (ADR-0013).</text>
+<text x="291" y="146.35" font-size="1.75" font-weight="bold">Sizes: along x across x high (mm)</text>
+<text x="291" y="148.75" font-size="1.45">TB6600 28 x 96 x 68, measured. From the</text>
+<text x="291" y="150.7" font-size="1.45">listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U</text>
+<text x="291" y="152.65" font-size="1.45">36 x 85 x 68; FB1 / FB2 93 / 153 x 48 x 43;</text>
+<text x="291" y="154.6" font-size="1.45">uxcell bar 20 x 78 x 53; SSR 6.1 x 88 x 71</text>
+<text x="291" y="156.55" font-size="1.45">(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;</text>
+<text x="291" y="158.5" font-size="1.45">5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega</text>
+<text x="291" y="160.45" font-size="1.45">99 x 53 (A000067). Assumed (dashed): 24 V PSU</text>
+<text x="291" y="162.4" font-size="1.45">215 x 115 x 50, F0, end clamps, PE blocks,</text>
+<text x="291" y="164.35" font-size="1.45">shield clamp, Mega height. Heights add the rail.</text>
+<text x="291" y="167.4" font-size="1.75" font-weight="bold">Layout 3b (ADR-0010)</text>
+<text x="291" y="169.8" font-size="1.45">From the CP-SAT packing study: 35,761</text>
+<text x="291" y="171.75" font-size="1.45">conductor-mm as drawn (34,912 at the study's</text>
+<text x="291" y="173.7" font-size="1.45">78.6 bay), against 57,478 for the hand layout.</text>
+<text x="291" y="175.65" font-size="1.45">Each block centre is held to layout3b_build</text>
+<text x="291" y="177.6" font-size="1.45">.json; no box overlaps another, and no plate</text>
+<text x="291" y="179.55" font-size="1.45">slot lies over the mains (y 182 and up).</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Packing study</text>
 <text x="290" y="194.4" font-size="2">Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.</text>
 <text x="290" y="197.15" font-size="2">Layout 3b (ADR-0010), 2026-10-17: the PSU</text>

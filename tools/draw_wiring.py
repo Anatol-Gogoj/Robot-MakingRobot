@@ -1460,7 +1460,6 @@ BracketFill = "#888888"
 BasePlateT = 1.5875                # 1/16 in 5052-H32 aluminum
 UpPlateT = 1.5875                  # the same sheet stock
 PanelT = 3.0                       # 1/8 in cast acrylic side and top panels
-WallT = BasePlateT                 # the mains compartment wall: the same 1/16 in 5052 (issue #146)
 # Every part stands on a 35 mm top-hat DIN rail screwed to its deck. EN 60715 makes that rail 7.5 or
 # 15 mm tall; the five 16 in rails on hand measure 7.5 (owner, 2026-10-17). Parts without
 # DIN feet (TB6600s, the PSUs, the Mega) sit on a printed clip that adds Clip over the rail's top
@@ -1608,8 +1607,6 @@ ThroughScrews = [
     # (joint, thread, length, stack under the head, on the base plate)
     ("DIN rail to its plate", "M4", 12, [DinRailBaseT, BasePlateT], True),
     ("duct to its plate", "M4", 12, [DuctBaseT, BasePlateT], True),
-    ("mains wall flange to the base plate", "M4", 12, [WallT, BasePlateT], True),
-    ("mains wall corner tab to wall A", "M4", 12, [WallT, WallT], False),
 ]
 
 
@@ -1687,10 +1684,14 @@ R24Rail0 = 87.0                    # front end of the 24 V rail: K2, Star S, the
 PsuX0 = 46.5                       # front face of the 24 V PSU
 # The mains strip along the right wall: the PSU lies flat with its fan face RingClear from the
 # right ring, toward the vent in the lower right panel; the 110 V rail behind it ends at the back
-# ring, where the inlet is. The compartment wall runs 10 mm outside the mains parts.
+# ring, where the inlet is. The 110 VAC compartment is a zone of the lower deck, not a box: it runs
+# from a line 10 mm outside the mains parts (MainsZoneX, MainsZoneY) to the ring, with no wall on
+# that line (the owner's decision of 2026-10-18, ADR-0013; ADR-0012's bent wall is rejected).
+# RunChecks() keeps every low-voltage part and duct outside it and every upper-plate cable slot off
+# it, so nothing low-voltage stands within 10 mm of a mains part.
 PsuY1 = BoxW - Frame - RingClear
 PsuY0 = PsuY1 - PartSize["PSU24"][1]
-MainsWallX, MainsWallY = PsuX0 - 10.0, PsuY0 - 10.0
+MainsZoneX, MainsZoneY = PsuX0 - 10.0, PsuY0 - 10.0
 InletU = (PsuY0 + PsuY1) / 2       # the IEC inlet on the back panel, in line with the 110 V rail
 BackRunX = [u for _, u, _, k in CableEntries if k == "ULM"][0]   # the motor cables' back run
 # Cable passes through the upper plate (x0, y0, x1, y1), 13 wide with round ends, each beside the
@@ -1701,124 +1702,11 @@ CableSlots = [(267.5, 156.0, 280.5, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0,
 SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V",
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
-# plate's stands outside the 110 VAC compartment, behind the 5 V PSU and clear of the mains wall's
-# flange; the upper plate's behind the motor cables' back run.
+# plate's stands outside the 110 VAC compartment, behind the 5 V PSU; the upper plate's behind the
+# motor cables' back run.
 PeStud = {"base": (330.0, 150.0), "upper": (425.0, 300.0)}
-# The mains compartment wall (issue #146, ADR-0012, proposed): two pieces of 1/16 in 5052 from the offcut of the upper
-# plate's sheet, each bent once along its foot into a flange on the low-voltage side and screwed
-# through it to the base plate. Wall A runs along x with its mains face on MainsWallY, wall B along
-# y with its mains face on MainsWallX; a tab bent at B's front end lies on A's mains face and is
-# screwed to it, closing the corner. Each piece ends at the frame ring with a tab between the bottom
-# and mid rings that stops WallTabClear short of the panel, so the compartment closes up to the
-# aluminum back panel and the right panel. The top stops WallTopGap under the upper plate, so the
-# upper module drops on without touching it. Bends: inside radius one thickness, K factor assumed
-# (bend a test strip and correct WallK before cutting).
-WallFlange = 14.0                  # outside: an M4 socket head (7.0 across) clears the bend
-WallTopGap = 3.0                   # the upper plate's sag, the post cut tolerance and 1 mm (WallChecks)
-PostCutTol = 0.5                   # a post cut against a stop, as the IXGNIJ listing gives its own cuts
-WallH = LowBay - WallTopGap        # outside height over the deck
-WallK = 0.42
-WallOSSB = 2 * WallT               # outside setback with the inside radius equal to WallT
-WallBA = math.pi / 2 * (WallT + WallK * WallT)
-WallBD = 2 * WallOSSB - WallBA     # bend deduction: flat = the outside legs summed, less WallBD
-WallTabClear, CornerTab, WallRelief = 2.0, 20.0, 2.0
 HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
                                    # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
-TabH = (Frame + WallTabClear, LowPostL - WallTabClear)   # the end tabs, between the rings, over the deck
-# The cast corner brackets around the lower bay (sheet 4): beside each lower post, one on top of each
-# bottom-ring rail and one under each mid-ring rail; and one in each inside corner of the mid ring (the
-# upper module's), on its two rails' inner faces, the way an L bracket joins two rails in one plane
-# (sheet 4 does not draw it). Not measured: TOCLUX lists them as 17 x 20 mm, so each is taken as 20
-# long across the rail's full width, its triangle filled, with the kit's M5 socket head (ISO 4762:
-# 5 tall) anywhere along either leg (CornerBrackets). The wall keeps BracketClear from each
-# (BracketChecks). At the front right corner that shortens B's end tab (TabHB) and notches the top of
-# B's right end (BNotch: the notch's width along y from B's end, and the height over the deck that
-# the web stops at inside it). Measure a bracket before cutting B: a smaller one gives tab back.
-BracketLeg, BracketClear, BracketHeadH = 20.0, 1.0, 5.0
-BracketReach = BracketLegT + BracketHeadH          # a leg and the screw head on it, off its rail
-# A and B stop WallEndClear short of the ring each runs into: B's length rides on its corner bend's
-# deduction, and the upper module lands on the rings within about 0.3 mm (sheet 4).
-WallEndClear = 1.0
-TabHB = (Frame + BracketReach + BracketClear, LowPostL - BracketReach - BracketClear)
-BNotch = (BracketReach + BracketClear - WallEndClear, LowPostL - BracketClear)
-# The DC pass-through in wall A: an obround (long, high, centre height over the deck), centred on the
-# mains duct, on the assumption that the PSU's terminals face the 110 V rail; move it once the PSU's
-# terminal face is known. Edge trim lines it.
-PassThrough = (40.0, 13.0, 20.0)
-
-
-def WallSpan():
-    """(ax0, ax1, by0, by1): wall A from B's low-voltage face to WallEndClear short of the back ring,
-    wall B from A's mains face to WallEndClear short of the right ring, outside faces."""
-    return MainsWallX - WallT, BoxD - Frame - WallEndClear, MainsWallY, BoxW - Frame - WallEndClear
-
-
-def WallHoles():
-    """The wall's M4 holes in deck coordinates: flange screws into the base plate, {"A": [(x, y)],
-    "B": [(x, y)]}, one per 150 mm and 15 from each end, centred on the flange's flat; and the two
-    corner screws through B's tab and A, "corner": [(x, height over the deck)]."""
-    ax0, ax1, by0, by1 = WallSpan()
-    d = (WallFlange - WallOSSB) / 2
-
-    def Even(a0, a1):
-        n = max(2, 1 + math.ceil((a1 - a0) / 150.0))
-        return [a0 + 15.0 + (a1 - a0 - 30.0) * k / (n - 1) for k in range(n)]
-
-    h0 = WallFlange + WallRelief
-    return {"A": [(x, MainsWallY - WallFlange + d) for x in Even(ax0, ax1)],
-            "B": [(MainsWallX - WallFlange + d, y) for y in Even(by0, by1)],
-            "corner": [(ax0 + CornerTab - (CornerTab - WallOSSB) / 2, round(h0 + (WallH - h0) * k / 3, 1))
-                       for k in (1, 2)]}
-
-
-def PassThroughX():
-    """x of the DC pass-through's centre: the middle of the mains duct, between the PSU and the 110 V rail."""
-    return (PsuX0 + PartSize["PSU24"][0] + LowerRails()["110 V"]["a0"]) / 2
-
-
-def WallFlat(piece):
-    """Flat pattern of wall "A" or "B" in its own (u, v), seen from the mains side: u along the wall
-    from its left end as seen from there (A: the tip of its back tab, since from +y the back is on the
-    left; B: its corner tab end), v up from the flange's free edge. Returns (outline [(u, v)], holes
-    [(u, v, dia)], slots [(u0, v0, u1, v1)], bends [(u0, v0, u1, v1, note)])."""
-    ax0, ax1, by0, by1 = WallSpan()
-    off = WallFlange - WallBD                # v of a point on the web = its height over the deck + off
-    vTop, vBend = WallH + off, WallFlange - WallBD / 2
-    t0, t1 = TabH[0] + off, TabH[1] + off
-    holes, d = WallHoles(), (WallFlange - WallOSSB) / 2
-    corner = [(h + off) for _, h in holes["corner"]]
-    flangeNote = "flange: 90 deg away from the mains side"
-    if piece == "A":
-        def UA(x):
-            return BoxD - WallTabClear - x
-        Lw, Lt = UA(ax1), UA(ax0)            # the web's back end, beside the tab; the front end
-        outline = [(Lw, 0.0), (Lt, 0.0), (Lt, vTop), (Lw, vTop), (Lw, t1), (0.0, t1), (0.0, t0), (Lw, t0)]
-        hs = [(UA(x), d, HoleRing) for x, _ in holes["A"]]
-        hs += [(UA(holes["corner"][0][0]), v, HoleRing) for v in corner]
-        uc, vc = UA(PassThroughX()), PassThrough[2] + off
-        slots = [(uc - PassThrough[0] / 2, vc - PassThrough[1] / 2, uc + PassThrough[0] / 2,
-                  vc + PassThrough[1] / 2)]
-        return outline, hs, slots, [(Lw, vBend, Lt, vBend, flangeNote)]
-
-    def U(y):
-        return y - by0 + CornerTab - WallBD
-    L, Lt = U(by1), U(BoxW - WallTabClear)
-    uFl = CornerTab - WallOSSB + WallBA + WallRelief      # the flange starts past the corner bend and its relief
-    vTab = WallFlange + WallRelief + off                  # the corner tab starts above the flange and its relief
-    b0, b1, vN = TabHB[0] + off, TabHB[1] + off, BNotch[1] + off   # the end tab and the notch clear the brackets
-    outline = [(uFl, 0.0), (L, 0.0), (L, b0), (Lt, b0), (Lt, b1), (L, b1), (L, vN), (L - BNotch[0], vN),
-               (L - BNotch[0], vTop), (0.0, vTop), (0.0, vTab), (uFl, vTab)]
-    hs = [(U(y), d, HoleRing) for _, y in holes["B"]]
-    hs += [((CornerTab - WallOSSB) / 2, v, HoleRing) for v in corner]
-    uB = CornerTab - WallBD / 2
-    return outline, hs, [], [(uB, vTab, uB, vTop, "corner tab: 90 deg toward the mains side"),
-                             (uFl, vBend, L, vBend, flangeNote)]
-
-
-def WallFlatSize(piece):
-    """(length, height) of a wall piece's flat pattern."""
-    pts = WallFlat(piece)[0]
-    return max(u for u, _ in pts) - min(u for u, _ in pts), max(v for _, v in pts) - min(v for _, v in pts)
 HoleRing, HoleM5 = 4.5, 5.5        # clearance: M4 into the ring T-nuts; M5 into posts, PE studs
 Dia = "\u00d8"
 
@@ -1859,8 +1747,6 @@ def PlateGeom(kind):
     holes += [(x, y, HoleRing) for x, y in RingHoles()]
     if kind in PeStud:
         holes.append(PeStud[kind] + (HoleM5,))
-    if kind == "base":
-        holes += [(x, y, HoleRing) for x, y in WallHoles()["A"] + WallHoles()["B"]]
     slots = [] if kind == "base" else list(CableSlots) + BracketSlots()
     return outline, holes, slots
 
@@ -1982,7 +1868,6 @@ def NestPlan():
     The grommet rings, one per cable entry, take the offcut of acrylic 2, two abreast beside the
     upper side panels."""
     g, a = NestGap, ShearGap
-    wa, wb = WallFlatSize("A"), WallFlatSize("B")
     return {
         "acrylic 1": [("Top, on the lid ring", g, g, BoxD, BoxW),
                       ("Lower side, left", g, 2 * g + BoxW, BoxD, LowerPanelH),
@@ -1996,9 +1881,7 @@ def NestPlan():
                       ("Lower side, right", g, 2 * g + BoxW, BoxD, LowerPanelH)],
         "aluminum 1": [("Base plate", a, a, BoxD, BoxW),
                        ("Lower back: inlet and Q0", 2 * a + BoxD, a, LowerPanelH, BoxW)],
-        "aluminum 2": [("Upper plate", a, a, BoxD, BoxW),
-                       ("Mains wall A", 2 * a + BoxD, a, wa[1], wa[0]),
-                       ("Mains wall B", a, 2 * a + BoxW, wb[0], wb[1])],
+        "aluminum 2": [("Upper plate", a, a, BoxD, BoxW)],
     }
 
 
@@ -2060,13 +1943,13 @@ PsuFanD = None                     # the PSU fan's diameter
 MainsCuts = {"IEC inlet with switch": None}
 Q0Cut = None                       # only if the inlet's switch is not 2-pole; the same form
 # The back panel's own PE stud (BondPoints), inside the 110 VAC compartment's span of the back
-# wall, which runs from the mains wall (its tab reaches the panel) to the right ring.
+# wall, from the compartment's edge to the right ring.
 BackPeStud = (290.0, LoDeck + Frame + 12.0)
-MainsSpan = (MainsWallY, BoxW - Frame)
+MainsSpan = (MainsZoneY, BoxW - Frame)
 # The 110 VAC door cable (X1 to the S1 knob, the H1 lamp and the plate PE: sheets 1 and 2) leaves the
 # compartment straight through the aluminum back panel, so it never crosses into the low-voltage side
 # or shares a grommet with it: an M20 x 1.5 nylon cable gland (6 to 12 mm cable), halfway up the
-# window (ADR-0012, proposed). (u of the centre, hole, across the locknut's corners, assumed.)
+# window (ADR-0013). (u of the centre, hole, across the locknut's corners, assumed.)
 DoorGland = (205.0, 20.5, 30.0)
 
 
@@ -2466,7 +2349,6 @@ def BondPoints():
             ("lower", "bottom ring rail", 4, "tapped bond hole, ring lug"),
             ("lower", "DIN rail: fuses, 24 V, 110 V, three PSUs", rails["lower"], "its PE terminal"),
             ("lower", "aluminum lower back panel", 1, "M5 stud, ring lug"),
-            ("lower", "mains wall, two pieces", 2, "ring lug and tooth washer under a flange screw"),
             ("lower", "PE bar on rail 1 (inlet PE, PSU FG)", 1, "bar to bar"),
             ("lower", "link to the upper module", 1, "unclamp to lift the module"),
             ("upper", "mid ring rail", 4, "tapped bond hole, ring lug"),
@@ -2766,10 +2648,9 @@ MainsBlocks = ("PSU", "R110")
 def DeckSolids():
     """Everything standing on the two decks, as boxes in deck coordinates seen from above:
     [dict(deck, kind, box (x0, y0, x1, y1), key, label, fill, block, mount, bottom, top, dashed,
-    alongX, mains)]. kind is rail, part, duct, clamp, wall or flange (the wall's foot); bottom and top
-    are heights over the deck (a part on a rail or a clip overhangs from the rail's top); block is the
-    packing study's name for the group the box belongs to; mains marks the 110 VAC compartment
-    (None for the wall, which is its boundary)."""
+    alongX, mains)]. kind is rail, part, duct or clamp; bottom and top are heights over the deck (a
+    part on a rail or a clip overhangs from the rail's top); block is the packing study's name for the
+    group the box belongs to; mains marks the 110 VAC compartment."""
     out = []
     for deck, rails in (("upper", UpperRails()), ("lower", LowerRails())):
         for r in rails.values():
@@ -2793,21 +2674,6 @@ def DeckSolids():
     out.append(dict(deck="upper", kind="clamp", box=ClampBox(), key="Clamp", label="shield clamp",
                     fill=ZoneFill["drv"], block="SHIELD", mount="plate", top=MountedH("Clamp"),
                     dashed=not PartSize["Clamp"][3], alongX=False, mains=False))
-    ax0, ax1, by0, by1 = WallSpan()
-    t, flTop = WallT, WallT + HeadM4H
-    for label, box, z0, z1 in [
-            ("wall A", (ax0, MainsWallY - t, ax1, MainsWallY), 0.0, WallH),
-            ("wall A tab", (ax1, MainsWallY - t, BoxD - WallTabClear, MainsWallY), TabH[0], TabH[1]),
-            ("wall A flange", (ax0, MainsWallY - WallFlange, ax1, MainsWallY - t), 0.0, flTop),
-            ("wall B", (MainsWallX - t, by0, MainsWallX, by1 - BNotch[0]), 0.0, WallH),
-            ("wall B end", (MainsWallX - t, by1 - BNotch[0], MainsWallX, by1), 0.0, BNotch[1]),
-            ("wall B tab", (MainsWallX - t, by1, MainsWallX, BoxW - WallTabClear), TabHB[0], TabHB[1]),
-            ("wall B corner tab", (MainsWallX, by0, ax0 + CornerTab, by0 + t), WallFlange + WallRelief, WallH),
-            ("wall B flange", (MainsWallX - WallFlange, by0, MainsWallX - t, by1), 0.0, flTop)]:
-        flange = "flange" in label
-        out.append(dict(deck="lower", kind="flange" if flange else "wall", box=box, key=None, label=label,
-                        fill="#CCCCCC" if flange else TolRed, block=None, mount="plate", top=z1, bottom=z0,
-                        dashed=False, alongX=box[2] - box[0] >= box[3] - box[1], mains=None))
     for s in out:
         s.setdefault("bottom", DinRailH if s["mount"] in ("rail", "clip") else 0.0)
     return out
@@ -2879,125 +2745,12 @@ def StudyScore():
     return study, layout_study.Score("B", StudyBlocks(), rise=LowBay + UpPlateT, **args)["wire"]
 
 
-def WallChecks():
-    """Raise unless the DC pass-through lies on wall A's web, clear of its ends, the bend and the top
-    by PanelWeb; the flange screws' heads fit the flange's flat; the gap over the wall takes the upper
-    plate's sag under DeckLoadKg and a short post; the corner screws sit on B's tab, over the flange
-    and its relief; the wall clears the corner brackets (BracketChecks); the upper plate's PE stud
-    keeps off the wall's top edge (ThroughBoltKeepOut); and each piece has a flange screw with no
-    part over it for its PE lug (WallLugHoles)."""
-    off = WallFlange - WallBD
-    out, _, slots, _ = WallFlat("A")
-    web = [u for u, v in out if v <= off]
-    for u0, v0, u1, v1 in slots:
-        if (u0 < min(web) + PanelWeb or u1 > max(web) - PanelWeb or v0 < off + WallOSSB + PanelWeb
-                or v1 > WallH + off - PanelWeb):
-            raise ValueError("the DC pass-through runs off wall A's web")
-    if HeadM4 > WallFlange - WallOSSB - 2 * 0.5:
-        raise ValueError("an M4 head does not fit the %s mm flange" % Mm(WallFlange))
-    need = PlateSag(E5052, Nu5052, UpPlateT) + PostCutTol + 1.0
-    if WallTopGap < need:
-        raise ValueError("the wall's top gap %s mm is under the plate's sag, the post tolerance and 1 mm (%.1f)"
-                         % (Mm(WallTopGap), need))
-    for _, h in WallHoles()["corner"]:
-        if h - HoleRing / 2 < WallFlange + WallRelief + PanelWeb or h + HoleRing / 2 > WallH - PanelWeb:
-            raise ValueError("a corner screw at %s mm runs off B's tab" % Mm(h))
-    BracketChecks()
-    ThroughBoltKeepOut()
-    WallLugHoles()
-
-
-def CornerBrackets():
-    """Boxes (x0, y0, z0, x1, y1, z1), z over the lower deck, that hold the corner brackets around the
-    lower bay and their screw heads: beside each lower post one on top of each bottom-ring rail and
-    one under each mid-ring rail, and one in each inside corner of the mid ring on its two rails'
-    inner faces. Each bracket is three boxes in its own plane: either leg, BracketReach thick along
-    its full BracketLeg (a head may sit anywhere on it), and a square of BracketLeg - BracketReach
-    from the corner, which holds the rest of the filled triangle."""
-    F, R, Lg, out = Frame, BracketReach, BracketLeg, []
-
-    def Bracket(corner, a, b, width):
-        # legs from corner along axes a and b, each (axis, sign); width: (lo, hi) on the third axis
-        boxes = []
-        for la, lb in ((Lg, R), (R, Lg), (Lg - R, Lg - R)):
-            lo, hi = list(corner), list(corner)
-            for (ax, sg), ln in ((a, la), (b, lb)):
-                lo[ax], hi[ax] = sorted((corner[ax], corner[ax] + sg * ln))
-            lo[3 - a[0] - b[0]], hi[3 - a[0] - b[0]] = width
-            boxes.append(tuple(lo) + tuple(hi))
-        return boxes
-
-    for px, sx in ((0.0, 1), (BoxD - F, -1)):
-        for py, sy in ((0.0, 1), (BoxW - F, -1)):
-            ix, iy = (px + F if sx > 0 else px), (py + F if sy > 0 else py)   # the post's inner faces
-            for z, dz in ((F, 1), (LowPostL, -1)):     # on the bottom ring; under the mid ring
-                out += Bracket((ix, py, z), (0, sx), (2, dz), (py, py + F))   # on the rail along x
-                out += Bracket((px, iy, z), (1, sy), (2, dz), (px, px + F))   # on the rail along y
-            out += Bracket((ix, iy, LowPostL), (0, sx), (1, sy), (LowPostL, LowPostL + F))
-    return out
-
-
-def BracketChecks():
-    """Raise unless every piece of the mains wall stays BracketClear from every corner bracket."""
-    c = BracketClear - 1e-6
-    for s in DeckSolids():
-        if s["kind"] not in ("wall", "flange"):
-            continue
-        x0, y0, x1, y1 = s["box"]
-        z0, z1 = s["bottom"], s["top"]
-        for b in CornerBrackets():
-            if (x0 < b[3] + c and b[0] - c < x1 and y0 < b[4] + c and b[1] - c < y1
-                    and z0 < b[5] + c and b[2] - c < z1):
-                raise ValueError("%s comes within %s mm of a corner bracket at x %.1f-%.1f, y %.1f-%.1f, "
-                                 "z %.1f-%.1f" % (s["label"], Mm(BracketClear), b[0], b[3], b[1], b[4], b[2], b[5]))
-
-
-NylocAcross = 7 / math.cos(math.radians(30))   # M4 nyloc across corners, sharp: 7 across flats (ISO 4032)
-
-
-def ThroughBoltKeepOut():
-    """([(label, (x0, y0, x1, y1))], hang): where no DIN rail or duct screw may go on the upper plate,
-    and how far such a screw hangs under the plate. Each goes through the plate into a nyloc under it, as
-    NutFits has it on the base plate, so its nut and tail hang deeper than the wall's top gap: a band
-    is the plan of each wall solid that reaches that deep, widened by half the nut across corners and
-    BracketClear. The plate DXF places their holes nowhere (sheet 4: from the final layout), so the
-    bands go on sheet 5 as a rule; this raises if the one bolt it does place with a nut under it, the
-    upper PE stud, lies in a band."""
-    hang = max(length - sum(stack[:-1]) - UpPlateT for joint, _, length, stack, _ in ThroughScrews
-               if joint in ("DIN rail to its plate", "duct to its plate"))
-    reach, r, out = LowBay - hang, NylocAcross / 2 + BracketClear, []
-    for s in DeckSolids():
-        if s["kind"] == "wall" and s["top"] > reach - BracketClear:
-            x0, y0, x1, y1 = s["box"]
-            out.append((s["label"], (x0 - r, y0 - r, x1 + r, y1 + r)))
-    px, py = PeStud["upper"]
-    for _, (x0, y0, x1, y1) in out:
-        if x0 < px < x1 and y0 < py < y1:
-            raise ValueError("the upper PE stud at (%s, %s) is over the mains wall's top" % (Mm(px), Mm(py)))
-    return out, hang
-
-
-def WallLugHoles():
-    """{"A": (x, y), "B": (x, y)}: the flange screw that carries each piece's PE ring lug, the first
-    one with no part over its head. The lug and its tooth washer lift the head, and a socket head on
-    the bare flange already stands within 2 mm of a part on its rail (issue #149)."""
-    over = [s["box"] for s in DeckSolids() if s["deck"] == "lower" and s["kind"] not in ("wall", "flange")]
-    r, out = HeadM4 / 2, {}
-    for k in "AB":
-        free = [(x, y) for x, y in WallHoles()[k]
-                if not any(b[0] - r < x < b[2] + r and b[1] - r < y < b[3] + r for b in over)]
-        if not free:
-            raise ValueError("every flange screw of wall %s has a part over it: no place for its PE lug" % k)
-        out[k] = free[0]
-    return out
-
-
 def RunChecks():
     """Raise unless every solid stands inside the frame ring (RingClear clear) and under its bay
     (PartClear clear); nothing on a deck overlaps anything but its own rail, or a duct its tees;
     every plate slot lies over free lower deck, clear of everything on the upper plate and off the
     110 VAC compartment; each PE stud is clear of its deck's parts; the mains parts stand inside the
-    compartment wall and the rest outside it; the motor grommet clears the field rail and the front
+    110 VAC compartment and the rest outside it; the motor grommet clears the field rail and the front
     one is on the Mega's line; and the drawing matches the study (StudyMatch()). Returns the length
     of each rail's run, end clamps included."""
     solids = DeckSolids()
@@ -3012,31 +2765,26 @@ def RunChecks():
 
     for s in solids:
         x0, y0, x1, y1 = s["box"]
-        walled = s["kind"] in ("wall", "flange")
-        if walled:     # the wall meets the ring, and its end tabs reach between the rings to the panels
-            bad = x0 < Frame or y0 < Frame or x1 > BoxD - WallTabClear + 1e-6 or y1 > BoxW - WallTabClear + 1e-6
-        else:
-            bad = x0 < lo or y0 < lo or x1 > hx or y1 > hy
-        if bad:
+        if x0 < lo or y0 < lo or x1 > hx or y1 > hy:
             raise ValueError("%s at x %.1f-%.1f, y %.1f-%.1f leaves the frame" % (Name(s), x0, x1, y0, y1))
-        if s["top"] > bays[s["deck"]] - (WallTopGap if walled else PartClear) + 1e-6:
+        if s["top"] > bays[s["deck"]] - PartClear + 1e-6:
             raise ValueError("%s stands %.1f mm in a %.1f mm bay" % (Name(s), s["top"], bays[s["deck"]]))
     for i, s in enumerate(solids):
         for t in solids[i + 1:]:
             if s["deck"] != t["deck"] or not Hit(s["box"], t["box"]):
                 continue
             if s["bottom"] >= t["top"] - 1e-6 or t["bottom"] >= s["top"] - 1e-6:
-                continue                       # one passes over the other, as a part over the flange
+                continue                       # one passes over the other
             if s["kind"] == t["kind"] == "duct" or ("rail" in (s["kind"], t["kind"]) and s["block"] == t["block"]):
                 continue
             raise ValueError("%s overlaps %s" % (Name(s), Name(t)))
     for i, sl in enumerate(CableSlots):
-        if sl[3] > MainsWallY - 1e-6:
-            raise ValueError("slot %d reaches over the 110 VAC compartment (y %s)" % (i + 1, Mm(MainsWallY)))
+        if sl[3] > MainsZoneY - 1e-6:
+            raise ValueError("slot %d reaches over the 110 VAC compartment (y %s)" % (i + 1, Mm(MainsZoneY)))
         if sl[0] < Frame or sl[1] < Frame or sl[2] > BoxD - Frame or sl[3] > BoxW - Frame:
             raise ValueError("slot %d runs over the mid ring" % (i + 1))
         for s in solids:
-            if (s["deck"] == "upper" or s["kind"] not in ("duct", "flange")) and Hit(sl, s["box"]):
+            if (s["deck"] == "upper" or s["kind"] != "duct") and Hit(sl, s["box"]):
                 raise ValueError("slot %d (%s) meets the %s" % (i + 1, SlotUse[i], Name(s)))
     for kind, (px, py) in PeStud.items():
         deck = "lower" if kind == "base" else "upper"
@@ -3047,10 +2795,10 @@ def RunChecks():
     for s in solids:
         if s["deck"] == "lower" and s["mains"] is not None:
             x0, y0, x1, y1 = s["box"]
-            inside = x0 >= MainsWallX and y0 >= MainsWallY
-            outside = x1 <= MainsWallX or y1 <= MainsWallY
+            inside = x0 >= MainsZoneX and y0 >= MainsZoneY
+            outside = x1 <= MainsZoneX or y1 <= MainsZoneY
             if not (inside if s["mains"] else outside):
-                raise ValueError("%s is on the wrong side of the 110 VAC compartment wall" % Name(s))
+                raise ValueError("%s is on the wrong side of the 110 VAC compartment's edge" % Name(s))
     up = UpperRails()
     for _, u, _, key in CableEntries:
         if key == "ULM" and u - GrommetHole / 2 < up["field"]["a1"] + 5.0:
@@ -3058,7 +2806,6 @@ def RunChecks():
                              % (Mm(u), Mm(up["field"]["a1"])))
         if key == "UF" and abs(u - up["logic"]["centre"]) > 1e-6:
             raise ValueError("the front grommet is off the Mega's centre line")
-    WallChecks()
     StudyMatch()
     return {name: r["run"][-1][3] - r["run"][0][2]
             for rails in (up, LowerRails()) for name, r in rails.items()}
@@ -3088,7 +2835,7 @@ def NestDinRails():
 def PlanLabel(s):
     """(lines, text size, rotation) of a solid in a plan view."""
     key, label = s["key"], s["label"]
-    if s["kind"] in ("rail", "wall", "flange") or not label:
+    if s["kind"] == "rail" or not label:
         return [], 1.1, 0
     if s["kind"] == "duct":
         return [label], 1.1, 0 if s["alongX"] else -90
@@ -3122,7 +2869,7 @@ def BuildPacking():
 
     def Plan(v, deck):
         """Rails first, then ducts, parts and the clamp, each at its footprint."""
-        for kind in ("rail", "flange", "duct", "part", "clamp", "wall"):
+        for kind in ("rail", "duct", "part", "clamp"):
             for s in solids:
                 if s["deck"] == deck and s["kind"] == kind:
                     lines, size, rot = PlanLabel(s)
@@ -3178,19 +2925,17 @@ def BuildPacking():
     lo.Title("B  Lower deck, upper deck lifted off", "1/16 in aluminum base plate, bonded to PE")
     PlanFrame(lo, "parts inside the bottom ring, 417 x 290 mm")
     Plan(lo, "lower")
-    px = PassThroughX()
-    lo.Box(px - PassThrough[0] / 2, MainsWallY - WallT, px + PassThrough[0] / 2, MainsWallY, fill="#fff",
-           stroke=0.2)
-    sh.Text(lo.X(px), lo.Y(MainsWallY - WallFlange) + 1.9, "DC pass-through", size=1.0, anchor="middle",
-            halo=True)
-    sh.Text(lo.X(375), lo.Y(MainsWallY - WallFlange) + 1.9, "mains wall, sheet 5", size=1.0,
-            anchor="middle", halo=True, fill=TolRed)
+    # the 110 VAC compartment's edge: a line on the deck, no wall (ADR-0013)
+    sh.Add('<path d="M%s %s L%s %s L%s %s" fill="none" stroke="%s" stroke-width=".6" '
+           'stroke-dasharray="2.4 1.2"/>'
+           % (Fmt(lo.X(BoxD - F)), Fmt(lo.Y(MainsZoneY)), Fmt(lo.X(MainsZoneX)), Fmt(lo.Y(MainsZoneY)),
+              Fmt(lo.X(MainsZoneX)), Fmt(lo.Y(BoxW - F)), TolRed))
     gu = DoorGland[0]
     lo.Box(BoxD - F, gu - DoorGland[2] / 2, BoxD, gu + DoorGland[2] / 2, fill="#fff", stroke=0.3)
     sh.Text(lo.X(BoxD) + 0.8, lo.Y(gu) + 0.5, "door 110 V", size=1.1, rot=-90, anchor="middle")
     r110 = LowerRails()["110 V"]
-    sh.Text(lo.X((r110["a0"] + BoxD - F) / 2), lo.Y((MainsWallY + r110["centre"] - 41.0) / 2) + 0.5,
-            "110 VAC compartment", size=1.3, anchor="middle", weight="bold", fill=TolRed)
+    sh.Text(lo.X((r110["a0"] + BoxD - F) / 2), lo.Y((MainsZoneY + r110["centre"] - 41.0) / 2) + 0.5,
+            "110 VAC compartment, no wall", size=1.3, anchor="middle", weight="bold", fill=TolRed)
     lo.Box(BoxD - F, InletU - 21, BoxD, InletU + 21, fill=ZoneFill["110"], stroke=0.35)
     sh.Text(lo.X(BoxD) + 0.8, lo.Y(InletU) + 0.5, "mains in", size=1.2, rot=-90, anchor="middle")
     lo.Box(PsuVentSpan[0], BoxW, PsuVentSpan[1], BoxW + 2.0, fill="#fff", dashed=True, stroke=0.2)
@@ -3210,13 +2955,6 @@ def BuildPacking():
             base = LoDeck if s["deck"] == "lower" else UpDeck
             if s["kind"] == "rail":
                 v.Box(a0, base, a1, base + DinRailH, fill=RailFill, stroke=0.12)
-                continue
-            if s["kind"] == "wall":    # seen through, so the mains parts behind it still show
-                v.Box(a0, base + s["bottom"], a1, base + s["top"], fill="none", dashed=True, stroke=0.3,
-                      color=TolRed)
-                continue
-            if s["kind"] == "flange":
-                v.Box(a0, base, a1, base + WallT, fill=s["fill"], stroke=0.12)
                 continue
             z = base + (DinRailH if s["mount"] in ("rail", "clip") else 0.0)
             if s["mount"] == "clip":
@@ -3349,7 +3087,8 @@ def BuildPacking():
             "tower), lower left (ODrive 24 V, Pi 5 V,",
             "E-stop). Mains in at the back wall in line with",
             "the 110 V rail; the 110 V door cable leaves",
-            "beside it by an M20 gland. Mains wall: sheet 5."]),
+            "beside it by an M20 gland; no wall around",
+            "the mains parts (ADR-0013)."]),
         ("Sizes: along x across x high (mm)", [
             "TB6600 28 x 96 x 68, measured. From the",
             "listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U",
@@ -3366,7 +3105,7 @@ def BuildPacking():
             "%s bay), against %s for the hand layout." % (Mm(LowBayParts), "{:,}".format(HandWire)),
             "Each block centre is held to layout3b_build",
             ".json; no box overlaps another, and no plate",
-            "slot lies over the mains (y %s and up)." % Mm(MainsWallY)]),
+            "slot lies over the mains (y %s and up)." % Mm(MainsZoneY)]),
     ]
     y += 4.6
     for head, lines in notes:
@@ -3516,8 +3255,6 @@ def BuildFrame():
             sched = ["%d x %s%s: M5 into the lower posts, with the feet" % (len(PostCentres), Dia, Mm(HoleM5)),
                      "%d x %s%s: M4 x 6 into the bottom ring T-nuts, from below" % (nRing, Dia, Mm(HoleRing)),
                      "%s%s at (%s, %s): PE stud, first screw of the lower ground bar" % (Dia, Mm(HoleM5), Mm(px), Mm(py)),
-                     "%d x %s%s: the mains wall's flange screws, M4 x 12 (sheet 5); drill through the wall in place"
-                     % (len(WallHoles()["A"]) + len(WallHoles()["B"]), Dia, Mm(HoleRing)),
                      "Drill through the acrylic template (sheet B's DXF plus this PE stud).",
                      "DIN-rail holes from the final layout: M4 x 12, nyloc nut below (NutFits)"]
         else:
@@ -3531,7 +3268,7 @@ def BuildFrame():
                      ";  ".join("%d: x %s-%s, y %s-%s" % (i + 1, Mm(a0), Mm(a1), Mm(b0), Mm(b1))
                                 for i, (a0, b0, a1, b1) in enumerate(CableSlots)),
                      "  ".join("%d: %s." % (i + 1, u) for i, u in enumerate(SlotUse)) +
-                     "  None over the 110 VAC compartment (y %s up)." % Mm(MainsWallY)]
+                     "  None over the 110 VAC compartment (y %s up)." % Mm(MainsZoneY)]
         sh.Lines(v.X(0), v.Y(0) + 8.2, sched, size=1.3, lead=1.85)
 
     # ------------------------------------------------ the frame from the left and from the front
@@ -3681,8 +3418,6 @@ def BuildFrame():
     rows = [["Part", "Nest sheet", "Size", "Material"]]
     rows += [[nm, sheetOf[nm], "%s x %s" % (Mm(BoxD), Mm(BoxW)), "5052, 1/16 in"]
              for nm in ("Base plate", "Upper plate")]
-    rows += [["Mains wall %s" % k, sheetOf["Mains wall %s" % k],
-              "%s x %s flat" % tuple(Mm(round(x, 1)) for x in WallFlatSize(k)), "5052, 1/16 in"] for k in "AB"]
     rows += [[nm.split(":")[0], sheetOf[nm], "%s x %s" % (Mm(w), Mm(h)),
               "acrylic, 1/8 in" if mat == "acrylic" else "5052, 1/16 in"]
              for nm, n, w, h, mat, _ in EnclosurePanels()]
@@ -3737,7 +3472,8 @@ def BuildFrame():
          "bond hole in every rail."],
         ["Lower module: feet and lower posts on the", "base plate, bottom ring on brackets, plate",
          "screws from below, studs in with threadlocker,", "ground bar on the PE stud."],
-        ["Fit the mains wall (sheet 5), then build the", "lower deck; bond and measure it."],
+        ["Build the lower deck, every 110 VAC terminal", "finger-safe or covered (ADR-0013); bond and",
+         "measure it."],
         ["Upper module, on the bench: mid ring on its", "corner brackets, upper plate on it, upper",
          "posts over the stud holes (a loose stud as a", "pin) with their brackets, then the lid ring.",
          "Ground bars on the upper PE stud; wire it."],
@@ -3754,217 +3490,6 @@ def BuildFrame():
         "Views 1:5, detail E 2:1. Redrawn 2026-10-17.",
         "Two modules. Design, not yet built.",
         "DXFs: both deck plates, panel sheets, template.",
-    ])
-    return sh
-
-
-# ---------------------------------------------------------------- sheet 5: the mains compartment wall
-
-def WallDxf():
-    """Both flat patterns in one ASCII DXF R12, wall A at the origin and B above it, seen from the
-    mains side: outlines, holes and the pass-through on layer CUT, the fold lines on layer BEND."""
-    contours, dy = [], 0.0
-    for piece in "AB":
-        out, holes, slots, bends = WallFlat(piece)
-        contours += [("circle", u, v + dy, d) for u, v, d in holes]
-        contours += [("poly", ObroundPts(u0, v0 + dy, u1, v1 + dy)) for u0, v0, u1, v1 in slots]
-        contours.append(("poly", [(u, v + dy, 0.0) for u, v in out]))
-        contours += [("line", u0, v0 + dy, u1, v1 + dy) for u0, v0, u1, v1, _ in bends]
-        dy += WallFlatSize(piece)[1] + 10.0
-    return DxfDoc((max(WallFlatSize(k)[0] for k in "AB"), dy - 10.0), contours)
-
-
-def BuildWall():
-    sh = Sheet("RMR control panel mains compartment wall")
-    DrawFrame(sh, "RMR control panel: mains compartment wall",
-              "Two pieces of 1/16 in 5052 that close the 110 VAC compartment on the lower deck (sheet 3, view B), "
-              "cut from the offcut of the upper plate's sheet. Flat patterns and section 1:2, plan 1:5, printed "
-              "at 100 %. Millimetres.")
-    WallChecks()
-    off = WallFlange - WallBD
-    holes = WallHoles()
-
-    def Flat(v, piece, title, sub):
-        out, hs, slots, bends = WallFlat(piece)
-        v.Title(title, sub)
-        v.Poly(out, fill="#EEEEEE", stroke=0.3)
-        for u0, v0, u1, v1 in slots:
-            v.Obround(u0, v0, u1, v1)
-        for u, w, d in hs:
-            v.Hole(u, w, d)
-        for u0, v0, u1, v1, note in bends:
-            sh.Wire([(v.X(u0), v.Y(v0)), (v.X(u1), v.Y(v1))], "sg", ' stroke-dasharray="1.6 .8"')
-            if v0 == v1:
-                sh.Text(v.X((u0 + u1) / 2), v.Y(v0) - 0.7, "bend line: " + note, size=1.15, anchor="middle",
-                        halo=True)
-            else:
-                sh.Text(v.X(u0) - 0.7, v.Y((v0 + v1) / 2), "bend line: " + note, size=1.15, anchor="middle",
-                        rot=-90, halo=True)
-        r = lambda x: round(x, 1)
-        us = {r(u) for u, _ in out} | {r(u) for u, _, _ in hs} | {r(x) for q in slots for x in (q[0], q[2])}
-        vs = {r(w) for _, w in out} | {r(w) for _, w, _ in hs} | {r(y) for q in slots for y in (q[1], q[3])}
-        vs |= {r(b[1]) for b in bends if b[1] == b[3]}
-        v.OrdX(sorted(us), 0)
-        v.OrdY(sorted(vs), 0)
-
-    va = View(sh, 18.0, 32.0, 421.09, 116.19, 2.0)
-    Flat(va, "A", "A  Wall A, flat, seen from the mains side", "%s x %s; along x, mains face at y %s"
-         % (Mm(round(WallFlatSize("A")[0], 1)), Mm(round(WallFlatSize("A")[1], 1)), Mm(MainsWallY)))
-    uA = lambda x: BoxD - WallTabClear - x      # WallFlat("A"): u from the back tab's tip
-    sh.Text(va.X(uA(PassThroughX())), va.Y(PassThrough[2] + off) - 4.4, "DC pass-through,", size=1.1,
-            anchor="middle", halo=True)
-    sh.Text(va.X(uA(PassThroughX())), va.Y(PassThrough[2] + off) - 2.8, "edge trim", size=1.1,
-            anchor="middle", halo=True)
-    tw = uA(WallSpan()[1])                      # the back tab's width
-    sh.Text(va.X(tw / 3), va.Y(64.0) + 0.4, "tab to the", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(va.X(2 * tw / 3), va.Y(64.0) + 0.4, "back panel", size=1.05, anchor="middle", rot=-90, halo=True)
-    sh.Text(va.X(uA(WallSpan()[0]) - 10), va.Y(100), "front end: B's corner tab screws on here", size=1.1,
-            anchor="end", halo=True)
-
-    vb = View(sh, 18.0, 113.0, 164.19, 116.19, 2.0)
-    Flat(vb, "B", "B  Wall B, flat, mains side", "%s x %s; along y"
-         % (Mm(round(WallFlatSize("B")[0], 1)), Mm(round(WallFlatSize("B")[1], 1))))
-    sh.Text(vb.X(152), vb.Y(64.0) + 0.4, "tab to the right panel", size=1.05, anchor="middle", rot=-90, halo=True)
-
-    # ------------------------------------------------ the wall on the base plate, from above
-    pv = View(sh, 120.0, 113.0, BoxD, BoxW, 5.0)
-    pv.Title("C  On the base plate, from above", "1:5; mains parts dashed")
-    pv.Box(0, 0, BoxD, BoxW, fill=ZoneFill["frame"], stroke=0.3)
-    pv.Box(Frame, Frame, BoxD - Frame, BoxW - Frame, fill="#fff", stroke=0.2)
-    solids = DeckSolids()
-    for kind in ("mains", "flange", "wall"):
-        for q in solids:
-            if q["deck"] != "lower":
-                continue
-            if kind == "mains" and q["mains"] and q["kind"] == "part":
-                pv.Box(*q["box"], fill=ZoneFill["110"], dashed=True, stroke=0.12)
-            elif q["kind"] == kind:
-                pv.Box(*q["box"], fill=q["fill"], stroke=0.1)
-    for x, y in holes["A"] + holes["B"]:
-        pv.Hole(x, y, 3.0)
-    px = PassThroughX()
-    pv.Box(px - PassThrough[0] / 2, MainsWallY - WallT, px + PassThrough[0] / 2, MainsWallY, fill="#fff", stroke=0.12)
-    pv.Box(BoxD - Frame, DoorGland[0] - DoorGland[2] / 2, BoxD, DoorGland[0] + DoorGland[2] / 2, fill="#fff",
-           stroke=0.2)
-    pv.Hole(PeStud["base"][0], PeStud["base"][1], 3.0, fill="#000")
-    sh.Text(pv.X(PeStud["base"][0]) + 1.0, pv.Y(PeStud["base"][1]) + 0.4, "PE", size=1.0)
-    sh.Text(pv.X(150), pv.Y(MainsWallY - WallFlange) + 2.0, "wall A, flange under it", size=1.05, anchor="middle")
-    sh.Text(pv.X(MainsWallX - WallFlange) - 0.6, pv.Y(250), "wall B", size=1.05, anchor="middle", rot=-90)
-    sh.Text(pv.X(150), pv.Y(250) + 0.4, "PSU", size=1.1, anchor="middle")
-    sh.Text(pv.X(356), pv.Y(250) + 0.4, "110 V rail", size=1.1, anchor="middle")
-    sh.Text(pv.X(BoxD) + 0.8, pv.Y(DoorGland[0]) + 0.4, "door gland", size=1.0, anchor="middle", rot=-90)
-    pv.OrdX(sorted({round(v, 1) for v in [WallSpan()[0], px - PassThrough[0] / 2, px + PassThrough[0] / 2,
-                                         BoxD - Frame, BoxD - WallTabClear] + [x for x, _ in holes["A"]]}), 0)
-    pv.OrdY(sorted({round(v, 1) for v in [MainsWallY - WallFlange, MainsWallY, BoxW - Frame, BoxW - WallTabClear]
-                    + [y for _, y in holes["B"]]}), 0)
-
-    # ------------------------------------------------ section through wall A at a flange screw, from the front
-    y0, z0 = 138.0, -14.0
-    sv = View(sh, 240.0, 32.0, 64.0, 128.0, 2.0)
-    sv.Title("D  Section at a screw", "1:2")
-    A = lambda y: y - y0
-    Z = lambda z: z - z0
-    sv.Box(A(y0), Z(0.0), A(y0 + 64), Z(LoDeck), fill=PlateFill, stroke=0.1)
-    sv.Box(A(y0), Z(UpPlate0), A(y0 + 64), Z(UpDeck), fill=PlateFill, stroke=0.1)
-    k2 = [q for q in solids if q["key"] == "K2"][0]
-    sv.Box(A(y0), Z(LoDeck + DinRailH), A(k2["box"][3]), Z(LoDeck + MountedH("K2")), fill=ZoneFill["24"],
-           dashed=True, stroke=0.15)
-    sv.Box(A(PsuY0), Z(LoDeck + DinRailH + Clip), A(y0 + 64), Z(LoDeck + MountedH("PSU24")), fill=ZoneFill["110"],
-           dashed=True, stroke=0.15)
-    sv.Box(A(MainsWallY - WallT), Z(LoDeck), A(MainsWallY), Z(LoDeck + WallH), fill=TolRed, stroke=0.1)
-    sv.Box(A(MainsWallY - WallFlange), Z(LoDeck), A(MainsWallY - WallT), Z(LoDeck + WallT), fill=TolRed, stroke=0.1)
-    hy = holes["A"][0][1]
-    sv.Box(A(hy - HeadM4 / 2), Z(LoDeck + WallT), A(hy + HeadM4 / 2), Z(LoDeck + WallT + HeadM4H),
-           fill="#BBBBBB", stroke=0.15)
-    sv.Box(A(hy - 2.0), Z(LoDeck + WallT - 12.0), A(hy + 2.0), Z(LoDeck + WallT), fill="#BBBBBB", stroke=0.15)
-    sv.Box(A(hy - 3.5), Z(-NylocH["M4"]), A(hy + 3.5), Z(0.0), fill="#888888", stroke=0.15)
-    sv.DimV(LoDeck, LoDeck + WallH, A(MainsWallY) * 0 + 64.0, "%s wall" % Mm(WallH), off=1.5)
-    sv.DimH(A(MainsWallY - WallFlange), A(MainsWallY), Z(z0 + 2.0), "%s" % Mm(WallFlange), off=1.0)
-    sh.Text(sv.X(A(y0 + 2)), sv.Y(Z(UpDeck)) - 0.8, "upper plate, %s over the wall" % Mm(WallTopGap), size=1.05)
-    sh.Text(sv.X(A(y0 + 2)), sv.Y(Z(0)) + 2.2, "base plate", size=1.05)
-    sh.Text(sv.X(A(150)), sv.Y(Z(45)) + 0.4, "K2", size=1.1, anchor="middle")
-    sh.Text(sv.X(A(197)), sv.Y(Z(45)) + 0.4, "PSU", size=1.1, anchor="middle")
-    sh.Text(sv.X(A(y0 + 1)), sv.Y(Z(-NylocH["M4"])) + 2.6, "M4 x 12, nyloc below", size=1.05)
-    sh.Text(sv.X(A(160)), sv.Y(Z(92)), "low-voltage side", size=1.05, anchor="middle")
-    sh.Text(sv.X(A(193)), sv.Y(Z(92)), "mains side", size=1.05, anchor="middle")
-    sh.Text(sv.X(A(y0 + 2)), sv.Y(Z(UpDeck)) - 3.0, "seen from the front: wall A and its flange", size=1.05)
-
-    # ------------------------------------------------ notes
-    fits = {j: p2 for j, _, p2 in NutFits()}
-    lug = WallLugHoles()
-    bands, hang = ThroughBoltKeepOut()
-    wa, wb = WallFlatSize("A"), WallFlatSize("B")
-    notes = [
-        ("Material and cut", [
-            "1/16 in 5052-H32 from the offcut of aluminum 2,",
-            "beside the upper plate (sheet 4): flat A %s x %s," % (Mm(round(wa[0], 1)), Mm(round(wa[1], 1))),
-            "B %s x %s. Shear the blanks, nibble the end" % (Mm(round(wb[0], 1)), Mm(round(wb[1], 1))),
-            "tabs and B's corner relief, drill the %s4.5" % Dia,
-            "holes, cut the pass-through, deburr; DXF:",
-            "wall_mains_flat.dxf (layers CUT and BEND)."]),
-        ("Bends", [
-            "90 deg on a brake, inside radius one thickness.",
-            "K %s is assumed: bend deduction %s per bend." % (WallK, Mm(round(WallBD, 2))),
-            "Bend a test strip first and correct WallK if",
-            "its legs come out long or short. Flanges fold",
-            "away from the mains side; B's corner tab folds",
-            "toward it and lies on A's mains face."]),
-        ("Fastening and PE", [
-            "Flanges: %d M4 x 12 into the base plate, nyloc" % (len(holes["A"]) + len(holes["B"])),
-            "below, %s mm past the nut (NutFits). Corner:" % Mm(round(fits["mains wall flange to the base plate"], 1)),
-            "2 M4 x 12 through B's tab and A, heads on the",
-            "mains side. Drill the base plate through the",
-            "flange holes in place. Each piece is its own",
-            "PE part: a ring lug under the flange screw at",
-            "x %s on A and y %s on B, with no part over" % (Mm(lug["A"][0]), Mm(lug["B"][1])),
-            "it, since the lug lifts the head."]),
-        ("Openings", [
-            "End tabs reach between the rings to %s mm from" % Mm(WallTabClear),
-            "the back and right panels; A and B stop %s mm" % Mm(WallEndClear),
-            "short of the rings. B's tab, and a notch in the",
-            "top of B's right end, keep %s mm from the front" % Mm(BracketClear),
-            "right corner brackets and their screw heads,",
-            "taken as %s mm legs (BracketChecks). Measure" % Mm(BracketLeg),
-            "a bracket before cutting B: a 4 mm key must",
-            "reach both screws of the front right post to",
-            "mid ring bracket past B's tab, its post screw",
-            "along x and its rail screw from below; if not,",
-            "lower the tab's top (TabHB) until it does.",
-            "The top stops %s mm under the upper plate." % Mm(WallTopGap),
-            "DC pass-through %s x %s, %s over the deck," % (Mm(PassThrough[0]), Mm(PassThrough[1]),
-                                                        Mm(PassThrough[2])),
-            "centred on the mains duct: PSU V+ and V- out.",
-            "Move it to the PSU's terminal end once that",
-            "face is known. The 110 V door cable leaves by",
-            "an M20 gland in the back panel (u %s), not" % Mm(DoorGland[0]),
-            "through the wall."]),
-        ("Upper plate", [
-            "Drill no DIN rail or duct screw in these bands:",
-            "its nyloc and tail hang %s mm under the plate," % Mm(round(hang, 1)),
-            "and the wall stops %s mm under it." % Mm(WallTopGap)] +
-            ["%s: x %s to %s, y %s to %s" % ((label[5:],) + tuple(Mm(round(v, 1)) for v in (b[0], b[2], b[1], b[3])))
-             for label, b in bands]),
-        ("Fit", [
-            "Before the lower deck's parts: flange screws,",
-            "then B's corner tab to A, then the PE jumpers.",
-            "Check that the upper module drops on clear."]),
-    ]
-    y, nx = 32.0, 285.0
-    for head, lines in notes:
-        sh.Text(nx, y, head, size=1.7, weight="bold")
-        y += 2.3
-        for s2 in lines:
-            sh.Text(nx, y, s2, size=1.35)
-            y += 1.8
-        y += 1.0
-    if y > 184.0:
-        raise ValueError("sheet 5 notes run into the title block (y %.1f)" % y)
-    TitleBlock(sh, 288, 186, 60, 21.5, [
-        "Mains compartment wall",
-        "Sheet 5. Legal, landscape, 100 %.",
-        "Flat patterns and section 1:2, plan 1:5.",
-        "Designed 2026-10-18 (issue #146).",
-        "DXF: wall_mains_flat.dxf.",
     ])
     return sh
 
@@ -4058,8 +3583,6 @@ def BomRows():
         if s["mount"] == "clip":
             clips[s["key"]] = clips.get(s["key"], 0) + 1
     endDeg, sqDeg = CutToolChecks()
-    wallScrews = sum(len(v) for v in WallHoles().values())
-    trim += 2 * (PassThrough[0] - PassThrough[1]) + math.pi * PassThrough[1]
     read = "Price read %s" % ToolDate
     return [
         # ---- frame
@@ -4108,14 +3631,14 @@ def BomRows():
         ("Frame", Amz, LabFirst, "Socket head M4 x 12, 304, 100", "B089M2LTHX",
          "iexcell 100 pcs M4-0.7 x 12 304 stainless socket head cap screws, head 7.00 across, 3.91 tall, "
          "3 mm hex key",
-         dinScrews + ductScrews + wallScrews, "pack of 100", 1, 8.86,
-         "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate; mains wall %d"
-         % (dinScrews, ductScrews, wallScrews),
+         dinScrews + ductScrews, "pack of 100", 1, 8.86,
+         "DIN rails %d, duct %d (one per 150 mm of rail or duct, 2 at least), through the plate"
+         % (dinScrews, ductScrews),
          "In a DIN rail the head stands %s mm over the plate, %s under the rail's top face: check that a "
          "part's foot clears one before fitting the rest. %s"
          % (Mm(DinRailBaseT + HeadM4H), Mm(DinRailH - DinRailBaseT - HeadM4H), read)),
         ("Frame", Amz, LabFirst, "Nylon insert lock nut M4, DIN 985, 304, 120", "B09PF5WCZL",
-         "STORMCUBE 120 pcs M4-0.7 DIN 985 nylon insert lock nuts, 304 (A2-70)", dinScrews + ductScrews + wallScrews,
+         "STORMCUBE 120 pcs M4-0.7 DIN 985 nylon insert lock nuts, 304 (A2-70)", dinScrews + ductScrews,
          "pack of 120", 1, 6.99, "under the plate, on each M4 x 12",
          "M4 x 12 leaves %s mm or more past the nut (NutFits). A nut from lab stock must keep NutFits "
          "passing: DIN 985 is %s mm tall, so if the lab's nuts are taller, set NylocH to their height and "
@@ -4138,7 +3661,7 @@ def BomRows():
          "Shear in the shop; drill and nibble through an acrylic template cut on the laser"),
         ("Plates and panels", Amz, Buy, "Edge trim, 1/16 in U-channel, 10 ft", "B0CQLC4P4S",
          "Rubber U-channel edge trim, fits 0 to 5/64 in edges, 10 ft, black", "%d mm" % round(trim), "10 ft", 1,
-         7.99, "the %d cable slots in the upper plate and the mains wall's DC pass-through" % len(CableSlots), ""),
+         7.99, "the %d cable slots in the upper plate" % len(CableSlots), ""),
         ("Plates and panels", Amz, Buy, "Cast acrylic 1/8 x 18 x 24 in, clear, 4-pack", "B0CZLDGK69",
          "Langaelex 4 cast acrylic sheets 18 x 24 x 1/8 in (3 mm)", "%d sheets" % nSheets, "4-pack", 1, 49.99,
          "%d panels and %d grommet rings on %d sheets (sheet 4, NestPlan)"
@@ -4202,11 +3725,6 @@ def BomRows():
          "BNTECHGO 12 gauge silicone wire, green, 25 ft, fine-stranded tinned copper", "the survey sets it",
          "25 ft roll", 1, 18.98, "carriages: one flexible jumper along each moving cable run",
          "V-wheels and belts isolate a carriage from its rail. " + read),
-        ("Plates and panels", "offcut", NotBought, "Mains compartment wall, 2 pieces", "-",
-         "1/16 in 5052 from aluminum 2's offcut: A %s x %s, B %s x %s, flat"
-         % tuple(Mm(round(x, 1)) for k in "AB" for x in WallFlatSize(k)), 2, "-", 0, None,
-         "closes the 110 VAC compartment on the lower deck (sheet 5)",
-         "Bend allowance assumes K %s: bend a test strip first" % WallK),
         ("Plates and panels", Amz, Buy, "Cable gland M20 x 1.5, 6-12 mm, 10-pack", "B0DJXC78WR",
          "SDTC Tech 10 nylon cord grips M20 x 1.5, IP68, locknut and gasket, 6 to 12 mm cable", 1, "10-pack", 1,
          7.99, "the 110 V door cable out of the back panel (X1 to S1, H1 and the plate PE)",
@@ -4251,10 +3769,9 @@ def BomRows():
         # ---- tools and parts not in this BoM
         ("Tools", "on hand", NotBought, "M5 x 0.8 hand tap", "-", "", 1, "-", 0, None,
          "post ends and every bond hole", ""),
-        ("Tools", "shop", NotBought, "Sheet shear, hand nibbler, files, bending brake", "-", "", "", "-", 0,
-         None, "shear the plates, the back panel and the wall blanks; nibble and file the plate slots, the "
-         "inlet cut-out and the wall's tabs; bend the wall's flanges and corner tab", "Check the shop has them "
-         "before ordering the sheet"),
+        ("Tools", "shop", NotBought, "Sheet shear, hand nibbler, files", "-", "", "", "-", 0, None,
+         "shear the plates and the back panel from the 18 x 24 in sheets; nibble and file the plate slots and "
+         "the inlet cut-out", "Check the shop has them before ordering the sheet"),
         ("Tools", "shop", NotBought, "4.2 mm and 7/32 in (5.56 mm) drills", "-", "", "", "-", 0, None,
          "bond holes (4.2, then tap M5); mid and lid rail holes and upper post sockets (5.56)", ""),
         ("Not in this BoM", "original BoM", NotBought, "Electrical parts", "-",
@@ -4322,8 +3839,7 @@ def Main():
     sheets = [("wiring_schematic_legal.svg", BuildSchematic()),
               ("wiring_din_rails_legal.svg", BuildPanel()),
               ("packing_study_legal.svg", BuildPacking()),
-              ("frame_plates_legal.svg", BuildFrame()),
-              ("mains_wall_legal.svg", BuildWall())]
+              ("frame_plates_legal.svg", BuildFrame())]
     for name, sh in sheets:
         path = os.path.join(outDir, name)
         with open(path, "w", encoding="utf-8", newline="\n") as f:
@@ -4342,12 +3858,6 @@ def Main():
         with open(path, encoding="ascii") as f:
             web, where = CheckWebs(f.read())
         print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
-    path = os.path.join(outDir, "wall_mains_flat.dxf")
-    with open(path, "w", encoding="ascii", newline="\n") as f:
-        f.write(WallDxf())
-    with open(path, encoding="ascii") as f:
-        web, where = CheckWebs(f.read())
-    print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
     for item in PanelOpen():
         print("OPEN, not cut yet:", item)
     path = os.path.join(outDir, "bom_frame.csv")
