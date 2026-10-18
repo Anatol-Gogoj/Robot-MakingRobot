@@ -1,0 +1,545 @@
+{
+ "runs": [
+  {
+   "label": "1 Current hand layout",
+   "arch": "A",
+   "status": "GIVEN",
+   "plan wire": 53228,
+   "rise wire": 4250,
+   "wire": 57478,
+   "heights": {
+    "lower bay": 135.5,
+    "wire room": 35.2,
+    "deck rise": 137.1,
+    "box height for 47 mm wire room": 291.2
+   },
+   "place": {
+    "R110": {
+     "x": 350.5,
+     "y": 153.0,
+     "w": 82.0,
+     "h": 154.5,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 72.5
+    },
+    "PSU": {
+     "x": 236.0,
+     "y": 92.0,
+     "w": 50.0,
+     "h": 215.0,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 132.5
+    },
+    "R24": {
+     "x": 22.950000000000003,
+     "y": 21.0,
+     "w": 85.1,
+     "h": 122.1,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 75.6
+    },
+    "RFB": {
+     "x": 133.1,
+     "y": 20.0,
+     "w": 47.8,
+     "h": 262.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 50.7
+    },
+    "PS6": {
+     "x": 28.0,
+     "y": 250.0,
+     "w": 63.0,
+     "h": 58.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 40.5
+    },
+    "PS5": {
+     "x": 296.0,
+     "y": 24.0,
+     "w": 76.0,
+     "h": 76.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 49.5
+    },
+    "DRV": {
+     "x": 25.0,
+     "y": 22.0,
+     "w": 242.0,
+     "h": 124.4,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 85.5
+    },
+    "SSR": {
+     "x": 265.0,
+     "y": 54.35000000000001,
+     "w": 46.6,
+     "h": 88.1,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 78.4
+    },
+    "LOGIC": {
+     "x": 22.0,
+     "y": 171.1,
+     "w": 211.6,
+     "h": 53.0,
+     "deck": "upper",
+     "zone": "log",
+     "height": 52.5
+    },
+    "FIELD": {
+     "x": 27.0,
+     "y": 252.55,
+     "w": 284.0,
+     "h": 42.5,
+     "deck": "upper",
+     "zone": "log",
+     "height": 42.0
+    },
+    "SHIELD": {
+     "x": 410.0,
+     "y": 22.0,
+     "w": 22.0,
+     "h": 124.0,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 40.0
+    }
+   },
+   "deck": [
+    457.0,
+    330.0
+   ]
+  },
+  {
+   "label": "2 A*: PSU standing, solver",
+   "arch": "A",
+   "status": "OPTIMAL",
+   "plan wire": 28866,
+   "exits": {
+    "UL": [
+     292.0,
+     0.0
+    ],
+    "UF": [
+     0.0,
+     110.0
+    ],
+    "UR": [
+     292.0,
+     330.0
+    ],
+    "LL": [
+     292.0,
+     0.0
+    ],
+    "INLET": [
+     457.0,
+     198.25
+    ]
+   },
+   "rise wire": 4250,
+   "wire": 33117,
+   "bound": 28866,
+   "heights": {
+    "lower bay": 135.5,
+    "wire room": 35.2,
+    "deck rise": 137.1,
+    "box height for 47 mm wire room": 291.2
+   },
+   "place": {
+    "R110": {
+     "x": 342.0,
+     "y": 121.0,
+     "w": 82.0,
+     "h": 154.5,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 72.5
+    },
+    "PSU": {
+     "x": 270.0,
+     "y": 91.0,
+     "w": 50.0,
+     "h": 215.0,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 132.5
+    },
+    "R24": {
+     "x": 101.5,
+     "y": 137.5,
+     "w": 85.0,
+     "h": 122.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 75.6
+    },
+    "RFB": {
+     "x": 204.5,
+     "y": 45.0,
+     "w": 47.5,
+     "h": 262.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 50.7
+    },
+    "PS6": {
+     "x": 338.0,
+     "y": 23.0,
+     "w": 63.0,
+     "h": 58.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 40.5
+    },
+    "PS5": {
+     "x": 110.5,
+     "y": 28.5,
+     "w": 76.0,
+     "h": 76.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 49.5
+    },
+    "DRV": {
+     "x": 23.0,
+     "y": 154.5,
+     "w": 242.0,
+     "h": 124.0,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 85.5
+    },
+    "SSR": {
+     "x": 267.5,
+     "y": 83.5,
+     "w": 88.0,
+     "h": 46.5,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 78.4
+    },
+    "LOGIC": {
+     "x": 38.0,
+     "y": 83.5,
+     "w": 211.5,
+     "h": 53.0,
+     "deck": "upper",
+     "zone": "log",
+     "height": 52.5
+    },
+    "FIELD": {
+     "x": 150.0,
+     "y": 23.0,
+     "w": 284.0,
+     "h": 42.5,
+     "deck": "upper",
+     "zone": "log",
+     "height": 42.0
+    },
+    "SHIELD": {
+     "x": 283.0,
+     "y": 154.5,
+     "w": 22.0,
+     "h": 124.0,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 40.0
+    }
+   },
+   "mains box": [
+    270.0,
+    91.0,
+    424.0,
+    306.0
+   ],
+   "deck": [
+    457.0,
+    330.0
+   ]
+  },
+  {
+   "label": "3 B: PSU flat, solver",
+   "arch": "B",
+   "status": "OPTIMAL",
+   "plan wire": 29304,
+   "exits": {
+    "UL": [
+     292.0,
+     0.0
+    ],
+    "UF": [
+     0.0,
+     110.0
+    ],
+    "UR": [
+     292.0,
+     330.0
+    ],
+    "LL": [
+     292.0,
+     0.0
+    ],
+    "INLET": [
+     457.0,
+     249.5
+    ]
+   },
+   "rise wire": 2486,
+   "wire": 31790,
+   "bound": 29304,
+   "heights": {
+    "lower bay": 78.6,
+    "wire room": 92.1,
+    "deck rise": 80.2,
+    "box height for 47 mm wire room": 234.3
+   },
+   "place": {
+    "R110": {
+     "x": 279.5,
+     "y": 208.5,
+     "w": 154.5,
+     "h": 82.0,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 72.5
+    },
+    "PSU": {
+     "x": 46.5,
+     "y": 192.0,
+     "w": 215.0,
+     "h": 115.0,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 67.5
+    },
+    "R24": {
+     "x": 87.0,
+     "y": 89.0,
+     "w": 122.0,
+     "h": 85.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 75.6
+    },
+    "RFB": {
+     "x": 23.0,
+     "y": 23.5,
+     "w": 262.0,
+     "h": 47.5,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 50.7
+    },
+    "PS6": {
+     "x": 227.0,
+     "y": 89.0,
+     "w": 58.0,
+     "h": 63.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 40.5
+    },
+    "PS5": {
+     "x": 303.0,
+     "y": 23.0,
+     "w": 76.0,
+     "h": 76.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 49.5
+    },
+    "DRV": {
+     "x": 23.0,
+     "y": 154.5,
+     "w": 242.0,
+     "h": 124.0,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 85.5
+    },
+    "SSR": {
+     "x": 267.5,
+     "y": 83.5,
+     "w": 88.0,
+     "h": 46.5,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 78.4
+    },
+    "LOGIC": {
+     "x": 38.0,
+     "y": 83.5,
+     "w": 211.5,
+     "h": 53.0,
+     "deck": "upper",
+     "zone": "log",
+     "height": 52.5
+    },
+    "FIELD": {
+     "x": 150.0,
+     "y": 23.0,
+     "w": 284.0,
+     "h": 42.5,
+     "deck": "upper",
+     "zone": "log",
+     "height": 42.0
+    },
+    "SHIELD": {
+     "x": 283.0,
+     "y": 154.5,
+     "w": 22.0,
+     "h": 124.0,
+     "deck": "upper",
+     "zone": "drv",
+     "height": 40.0
+    }
+   },
+   "mains box": [
+    46.5,
+    192.0,
+    434.0,
+    307.0
+   ],
+   "deck": [
+    457.0,
+    330.0
+   ]
+  },
+  {
+   "label": "4 C: one deck, 680 x 330",
+   "arch": "C",
+   "status": "FEASIBLE",
+   "plan wire": 47513,
+   "rise wire": 0,
+   "wire": 47513,
+   "bound": 19642,
+   "heights": {
+    "lower bay": 88.5,
+    "wire room": 47.0,
+    "deck rise": 0.0,
+    "box height for 47 mm wire room": 154.1
+   },
+   "place": {
+    "R110": {
+     "x": 437.0,
+     "y": 85.5,
+     "w": 82.0,
+     "h": 154.5,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 72.5
+    },
+    "PSU": {
+     "x": 537.0,
+     "y": 87.5,
+     "w": 115.0,
+     "h": 215.0,
+     "deck": "lower",
+     "zone": "mains",
+     "height": 67.5
+    },
+    "R24": {
+     "x": 236.0,
+     "y": 118.0,
+     "w": 85.0,
+     "h": 122.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 75.6
+    },
+    "RFB": {
+     "x": 165.0,
+     "y": 258.0,
+     "w": 262.0,
+     "h": 47.5,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 50.7
+    },
+    "PS6": {
+     "x": 339.0,
+     "y": 85.5,
+     "w": 63.0,
+     "h": 58.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 40.5
+    },
+    "PS5": {
+     "x": 339.0,
+     "y": 161.5,
+     "w": 76.0,
+     "h": 76.0,
+     "deck": "lower",
+     "zone": "dc",
+     "height": 49.5
+    },
+    "DRV": {
+     "x": 23.0,
+     "y": 63.0,
+     "w": 124.0,
+     "h": 242.0,
+     "deck": "lower",
+     "zone": "drv",
+     "height": 85.5
+    },
+    "SSR": {
+     "x": 538.0,
+     "y": 23.0,
+     "w": 88.0,
+     "h": 46.5,
+     "deck": "lower",
+     "zone": "drv",
+     "height": 78.4
+    },
+    "LOGIC": {
+     "x": 165.0,
+     "y": 28.5,
+     "w": 53.0,
+     "h": 211.5,
+     "deck": "lower",
+     "zone": "log",
+     "height": 52.5
+    },
+    "FIELD": {
+     "x": 236.0,
+     "y": 25.0,
+     "w": 284.0,
+     "h": 42.5,
+     "deck": "lower",
+     "zone": "log",
+     "height": 42.0
+    },
+    "SHIELD": {
+     "x": 23.0,
+     "y": 23.0,
+     "w": 124.0,
+     "h": 22.0,
+     "deck": "lower",
+     "zone": "drv",
+     "height": 40.0
+    }
+   },
+   "mains box": [
+    437.0,
+    85.5,
+    652.0,
+    302.5
+   ],
+   "deck": [
+    680,
+    330.0
+   ]
+  }
+ ]
+}

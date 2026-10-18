@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<title>RMR control panel packing study</title>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}
+path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
+.ac{stroke:#CC3311;stroke-width:.6}
+.va{stroke:#0077BB;stroke-width:.5}
+.ve{stroke:#EE3377;stroke-width:.5}
+.zp{stroke:#000;stroke-width:.55}
+.zs{stroke:#33BBEE;stroke-width:.5}
+.pe{stroke:#009988;stroke-width:.45;stroke-dasharray:2.4 .7 .5 .7}
+.lv{stroke:#EE7733;stroke-width:.42}
+.sg{stroke:#000;stroke-width:.22}
+.zl{stroke:#000;stroke-width:.3}
+.cb{stroke:#000;stroke-width:.85}
+.sgc{stroke:#000;stroke-width:.5}
+.mo{stroke:#000;stroke-width:.3}
+.un{stroke-dasharray:1.1 .8}
+.mech{stroke:#000;stroke-width:.2;stroke-dasharray:.8 .6}
+.sym{stroke:#000;stroke-width:.32;fill:none}
+.symf{stroke:#000;stroke-width:.32;fill:#fff}
+.bx{fill:#fff;stroke:#000;stroke-width:.3}
+.bxl{fill:#fff;stroke:#000;stroke-width:.22}
+.frame{fill:none;stroke:#000;stroke-width:.4}
+.zone{fill:none;stroke:#888;stroke-width:.2;stroke-dasharray:1.5 1}
+.rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
+.duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
+.dot{stroke:none}
+</style>
+<rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
+<rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
+<path d="M10 119.29 L140.57 119.29 L140.57 25 L10 25 Z" style="fill:#fff" stroke="#000" stroke-width="0.35"/>
+<rect x="15.71" y="30.71" width="119.14" height="82.86" fill="none" stroke="#000" stroke-width=".2" stroke-dasharray="1.2 .7"/>
+<rect x="10" y="113.57" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="10" y="25" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="134.86" y="113.57" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="134.86" y="25" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="44.29" y="105.74" width="80" height="7.26" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="17.14" y="86.17" width="81.89" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="18.57" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="28.29" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="38" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="47.71" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="57.43" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="67.14" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="76.86" y="77.46" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="87.14" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="88.89" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="90.63" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="92.37" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="94.11" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="95.86" y="78.59" width="1.74" height="25.17" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="127.14" y="77.46" width="6.29" height="35.54" fill="#77AADD" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="17.14" y="72.97" width="101.43" height="3.63" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="17.14" y="57.83" width="60.46" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="18.57" y="55.26" width="28.29" height="15.14" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="16.86" y="60.11" width="1.71" height="5.43" fill="#99DDFF" stroke="#000" stroke-width="0.2"/>
+<rect x="48" y="56.76" width="2.29" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="50.29" y="56.76" width="15.94" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="66.23" y="56.76" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="66.8" y="56.76" width="7.09" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="73.89" y="56.76" width="2.29" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="38.57" y="49.06" width="94.86" height="3.63" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="17.71" y="36.06" width="81.14" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="19.14" y="34.99" width="2.29" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="21.43" y="34.99" width="12.4" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="33.83" y="34.99" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="34.4" y="34.99" width="21.26" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="55.66" y="34.99" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="56.23" y="34.99" width="10.63" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="66.86" y="34.99" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="67.43" y="34.99" width="10.63" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="78.06" y="34.99" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="78.63" y="34.99" width="8.86" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="87.49" y="34.99" width="0.57" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="88.06" y="34.99" width="7.09" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<rect x="95.14" y="34.99" width="2.29" height="12.14" fill="#44BB99" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<path d="M23.29 111.23 L41 111.23 A1.86 1.86 0 0 0 41 107.51 L23.29 107.51 A1.86 1.86 0 0 0 23.29 111.23 Z" style="fill:#fff" stroke="#000" stroke-width="0.35"/>
+<path d="M121.86 76.64 L130.43 76.64 A1.86 1.86 0 0 0 130.43 72.93 L121.86 72.93 A1.86 1.86 0 0 0 121.86 76.64 Z" style="fill:#fff" stroke="#000" stroke-width="0.35"/>
+<path d="M20.43 52.73 L35.29 52.73 A1.86 1.86 0 0 0 35.29 49.01 L20.43 49.01 A1.86 1.86 0 0 0 20.43 52.73 Z" style="fill:#fff" stroke="#000" stroke-width="0.35"/>
+<path class="sg" d="M10 121.89 L140.57 121.89"/>
+<path class="sg" d="M10 120.99 L10 122.79"/>
+<path class="sg" d="M140.57 120.99 L140.57 122.79"/>
+<path class="sg" d="M143.17 119.29 L143.17 25"/>
+<path class="sg" d="M142.27 119.29 L144.07 119.29"/>
+<path class="sg" d="M142.27 25 L144.07 25"/>
+<rect x="150" y="25" width="130.57" height="94.29" fill="#DDDDDD" stroke="#000" stroke-width="0.35"/>
+<rect x="155.71" y="30.71" width="119.14" height="82.86" fill="#fff" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="113.57" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="150" y="25" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="274.86" y="113.57" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="274.86" y="25" width="5.71" height="5.71" fill="#BBBBBB" stroke="#000" stroke-width="0.3"/>
+<rect x="163.71" y="78.4" width="10" height="34.89" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="156.56" y="101.54" width="24.31" height="10.31" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="157.57" y="94.11" width="22.29" height="5.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="157.57" y="86.69" width="22.29" height="5.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="157.57" y="79.83" width="22.29" height="5.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="158" y="31.29" width="18" height="16.57" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="182.47" y="32.14" width="3.63" height="80" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="189.86" y="38.71" width="10" height="74.86" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="188.03" y="68.43" width="13.66" height="43.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="188.03" y="40.14" width="13.66" height="26.57" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="234.57" y="90.71" width="21.71" height="21.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<path d="M274.86 89.57 L232.86 89.57 L232.86 94.14 L214.86 94.14 L214.86 30.71" fill="none" stroke="#CC3311" stroke-width=".9"/>
+<rect x="217.43" y="31.57" width="14.29" height="61.43" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="235.61" y="32.14" width="3.63" height="56.29" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="256.86" y="31.43" width="10" height="44.14" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="255.79" y="65.29" width="12.14" height="8.86" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
+<rect x="250.43" y="59" width="22.86" height="5.14" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="250.14" y="47.54" width="23.43" height="10.31" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
+<rect x="255.79" y="41.09" width="12.14" height="5.31" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
+<rect x="255.79" y="32.86" width="12.14" height="7.09" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="274.86" y="76.43" width="5.71" height="12" fill="#FFAABB" stroke="#000" stroke-width="0.35"/>
+<rect x="10" y="173.88" width="5.71" height="33" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="10" y="133.21" width="5.71" height="34.49" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="10" y="201.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="10" y="168.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="98.57" y="173.88" width="5.71" height="33" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="98.57" y="133.21" width="5.71" height="34.49" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="98.57" y="201.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="98.57" y="168.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="15.71" y="201.16" width="82.86" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="15.71" y="168.16" width="82.86" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="10" y="127.5" width="94.29" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="10" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="98.57" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="10" y="206.88" width="94.29" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="10" y="167.71" width="94.29" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="62" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="36.29" y="201.88" width="61.43" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="36.29" y="169.02" width="61.43" height="32.86" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="16" y="204.73" width="34.89" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="17.43" y="185.27" width="10.31" height="19.46" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="29.46" y="189.59" width="5.71" height="15.14" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="36.89" y="189.59" width="5.71" height="15.14" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="43.74" y="189.59" width="5.71" height="15.14" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="84.71" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="81.43" y="201.88" width="16.57" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="81.43" y="195.3" width="16.57" height="6.57" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="16.29" y="156.82" width="7.26" height="10.89" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="33.11" y="165.56" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="24.4" y="162.71" width="27.43" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="24.4" y="143.28" width="27.43" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="52.69" y="160.45" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="61.46" y="165.56" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="58.89" y="162.71" width="15.14" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="58.89" y="152.71" width="15.14" height="10" fill="#99DDFF" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="76.6" y="160.45" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="83.23" y="165.56" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="82.16" y="155.71" width="12.14" height="9.86" fill="#44BB99" stroke="#000" stroke-width="0.25"/>
+<path class="sg" d="M106.89 206.88 L106.89 168.16"/>
+<path class="sg" d="M105.99 206.88 L107.79 206.88"/>
+<path class="sg" d="M105.99 168.16 L107.79 168.16"/>
+<path class="sg" d="M106.89 167.71 L106.89 133.21"/>
+<path class="sg" d="M105.99 167.71 L107.79 167.71"/>
+<path class="sg" d="M105.99 133.21 L107.79 133.21"/>
+<rect x="150" y="173.88" width="5.71" height="33" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="133.21" width="5.71" height="34.49" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="201.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="168.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="274.86" y="173.88" width="5.71" height="33" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="274.86" y="133.21" width="5.71" height="34.49" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="274.86" y="201.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="274.86" y="168.16" width="5.71" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="155.71" y="201.16" width="119.14" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="155.71" y="168.16" width="119.14" height="5.71" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="150" y="127.5" width="130.57" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="274.86" y="127.5" width="5.71" height="5.71" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="150" y="206.88" width="130.57" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="150" y="167.71" width="130.57" height="0.45" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="217.43" y="204.73" width="14.29" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="217.43" y="201.88" width="14.29" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="217.43" y="169.02" width="14.29" height="32.86" fill="#FFAABB" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="256.86" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="250.14" y="186.16" width="23.43" height="18.57" fill="#FFAABB" stroke="#000" stroke-width="0.25"/>
+<rect x="163.71" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="156.56" y="185.27" width="24.31" height="19.46" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="189.86" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="188.03" y="192.39" width="13.66" height="12.34" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="240.43" y="204.73" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="234.57" y="201.88" width="21.71" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="234.57" y="192.73" width="21.71" height="9.14" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
+<rect x="157.14" y="165.56" width="81.89" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="158.57" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="158.57" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="168.29" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="168.29" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="178" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="178" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="187.71" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="187.71" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="197.43" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="197.43" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="207.14" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="207.14" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="216.86" y="162.71" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
+<rect x="216.86" y="143.28" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="227.14" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="228.89" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="230.63" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="232.37" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="234.11" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="235.86" y="145.31" width="1.74" height="20.26" fill="#99DDFF" stroke="#000" stroke-width="0.25"/>
+<rect x="184.29" y="156.82" width="80" height="10.89" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<rect x="267.14" y="156.28" width="6.29" height="11.43" fill="#77AADD" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
+<path class="sg" d="M283.17 207.33 L283.17 127.5"/>
+<path class="sg" d="M282.27 207.33 L284.07 207.33"/>
+<path class="sg" d="M282.27 127.5 L284.07 127.5"/>
+<rect x="291" y="27.8" width="5" height="2.2" fill="#FFAABB" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="30.8" width="5" height="2.2" fill="#EEDD88" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="33.8" width="5" height="2.2" fill="#77AADD" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="36.8" width="5" height="2.2" fill="#99DDFF" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="39.8" width="5" height="2.2" fill="#44BB99" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="42.8" width="5" height="2.2" fill="#DDDDDD" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="45.8" width="5" height="2.2" fill="#BBCC33" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="48.8" width="5" height="2.2" fill="#555555" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="51.8" width="5" height="2.2" fill="#888888" stroke="#000" stroke-width=".2"/>
+<rect x="291" y="54.8" width="5" height="2.2" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect x="291" y="57.8" width="5" height="2.2" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
+<rect class="bx" x="288" y="186" width="60" height="21.5"/>
+<text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: packing study, 18 x 13 x 11 in</text>
+<text x="8" y="15.4" font-size="2.1">Two decks in a 2020 frame, both on 1/16 in aluminum plates: lower deck for 110 VAC and 24 V power, upper deck for drives and logic; acrylic walls. Scale 1:3.5 when printed at 100 %.</text>
+<text x="10" y="23.4" font-size="2.2" font-weight="bold">A  Upper deck, seen from above</text>
+<text x="140.57" y="23.4" font-size="1.4" text-anchor="end">1/16 in aluminum plate on the mid ring; parts at true size</text>
+<text x="75.29" y="27.6" font-size="1.2" text-anchor="middle">upper posts stand on the plate; mid ring (dashed) under it</text>
+<text x="10.57" y="72.14" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 10.57 72.14)">FRONT</text>
+<text x="140.9" y="72.14" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 140.9 72.14)">BACK</text>
+<text x="75.29" y="119.21" font-size="1.2" text-anchor="middle" font-weight="bold">LEFT SIDE</text>
+<text x="75.29" y="26.47" font-size="1.2" text-anchor="middle" font-weight="bold">RIGHT SIDE</text>
+<text x="133.71" y="117" font-size="1.2" text-anchor="end" font-style="italic">upper plate 457 x 330, part of the upper module</text>
+<text x="84.29" y="109.77" font-size="1.15" text-anchor="middle">duct 1 x 1 1/2 in: motor cables, driver 24 V</text>
+<text x="22.57" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">X</text>
+<text x="22.57" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="32.29" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">Y1</text>
+<text x="32.29" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="42" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">Y2</text>
+<text x="42" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="51.71" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">Z</text>
+<text x="51.71" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="61.43" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">A</text>
+<text x="61.43" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="71.14" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">B</text>
+<text x="71.14" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="80.86" y="90.88" font-size="1.2" text-anchor="middle" font-weight="bold">C</text>
+<text x="80.86" y="92.3" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="88.35" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 88.35 91.17)">SSR-UV</text>
+<text x="90.09" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 90.09 91.17)">SSR-valve</text>
+<text x="91.83" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 91.83 91.17)">tower R</text>
+<text x="93.58" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 93.58 91.17)">tower A</text>
+<text x="95.32" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 95.32 91.17)">tower G</text>
+<text x="97.06" y="91.17" font-size="0.95" text-anchor="middle" font-weight="bold" transform="rotate(-90 97.06 91.17)">buzzer</text>
+<text x="98.46" y="83" font-size="1.1">6 SSRs on</text>
+<text x="98.46" y="84.6" font-size="1.1">the drivers' rail</text>
+<text x="112.86" y="97.29" font-size="1.1" text-anchor="middle" font-style="italic">ODrive: in the</text>
+<text x="112.86" y="98.89" font-size="1.1" text-anchor="middle" font-style="italic">spincoater base</text>
+<text x="130.67" y="95.23" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 130.67 95.23)">shield clamp</text>
+<text x="67.86" y="75.19" font-size="1.15" text-anchor="middle">duct 1/2 x 1 in: driver signals, J11</text>
+<text x="32.71" y="61.75" font-size="1.3" text-anchor="middle" font-weight="bold">Mega 2560</text>
+<text x="32.71" y="63.28" font-size="1.3" text-anchor="middle">99 x 53, parallel</text>
+<text x="32.71" y="64.82" font-size="1.3" text-anchor="middle">+ screw shield</text>
+<text x="16.29" y="59.8" font-size="1" text-anchor="end">USB</text>
+<text x="58.26" y="63.21" font-size="1.1" text-anchor="middle" font-weight="bold">0V-S</text>
+<text x="70.34" y="63.21" font-size="1.1" text-anchor="middle" font-weight="bold">0V-S2</text>
+<text x="95.71" y="63.23" font-size="1.1" text-anchor="middle" font-style="italic">Pi: at the operator panel</text>
+<text x="86" y="51.27" font-size="1.15" text-anchor="middle">duct 1/2 x 1 in: field signals</text>
+<text x="27.63" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X2</text>
+<text x="45.03" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X4</text>
+<text x="61.54" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X5</text>
+<text x="72.74" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X6</text>
+<text x="83.06" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X7</text>
+<text x="91.6" y="41.44" font-size="1.1" text-anchor="middle" font-weight="bold">X8</text>
+<text x="100.86" y="40.41" font-size="1.15">field terminal rail,</text>
+<text x="100.86" y="42.01" font-size="1.15">274 mm incl. end clamps</text>
+<text x="32.14" y="109.82" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">slot 1</text>
+<text x="126.14" y="75.24" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">slot 2</text>
+<text x="27.86" y="51.32" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">slot 3</text>
+<text x="75.29" y="121.39" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">18 in (457 mm)</text>
+<text x="143.77" y="72.14" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 143.77 72.14)">13 in (330 mm)</text>
+<text x="150" y="23.4" font-size="2.2" font-weight="bold">B  Lower deck, upper deck lifted off</text>
+<text x="280.57" y="23.4" font-size="1.4" text-anchor="end">1/16 in aluminum base plate, bonded to PE</text>
+<text x="215.29" y="27.6" font-size="1.2" text-anchor="middle">bottom ring on the base plate</text>
+<text x="150.57" y="72.14" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 150.57 72.14)">FRONT</text>
+<text x="280.9" y="72.14" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 280.9 72.14)">BACK</text>
+<text x="215.29" y="119.21" font-size="1.2" text-anchor="middle" font-weight="bold">LEFT SIDE</text>
+<text x="215.29" y="26.47" font-size="1.2" text-anchor="middle" font-weight="bold">RIGHT SIDE</text>
+<text x="273.71" y="117" font-size="1.2" text-anchor="end" font-style="italic">parts inside the bottom ring, 417 x 290 mm</text>
+<text x="168.71" y="107.14" font-size="1.25" text-anchor="middle" font-weight="bold">K2</text>
+<text x="168.71" y="97.41" font-size="1.25" text-anchor="middle" font-weight="bold">Star S</text>
+<text x="168.71" y="89.98" font-size="1.25" text-anchor="middle" font-weight="bold">0V-P</text>
+<text x="168.71" y="83.12" font-size="1.25" text-anchor="middle" font-weight="bold">0V-P</text>
+<text x="168.71" y="77.71" font-size="1.15" text-anchor="middle">24 V DIN rail</text>
+<text x="167" y="38.62" font-size="1.15" text-anchor="middle" font-weight="bold">Servo PSU</text>
+<text x="167" y="39.97" font-size="1.15" text-anchor="middle">6 V</text>
+<text x="167" y="41.33" font-size="1.15" text-anchor="middle">63 x 58</text>
+<text x="184.69" y="72.14" font-size="1.15" text-anchor="middle" transform="rotate(-90 184.69 72.14)">duct 1/2 x 1 in</text>
+<text x="194.86" y="90.76" font-size="1.35" text-anchor="middle" font-weight="bold">FB2</text>
+<text x="194.86" y="53.9" font-size="1.35" text-anchor="middle" font-weight="bold">FB1</text>
+<text x="245.43" y="100.53" font-size="1.25" text-anchor="middle" font-weight="bold">5 V PSU</text>
+<text x="245.43" y="102.01" font-size="1.25" text-anchor="middle">76 x 76</text>
+<text x="245.43" y="103.48" font-size="1.25" text-anchor="middle">Pi at the panel</text>
+<text x="222.26" y="62.29" font-size="1.15" text-anchor="middle" font-weight="bold" transform="rotate(-90 222.26 62.29)">PSU 24 V 1200 W</text>
+<text x="223.62" y="62.29" font-size="1.15" text-anchor="middle" transform="rotate(-90 223.62 62.29)">on its side</text>
+<text x="224.97" y="62.29" font-size="1.15" text-anchor="middle" transform="rotate(-90 224.97 62.29)">215 x 50 footprint</text>
+<text x="226.33" y="62.29" font-size="1.15" text-anchor="middle" transform="rotate(-90 226.33 62.29)">125 tall with clip</text>
+<text x="227.69" y="62.29" font-size="1.15" text-anchor="middle" transform="rotate(-90 227.69 62.29)">(length assumed)</text>
+<text x="237.83" y="60.29" font-size="1.15" text-anchor="middle" transform="rotate(-90 237.83 60.29)">duct 1/2 x 1 in</text>
+<text x="261.86" y="70.13" font-size="1.2" text-anchor="middle" font-weight="bold">X0</text>
+<text x="261.86" y="61.99" font-size="1.2" text-anchor="middle" font-weight="bold">F0</text>
+<text x="261.86" y="53.12" font-size="1.2" text-anchor="middle" font-weight="bold">K1</text>
+<text x="261.86" y="44.16" font-size="1.2" text-anchor="middle" font-weight="bold">X1</text>
+<text x="261.86" y="36.82" font-size="1.2" text-anchor="middle" font-weight="bold">PE</text>
+<text x="261.86" y="75.69" font-size="1.15" text-anchor="middle">110 V DIN rail</text>
+<text x="256.86" y="83.69" font-size="1.4" text-anchor="middle" font-weight="bold" fill="#CC3311">110 VAC</text>
+<text x="256.86" y="85.49" font-size="1.4" text-anchor="middle" font-weight="bold" fill="#CC3311">compartment</text>
+<text x="281.37" y="82.93" font-size="1.2" text-anchor="middle" transform="rotate(-90 281.37 82.93)">mains in</text>
+<text x="10" y="125.9" font-size="2.2" font-weight="bold">C  End view from the front</text>
+<text x="104.29" y="125.9" font-size="1.4" text-anchor="end">front rails left off; heights, DIN rails dark grey</text>
+<text x="67" y="185.16" font-size="1.2" text-anchor="middle" font-weight="bold">24 V PSU on its side, behind</text>
+<text x="67" y="186.57" font-size="1.2" text-anchor="middle">115 + clip 10 + rail 7.5</text>
+<text x="22.59" y="195.37" font-size="1.05" text-anchor="middle" font-weight="bold">K2</text>
+<text x="32.68" y="197.16" font-size="1.05" text-anchor="middle" font-weight="bold" transform="rotate(-90 32.68 197.16)">Star S</text>
+<text x="40.11" y="197.16" font-size="1.05" text-anchor="middle" font-weight="bold" transform="rotate(-90 40.11 197.16)">0V-P</text>
+<text x="46.97" y="197.16" font-size="1.05" text-anchor="middle" font-weight="bold" transform="rotate(-90 46.97 197.16)">0V-P</text>
+<text x="89.71" y="198.96" font-size="1.05" text-anchor="middle" font-weight="bold">servo PSU</text>
+<text x="38.11" y="152" font-size="1.2" text-anchor="middle" font-weight="bold">TB6600s</text>
+<text x="38.11" y="153.41" font-size="1.2" text-anchor="middle">standing</text>
+<text x="38.11" y="154.83" font-size="1.2" text-anchor="middle">68 + clip 10 + rail 7.5</text>
+<text x="66.46" y="157.43" font-size="1.15" text-anchor="middle" font-weight="bold">Mega</text>
+<text x="66.46" y="158.79" font-size="1.15" text-anchor="middle">35 + 17.5</text>
+<text x="88.23" y="160.37" font-size="1.1" text-anchor="middle" font-weight="bold">UK 2.5 B</text>
+<text x="88.23" y="161.67" font-size="1.1" text-anchor="middle">42 on rail</text>
+<text x="107.49" y="187.52" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 107.49 187.52)">136 mm lower</text>
+<text x="107.49" y="150.46" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 107.49 150.46)">121 mm upper</text>
+<text x="36.29" y="135.33" font-size="1.15" text-anchor="middle">35 mm over the drivers for the top-face wires</text>
+<text x="26" y="171.47" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">mid ring</text>
+<text x="57.14" y="130.81" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke" text-anchor="middle">lid ring: off alone (4 screws) or with the upper module</text>
+<text x="10.57" y="209.73" font-size="1.2" font-weight="bold">LEFT</text>
+<text x="57.14" y="209.73" font-size="1.1" text-anchor="middle">base plate under the frame</text>
+<text x="103.71" y="209.73" font-size="1.2" text-anchor="end" font-weight="bold">RIGHT</text>
+<text x="150" y="125.9" font-size="2.2" font-weight="bold">D  Side view from the left</text>
+<text x="280.57" y="125.9" font-size="1.4" text-anchor="end">left rails left off; parts nearest the left side</text>
+<text x="224.57" y="185.18" font-size="1.1" text-anchor="middle" font-weight="bold">PSU</text>
+<text x="224.57" y="186.48" font-size="1.1" text-anchor="middle">behind</text>
+<text x="261.86" y="195.17" font-size="1.15" text-anchor="middle" font-weight="bold">110 V rail</text>
+<text x="261.86" y="196.53" font-size="1.15" text-anchor="middle">K1 tallest</text>
+<text x="168.71" y="194.73" font-size="1.15" text-anchor="middle" font-weight="bold">K2 in front</text>
+<text x="168.71" y="196.08" font-size="1.15" text-anchor="middle">24 V rail</text>
+<text x="194.86" y="198.96" font-size="1.15" text-anchor="middle" font-weight="bold">FB2</text>
+<text x="245.43" y="197.69" font-size="1.1" text-anchor="middle" font-weight="bold">5 V PSU, front</text>
+<text x="162.57" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">X</text>
+<text x="172.29" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">Y1</text>
+<text x="182" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">Y2</text>
+<text x="191.71" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">Z</text>
+<text x="201.43" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">A</text>
+<text x="211.14" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">B</text>
+<text x="220.86" y="153.52" font-size="1.5" text-anchor="middle" font-weight="bold">C</text>
+<text x="238.17" y="150.96" font-size="1.1">SSRs</text>
+<text x="224.29" y="162.67" font-size="1.15" text-anchor="middle">motor duct, nearest the left side</text>
+<text x="270.64" y="161.99" font-size="1" text-anchor="middle" font-weight="bold" transform="rotate(-90 270.64 161.99)">clamp</text>
+<text x="283.77" y="167.41" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 283.77 167.41)">11 in (279 mm)</text>
+<text x="150.57" y="209.73" font-size="1.2" font-weight="bold">FRONT</text>
+<text x="280" y="209.73" font-size="1.2" text-anchor="end" font-weight="bold">BACK</text>
+<text x="291" y="26" font-size="2.2" font-weight="bold">Zones</text>
+<text x="297.4" y="29.5" font-size="1.5">110 VAC and the PSU</text>
+<text x="297.4" y="32.5" font-size="1.5">24 V distribution and DC-DC</text>
+<text x="297.4" y="35.5" font-size="1.5">drives</text>
+<text x="297.4" y="38.5" font-size="1.5">logic and SSRs</text>
+<text x="297.4" y="41.5" font-size="1.5">field terminals</text>
+<text x="297.4" y="44.5" font-size="1.5">2020 frame (posts darker)</text>
+<text x="297.4" y="47.5" font-size="1.5">lid ring, lifts off</text>
+<text x="297.4" y="50.5" font-size="1.5">1/16 in aluminum plate, edge-on</text>
+<text x="297.4" y="53.5" font-size="1.5">DIN rail, 7.5 tall (elevations)</text>
+<text x="297.4" y="56.5" font-size="1.5">solid outline: measured or datasheet</text>
+<text x="297.4" y="59.5" font-size="1.5">dashed: size assumed, measure</text>
+<text x="291" y="64.1" font-size="1.75" font-weight="bold">Mounting</text>
+<text x="291" y="66.5" font-size="1.45">Every part stands on a 7.5 mm DIN rail; parts</text>
+<text x="291" y="68.45" font-size="1.45">without DIN feet add a printed clip, 10 mm.</text>
+<text x="291" y="70.4" font-size="1.45">TB6600s stand on their 96 x 28 base, ears</text>
+<text x="291" y="72.35" font-size="1.45">88 apart across the rail, fins vertical.</text>
+<text x="291" y="74.3" font-size="1.45">The 24 V PSU stands on the face with the</text>
+<text x="291" y="76.25" font-size="1.45">four holes (200 x 32.5), rail across its</text>
+<text x="291" y="78.2" font-size="1.45">length, as in PSU DIN mount.SLDPRT. The</text>
+<text x="291" y="80.15" font-size="1.45">Mega lies parallel to its rail, so the screw</text>
+<text x="291" y="82.1" font-size="1.45">shield's terminals face both ducts.</text>
+<text x="291" y="85.15" font-size="1.75" font-weight="bold">Height budget (mm)</text>
+<text x="291" y="87.55" font-size="1.45">base plate 1.6, rail 7.5 + clip 10 + PSU 115,</text>
+<text x="291" y="89.5" font-size="1.45">clearance 3, upper plate 1.6, rail 7.5 + clip</text>
+<text x="291" y="91.45" font-size="1.45">10 + drivers 68, wire room 35, lid ring 20 = 279.4.</text>
+<text x="291" y="93.4" font-size="1.45">The base plate lies under the frame, so</text>
+<text x="291" y="95.35" font-size="1.45">the bottom ring costs no height. A taller</text>
+<text x="291" y="97.3" font-size="1.45">PSU moves the mid ring up and shrinks the</text>
+<text x="291" y="99.25" font-size="1.45">wire room (15 left with a 135 mm PSU).</text>
+<text x="291" y="102.3" font-size="1.75" font-weight="bold">Build and access</text>
+<text x="291" y="104.7" font-size="1.45">Two modules, like a platform-framed house.</text>
+<text x="291" y="106.65" font-size="1.45">Lower: base plate, bottom ring and lower</text>
+<text x="291" y="108.6" font-size="1.45">posts; stages 3 and 4 run on it alone.</text>
+<text x="291" y="110.55" font-size="1.45">Upper: mid ring, upper plate, upper posts</text>
+<text x="291" y="112.5" font-size="1.45">and lid ring, built and wired on the bench,</text>
+<text x="291" y="114.45" font-size="1.45">then set on 4 studs in the lower posts that</text>
+<text x="291" y="116.4" font-size="1.45">locate the decks. Inter-deck wires cross on</text>
+<text x="291" y="118.35" font-size="1.45">pluggable terminals. Frame: sheet 4.</text>
+<text x="291" y="121.4" font-size="1.75" font-weight="bold">Heat and cables</text>
+<text x="291" y="123.8" font-size="1.45">6 mm between drivers for air. The PSU fan is</text>
+<text x="291" y="125.75" font-size="1.45">on its top face, 3 mm under the upper plate:</text>
+<text x="291" y="127.7" font-size="1.45">widen that gap to a quarter of the fan</text>
+<text x="291" y="129.65" font-size="1.45">diameter once it is measured, and vent the</text>
+<text x="291" y="131.6" font-size="1.45">lower right panel. Cables leave through four</text>
+<text x="291" y="133.55" font-size="1.45">50 mm grommets: upper left, front and right,</text>
+<text x="291" y="135.5" font-size="1.45">and lower left; mains at the back wall beside</text>
+<text x="291" y="137.45" font-size="1.45">X0. Leaving the box: Mega USB to the Pi, and</text>
+<text x="291" y="139.4" font-size="1.45">J11 plus a fused 24 V feed to the ODrive in</text>
+<text x="291" y="141.35" font-size="1.45">the spincoater base.</text>
+<text x="291" y="144.4" font-size="1.75" font-weight="bold">Sizes: along x across x high (mm)</text>
+<text x="291" y="146.8" font-size="1.45">TB6600 28 x 96 x 68, measured. From the</text>
+<text x="291" y="148.75" font-size="1.45">listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U</text>
+<text x="291" y="150.7" font-size="1.45">36 x 85 x 68; FB1 / FB2 93 / 153 x 48 x 43;</text>
+<text x="291" y="152.65" font-size="1.45">uxcell bar 20 x 78 x 53; SSR 6.1 x 88 x 71</text>
+<text x="291" y="154.6" font-size="1.45">(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;</text>
+<text x="291" y="156.55" font-size="1.45">5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega</text>
+<text x="291" y="158.5" font-size="1.45">99 x 53 (A000067). Assumed (dashed): 24 V PSU</text>
+<text x="291" y="160.45" font-size="1.45">body 215 x 115 x 50, F0, end clamps, PE blocks,</text>
+<text x="291" y="162.4" font-size="1.45">shield clamp, Mega height. Heights add the rail.</text>
+<text x="291" y="165.45" font-size="1.75" font-weight="bold">At true size (2026-10-17)</text>
+<text x="291" y="167.85" font-size="1.45">The six SSR sockets are 88 deep: they sit</text>
+<text x="291" y="169.8" font-size="1.45">on the drivers' rail, not the 65 mm logic row.</text>
+<text x="291" y="171.75" font-size="1.45">Terminals are 6.2 wide, not 5.2: the 0V-S</text>
+<text x="291" y="173.7" font-size="1.45">groups moved beside the Mega (sheet 2, rail</text>
+<text x="291" y="175.65" font-size="1.45">4), so the field rail ends clear of the</text>
+<text x="291" y="177.6" font-size="1.45">upper right grommet. Slot 2 opens into the</text>
+<text x="291" y="179.55" font-size="1.45">110 VAC compartment: DC leads only.</text>
+<text x="290" y="190.6" font-size="3" font-weight="bold">Packing study</text>
+<text x="290" y="194.4" font-size="2">Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.</text>
+<text x="290" y="197.15" font-size="2">Redrawn 2026-10-17 with every part at its</text>
+<text x="290" y="199.9" font-size="2">real size; 1/16 in decks, acrylic walls.</text>
+<text x="290" y="202.65" font-size="2">Frame and plates: sheet 4. Measure dashed sizes.</text>
+</svg>

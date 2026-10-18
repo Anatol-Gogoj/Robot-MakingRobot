@@ -15,6 +15,9 @@ ID | title | status | scope
 0004 | No write passthrough to the ODrive from G-code | Accepted | M75x commands
 0005 | The two HTML pages are the only UIs, and process parameters live in them | Accepted | `RMR_Controller.html`, `RMR_Touch.html`, G-code programs
 0006 | Over Web Serial the Touch UI reconnects by itself and the Controller does not | Accepted | both UIs, serial transport
+0008 | The control box is a 2020 frame in two modules, not off-the-shelf enclosures | Accepted; materials and sourcing superseded by 0009 | `docs/wiring` sheets 3 and 4, plate DXFs, `bom_frame.csv`
+0009 | The control box is built from Amazon parts: shop-cut 6 mm-slot 2020, 1/16 in aluminum decks, acrylic walls, every metal part home-run to PE | Accepted | `docs/wiring` sheets 3 and 4, `bom_frame.csv`
+0010 | The control box layout lays the 24 V PSU flat and follows the CP-SAT packing study | Accepted, on the PSU mounting flat | `docs/wiring` sheets 3 and 4, plate and panel DXFs
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an

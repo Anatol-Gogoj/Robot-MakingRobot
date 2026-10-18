@@ -1,0 +1,13 @@
+{
+ "about": "Layout 3b, the build target of ADR-0010 (2026-10-17): the solver's case 3 (PSU flat, exits free) with the field rail shifted to x 40-324 and two upper-left grommets, so every cable group has a duct path. Centres in mm (x front 0 to back 457, y left 0 to right 330); rot 1 = the block's long side runs along y. Score with layout_study.Score('B', place) after setting Exits to 'exits' and renaming the SHIELD-UL net to SHIELD-ULM. Expected wire: 34892 conductor-mm (hand layout 57478).",
+ "place": {
+  "R110": [356.75, 249.5, 0], "PSU": [154.0, 249.5, 0], "R24": [148.0, 131.5, 0], "RFB": [154.0, 47.25, 0],
+  "PS6": [256.0, 120.5, 1], "PS5": [341.0, 61.0, 0], "FIELD": [182.0, 44.25, 0], "SSR": [311.5, 106.75, 1],
+  "LOGIC": [143.75, 110.0, 0], "DRV": [144.0, 216.5, 0], "SHIELD": [294.0, 216.5, 1]
+ },
+ "exits": {
+  "UL": [182.0, 0.0, "upper"], "ULM": [390.0, 0.0, "upper"], "UF": [0.0, 110.0, "upper"],
+  "UR": [292.0, 330.0, "upper"], "LL": [292.0, 0.0, "lower"], "INLET": [457.0, 249.5, "lower"]
+ },
+ "expected_wire": 34892
+}
