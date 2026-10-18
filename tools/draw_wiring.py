@@ -1685,13 +1685,15 @@ PsuX0 = 46.5                       # front face of the 24 V PSU
 # The mains strip along the right wall: the PSU lies flat with its fan face RingClear from the
 # right ring, toward the vent in the lower right panel; the 110 V rail behind it ends at the back
 # ring, where the inlet is. The 110 VAC compartment is a zone of the lower deck, not a box: it runs
-# from a line 10 mm outside the mains parts (MainsZoneX, MainsZoneY) to the ring, with no wall on
+# from a line MainsGap outside the mains parts (MainsZoneX, MainsZoneY) to the ring, with no wall on
 # that line (the owner's decision of 2026-10-18, ADR-0013; ADR-0012's bent wall is rejected).
-# RunChecks() keeps every low-voltage part and duct outside it and every upper-plate cable slot off
-# it, so nothing low-voltage stands within 10 mm of a mains part.
+# RunChecks() keeps every mains part at least MainsGap inside the line, every low-voltage part and
+# duct outside it, and every upper-plate cable slot off it, so nothing low-voltage on the lower deck
+# stands within MainsGap of a mains part.
 PsuY1 = BoxW - Frame - RingClear
 PsuY0 = PsuY1 - PartSize["PSU24"][1]
-MainsZoneX, MainsZoneY = PsuX0 - 10.0, PsuY0 - 10.0
+MainsGap = 10.0                    # from a mains part to anything low-voltage on the lower deck
+MainsZoneX, MainsZoneY = PsuX0 - MainsGap, PsuY0 - MainsGap
 InletU = (PsuY0 + PsuY1) / 2       # the IEC inlet on the back panel, in line with the 110 V rail
 BackRunX = [u for _, u, _, k in CableEntries if k == "ULM"][0]   # the motor cables' back run
 # Cable passes through the upper plate (x0, y0, x1, y1), 13 wide with round ends, each beside the
@@ -1763,8 +1765,7 @@ def ObroundPts(x0, y0, x1, y1):
 
 def DxfDoc(extent, contours):
     """ASCII DXF R12, millimetres, every entity on layer CUT; extent is the far corner (x, y).
-    A contour is ("poly", [(x, y, bulge)]), a closed POLYLINE, ("circle", x, y, dia), or ("line",
-    x0, y0, x1, y1), a LINE on layer BEND (a fold, not a cut)."""
+    A contour is ("poly", [(x, y, bulge)]), a closed POLYLINE, or ("circle", x, y, dia)."""
     out = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009",
            "9", "$INSUNITS", "70", "4",
            "9", "$EXTMIN", "10", "0.0", "20", "0.0", "30", "0.0",
@@ -1779,10 +1780,6 @@ def DxfDoc(extent, contours):
                 if bulge:
                     out.extend(["42", "%.4f" % bulge])
             out.extend(["0", "SEQEND", "8", "CUT"])
-        elif c[0] == "line":
-            _, x0, y0, x1, y1 = c
-            out.extend(["0", "LINE", "8", "BEND", "10", "%.4f" % x0, "20", "%.4f" % y0, "30", "0.0",
-                        "11", "%.4f" % x1, "21", "%.4f" % y1, "31", "0.0"])
         else:
             _, x, y, d = c
             out.extend(["0", "CIRCLE", "8", "CUT", "10", "%.4f" % x, "20", "%.4f" % y, "30", "0.0",
@@ -2383,13 +2380,13 @@ class View:
         return self.Y0 + (self.BSpan - b) / self.S
 
     def Box(self, a0, b0, a1, b1, fill="#fff", dashed=False, stroke=0.25, lines=(), size=1.4,
-            bold=True, rot=0, color="#000"):
+            bold=True, rot=0):
         sh = self.Sh
         x, y = self.X(a0), self.Y(b1)
         w, h = (a1 - a0) / self.S, (b1 - b0) / self.S
         dash = ' stroke-dasharray="1.2 .7"' if dashed else ""
-        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="%s" stroke-width="%s"%s/>'
-               % (Fmt(x), Fmt(y), Fmt(w), Fmt(h), fill, color, Fmt(stroke), dash))
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width="%s"%s/>'
+               % (Fmt(x), Fmt(y), Fmt(w), Fmt(h), fill, Fmt(stroke), dash))
         if lines:
             cx, cy = x + w / 2, y + h / 2
             lead = size * 1.18
@@ -2647,10 +2644,9 @@ MainsBlocks = ("PSU", "R110")
 
 def DeckSolids():
     """Everything standing on the two decks, as boxes in deck coordinates seen from above:
-    [dict(deck, kind, box (x0, y0, x1, y1), key, label, fill, block, mount, bottom, top, dashed,
-    alongX, mains)]. kind is rail, part, duct or clamp; bottom and top are heights over the deck (a
-    part on a rail or a clip overhangs from the rail's top); block is the packing study's name for the
-    group the box belongs to; mains marks the 110 VAC compartment."""
+    [dict(deck, kind, box (x0, y0, x1, y1), key, label, fill, block, mount, top, dashed, alongX,
+    mains)]. kind is rail, part, duct or clamp; top is the height over the deck; block is the
+    packing study's name for the group the box belongs to; mains marks the 110 VAC compartment."""
     out = []
     for deck, rails in (("upper", UpperRails()), ("lower", LowerRails())):
         for r in rails.values():
@@ -2674,8 +2670,6 @@ def DeckSolids():
     out.append(dict(deck="upper", kind="clamp", box=ClampBox(), key="Clamp", label="shield clamp",
                     fill=ZoneFill["drv"], block="SHIELD", mount="plate", top=MountedH("Clamp"),
                     dashed=not PartSize["Clamp"][3], alongX=False, mains=False))
-    for s in out:
-        s.setdefault("bottom", DinRailH if s["mount"] in ("rail", "clip") else 0.0)
     return out
 
 
@@ -2749,9 +2743,9 @@ def RunChecks():
     """Raise unless every solid stands inside the frame ring (RingClear clear) and under its bay
     (PartClear clear); nothing on a deck overlaps anything but its own rail, or a duct its tees;
     every plate slot lies over free lower deck, clear of everything on the upper plate and off the
-    110 VAC compartment; each PE stud is clear of its deck's parts; the mains parts stand inside the
-    110 VAC compartment and the rest outside it; the motor grommet clears the field rail and the front
-    one is on the Mega's line; and the drawing matches the study (StudyMatch()). Returns the length
+    110 VAC compartment; each PE stud is clear of its deck's parts; the mains parts stand MainsGap inside
+    the 110 VAC compartment's edge and the rest outside it; the motor grommet clears the field rail and
+    the front one is on the Mega's line; and the drawing matches the study (StudyMatch()). Returns the length
     of each rail's run, end clamps included."""
     solids = DeckSolids()
     bays = {"upper": TopIn - UpDeck, "lower": UpPlate0 - LoDeck}
@@ -2773,8 +2767,6 @@ def RunChecks():
         for t in solids[i + 1:]:
             if s["deck"] != t["deck"] or not Hit(s["box"], t["box"]):
                 continue
-            if s["bottom"] >= t["top"] - 1e-6 or t["bottom"] >= s["top"] - 1e-6:
-                continue                       # one passes over the other
             if s["kind"] == t["kind"] == "duct" or ("rail" in (s["kind"], t["kind"]) and s["block"] == t["block"]):
                 continue
             raise ValueError("%s overlaps %s" % (Name(s), Name(t)))
@@ -2793,12 +2785,13 @@ def RunChecks():
             if s["deck"] == deck and x0 - HoleM5 < px < x1 + HoleM5 and y0 - HoleM5 < py < y1 + HoleM5:
                 raise ValueError("the %s PE stud at (%s, %s) is under the %s" % (kind, Mm(px), Mm(py), Name(s)))
     for s in solids:
-        if s["deck"] == "lower" and s["mains"] is not None:
+        if s["deck"] == "lower":
             x0, y0, x1, y1 = s["box"]
-            inside = x0 >= MainsZoneX and y0 >= MainsZoneY
-            outside = x1 <= MainsZoneX or y1 <= MainsZoneY
+            inside = x0 >= MainsZoneX + MainsGap - 1e-6 and y0 >= MainsZoneY + MainsGap - 1e-6
+            outside = x1 <= MainsZoneX + 1e-6 or y1 <= MainsZoneY + 1e-6
             if not (inside if s["mains"] else outside):
-                raise ValueError("%s is on the wrong side of the 110 VAC compartment's edge" % Name(s))
+                raise ValueError("%s is on the wrong side of the 110 VAC compartment's edge, or a mains "
+                                 "part within %s mm of it" % (Name(s), Mm(MainsGap)))
     up = UpperRails()
     for _, u, _, key in CableEntries:
         if key == "ULM" and u - GrommetHole / 2 < up["field"]["a1"] + 5.0:
