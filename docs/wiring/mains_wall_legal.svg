@@ -30,22 +30,22 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 </style>
 <rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
 <rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
-<path d="M27 90.09 L228.04 90.09 L228.04 33 L27 33 L27 42.5 L18 42.5 L18 73.5 L27 73.5 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
+<path d="M27.5 90.09 L228.04 90.09 L228.04 33 L27.5 33 L27.5 42.5 L18 42.5 L18 73.5 L27.5 73.5 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
 <path d="M103.5 77.75 L117 77.75 A3.25 3.25 0 0 0 117 71.25 L103.5 71.25 A3.25 3.25 0 0 0 103.5 77.75 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <circle cx="220.54" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="158.53" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="96.51" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="34.5" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="158.7" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="96.85" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="35" cy="87.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="222.25" cy="62" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="222.25" cy="47.5" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<path class="sg" d="M27 83.8 L228.04 83.8" stroke-dasharray="1.6 .8"/>
+<path class="sg" d="M27.5 83.8 L228.04 83.8" stroke-dasharray="1.6 .8"/>
 <path class="sg" d="M18 90.59 L18 91.69"/>
-<path class="sg" d="M27 90.59 L27 91.69"/>
-<path class="sg" d="M34.5 90.59 L34.5 91.69"/>
-<path class="sg" d="M96.5 90.59 L96.5 91.69"/>
+<path class="sg" d="M27.5 90.59 L27.5 91.69"/>
+<path class="sg" d="M35 90.59 L35 91.69"/>
+<path class="sg" d="M96.85 90.59 L96.85 91.69"/>
 <path class="sg" d="M100.25 90.59 L100.25 91.69"/>
 <path class="sg" d="M120.25 90.59 L120.25 91.69"/>
-<path class="sg" d="M158.55 90.59 L158.55 91.69"/>
+<path class="sg" d="M158.7 90.59 L158.7 91.69"/>
 <path class="sg" d="M220.55 90.59 L220.55 91.69"/>
 <path class="sg" d="M222.25 90.59 L222.25 91.69"/>
 <path class="sg" d="M228.05 90.59 L228.05 91.69"/>
@@ -59,7 +59,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M16.4 47.49 L17.5 47.49"/>
 <path class="sg" d="M16.4 42.49 L17.5 42.49"/>
 <path class="sg" d="M16.4 32.99 L17.5 32.99"/>
-<path d="M29.18 171.09 L90.1 171.09 L90.1 153.25 L99.6 153.25 L99.6 124.75 L90.1 124.75 L90.1 123 L88.35 123 L88.35 114 L18 114 L18 157.5 L29.18 157.5 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
+<path d="M29.18 171.09 L90.1 171.09 L90.1 150.75 L99.6 150.75 L99.6 127.25 L90.1 127.25 L90.1 123 L85.85 123 L85.85 114 L18 114 L18 157.5 L29.18 157.5 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
 <circle cx="34.1" cy="168.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="82.6" cy="168.39" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="22.21" cy="143" r="1.12" fill="#fff" stroke="#000" stroke-width="0.18"/>
@@ -71,17 +71,17 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M29.2 171.59 L29.2 172.69"/>
 <path class="sg" d="M34.1 171.59 L34.1 172.69"/>
 <path class="sg" d="M82.6 171.59 L82.6 172.69"/>
-<path class="sg" d="M88.35 171.59 L88.35 172.69"/>
+<path class="sg" d="M85.85 171.59 L85.85 172.69"/>
 <path class="sg" d="M90.1 171.59 L90.1 172.69"/>
 <path class="sg" d="M99.6 171.59 L99.6 172.69"/>
 <path class="sg" d="M16.4 171.09 L17.5 171.09"/>
 <path class="sg" d="M16.4 168.39 L17.5 168.39"/>
 <path class="sg" d="M16.4 164.8 L17.5 164.8"/>
 <path class="sg" d="M16.4 157.5 L17.5 157.5"/>
-<path class="sg" d="M16.4 153.25 L17.5 153.25"/>
+<path class="sg" d="M16.4 150.75 L17.5 150.75"/>
 <path class="sg" d="M16.4 143 L17.5 143"/>
 <path class="sg" d="M16.4 128.5 L17.5 128.5"/>
-<path class="sg" d="M16.4 124.75 L17.5 124.75"/>
+<path class="sg" d="M16.4 127.25 L17.5 127.25"/>
 <path class="sg" d="M16.4 123 L17.5 123"/>
 <path class="sg" d="M16.4 114 L17.5 114"/>
 <rect x="120" y="113" width="91.4" height="66" fill="#DDDDDD" stroke="#000" stroke-width="0.3"/>
@@ -92,18 +92,18 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="187.18" y="120.9" width="7.22" height="16.4" fill="#FFAABB" stroke="#000" stroke-width="0.12" stroke-dasharray="1.2 .7"/>
 <rect x="195.2" y="121.1" width="3.6" height="16" fill="#FFAABB" stroke="#000" stroke-width="0.12" stroke-dasharray="1.2 .7"/>
 <rect x="199.6" y="124.85" width="6.2" height="8.5" fill="#FFAABB" stroke="#000" stroke-width="0.12" stroke-dasharray="1.2 .7"/>
-<rect x="126.98" y="142.92" width="80.42" height="2.48" fill="#CCCCCC" stroke="#000" stroke-width="0.1"/>
+<rect x="126.98" y="142.92" width="80.22" height="2.48" fill="#CCCCCC" stroke="#000" stroke-width="0.1"/>
 <rect x="124.5" y="117.2" width="2.48" height="25.4" fill="#CCCCCC" stroke="#000" stroke-width="0.1"/>
-<rect x="126.98" y="142.6" width="80.42" height="0.32" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
-<rect x="207.4" y="142.6" width="3.6" height="0.32" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
-<rect x="126.98" y="117.9" width="0.32" height="24.7" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
-<rect x="126.98" y="117.2" width="0.32" height="0.7" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
+<rect x="126.98" y="142.6" width="80.22" height="0.32" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
+<rect x="207.2" y="142.6" width="3.8" height="0.32" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
+<rect x="126.98" y="118.9" width="0.32" height="23.7" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
+<rect x="126.98" y="117.2" width="0.32" height="1.7" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
 <rect x="126.98" y="113.4" width="0.32" height="3.8" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
 <rect x="127.3" y="142.28" width="3.68" height="0.32" fill="#CC3311" stroke="#000" stroke-width="0.1"/>
 <circle cx="129.98" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="154.79" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="179.59" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="204.4" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="154.72" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="179.46" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="204.2" cy="144.32" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="125.58" cy="139.6" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="125.58" cy="120.2" r="0.3" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <rect x="170.1" y="142.6" width="8" height="0.32" fill="#fff" stroke="#000" stroke-width="0.12"/>
@@ -111,11 +111,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <circle cx="186" cy="149" r="0.3" fill="#000" stroke="#000" stroke-width="0.18"/>
 <path class="sg" d="M126.98 179.5 L126.98 180.6"/>
 <path class="sg" d="M129.98 179.5 L129.98 180.6"/>
-<path class="sg" d="M154.78 179.5 L154.78 180.6"/>
+<path class="sg" d="M154.72 179.5 L154.72 180.6"/>
 <path class="sg" d="M170.1 179.5 L170.1 180.6"/>
 <path class="sg" d="M178.1 179.5 L178.1 180.6"/>
-<path class="sg" d="M179.6 179.5 L179.6 180.6"/>
-<path class="sg" d="M204.4 179.5 L204.4 180.6"/>
+<path class="sg" d="M179.46 179.5 L179.46 180.6"/>
+<path class="sg" d="M204.2 179.5 L204.2 180.6"/>
 <path class="sg" d="M207.4 179.5 L207.4 180.6"/>
 <path class="sg" d="M211 179.5 L211 180.6"/>
 <path class="sg" d="M118.4 145.4 L119.5 145.4"/>
@@ -144,14 +144,14 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="8" y="15.4" font-size="2.1">Two pieces of 1/16 in 5052 that close the 110 VAC compartment on the lower deck (sheet 3, view B), cut from the offcut of the upper plate's sheet. Flat patterns and section 1:2, plan 1:5, printed at 100 %. Millimetres.</text>
 <text x="18" y="30.4" font-size="2.2" font-weight="bold">A  Wall A, flat, seen from the mains side</text>
 <text x="228.54" y="30.4" font-size="1.4" text-anchor="end">420.1 x 114.2; along x, mains face at y 182</text>
-<text x="127.52" y="83.1" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke" text-anchor="middle">bend line: flange: 90 deg away from the mains side</text>
+<text x="127.77" y="83.1" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke" text-anchor="middle">bend line: flange: 90 deg away from the mains side</text>
 <text x="18.39" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 18.39 92)">0</text>
-<text x="27.39" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 27.39 92)">18</text>
-<text x="34.88" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 34.88 92)">33</text>
-<text x="96.89" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 96.89 92)">157</text>
+<text x="27.89" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 27.89 92)">19</text>
+<text x="35.38" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 35.38 92)">34</text>
+<text x="97.23" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 97.23 92)">157.7</text>
 <text x="100.64" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 100.64 92)">164.5</text>
 <text x="120.64" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 120.64 92)">204.5</text>
-<text x="158.94" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 158.94 92)">281.1</text>
+<text x="159.08" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 159.08 92)">281.4</text>
 <text x="220.94" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 220.94 92)">405.1</text>
 <text x="222.63" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 222.63 92)">408.5</text>
 <text x="228.44" y="92" font-size="1.1" text-anchor="end" transform="rotate(-90 228.44 92)">420.1</text>
@@ -167,8 +167,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="16.1" y="33.38" font-size="1.1" text-anchor="end">114.2</text>
 <text x="110.25" y="70.1" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">DC pass-through,</text>
 <text x="110.25" y="71.7" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">edge trim</text>
-<text x="21" y="58.49" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle" transform="rotate(-90 21 58.49)">tab to the</text>
-<text x="24" y="58.49" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle" transform="rotate(-90 24 58.49)">back panel</text>
+<text x="21.17" y="58.49" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle" transform="rotate(-90 21.17 58.49)">tab to the</text>
+<text x="24.33" y="58.49" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle" transform="rotate(-90 24.33 58.49)">back panel</text>
 <text x="223.04" y="40.09" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="end">front end: B's corner tab screws on here</text>
 <text x="18" y="111.4" font-size="2.2" font-weight="bold">B  Wall B, flat, mains side</text>
 <text x="100.09" y="111.4" font-size="1.4" text-anchor="end">163.2 x 114.2; along y</text>
@@ -179,17 +179,17 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="29.59" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 29.59 173)">22.4</text>
 <text x="34.48" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 34.48 173)">32.2</text>
 <text x="82.98" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 82.98 173)">129.2</text>
-<text x="88.73" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 88.73 173)">140.7</text>
+<text x="86.23" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 86.23 173)">135.7</text>
 <text x="90.48" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 90.48 173)">144.2</text>
 <text x="99.98" y="173" font-size="1.1" text-anchor="end" transform="rotate(-90 99.98 173)">163.2</text>
 <text x="16.1" y="171.48" font-size="1.1" text-anchor="end">0</text>
 <text x="16.1" y="168.78" font-size="1.1" text-anchor="end">5.4</text>
 <text x="16.1" y="165.18" font-size="1.1" text-anchor="end">12.6</text>
 <text x="16.1" y="157.88" font-size="1.1" text-anchor="end">27.2</text>
-<text x="16.1" y="153.63" font-size="1.1" text-anchor="end">35.7</text>
+<text x="16.1" y="151.13" font-size="1.1" text-anchor="end">40.7</text>
 <text x="16.1" y="143.38" font-size="1.1" text-anchor="end">56.2</text>
 <text x="16.1" y="128.88" font-size="1.1" text-anchor="end">85.2</text>
-<text x="16.1" y="125.13" font-size="1.1" text-anchor="end">92.7</text>
+<text x="16.1" y="127.63" font-size="1.1" text-anchor="end">87.7</text>
 <text x="16.1" y="123.38" font-size="1.1" text-anchor="end">96.2</text>
 <text x="16.1" y="114.38" font-size="1.1" text-anchor="end">114.2</text>
 <text x="94" y="139.5" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle" transform="rotate(-90 94 139.5)">tab to the right panel</text>
@@ -203,11 +203,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="212.2" y="138.4" font-size="1" text-anchor="middle" transform="rotate(-90 212.2 138.4)">door gland</text>
 <text x="127.37" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 127.37 180.9)">34.9</text>
 <text x="130.36" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 130.36 180.9)">49.9</text>
-<text x="155.16" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 155.16 180.9)">173.9</text>
+<text x="155.1" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 155.1 180.9)">173.6</text>
 <text x="170.48" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 170.48 180.9)">250.5</text>
 <text x="178.48" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 178.48 180.9)">290.5</text>
-<text x="179.98" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 179.98 180.9)">298</text>
-<text x="204.78" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 204.78 180.9)">422</text>
+<text x="179.84" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 179.84 180.9)">297.3</text>
+<text x="204.58" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 204.58 180.9)">421</text>
 <text x="207.78" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 207.78 180.9)">437</text>
 <text x="211.38" y="180.9" font-size="1.1" text-anchor="end" transform="rotate(-90 211.38 180.9)">455</text>
 <text x="118.1" y="145.78" font-size="1.1" text-anchor="end">168</text>
@@ -253,25 +253,30 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="285" y="75.1" font-size="1.35">it, since the lug lifts the head.</text>
 <text x="285" y="77.9" font-size="1.7" font-weight="bold">Openings</text>
 <text x="285" y="80.2" font-size="1.35">End tabs reach between the rings to 2 mm from</text>
-<text x="285" y="82" font-size="1.35">the back and right panels. B's tab, and a notch</text>
-<text x="285" y="83.8" font-size="1.35">in the top of B's right end, keep 1 mm from the</text>
-<text x="285" y="85.6" font-size="1.35">front right corner brackets (BracketChecks).</text>
-<text x="285" y="87.4" font-size="1.35">The top stops 3 mm under the upper plate.</text>
-<text x="285" y="89.2" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
-<text x="285" y="91" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
-<text x="285" y="92.8" font-size="1.35">Move it to the PSU's terminal end once that</text>
-<text x="285" y="94.6" font-size="1.35">face is known. The 110 V door cable leaves by</text>
-<text x="285" y="96.4" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
-<text x="285" y="98.2" font-size="1.35">through the wall.</text>
-<text x="285" y="101" font-size="1.7" font-weight="bold">Upper plate</text>
-<text x="285" y="103.3" font-size="1.35">Drill no DIN rail or duct screw within 4.8 mm</text>
-<text x="285" y="105.1" font-size="1.35">of the wall's top edge: A at y 180.4 to 182,</text>
-<text x="285" y="106.9" font-size="1.35">B at x 34.9 to 36.5. Its nyloc and tail hang</text>
-<text x="285" y="108.7" font-size="1.35">9.4 mm; the wall stops 3 under the plate.</text>
-<text x="285" y="111.5" font-size="1.7" font-weight="bold">Fit</text>
-<text x="285" y="113.8" font-size="1.35">Before the lower deck's parts: flange screws,</text>
-<text x="285" y="115.6" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
-<text x="285" y="117.4" font-size="1.35">Check that the upper module drops on clear.</text>
+<text x="285" y="82" font-size="1.35">the back and right panels; A and B stop 1 mm</text>
+<text x="285" y="83.8" font-size="1.35">short of the rings. B's tab, and a notch in the</text>
+<text x="285" y="85.6" font-size="1.35">top of B's right end, keep 1 mm from the front</text>
+<text x="285" y="87.4" font-size="1.35">right corner brackets and their screw heads,</text>
+<text x="285" y="89.2" font-size="1.35">taken as 20 mm legs (BracketChecks): measure</text>
+<text x="285" y="91" font-size="1.35">a bracket before cutting B.</text>
+<text x="285" y="92.8" font-size="1.35">The top stops 3 mm under the upper plate.</text>
+<text x="285" y="94.6" font-size="1.35">DC pass-through 40 x 13, 20 over the deck,</text>
+<text x="285" y="96.4" font-size="1.35">centred on the mains duct: PSU V+ and V- out.</text>
+<text x="285" y="98.2" font-size="1.35">Move it to the PSU's terminal end once that</text>
+<text x="285" y="100" font-size="1.35">face is known. The 110 V door cable leaves by</text>
+<text x="285" y="101.8" font-size="1.35">an M20 gland in the back panel (u 205), not</text>
+<text x="285" y="103.6" font-size="1.35">through the wall.</text>
+<text x="285" y="106.4" font-size="1.7" font-weight="bold">Upper plate</text>
+<text x="285" y="108.7" font-size="1.35">Drill no DIN rail or duct screw in these bands:</text>
+<text x="285" y="110.5" font-size="1.35">its nyloc and tail hang 9.4 mm under the plate,</text>
+<text x="285" y="112.3" font-size="1.35">and the wall stops 3 mm under it.</text>
+<text x="285" y="114.1" font-size="1.35">A: x 29.9 to 441, y 175.4 to 187</text>
+<text x="285" y="115.9" font-size="1.35">B: x 29.9 to 41.5, y 177 to 305.5</text>
+<text x="285" y="117.7" font-size="1.35">B corner tab: x 31.5 to 60, y 177 to 188.6</text>
+<text x="285" y="120.5" font-size="1.7" font-weight="bold">Fit</text>
+<text x="285" y="122.8" font-size="1.35">Before the lower deck's parts: flange screws,</text>
+<text x="285" y="124.6" font-size="1.35">then B's corner tab to A, then the PE jumpers.</text>
+<text x="285" y="126.4" font-size="1.35">Check that the upper module drops on clear.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Mains compartment wall</text>
 <text x="290" y="194.4" font-size="2">Sheet 5. Legal, landscape, 100 %.</text>
 <text x="290" y="197.15" font-size="2">Flat patterns and section 1:2, plan 1:5.</text>
