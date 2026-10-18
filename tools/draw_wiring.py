@@ -14,6 +14,7 @@ Usage: python tools/draw_wiring.py [out_dir]   (default docs/wiring)
 
 import csv
 import io
+import json
 import math
 import os
 import sys
@@ -1454,27 +1455,101 @@ BracketFill = "#888888"
 # two decks to each other.
 # Materials (ADR-0009): both decks are 1/16 in 5052-H32, sheared and drilled in the shop through
 # a template cut on the laser. The base plate is the floor of the 110 VAC compartment, and the
-# upper plate is its ceiling, 3 mm over the 1200 W PSU, so neither is plastic. Only the side and
-# top panels are acrylic: 1/8 in cast, which Langaelex lists as 3 mm.
+# upper plate is its ceiling, so neither is plastic. Only the side and top panels are acrylic:
+# 1/8 in cast, which Langaelex lists as 3 mm.
 BasePlateT = 1.5875                # 1/16 in 5052-H32 aluminum
 UpPlateT = 1.5875                  # the same sheet stock
 PanelT = 3.0                       # 1/8 in cast acrylic side and top panels
 # Every part stands on a 35 mm top-hat DIN rail screwed to its deck. EN 60715 makes that rail 7.5 or
 # 15 mm tall; the five 16 in rails on hand measure 7.5 (owner, 2026-10-17). Parts without
 # DIN feet (TB6600s, the PSUs, the Mega) sit on a printed clip that adds Clip over the rail's top
-# face (the 2026-10-15 assumption; measure the printed PSU DIN mount).
+# face (the 2026-10-15 assumption; measure the first printed clip).
 DinRailH = 7.5
 Clip = 10.0
-PsuH = DinRailH + Clip + 115.0     # 24 V PSU standing on its hole face; the 115 is assumed
-PsuGap = 3.0                       # PSU top to the underside of the upper plate
-DrvH = DinRailH + Clip + 68.0      # TB6600 standing on its 96 x 28 base
+PartClear = 3.0                    # from the top of a part to the plate or ring over it
+RingClear = 3.0                    # from a rail end or a part to the inside of the frame ring
+
+# Part sizes in mm: (along its DIN rail, across it, listed height, sourced, mount). A sourced size
+# is measured or read from a datasheet or a listing's dimension drawing (listings read 2026-10-17)
+# and is drawn solid; an assumed size is drawn dashed. The parts are the ones the 2026-10-06 panel
+# reference names as delivered. Mount: "rail" stands on the rail's top face, so MountedH() adds
+# DinRailH (conservative for parts whose feet hook under the flanges); "clip" adds the rail and
+# a printed clip; "incl" already includes the rail (Phoenix gives UK 2,5 heights on NS 35/7,5);
+# "plate" stands on the deck itself.
+PartSize = {
+    "TB6600": (28.0, 96.0, 68.0, True, "clip"),  # measured 96 x 68 x 28
+    "SSR": (6.1, 88.1, 70.9, True, "rail"),      # LClCTC SSR-41FDD on its 41F-1Z socket, B0D95FQVL6
+                                                 # drawing: 0.24 x 3.47 x 2.79 in
+    "K1": (36.1, 82.0, 65.0, True, "rail"),      # BAOMAIN HC1-63, B01J1RFZSY: 1.42 x 3.23 x 2.56 in
+    "K2": (36.1, 85.1, 68.1, True, "rail"),      # BAOMAIN BMC7-25U, B0F9YJLLNB: 1.42 x 3.35 x 2.68 in
+    "FB1": (93.0, 47.8, 43.2, True, "rail"),     # OONO 6-way, B08PT3PXSB drawing
+    "FB2": (153.0, 47.8, 43.2, True, "rail"),    # OONO 12-way, B08PT47SFD drawing
+    "Bar": (20.0, 78.0, 53.0, True, "rail"),     # uxcell 1 in 9 out, B07XB8DY7Z: 78 x 53 x 20
+    "Term": (6.2, 42.5, 42.0, True, "incl"),     # UK 2.5 B (GUETNEU kit B0GYRMR3W9); Phoenix UK 2,5 B
+                                                 # per Conrad: 42.5 x 6.2 x 42
+    "PETerm": (6.2, 42.5, 42.0, False, "incl"),  # the kit's USLKG2.5 ground blocks, not measured
+    "Cover": (2.0, 42.5, 42.0, False, "incl"),   # end cover between terminal groups
+    "Stop": (8.0, 42.5, 42.0, False, "incl"),    # end clamp
+    "F0": (18.0, 80.0, 60.0, False, "rail"),     # 5 x 20 mm DIN fuse holder, not chosen yet
+    "Mega": (99.0, 53.0, 35.0, False, "clip"),   # A000067 board, lying along its rail on a DIN carrier
+                                                 # with the screw shield; the 35 is assumed
+    "PSU24": (215.0, 115.0, 50.0, False, "clip"),  # 24 V 1200 W lying flat on a 215 x 115 face
+                                                 # (ADR-0010); its size is assumed
+    "PSU6": (58.0, 63.0, 23.0, True, "clip"),    # servo PSU 63 x 58 x 23, the 63 across its rail
+    "PSU5": (76.0, 76.0, 32.0, True, "clip"),    # 5 V PSU 76 x 76 x 32
+    "Clamp": (22.0, 124.0, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed
+}
+
+
+def MountedH(key):
+    """Height of a part above its deck, rail and clip included."""
+    h, mount = PartSize[key][2], PartSize[key][4]
+    return h + {"rail": DinRailH, "clip": DinRailH + Clip, "incl": 0.0, "plate": 0.0}[mount]
+
+
+# Cable entries (owner, 2026-10-17): desk grommets in place of cable glands, large enough to pass a
+# USB-B plug, with a slit rubber base: ZLTASYRY 4-pack (B0DYZP4256). Its listing, read on BomDate,
+# gives a 2 in (50 mm) hole and 2.36 in overall; its drawing gives the sleeve 1.97 in across and
+# the grommet 0.83 in tall with its flange, so about 16 mm of sleeve stands inside a 3 mm wall. A
+# 3 mm wall grips the sleeve poorly: a ring cut from the acrylic offcut is pressed onto the sleeve
+# behind the wall. Caliper one grommet before cutting; the hole and the ring bore follow it.
+GrommetHole = 50.0
+GrommetFlange = 2.36 * 25.4
+GrommetSleeve = 1.97 * 25.4
+RingOD, RingGrip = 64.0, 0.2       # ring bore = sleeve - RingGrip, a press fit: cut one ring first
+GrommetsInPack = 4
+ButtonHeadM5 = 9.5                 # ISO 7380 M5 button head across: each flange clears the screws
+EntryEdge = 1.0                    # from a ring's edge to the rail behind the panel
+RingName = "Grommet ring"
+# One grommet per entry, halfway up its panel's window: (panel, u of the centre, what leaves there,
+# the packing study's name for the exit). The owner chose the walls; the study (layout 3b, ADR-0010)
+# moved each along its wall: upper left at the middle of the field rail and in the back corridor
+# past its end, where the motor cables' back run ends (RunChecks); upper front on the Mega's centre
+# line; upper right behind the shield clamp; lower left between the fuse rail's end and the 5 V PSU.
+CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
+                ("Upper side, left", 390.0, "most motor cables", "ULM"),
+                ("Upper front", 110.0, "Mega USB, J11", "UF"),
+                ("Upper side, right", 292.0, "one motor cable, the tower", "UR"),
+                ("Lower side, left", 292.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
+
+# The lower bay, from the deck to the underside of the upper plate, is the larger of two needs: the
+# tallest lower part plus PartClear, which with the PSU lying flat (ADR-0010) is K2's 78.6; and,
+# when a lower wall has a cable entry, a window between the bottom ring and the mid ring that holds
+# its grommet ring EntryEdge clear of both rails, 66 tall, so a 106 bay. At 78.6 that window is 38.6
+# tall: no 50 mm grommet fits a lower wall, and the flat PSU's 50 mm fan face sits partly behind the
+# rings. ADR-0011 records the change from ADR-0010's 78.6.
+LowerKeys = ("K1", "K2", "FB1", "FB2", "Bar", "Term", "PETerm", "F0", "PSU24", "PSU6", "PSU5")
+LowBayParts = max(MountedH(k) for k in LowerKeys) + PartClear
+LowBayEntry = (RingOD + 2 * EntryEdge + 2 * Frame
+               if any(p.startswith("Lower") for p, _, _, _ in CableEntries) else 0.0)
+LowBay = max(LowBayParts, LowBayEntry)
+DrvH = MountedH("TB6600")          # TB6600 standing on its 96 x 28 base, on rail and clip
 LoDeck = BasePlateT                # lower deck floor: top of the base plate
-UpPlate0 = LoDeck + PsuH + PsuGap  # underside of the upper plate = top of the mid ring
+UpPlate0 = LoDeck + LowBay         # underside of the upper plate = top of the mid ring
 UpDeck = UpPlate0 + UpPlateT       # upper deck floor
 MidF0 = UpPlate0 - Frame           # underside of the mid ring
 TopIn = BoxH - Frame               # underside of the lid ring = upper post tops
-LowPostL = MidF0 - LoDeck          # the lower posts set the mid ring height (PsuBodyToPost)
-PsuBodyToPost = LowPostL - 115.0   # lower post length minus the PSU body height
+LowPostL = MidF0 - LoDeck          # the lower posts set the mid ring height
 UpPostL = TopIn - UpDeck
 RingLong, RingShort = BoxD - 2 * Frame, BoxW - 2 * Frame
 StudL, StudLow = 50.0, 12.0        # M5 x 50 rod (45 is not stocked); thread in a lower post top
@@ -1544,36 +1619,58 @@ def PlateSag(eMpa, nu, t):
     return alpha * q * a ** 4 / d
 PostCentres = [(Frame / 2, Frame / 2), (Frame / 2, BoxW - Frame / 2),
                (BoxD - Frame / 2, Frame / 2), (BoxD - Frame / 2, BoxW - Frame / 2)]
-# Upper deck rows across the width (y), 3 mm apart: slotted wire duct 1 in wide for the motor
+# Layout 3b (ADR-0010): the packing study's arrangement, with the field rail shifted and two upper
+# left grommets so that every cable group has a duct path. Upper deck rows across the width (y),
+# from the left wall: the field rail, the logic rail (Mega and 0V-S) and the drivers, with an 18 mm
+# channel between rows (the study's 9 mm wiring channel on each side) and a 1/2 in duct in each
+# channel, then the motor duct RowGap behind the drivers. Slotted wire duct 1 in wide for the motor
 # cables (McMaster 7578K14, 1 1/2 in tall), 1/2 in wide for the signal runs (7578K114, 1 in tall).
 DuctWide, DuctNarrow, RowGap = 25.4, 12.7, 3.0
+DuctTall = {DuctWide: 38.1, DuctNarrow: 25.4}
+Chan = 18.0
+DriveAxes = ["X", "Y1", "Y2", "Z", "A", "B", "C"]
 
 
 def UpDeckRows():
-    rows, y = {}, 22.0
-    for name, w in [("motor duct", DuctWide), ("drivers", 96.0), ("signal duct", DuctNarrow),
-                    ("logic", 65.0), ("field duct", DuctNarrow), ("terminals", 50.0)]:
+    """{row: (y0, y1)} on the upper deck."""
+    rows, y = {}, Frame + RingClear
+    for name, w, after in [("terminals", PartSize["Term"][1], Chan), ("logic", PartSize["Mega"][1], Chan),
+                           ("drivers", PartSize["TB6600"][1], RowGap), ("motor duct", DuctWide, 0.0)]:
         rows[name] = (y, y + w)
-        y += w + RowGap
+        y += w + after
+    for duct, a, b in (("field duct", "terminals", "logic"), ("signal duct", "logic", "drivers")):
+        c = (rows[a][1] + rows[b][0]) / 2
+        rows[duct] = (c - DuctNarrow / 2, c + DuctNarrow / 2)
     return rows
 
 
 UpRows = UpDeckRows()
-DrvX = [30.0 + 34.0 * i for i in range(7)]   # TB6600 left edges along x, 28 wide (sheet 3, top vents)
-
-
-def SlotIn(row, x0, x1, w=13.0):
-    """A cable pass 13 wide, centred on a duct row, at the duct's open end."""
-    c = sum(UpRows[row]) / 2
-    return (x0, c - w / 2, x1, c + w / 2)
-
-
-# Cable passes through the upper plate (x0, y0, x1, y1). A duct's base is solid, so each pass
-# sits just beyond the open end of its duct. Slot 2 lies over the 110 VAC compartment.
-CableSlots = [SlotIn("motor duct", 40.0, 115.0), SlotIn("signal duct", 385.0, 428.0),
-              SlotIn("field duct", 30.0, 95.0)]
-# PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()).
-PeStud = {"base": (341.0, 290.0), "upper": (425.0, 300.0)}
+DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left edges along x, 28 wide
+# What the study placed freely (tools/layout_study/layout3b_build.json); everything else follows
+# from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
+FieldRail0 = 40.0                  # front end of the field terminal rail
+LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
+R24Rail0 = 87.0                    # front end of the 24 V rail: K2, Star S, the 0V-P bars
+PsuX0 = 46.5                       # front face of the 24 V PSU
+# The mains strip along the right wall: the PSU lies flat with its fan face RingClear from the
+# right ring, toward the vent in the lower right panel; the 110 V rail behind it ends at the back
+# ring, where the inlet is. The compartment wall runs 10 mm outside the mains parts.
+PsuY1 = BoxW - Frame - RingClear
+PsuY0 = PsuY1 - PartSize["PSU24"][1]
+MainsWallX, MainsWallY = PsuX0 - 10.0, PsuY0 - 10.0
+InletU = (PsuY0 + PsuY1) / 2       # the IEC inlet on the back panel, in line with the 110 V rail
+BackRunX = [u for _, u, _, k in CableEntries if k == "ULM"][0]   # the motor cables' back run
+# Cable passes through the upper plate (x0, y0, x1, y1), 13 wide with round ends, each beside the
+# open end of its duct (a duct's base is solid) and over a free channel of the lower deck, and none
+# over the 110 VAC compartment (RunChecks()): 1 rises between the drivers' rail end and the shield
+# clamp to the 24 V duct, 2 behind the SSR rail, 3 in front of the Mega, beside X2 and K2.
+CableSlots = [(267.5, 156.0, 280.5, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0, 90.0, 36.0, 106.0)]
+SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V",
+           "X2, the E-stop latch, pin 43 sense"]
+# PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
+# plate's stands outside the 110 VAC compartment, behind the 5 V PSU; the upper plate's behind the
+# motor cables' back run.
+PeStud = {"base": (330.0, 165.0), "upper": (425.0, 300.0)}
 HoleRing, HoleM5 = 4.5, 5.5        # clearance: M4 into the ring T-nuts; M5 into posts, PE studs
 Dia = "\u00d8"
 
@@ -1716,8 +1813,7 @@ def EnclosurePanels():
 
 
 SheetW, SheetH = 609.6, 457.2      # 24 x 18 in: the acrylic and the aluminum sheets
-NestGap = 3.0                      # between parts and from the sheet edge (4 no longer fits the
-                                   # 117 mm lower panels under the 330 mm top on one sheet)
+NestGap = 4.0                      # between parts and from the sheet edge
 # The owner's laser (2026-10-17): 813 x 457 mm. A 24 x 18 in sheet goes in with its 24 in side along
 # the 813 mm axis; PanelNest() checks that every part also lies inside the cutting area.
 LaserBed = (813.0, 457.0)
@@ -1727,7 +1823,8 @@ def NestPlan():
     """The 1/8 in acrylic panels on 24 x 18 in sheets, and the two deck plates (the lower back
     panel beside the base plate) on the aluminum sheets: {sheet: [(panel name, x, y, w, h)]}. Hand-placed; PanelNest()
     proves every placement fits and that each acrylic panel is placed as often as it is used.
-    The grommet rings, one per cable entry, take the offcut of acrylic 2."""
+    The grommet rings, one per cable entry, take the offcut of acrylic 2, two abreast beside the
+    upper side panels."""
     g = NestGap
     return {
         "acrylic 1": [("Top, on the lid ring", g, g, BoxD, BoxW),
@@ -1735,8 +1832,8 @@ def NestPlan():
                       ("Lower front", 2 * g + BoxD, g, LowerPanelH, BoxW)],
         "acrylic 2": [("Upper side, left", g, g, BoxD, UpperPanelH),
                       ("Upper side, right", g, 2 * g + UpperPanelH, BoxD, UpperPanelH)]
-                     + [(RingName, g + k * (RingOD + g), 3 * g + 2 * UpperPanelH, RingOD, RingOD)
-                        for k in range(len(CableEntries))],
+                     + [(RingName, 2 * g + BoxD + (k % 2) * (RingOD + g), g + (k // 2) * (RingOD + g),
+                         RingOD, RingOD) for k in range(len(CableEntries))],
         "acrylic 3": [("Upper front", g, g, UpperPanelH, BoxW),
                       ("Upper back", 2 * g + UpperPanelH, g, UpperPanelH, BoxW),
                       ("Lower side, right", g, 2 * g + BoxW, BoxD, LowerPanelH)],
@@ -1788,36 +1885,13 @@ LidAccess = 10.0
 # Vent slots: 4 wide on an 8 mm pitch, so a 4 mm web, kept 4 in from what they serve. 4 mm is
 # narrower than the 12 mm test finger of IEC 60529 code 2.
 VentW, VentPitch, VentInset = 4.0, 8.0, 4.0
-# Cable entries (owner, 2026-10-17): desk grommets in place of cable glands, large enough to pass a
-# USB-B plug, with a slit rubber base: ZLTASYRY 4-pack (B0DYZP4256). Its listing, read on BomDate,
-# gives a 2 in (50 mm) hole and 2.36 in overall; its drawing gives the sleeve 1.97 in across and
-# the grommet 0.83 in tall with its flange, so about 16 mm of sleeve stands inside a 3 mm wall. A
-# 3 mm wall grips the sleeve poorly: a ring cut from the acrylic offcut is pressed onto the sleeve
-# behind the wall. Caliper one grommet before cutting; the hole and the ring bore follow it.
-GrommetHole = 50.0
-GrommetFlange = 2.36 * 25.4
-GrommetSleeve = 1.97 * 25.4
-RingOD, RingGrip = 64.0, 0.2       # ring bore = sleeve - RingGrip, a press fit: cut one ring first
-GrommetsInPack = 4
-ButtonHeadM5 = 9.5                 # ISO 7380 M5 button head across: each flange clears the screws
-EntryEdge = 1.0                    # from a ring's edge to the rail behind the panel
-RingName = "Grommet ring"
-# One grommet per entry, halfway up its panel's window: (panel, u of the centre, what leaves there).
-# The owner chose the walls. The u values keep the sleeve and the cables clear of the parts inside
-# (sheet 3, views A and B): upper left at the motor duct's open front end (x 120); upper front in
-# line with the Mega; upper right past the end of the field terminal rail (RunChecks); lower left
-# between FB2 and the 5 V PSU, ahead of the 110 VAC compartment. The lower front takes none: the
-# 24 V rail stands 4 mm behind the front rail.
-CableEntries = [("Upper side, left", 70.0, "most motor cables, the field cables"),
-                ("Upper front", UpRows["logic"][0] + 26.5, "Mega USB, J11"),
-                ("Upper side, right", 395.0, "one motor cable, the tower"),
-                ("Lower side, left", 260.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop")]
-# The 24 V PSU's fan is on its top face (owner, 2026-10-17), under the upper plate. That gap lies
-# behind the mid ring, so the PSU vent goes in the lower right side panel, the outer wall of the
-# 110 VAC compartment nearest the PSU: full-height slots from the PSU's front face toward the 110 V
-# rail (sheet 3, view B: the PSU at x 236 to 286, the rail from x 350), as many as match the fan's
-# area, pi d^2 / 4.
-PsuVentPanel, PsuVentSpan = "Lower side, right", (236.0, 350.0)
+# The cable entries and their grommets are defined with the frame stack, which sizes the lower bay
+# to the lower grommet (GrommetHole, RingOD, CableEntries).
+# The 24 V PSU lies flat with its fan on the 215 x 50 face toward the right wall (ADR-0010), RingClear
+# from the right ring, so the vent goes in the lower right side panel, the outer wall of the 110 VAC
+# compartment: full-height slots from the PSU's front face along its length, as many as match the
+# fan's area, pi d^2 / 4. Where along that face the fan sits is still to be read off the PSU.
+PsuVentPanel, PsuVentSpan = "Lower side, right", (PsuX0, PsuX0 + PartSize["PSU24"][0])
 # PLACEHOLDERS, for the owner to supply. Nothing is cut while one is None, and PanelOpen() lists it
 # on sheet 4 and on the console.
 PsuFanD = None                     # the PSU fan's diameter
@@ -1827,9 +1901,9 @@ PsuFanD = None                     # the PSU fan's diameter
 MainsCuts = {"IEC inlet with switch": None}
 Q0Cut = None                       # only if the inlet's switch is not 2-pole; the same form
 # The back panel's own PE stud (BondPoints), inside the 110 VAC compartment's span of the back
-# wall: sheet 3, view B, draws the compartment wall at y 104.
+# wall, which runs from the mains parts' left side (PsuY0) to the right ring.
 BackPeStud = (290.0, LoDeck + Frame + 12.0)
-MainsSpan = (104.0, BoxW - Frame)
+MainsSpan = (PsuY0, BoxW - Frame)
 
 
 def PanelSpec(name):
@@ -1903,7 +1977,7 @@ def PsuVent():
 def GrommetAt():
     """[(panel, u, v, cables)]: each cable entry halfway up its panel's window."""
     out = []
-    for panel, u, cables in CableEntries:
+    for panel, u, cables, _ in CableEntries:
         _, w1, _, w3 = PanelWindow(panel)
         out.append((panel, u, (w1 + w3) / 2, cables))
     return out
@@ -1948,9 +2022,9 @@ def PanelGeom(name):
 
 
 def PanelChecks():
-    """Raise unless each panel has its screw count; every vent slot lies in its window; the pack
-    holds the grommets, each ring lies in its panel's window (EntryEdge clear of the rails), each
-    flange clears the panel's screw heads, and one ring is nested per grommet; the mains cut-outs
+    """Raise unless each panel has its screw count; every vent slot lies in its window; each
+    grommet ring lies in its panel's window (EntryEdge clear of the rails), each flange clears the
+    panel's screw heads, and one ring is nested per grommet; the mains cut-outs
     and the PE stud lie in the back panel's 110 VAC window; the templates fit. Returns the number
     of grommets."""
     for name, _, _, _, _, n in EnclosurePanels():
@@ -1961,8 +2035,6 @@ def PanelChecks():
         if u0 < w0 + VentInset or v0 < w1 or u1 > w2 - VentInset or v1 > w3:
             raise ValueError("top vent at u %s runs over the lid ring" % Mm(u0))
     entries = GrommetAt()
-    if len(entries) > GrommetsInPack:
-        raise ValueError("%d cable entries, the pack has %d grommets" % (len(entries), GrommetsInPack))
     rings = sum(1 for parts in NestPlan().values() for p in parts if p[0] == RingName)
     if rings != len(entries):
         raise ValueError("%d grommet rings nested for %d entries" % (rings, len(entries)))
@@ -2218,16 +2290,17 @@ JumperM = 0.5                      # average run: Manhattan from the part to its
 
 def BondPoints():
     """(module, part, count, landing) for every separate metal part of the box."""
+    rails = {d: sum(1 for s in DeckSolids() if s["kind"] == "rail" and s["deck"] == d) for d in ("lower", "upper")}
     return [("lower", "lower post", 4, "tapped bond hole, ring lug"),
             ("lower", "bottom ring rail", 4, "tapped bond hole, ring lug"),
-            ("lower", "DIN rail: 110 V and 24 V", 2, "its PE terminal"),
+            ("lower", "DIN rail: fuses, 24 V, 110 V, three PSUs", rails["lower"], "its PE terminal"),
             ("lower", "aluminum lower back panel", 1, "M5 stud, ring lug"),
             ("lower", "PE bar on rail 1 (inlet PE, PSU FG)", 1, "bar to bar"),
             ("lower", "link to the upper module", 1, "unclamp to lift the module"),
             ("upper", "mid ring rail", 4, "tapped bond hole, ring lug"),
             ("upper", "upper post", 4, "tapped bond hole, ring lug"),
             ("upper", "lid ring rail", 4, "tapped bond hole, ring lug"),
-            ("upper", "DIN rail: drivers, logic, field", 3, "its PE terminal"),
+            ("upper", "DIN rail: field, logic, SSRs, drivers", rails["upper"], "its PE terminal"),
             ("upper", "TB6600 case", 7, "ring lug and tooth washer under an ear screw"),
             ("upper", "motor shield clamp", 1, "ring lug"),
             ("upper", "link to the lower module", 1, "unclamp to lift the module"),
@@ -2362,8 +2435,7 @@ def PlanFrame(v, deckLabel, upper=False):
     sh.Text(v.X(BoxD / 2), v.Y(2) + 0.5, "LEFT SIDE", size=1.2, anchor="middle", weight="bold")
     sh.Text(v.X(BoxD / 2), v.Y(BoxW - 2) + 0.9, "RIGHT SIDE", size=1.2, anchor="middle",
             weight="bold")
-    sh.Text(v.X(BoxD - Frame - 4), v.Y(Frame / 2 - 2), deckLabel, size=1.2, anchor="end",
-            italic=True)
+    sh.Text(v.X(Frame + 4), v.Y(Frame / 2 - 2), deckLabel, size=1.2, italic=True)
 
 
 def SectionFrame(v, span):
@@ -2386,38 +2458,7 @@ def SectionFrame(v, span):
 
 # ---------------------------------------------------------------- sheet 3: parts at their real sizes
 
-# Part sizes in mm: (along its DIN rail, across it, listed height, sourced, mount). A sourced size
-# is measured or read from a datasheet or a listing's dimension drawing (listings read 2026-10-17)
-# and is drawn solid; an assumed size is drawn dashed. The parts are the ones the 2026-10-06 panel
-# reference names as delivered. Mount: "rail" stands on the rail's top face, so MountedH() adds
-# DinRailH (conservative for parts whose feet hook under the flanges); "clip" adds the rail and
-# a printed clip; "incl" already includes the rail (Phoenix gives UK 2,5 heights on NS 35/7,5).
-PartSize = {
-    "TB6600": (28.0, 96.0, 68.0, True, "clip"),  # measured 96 x 68 x 28
-    "SSR": (6.1, 88.1, 70.9, True, "rail"),      # LClCTC SSR-41FDD on its 41F-1Z socket, B0D95FQVL6
-                                                 # drawing: 0.24 x 3.47 x 2.79 in
-    "K1": (36.1, 82.0, 65.0, True, "rail"),      # BAOMAIN HC1-63, B01J1RFZSY: 1.42 x 3.23 x 2.56 in
-    "K2": (36.1, 85.1, 68.1, True, "rail"),      # BAOMAIN BMC7-25U, B0F9YJLLNB: 1.42 x 3.35 x 2.68 in
-    "FB1": (93.0, 47.8, 43.2, True, "rail"),     # OONO 6-way, B08PT3PXSB drawing
-    "FB2": (153.0, 47.8, 43.2, True, "rail"),    # OONO 12-way, B08PT47SFD drawing
-    "Bar": (20.0, 78.0, 53.0, True, "rail"),     # uxcell 1 in 9 out, B07XB8DY7Z: 78 x 53 x 20
-    "Term": (6.2, 42.5, 42.0, True, "incl"),     # UK 2.5 B (GUETNEU kit B0GYRMR3W9); Phoenix UK 2,5 B
-                                                 # per Conrad: 42.5 x 6.2 x 42
-    "PETerm": (6.2, 42.5, 42.0, False, "incl"),  # the kit's USLKG2.5 ground blocks, not measured
-    "Cover": (2.0, 42.5, 42.0, False, "incl"),   # end cover between terminal groups
-    "Stop": (8.0, 42.5, 42.0, False, "incl"),    # end clamp
-    "F0": (18.0, 80.0, 60.0, False, "rail"),     # 5 x 20 mm DIN fuse holder, not chosen yet
-}
-SsrStart = 270.0                   # first SSR on the drivers' rail, 8 mm past the C driver
-MegaH = DinRailH + Clip + 35.0     # Mega on its DIN carrier with the screw shield; 35 assumed
-PsuServoH, Psu5VH = DinRailH + Clip + 23.0, DinRailH + Clip + 32.0
-
-
-def MountedH(key):
-    """Height of a part above its deck, rail included."""
-    h, mount = PartSize[key][2], PartSize[key][4]
-    return h + {"rail": DinRailH, "clip": DinRailH + Clip, "incl": 0.0}[mount]
-
+# PartSize and MountedH() sit with the frame stack, which takes the lower bay from them.
 
 def RailRun(start, items):
     """Parts in a row along a DIN rail from `start`. An item is a gap in mm or (part key, label,
@@ -2434,94 +2475,323 @@ def RailRun(start, items):
     return out, a
 
 
-def TerminalRun(start, groups):
-    """A terminal rail: end clamp, groups of UK 2.5 B blocks with an end cover between, end clamp."""
-    items = [("Stop", "")]
+def TerminalRun(start, groups, lead=()):
+    """A terminal rail: the `lead` items (parts or gaps), an end clamp, groups of UK 2.5 B blocks
+    with an end cover between, end clamp."""
+    items = list(lead) + [("Stop", "")]
     for i, (label, n) in enumerate(groups):
         items += ([("Cover", "")] if i else []) + [("Term", label, n)]
     return RailRun(start, items + [("Stop", "")])
 
 
+def DinRun(alongX, centre, runEnd, block, fill, ext=5.0):
+    """A DIN rail with its parts, along x or along y, centred across at `centre`. The rail reaches
+    ext past each end of the run (none under a PSU, which sits on its clip); block is the packing
+    study's name for the group."""
+    run, end = runEnd
+    return dict(alongX=alongX, centre=centre, run=run, a0=run[0][2] - ext, a1=end + ext, block=block,
+                fill=fill)
+
+
 def UpperRails():
-    """{rail: (centre y, run)} on the upper deck; every upper rail runs along x."""
-    yc = lambda row: sum(UpRows[row]) / 2
+    """{rail: DinRun()} on the upper deck: the field, logic and drivers' rails along x, and the SSR
+    rail along y, one channel past the logic rail's end."""
+    def Row(r):
+        return sum(UpRows[r]) / 2
+    drv = []
+    for i, ax in enumerate(DriveAxes):
+        drv += ([6.0] if i else []) + [("TB6600", ax)]
+    logic = DinRun(True, Row("logic"), TerminalRun(LogicRail0 + 5.0, [("0V-S", 9), ("0V-S2", 4)],
+                                                   lead=[("Mega", "Mega 2560"), 4.0]),
+                   "LOGIC", ZoneFill["fld"])
     ssr = [("SSR", s) for s in ("SSR-UV", "SSR-valve", "tower R", "tower A", "tower G", "buzzer")]
     return {
-        "drivers": (yc("drivers"), RailRun(SsrStart, ssr)),
-        "logic": (yc("logic"), TerminalRun(133.0, [("0V-S", 9), ("0V-S2", 4)])),
-        "field": (yc("terminals"), TerminalRun(32.0, [("X2", 7), ("X4", 12), ("X5", 6), ("X6", 6),
-                                                      ("X7", 5), ("X8", 4)])),
+        "field": DinRun(True, Row("terminals"),
+                        TerminalRun(FieldRail0 + 5.0, [("X2", 7), ("X4", 12), ("X5", 6), ("X6", 6),
+                                                       ("X7", 5), ("X8", 4)]), "FIELD", ZoneFill["fld"]),
+        "logic": logic,
+        "SSR": DinRun(False, logic["a1"] + Chan + PartSize["SSR"][1] / 2,
+                      RailRun(UpRows["logic"][0] + 5.0, ssr), "SSR", ZoneFill["log"]),
+        "drivers": DinRun(True, Row("drivers"), RailRun(DrvX[0], drv), "DRV", ZoneFill["drv"]),
     }
 
 
 def LowerRails():
-    """{rail: (centre x, run)} on the lower deck; every lower rail runs along y."""
+    """{rail: DinRun()} on the lower deck, every rail along x: the fuse rail along the left wall,
+    the 24 V rail one channel behind it with the servo PSU one channel past its end, the 5 V PSU one
+    channel past the fuse rail's end, and the mains strip along the right wall: the 24 V PSU lying
+    flat, then one channel behind it the 110 V rail, X0 at its back end by the inlet."""
+    x0 = y0 = Frame + RingClear
+    fuses = DinRun(True, y0 + PartSize["FB2"][1] / 2,
+                   RailRun(x0 + 5.0, [("FB2", "FB2"), 6.0, ("FB1", "FB1")]), "RFB", ZoneFill["24"])
+    yK = y0 + PartSize["FB2"][1] + Chan
+    k2 = DinRun(True, yK + PartSize["K2"][1] / 2,
+                RailRun(R24Rail0 + 5.0, [("K2", "K2"), 6.0, ("Bar", "Star S"), 6.0, ("Bar", "0V-P"), 4.0,
+                                         ("Bar", "0V-P")]), "R24", ZoneFill["24"])
+    mains = [("PETerm", "PE", 4), 4.0, ("Term", "X1", 3), 4.0, ("K1", "K1"), 4.0, ("F0", "F0"), 4.0,
+             ("Term", "X0", 5)]
+    yM = (PsuY0 + PsuY1) / 2
     return {
-        "24 V": (65.5, RailRun(26.0, [("K2", "K2"), 6.0, ("Bar", "Star S"), 6.0, ("Bar", "0V-P"), 4.0,
-                                      ("Bar", "0V-P")])),
-        "fuses": (157.0, RailRun(25.0, [("FB2", "FB2"), 6.0, ("FB1", "FB1")])),
-        "110 V": (391.5, RailRun(158.0, [("Term", "X0", 5), 4.0, ("F0", "F0"), 4.0, ("K1", "K1"), 4.0,
-                                         ("Term", "X1", 3), 4.0, ("PETerm", "PE", 4)])),
+        "fuses": fuses,
+        "24 V": k2,
+        "servo PSU": DinRun(True, yK + PartSize["PSU6"][1] / 2,
+                            RailRun(k2["a1"] + Chan, [("PSU6", "servo PSU")]), "PS6", ZoneFill["24"], 0.0),
+        "5 V PSU": DinRun(True, y0 + PartSize["PSU5"][1] / 2,
+                          RailRun(fuses["a1"] + Chan, [("PSU5", "5 V PSU")]), "PS5", ZoneFill["24"], 0.0),
+        "24 V PSU": DinRun(True, yM, RailRun(PsuX0, [("PSU24", "24 V PSU")]), "PSU", ZoneFill["110"], 0.0),
+        "110 V": DinRun(True, yM, RailRun(BoxD - Frame - RingClear - 5.0 - RailRun(0.0, mains)[1], mains),
+                        "R110", ZoneFill["110"]),
     }
 
 
-def DrawRail(v, alongX, centre, a0, a1):
-    """A 35 mm DIN rail under a run, 5 mm past each end."""
-    if alongX:
-        v.Box(a0 - 5, centre - 17.5, a1 + 5, centre + 17.5, fill="#EEEEEE", stroke=0.15)
-    else:
-        v.Box(centre - 17.5, a0 - 5, centre + 17.5, a1 + 5, fill="#EEEEEE", stroke=0.15)
+def ClampBox():
+    """The motor cable shield clamp bar: one channel past the drivers' rail, along the drivers and
+    their motor duct."""
+    x0, y0 = UpperRails()["drivers"]["a1"] + Chan, UpRows["drivers"][0]
+    return (x0, y0, x0 + PartSize["Clamp"][0], y0 + PartSize["Clamp"][1])
 
 
-def DrawRun(v, alongX, centre, run, fill, size=1.1):
-    """Each part of a run as its real footprint; groups of terminals as one block."""
-    for key, label, a0, a1 in run:
-        across, sourced = PartSize[key][1], PartSize[key][3]
-        b0, b1 = centre - across / 2, centre + across / 2
-        narrow = (a1 - a0) < 14
-        lines = [label] if label else []
-        if alongX:
-            v.Box(a0, b0, a1, b1, fill=fill, dashed=not sourced, lines=lines, size=size,
-                  rot=-90 if narrow else 0)
-        else:
-            v.Box(b0, a0, b1, a1, fill=fill, dashed=not sourced, lines=lines, size=size,
-                  rot=0 if narrow else 0)
+def Ducts():
+    """[(deck, (x0, y0, x1, y1), width, label, in the mains compartment)]: the slotted duct runs,
+    which meet in tees. Upper deck: a narrow duct in each channel, one joining them between the logic
+    rail's end and the SSRs, and one taking the driver 24 V from slot 1 to the motor duct; the motor
+    duct behind the drivers to the shield clamp, on past it, and the back run, which carries the
+    motor cables across the corridor behind every rail to the upper left grommet. Lower deck: one
+    between the fuse rail and the 24 V rail, and one in the mains compartment between the PSU and
+    the 110 V rail."""
+    up, lo = UpperRails(), LowerRails()
+    n, w = DuctNarrow / 2, DuctWide / 2
+    fd, sd, md = UpRows["field duct"], UpRows["signal duct"], UpRows["motor duct"]
+    drv0, drv1 = up["drivers"]["a0"], up["drivers"]["a1"]
+    clamp = ClampBox()
+    ssrX = (up["logic"]["a1"] + up["SSR"]["centre"] - PartSize["SSR"][1] / 2) / 2
+    feedX = (drv1 + clamp[0]) / 2
+    back0, back1 = BackRunX - w, BackRunX + w
+    lowY = (lo["fuses"]["centre"] + PartSize["FB2"][1] / 2 + lo["24 V"]["centre"] - PartSize["K2"][1] / 2) / 2
+    mainsX = (PsuX0 + PartSize["PSU24"][0] + lo["110 V"]["a0"]) / 2
+    return [
+        ("upper", (FieldRail0, fd[0], back0, fd[1]), DuctNarrow, "duct 1/2 x 1 in: field signals, SSR outputs",
+         False),
+        ("upper", (drv0, sd[0], drv1, sd[1]), DuctNarrow, "duct 1/2 x 1 in: driver signals", False),
+        ("upper", (ssrX - n, fd[1], ssrX + n, sd[0]), DuctNarrow, "SSR inputs", False),
+        ("upper", (feedX - n, CableSlots[0][3] + 2.0, feedX + n, md[0]), DuctNarrow, "24 V feeds", False),
+        ("upper", (drv0, md[0], clamp[0], md[1]), DuctWide, "duct 1 x 1 1/2 in: motor cables, driver 24 V",
+         False),
+        ("upper", (clamp[2], md[0], back0, md[1]), DuctWide, "motor cables", False),
+        ("upper", (back0, Frame + RingClear, back1, md[1]), DuctWide,
+         "duct 1 x 1 1/2 in: back run, motor cables to the upper left grommet", False),
+        ("lower", (Frame + RingClear, lowY - n, lo["fuses"]["a1"], lowY + n), DuctNarrow,
+         "duct 1/2 x 1 in: 24 V feeds and 0V returns", False),
+        ("lower", (mainsX - n, PsuY0, mainsX + n, PsuY1), DuctNarrow, "duct 1/2 x 1 in: mains", True),
+    ]
+
+
+RailPlanFill = "#EEEEEE"
+KeyFill = {"Mega": ZoneFill["log"]}
+MainsBlocks = ("PSU", "R110")
+
+
+def DeckSolids():
+    """Everything standing on the two decks, as boxes in deck coordinates seen from above:
+    [dict(deck, kind, box (x0, y0, x1, y1), key, label, fill, block, mount, top, dashed, alongX,
+    mains)]. kind is rail, part, duct or clamp; top is the height over the deck; block is the
+    packing study's name for the group the box belongs to; mains marks the 110 VAC compartment."""
+    out = []
+    for deck, rails in (("upper", UpperRails()), ("lower", LowerRails())):
+        for r in rails.values():
+            c, ax, mains = r["centre"], r["alongX"], r["block"] in MainsBlocks
+
+            def Box(a0, a1, half):
+                return (a0, c - half, a1, c + half) if ax else (c - half, a0, c + half, a1)
+
+            out.append(dict(deck=deck, kind="rail", box=Box(r["a0"], r["a1"], 17.5), key=None, label="",
+                            fill=RailPlanFill, block=r["block"], mount="plate", top=DinRailH,
+                            dashed=False, alongX=ax, mains=mains))
+            for key, label, a0, a1 in r["run"]:
+                out.append(dict(deck=deck, kind="part", box=Box(a0, a1, PartSize[key][1] / 2), key=key,
+                                label=label, fill=KeyFill.get(key, r["fill"]), block=r["block"],
+                                mount=PartSize[key][4], top=MountedH(key), dashed=not PartSize[key][3],
+                                alongX=ax, mains=mains))
+    for deck, box, w, label, mains in Ducts():
+        out.append(dict(deck=deck, kind="duct", box=box, key=None, label=label, fill="#fff", block=None,
+                        mount="plate", top=DuctTall[w], dashed=True,
+                        alongX=box[2] - box[0] >= box[3] - box[1], mains=mains))
+    out.append(dict(deck="upper", kind="clamp", box=ClampBox(), key="Clamp", label="shield clamp",
+                    fill=ZoneFill["drv"], block="SHIELD", mount="plate", top=MountedH("Clamp"),
+                    dashed=not PartSize["Clamp"][3], alongX=False, mains=False))
+    return out
+
+
+# The packing study (ADR-0010) scored layout 3b from block centres. StudyMatch() holds the drawing to
+# that file, so moving a rail here without rescoring it fails loudly; StudyScore() rescores the
+# layout as drawn with layout_study.Score(), which needs no solver.
+StudyFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "layout_study", "layout3b_build.json")
+HandWire = 57478                   # the 2026-10-17 hand layout, results_2026-10-17.json
+
+
+def StudyBlocks():
+    """{block: (cx, cy, rot)}: the drawn layout in the study's terms (layout_study.Blocks), each rail
+    with its parts and the driver block with its motor duct; rot 1 where the study turned the block
+    so that its length runs along y."""
+    ext = {}
+    for s in DeckSolids():
+        if s["block"]:
+            e = ext.setdefault(s["block"], list(s["box"]))
+            e[:] = [min(e[0], s["box"][0]), min(e[1], s["box"][1]), max(e[2], s["box"][2]),
+                    max(e[3], s["box"][3])]
+    ext["DRV"][3] = UpRows["motor duct"][1]
+    rot = {"SSR": 1, "PS6": 1, "SHIELD": 1}
+    return {b: ((e[0] + e[2]) / 2, (e[1] + e[3]) / 2, rot.get(b, 0)) for b, e in ext.items()}
+
+
+def StudyExits():
+    """{exit: (x, y, deck)} of the cable entries and the inlet, in the form of layout_study.Exits."""
+    at = {"left": lambda u: (u, 0.0), "right": lambda u: (u, BoxW), "front": lambda u: (0.0, u),
+          "back": lambda u: (BoxD, u)}
+    out = {}
+    for panel, u, _, key in CableEntries:
+        wall, z0 = PanelWall[panel]
+        out[key] = at[wall](u) + ("lower" if z0 == 0.0 else "upper",)
+    out["INLET"] = (BoxD, InletU, "lower")
+    return out
+
+
+def StudyMatch(tol=1.0):
+    """Raise unless every block centre lies within tol of layout3b_build.json, turned as there, and
+    every exit sits where the file puts it. Returns the file's expected wire length."""
+    with open(StudyFile, encoding="utf-8") as f:
+        study = json.load(f)
+    drawn, exits = StudyBlocks(), StudyExits()
+    if set(drawn) != set(study["place"]) or set(exits) != set(study["exits"]):
+        raise ValueError("the drawn blocks or exits differ from %s" % os.path.basename(StudyFile))
+    for b, (cx, cy, rot) in study["place"].items():
+        x, y, r = drawn[b]
+        if math.hypot(x - cx, y - cy) > tol or r != rot:
+            raise ValueError("block %s is drawn at (%.1f, %.1f), the study has (%.1f, %.1f): rescore it "
+                             "with layout_study.Score() and update the file" % (b, x, y, cx, cy))
+    for e, (x, y, deck) in study["exits"].items():
+        if math.hypot(exits[e][0] - x, exits[e][1] - y) > tol or exits[e][2] != deck:
+            raise ValueError("exit %s is at (%.1f, %.1f), the study has (%.1f, %.1f)"
+                             % (e, exits[e][0], exits[e][1], x, y))
+    return study["expected_wire"]
+
+
+def StudyScore():
+    """(wire at the study's deck rise, wire at the drawn one), conductor-mm: layout_study.Score() on
+    the drawn block centres and exits, with the motor cables on their own grommet (ULM)."""
+    if os.path.dirname(StudyFile) not in sys.path:
+        sys.path.insert(0, os.path.dirname(StudyFile))
+    import layout_study
+    nets = [(a, "ULM" if (a, b) == ("SHIELD", "UL") else b, n) for a, b, n in layout_study.Nets]
+    args = dict(exits=StudyExits(), nets=nets)
+    study = layout_study.Score("B", StudyBlocks(), **args)["wire"]
+    return study, layout_study.Score("B", StudyBlocks(), rise=LowBay + UpPlateT, **args)["wire"]
 
 
 def RunChecks():
-    """Every rail run must stay on the plate inside the frame and clear of the next row; returns
-    the lengths for the notes."""
-    out = {}
-    for name, (yc, (run, end)) in UpperRails().items():
-        across = max(PartSize[k][1] for k, _, _, _ in run)
-        if run[0][2] < Frame or end > BoxD - Frame:
-            raise ValueError("upper rail %s runs into a post: x %.1f to %.1f" % (name, run[0][2], end))
-        out[name] = end - run[0][2]
-        if name == "drivers":
-            if run[0][2] < DrvX[-1] + 28.0:
-                raise ValueError("SSRs overlap the C driver")
-            if across > UpRows["drivers"][1] - UpRows["drivers"][0]:
-                raise ValueError("SSRs deeper than the driver row")
-    for name, (xc, (run, end)) in LowerRails().items():
-        if run[0][2] < Frame or end > BoxW - Frame:
-            raise ValueError("lower rail %s runs past the bottom ring: y %.1f to %.1f"
-                             % (name, run[0][2], end))
-        out[name] = end - run[0][2]
-    lowBay, upBay = UpPlate0 - LoDeck, TopIn - UpDeck
-    for name, (_, (run, _)) in list(UpperRails().items()) + list(LowerRails().items()):
-        bay = upBay if name in UpperRails() else lowBay
-        for key, label, _, _ in run:
-            if MountedH(key) > bay - 3.0:
-                raise ValueError("%s stands %.1f mm in a %.1f mm bay" % (label or key, MountedH(key), bay))
-    for h, what in ((DrvH, "TB6600"), (MegaH, "Mega")):
-        if h > upBay - 3.0:
-            raise ValueError("%s stands %.1f mm in the %.1f mm upper bay" % (what, h, upBay))
-    fend = UpperRails()["field"][1][1]
-    for panel, u, _ in CableEntries:
-        if panel == "Upper side, right" and u - GrommetHole / 2 < fend + 5.0:
-            raise ValueError("the upper right grommet at x %s meets the field rail end at x %.1f"
-                             % (Mm(u), fend))
-    return out
+    """Raise unless every solid stands inside the frame ring (RingClear clear) and under its bay
+    (PartClear clear); nothing on a deck overlaps anything but its own rail, or a duct its tees;
+    every plate slot lies over free lower deck, clear of everything on the upper plate and off the
+    110 VAC compartment; each PE stud is clear of its deck's parts; the mains parts stand inside the
+    compartment wall and the rest outside it; the motor grommet clears the field rail and the front
+    one is on the Mega's line; and the drawing matches the study (StudyMatch()). Returns the length
+    of each rail's run, end clamps included."""
+    solids = DeckSolids()
+    bays = {"upper": TopIn - UpDeck, "lower": UpPlate0 - LoDeck}
+    lo, hx, hy = Frame + RingClear - 1e-6, BoxD - Frame - RingClear + 1e-6, BoxW - Frame - RingClear + 1e-6
+
+    def Name(s):
+        return "%s deck %s" % (s["deck"], s["label"] or s["key"] or s["kind"])
+
+    def Hit(a, b):
+        return a[0] < b[2] - 1e-6 and b[0] < a[2] - 1e-6 and a[1] < b[3] - 1e-6 and b[1] < a[3] - 1e-6
+
+    for s in solids:
+        x0, y0, x1, y1 = s["box"]
+        if x0 < lo or y0 < lo or x1 > hx or y1 > hy:
+            raise ValueError("%s at x %.1f-%.1f, y %.1f-%.1f leaves the frame" % (Name(s), x0, x1, y0, y1))
+        if s["top"] > bays[s["deck"]] - PartClear + 1e-6:
+            raise ValueError("%s stands %.1f mm in a %.1f mm bay" % (Name(s), s["top"], bays[s["deck"]]))
+    for i, s in enumerate(solids):
+        for t in solids[i + 1:]:
+            if s["deck"] != t["deck"] or not Hit(s["box"], t["box"]):
+                continue
+            if s["kind"] == t["kind"] == "duct" or ("rail" in (s["kind"], t["kind"]) and s["block"] == t["block"]):
+                continue
+            raise ValueError("%s overlaps %s" % (Name(s), Name(t)))
+    for i, sl in enumerate(CableSlots):
+        if sl[3] > MainsWallY - 1e-6:
+            raise ValueError("slot %d reaches over the 110 VAC compartment (y %s)" % (i + 1, Mm(MainsWallY)))
+        if sl[0] < Frame or sl[1] < Frame or sl[2] > BoxD - Frame or sl[3] > BoxW - Frame:
+            raise ValueError("slot %d runs over the mid ring" % (i + 1))
+        for s in solids:
+            if (s["deck"] == "upper" or s["kind"] != "duct") and Hit(sl, s["box"]):
+                raise ValueError("slot %d (%s) meets the %s" % (i + 1, SlotUse[i], Name(s)))
+    for kind, (px, py) in PeStud.items():
+        deck = "lower" if kind == "base" else "upper"
+        for s in solids:
+            x0, y0, x1, y1 = s["box"]
+            if s["deck"] == deck and x0 - HoleM5 < px < x1 + HoleM5 and y0 - HoleM5 < py < y1 + HoleM5:
+                raise ValueError("the %s PE stud at (%s, %s) is under the %s" % (kind, Mm(px), Mm(py), Name(s)))
+    for s in solids:
+        if s["deck"] == "lower":
+            x0, y0, x1, y1 = s["box"]
+            inside = x0 >= MainsWallX and y0 >= MainsWallY
+            outside = x1 <= MainsWallX or y1 <= MainsWallY
+            if not (inside if s["mains"] else outside):
+                raise ValueError("%s is on the wrong side of the 110 VAC compartment wall" % Name(s))
+    up = UpperRails()
+    for _, u, _, key in CableEntries:
+        if key == "ULM" and u - GrommetHole / 2 < up["field"]["a1"] + 5.0:
+            raise ValueError("the motor grommet at x %s meets the field rail's end at x %s"
+                             % (Mm(u), Mm(up["field"]["a1"])))
+        if key == "UF" and abs(u - up["logic"]["centre"]) > 1e-6:
+            raise ValueError("the front grommet is off the Mega's centre line")
+    StudyMatch()
+    return {name: r["run"][-1][3] - r["run"][0][2]
+            for rails in (up, LowerRails()) for name, r in rails.items()}
+
+
+DinRailStock, DinRailsOnHand = 16 * 25.4, 5   # the 16 in steel rails on hand (owner, 2026-10-17)
+
+
+def NestDinRails():
+    """Every drawn DIN rail cut from the rails on hand, first fit decreasing with the 2020 cut list's
+    kerf and squaring cut: a list of the lengths cut from each. Raises if they need more rails."""
+    pieces = sorted(((s["box"][2] - s["box"][0]) if s["alongX"] else (s["box"][3] - s["box"][1])
+                     for s in DeckSolids() if s["kind"] == "rail"), reverse=True)
+    rails = []
+    for L in pieces:
+        for r in rails:
+            if sum(p + Kerf for p in r) + L + Kerf <= DinRailStock - EndTrim:
+                r.append(L)
+                break
+        else:
+            rails.append([L])
+    if len(rails) > DinRailsOnHand:
+        raise ValueError("the DIN rails need %d 16 in rails, %d on hand" % (len(rails), DinRailsOnHand))
+    return rails
+
+
+def PlanLabel(s):
+    """(lines, text size, rotation) of a solid in a plan view."""
+    key, label = s["key"], s["label"]
+    if s["kind"] == "rail" or not label:
+        return [], 1.1, 0
+    if s["kind"] == "duct":
+        return [label], 1.1, 0 if s["alongX"] else -90
+    fixed = {"TB6600": ([label, "TB6600"], 1.2, 0),
+             "Mega": (["Mega 2560", "99 x 53, along its rail", "+ screw shield"], 1.25, 0),
+             "PSU24": (["PSU 24 V 1200 W, lying flat", "215 x 115 x 50 (assumed),",
+                        "%s tall on clip and rail;" % Mm(MountedH("PSU24")), "fan face to the right wall"],
+                       1.2, 0),
+             "PSU6": (["Servo PSU", "6 V, 58 x 63"], 1.1, 0),
+             "PSU5": (["5 V PSU", "76 x 76", "Pi at the panel"], 1.2, 0),
+             "Clamp": (["shield clamp"], 1.1, -90)}
+    if key in fixed:
+        return fixed[key]
+    narrow = s["alongX"] and s["box"][2] - s["box"][0] < 14
+    return [label], 0.95 if key == "SSR" else 1.15, -90 if narrow else 0
 
 
 def BuildPacking():
@@ -2531,51 +2801,63 @@ def BuildPacking():
               "24 V power, upper deck for drives and logic; acrylic walls. Scale 1:3.5 when printed at 100 %.")
     S = 3.5
     F = Frame
-    duct = dict(fill="#fff", dashed=True, size=1.15, bold=False)
-    DrvY0, DrvY1 = UpRows["drivers"]    # 96 mm deep across the driver rail
-    md, sgd, lg, fd, tm = (UpRows[k] for k in ("motor duct", "signal duct", "logic", "field duct",
-                                                "terminals"))
+    lengths = RunChecks()
+    solids = DeckSolids()
+    upper = UpperRails()
+    wireStudy, wireDrawn = StudyScore()
+    room = TopIn - UpDeck - DrvH
+    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11", "UR": "motor, tower", "LL": "ODrive, Pi, E-stop"}
+
+    def Plan(v, deck):
+        """Rails first, then ducts, parts and the clamp, each at its footprint."""
+        for kind in ("rail", "duct", "part", "clamp"):
+            for s in solids:
+                if s["deck"] == deck and s["kind"] == kind:
+                    lines, size, rot = PlanLabel(s)
+                    v.Box(*s["box"], fill=s["fill"], dashed=s["dashed"], stroke=0.15 if kind == "rail" else 0.25,
+                          lines=lines, size=size, rot=rot, bold=kind != "duct")
+
+    def Entries(v, deck):
+        """A bar at the wall for each grommet on this deck, named in the frame band beside it: past
+        its back end, or before its front end where that would meet the wall's name."""
+        r = GrommetHole / 2
+        for panel, u, _, key in CableEntries:
+            wall, z0 = PanelWall[panel]
+            if ("lower" if z0 == 0.0 else "upper") != deck:
+                continue
+            if wall == "front":
+                v.Box(-2.0, u - r, 0.0, u + r, fill="#000", stroke=0.1)
+                sh.Text(v.X(F / 2) + 0.4, v.Y(u), short[key], size=1.0, anchor="middle", rot=-90, halo=True)
+                continue
+            b = 0.0 if wall == "left" else BoxW
+            v.Box(u - r, b - 2.0 if wall == "left" else b, u + r, b if wall == "left" else b + 2.0,
+                  fill="#000", stroke=0.1)
+            a, width = u + r + 1.5, len(short[key]) * 0.55 * S   # the label's start and its length, real mm
+            back = a + width < BoxD - F and (a > BoxD / 2 + 25 or a + width < BoxD / 2 - 25)
+            sh.Text(v.X(a if back else u - r - 1.5), v.Y(F / 2 if wall == "left" else BoxW - F / 2) + 0.4,
+                    short[key], size=1.0, anchor="start" if back else "end", halo=True)
 
     # ------------------------------------------------ upper deck plan
-    RunChecks()
-    upper, lower = UpperRails(), LowerRails()
     up = View(sh, 10.0, 25.0, BoxD, BoxW, S)
     up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size")
     PlanFrame(up, "upper plate 457 x 330, part of the upper module", upper=True)
-    up.Box(120, md[0], 400, md[1], lines=["duct 1 x 1 1/2 in: motor cables, driver 24 V"], **duct)
-    yc, (ssr, ssrEnd) = upper["drivers"]
-    DrawRail(up, True, yc, DrvX[0], ssrEnd)
-    for i, ax in enumerate(["X", "Y1", "Y2", "Z", "A", "B", "C"]):
-        up.Box(DrvX[i], DrvY0, DrvX[i] + 28, DrvY1, fill=ZoneFill["drv"], lines=[ax, "TB6600"],
-               size=1.2)
-    DrawRun(up, True, yc, ssr, ZoneFill["log"], size=0.95)
-    sh.Text(up.X(ssrEnd + 3), up.Y(yc + 30) + 0.4, "6 SSRs on", size=1.1)
-    sh.Text(up.X(ssrEnd + 3), up.Y(yc + 30) + 2.0, "the drivers' rail", size=1.1)
-    sh.Text(up.X(360), up.Y(yc - 20) + 0.4, "ODrive: in the", size=1.1, anchor="middle", italic=True)
-    sh.Text(up.X(360), up.Y(yc - 20) + 2.0, "spincoater base", size=1.1, anchor="middle", italic=True)
-    up.Box(410, md[0], 432, DrvY1, fill=ZoneFill["drv"], dashed=True, lines=["shield clamp"],
-           size=1.1, rot=-90)
-    up.Box(25, sgd[0], 380, sgd[1], lines=["duct 1/2 x 1 in: driver signals, J11"], **duct)
-    yc, (lrun, lend) = upper["logic"]
-    DrawRail(up, True, yc, 30, lend)
-    up.Box(30, yc - 26.5, 129, yc + 26.5, fill=ZoneFill["log"],
-           lines=["Mega 2560", "99 x 53, parallel", "+ screw shield"], size=1.3)
-    up.Box(24, yc - 9.5, 30, yc + 9.5, fill=ZoneFill["log"], stroke=0.2)
-    sh.Text(up.X(22), up.Y(yc + 12) + 0.4, "USB", size=1.0, anchor="end")
-    DrawRun(up, True, yc, lrun, ZoneFill["fld"])
-    sh.Text(up.X(300), up.Y(yc) + 0.4, "Pi: at the operator panel", size=1.1, anchor="middle",
-            italic=True)
-    up.Box(100, fd[0], 432, fd[1], lines=["duct 1/2 x 1 in: field signals"], **duct)
-    yc, (frun, fend) = upper["field"]
-    DrawRail(up, True, yc, frun[0][2], fend)
-    DrawRun(up, True, yc, frun, ZoneFill["fld"])
-    sh.Text(up.X(fend + 12), up.Y(yc + 4) + 0.5, "field terminal rail,", size=1.15)
-    sh.Text(up.X(fend + 12), up.Y(yc + 4) + 2.1, "%d mm incl. end clamps" % round(fend - frun[0][2]),
-            size=1.15)
+    Plan(up, "upper")
+    mega = [p for p in upper["logic"]["run"] if p[0] == "Mega"][0]
+    yc = upper["logic"]["centre"]
+    up.Box(mega[2] - 6.0, yc - 9.5, mega[2], yc + 9.5, fill=ZoneFill["log"], stroke=0.2)
+    sh.Text(up.X(mega[2] - 7.0), up.Y(yc + 12) + 0.4, "USB", size=1.0, anchor="end")
+    fx0, fx1 = upper["field"]["a0"], upper["field"]["a1"]
+    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"] + 4) + 0.4, "field rail,", size=1.1)
+    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"] + 4) + 2.0, "%d mm" % round(lengths["field"]),
+            size=1.1)
+    ax = (ClampBox()[2] + BackRunX - DuctWide / 2) / 2
+    for i, s2 in enumerate(["ODrive: in the", "spincoater base", "", "Pi: at the", "operator panel"]):
+        sh.Text(up.X(ax), up.Y(230) + 1.6 * i, s2, size=1.1, anchor="middle", italic=True)
     for i, (a0, b0, a1, b1) in enumerate(CableSlots):
         up.Obround(a0, b0, a1, b1, stroke=0.35)
-        sh.Text(up.X((a0 + a1) / 2), up.Y((b0 + b1) / 2) + 0.45, "slot %d" % (i + 1), size=1.1,
+        sh.Text(up.X((a0 + a1) / 2), up.Y((b0 + b1) / 2) + 0.45, "slot %d" % (i + 1), size=1.05,
                 anchor="middle", halo=True)
+    Entries(up, "upper")
     up.DimH(0, BoxD, 0, "18 in (457 mm)")
     up.DimV(0, BoxW, BoxD, "13 in (330 mm)")
 
@@ -2583,96 +2865,70 @@ def BuildPacking():
     lo = View(sh, 150.0, 25.0, BoxD, BoxW, S)
     lo.Title("B  Lower deck, upper deck lifted off", "1/16 in aluminum base plate, bonded to PE")
     PlanFrame(lo, "parts inside the bottom ring, 417 x 290 mm")
-    xc24, (run24, end24) = lower["24 V"]
-    DrawRail(lo, False, xc24, run24[0][2], end24)
-    DrawRun(lo, False, xc24, run24, ZoneFill["24"], size=1.25)
-    sh.Text(lo.X(xc24), lo.Y(end24 + 9) + 0.45, "24 V DIN rail", size=1.15, anchor="middle")
-    lo.Box(28, 250, 91, 308, fill=ZoneFill["24"], lines=["Servo PSU", "6 V", "63 x 58"], size=1.15)
-    lo.Box(120 - DuctNarrow / 2, 25, 120 + DuctNarrow / 2, 305, lines=["duct 1/2 x 1 in"], rot=-90,
-           **duct)
-    xcf, (runf, endf) = lower["fuses"]
-    DrawRail(lo, False, xcf, runf[0][2], endf)
-    DrawRun(lo, False, xcf, runf, ZoneFill["24"], size=1.35)
-    # front row: the Mega and the screen have no supplies of their own (Mega on USB)
-    lo.Box(296, 24, 372, 100, fill=ZoneFill["24"], lines=["5 V PSU", "76 x 76", "Pi at the panel"],
-           size=1.25)
-    # 110 VAC compartment walls: the wall steps back to y 104 in front of the 5 V PSU
-    sh.Add('<path d="M%s %s L%s %s L%s %s L%s %s L%s %s" fill="none" stroke="%s" stroke-width=".9"/>'
-           % (Fmt(lo.X(BoxD - F)), Fmt(lo.Y(104)), Fmt(lo.X(290)), Fmt(lo.Y(104)),
-              Fmt(lo.X(290)), Fmt(lo.Y(88)), Fmt(lo.X(227)), Fmt(lo.Y(88)),
-              Fmt(lo.X(227)), Fmt(lo.Y(BoxW - F)), TolRed))
-    lo.Box(236, 92, 286, 307, fill=ZoneFill["110"], dashed=True,
-           lines=["PSU 24 V 1200 W", "on its side", "215 x 50 footprint", "125 tall with clip",
-                  "(length assumed)"], size=1.15, rot=-90)
-    lo.Box(306 - DuctNarrow / 2, 108, 306 + DuctNarrow / 2, 305, lines=["duct 1/2 x 1 in"], rot=-90,
-           **duct)
-    xcm, (runm, endm) = lower["110 V"]
-    DrawRail(lo, False, xcm, runm[0][2], endm)
-    DrawRun(lo, False, xcm, runm, ZoneFill["110"], size=1.2)
-    sh.Text(lo.X(xcm), lo.Y(runm[0][2] - 4) + 0.4, "110 V DIN rail", size=1.15, anchor="middle")
-    sh.Text(lo.X(374), lo.Y(126) + 0.4, "110 VAC", size=1.4, anchor="middle", weight="bold",
-            fill=TolRed)
-    sh.Text(lo.X(374), lo.Y(126) + 2.2, "compartment", size=1.4, anchor="middle", weight="bold",
-            fill=TolRed)
-    lo.Box(BoxD - F, 108, BoxD, 150, fill=ZoneFill["110"], stroke=0.35)
-    sh.Text(lo.X(BoxD) + 0.8, lo.Y(129) + 0.5, "mains in", size=1.2, rot=-90, anchor="middle")
+    Plan(lo, "lower")
+    sh.Add('<path d="M%s %s L%s %s L%s %s" fill="none" stroke="%s" stroke-width=".9"/>'
+           % (Fmt(lo.X(BoxD - F)), Fmt(lo.Y(MainsWallY)), Fmt(lo.X(MainsWallX)), Fmt(lo.Y(MainsWallY)),
+              Fmt(lo.X(MainsWallX)), Fmt(lo.Y(BoxW - F)), TolRed))
+    r110 = LowerRails()["110 V"]
+    sh.Text(lo.X((r110["a0"] + BoxD - F) / 2), lo.Y((MainsWallY + r110["centre"] - 41.0) / 2) + 0.5,
+            "110 VAC compartment", size=1.3, anchor="middle", weight="bold", fill=TolRed)
+    lo.Box(BoxD - F, InletU - 21, BoxD, InletU + 21, fill=ZoneFill["110"], stroke=0.35)
+    sh.Text(lo.X(BoxD) + 0.8, lo.Y(InletU) + 0.5, "mains in", size=1.2, rot=-90, anchor="middle")
+    lo.Box(PsuVentSpan[0], BoxW, PsuVentSpan[1], BoxW + 2.0, fill="#fff", dashed=True, stroke=0.2)
+    sh.Text(lo.X(PsuVentSpan[0] + 30), lo.Y(BoxW - F / 2) + 0.4, "PSU vent (dashed)", size=1.0, halo=True)
+    Entries(lo, "lower")
 
-    # ------------------------------------------------ section seen from the front
+    # ------------------------------------------------ elevations
     RailFill, ClipFill = "#888888", "#FFFFFF"
 
-    def Rail(v, a0, a1, base):
-        """The DIN rail in an elevation: lengthwise (a run) or end-on (35 wide)."""
-        v.Box(a0, base, a1, base + DinRailH, fill=RailFill, stroke=0.12)
+    def Elevation(v, depth):
+        """Every solid seen from the front (depth "x": a = y) or from the left (depth "y": a = x),
+        painted farthest first: DIN rails dark, printed clips white and dashed."""
+        k = 0 if depth == "x" else 1
+        for s in sorted(solids, key=lambda t: -t["box"][k]):
+            x0, y0, x1, y1 = s["box"]
+            a0, a1 = (y0, y1) if depth == "x" else (x0, x1)
+            base = LoDeck if s["deck"] == "lower" else UpDeck
+            if s["kind"] == "rail":
+                v.Box(a0, base, a1, base + DinRailH, fill=RailFill, stroke=0.12)
+                continue
+            z = base + (DinRailH if s["mount"] in ("rail", "clip") else 0.0)
+            if s["mount"] == "clip":
+                v.Box(a0, z, a1, z + Clip, fill=ClipFill, dashed=True, stroke=0.15)
+                z += Clip
+            v.Box(a0, z, a1, base + s["top"], fill=s["fill"], dashed=s["dashed"], stroke=0.2)
 
-    def Stack(v, a0, a1, base, mount, body, fill, dashed=False, lines=(), size=1.1, rot=0):
-        """A part over its rail: the printed clip if it has one, then its body. `body` is the
-        height above the rail (and clip); the rail itself is drawn by Rail()."""
-        z = base + DinRailH
-        if mount == "clip":
-            v.Box(a0, z, a1, z + Clip, fill=ClipFill, dashed=True, stroke=0.15)
-            z += Clip
-        v.Box(a0, z, a1, z + body, fill=fill, dashed=dashed, lines=lines, size=size, rot=rot)
+    def Tag(v, a, z, lines, size=1.1, rot=0):
+        """A label over an elevation, in the middle of what shows of a part."""
+        for i, s2 in enumerate(lines):
+            off = (i - (len(lines) - 1) / 2) * size * 1.18
+            if rot:
+                sh.Text(v.X(a) + off + size * 0.35, v.Y(z), s2, size=size, anchor="middle", rot=rot, halo=True)
+            else:
+                sh.Text(v.X(a), v.Y(z) + off + size * 0.35, s2, size=size, anchor="middle", halo=True)
 
-    def Body(key):
-        """Height of a part above its rail and clip."""
-        return MountedH(key) - DinRailH - (Clip if PartSize[key][4] == "clip" else 0.0)
+    def Mid(rail, key=None):
+        """Centre of a rail's run, or of its first part `key`, along the rail."""
+        p = [q for q in rail["run"] if key is None or q[0] == key]
+        return (p[0][2] + p[-1][3]) / 2
 
+    lower = LowerRails()
     fr = View(sh, 10.0, 127.5, BoxW, BoxH, S)
     fr.Title("C  End view from the front", "front rails left off; heights, DIN rails dark grey")
     SectionFrame(fr, BoxW)
-    # lower deck: the PSU behind, on its mount; the 24 V rail and the servo PSU nearest the front
-    Rail(fr, 199.5 - 17.5, 199.5 + 17.5, LoDeck)
-    Stack(fr, 92, 307, LoDeck, "clip", PsuH - DinRailH - Clip, ZoneFill["110"], dashed=True,
-          lines=["24 V PSU on its side, behind", "115 + clip 10 + rail 7.5"], size=1.2)
-    Rail(fr, run24[0][2] - 5, end24 + 5, LoDeck)
-    for key, label, a0, a1 in run24:
-        Stack(fr, a0, a1, LoDeck, "rail", Body(key), ZoneFill["24"], dashed=not PartSize[key][3],
-              lines=[label], size=1.05, rot=-90 if a1 - a0 < 30 else 0)
-    Rail(fr, 279 - 17.5, 279 + 17.5, LoDeck)
-    Stack(fr, 250, 308, LoDeck, "clip", PsuServoH - DinRailH - Clip, ZoneFill["24"], lines=["servo PSU"],
-          size=1.05)
-    # upper deck: every rail runs along x, so each shows end-on
-    fr.Box(md[0], UpDeck, md[1], UpDeck + 38.1, **duct)
-    yd = upper["drivers"][0]
-    Rail(fr, yd - 17.5, yd + 17.5, UpDeck)
-    Stack(fr, DrvY0, DrvY1, UpDeck, "clip", Body("TB6600"), ZoneFill["drv"],
-          lines=["TB6600s", "standing", "68 + clip 10 + rail 7.5"], size=1.2)
-    fr.Box(sgd[0], UpDeck, sgd[1], UpDeck + 25.4, **duct)
-    yl = upper["logic"][0]
-    Rail(fr, yl - 17.5, yl + 17.5, UpDeck)
-    Stack(fr, yl - 26.5, yl + 26.5, UpDeck, "clip", MegaH - DinRailH - Clip, ZoneFill["log"], dashed=True,
-          lines=["Mega", "35 + 17.5"], size=1.15)
-    fr.Box(fd[0], UpDeck, fd[1], UpDeck + 25.4, **duct)
-    yf = upper["field"][0]
-    ht = PartSize["Term"]
-    Rail(fr, yf - 17.5, yf + 17.5, UpDeck)
-    Stack(fr, yf - ht[1] / 2, yf + ht[1] / 2, UpDeck, "incl", Body("Term"), ZoneFill["fld"],
-          lines=["UK 2.5 B", "42 on rail"], size=1.1)
-    fr.DimV(LoDeck, UpPlate0, BoxW, "%d mm lower" % round(UpPlate0 - LoDeck))
-    fr.DimV(UpDeck, TopIn, BoxW, "%d mm upper" % round(TopIn - UpDeck))
-    sh.Text(fr.X(92), fr.Y(TopIn - 6) + 0.4,
-            "%d mm over the drivers for the top-face wires" % round(TopIn - UpDeck - DrvH),
-            size=1.15, anchor="middle")
+    Elevation(fr, "x")
+    Tag(fr, lower["fuses"]["centre"], LoDeck + 31, ["FB1, FB2"])
+    Tag(fr, lower["24 V"]["centre"], LoDeck + 45, ["K2", "24 V rail"])
+    Tag(fr, lower["24 V PSU"]["centre"], LoDeck + 44, ["24 V PSU, flat", "fan face to the right"])
+    Tag(fr, upper["field"]["centre"], UpDeck + 21, ["UK 2.5 B", "42 on rail"])
+    Tag(fr, upper["logic"]["centre"], UpDeck + 34, ["Mega", "35 + 17.5"])
+    Tag(fr, upper["SSR"]["a0"] / 2 + upper["SSR"]["a1"] / 2, UpDeck + 66, ["SSRs behind"], size=1.0)
+    Tag(fr, upper["drivers"]["centre"], UpDeck + 50, ["TB6600s", "68 + clip 10 + rail 7.5"], size=1.15)
+    Tag(fr, sum(UpRows["motor duct"]) / 2, UpDeck + 19, ["motor duct"], size=1.0, rot=-90)
+    fr.DimV(LoDeck, UpPlate0, BoxW, "%s mm lower" % Mm(UpPlate0 - LoDeck))
+    fr.DimV(UpDeck, TopIn, BoxW, "%s mm upper" % Mm(round(TopIn - UpDeck, 1)))
+    sh.Text(fr.X(upper["drivers"]["centre"]), fr.Y(TopIn - 6) + 0.4,
+            "%d mm over the drivers for the top-face wires" % round(room), size=1.15, anchor="middle")
     sh.Text(fr.X(56), fr.Y(MidF0 + F / 2) + 0.45, "mid ring", size=1.1, anchor="middle", halo=True)
     sh.Text(fr.X(BoxW / 2), fr.Y(TopIn + F / 2) + 0.45,
             "lid ring: off alone (4 screws) or with the upper module", size=1.15, anchor="middle",
@@ -2681,31 +2937,23 @@ def BuildPacking():
     sh.Text(fr.X(BoxW / 2), fr.Y(0) + 2.4, "base plate under the frame", size=1.1, anchor="middle")
     sh.Text(fr.X(BoxW - 2), fr.Y(0) + 2.4, "RIGHT", size=1.2, weight="bold", anchor="end")
 
-    # ------------------------------------------------ side view from the left
     sd = View(sh, 150.0, 127.5, BoxD, BoxH, S)
-    sd.Title("D  Side view from the left", "left rails left off; parts nearest the left side")
+    sd.Title("D  Side view from the left", "left rails left off; nearer parts hide farther ones")
     SectionFrame(sd, BoxD)
-    Rail(sd, 236, 286, LoDeck)
-    Stack(sd, 236, 286, LoDeck, "clip", PsuH - DinRailH - Clip, ZoneFill["110"], dashed=True,
-          lines=["PSU", "behind"], size=1.1)
-    for xc, key, lines in ((xcm, "K1", ["110 V rail", "K1 tallest"]), (xc24, "K2", ["K2 in front", "24 V rail"]),
-                           (xcf, "FB2", ["FB2"])):
-        Rail(sd, xc - 17.5, xc + 17.5, LoDeck)
-        Stack(sd, xc - PartSize[key][1] / 2, xc + PartSize[key][1] / 2, LoDeck, "rail", Body(key),
-              ZoneFill["110"] if key == "K1" else ZoneFill["24"], lines=lines, size=1.15)
-    Rail(sd, 334 - 17.5, 334 + 17.5, LoDeck)
-    Stack(sd, 296, 372, LoDeck, "clip", Psu5VH - DinRailH - Clip, ZoneFill["24"],
-          lines=["5 V PSU, front"], size=1.1)
-    Rail(sd, DrvX[0] - 5, ssrEnd + 5, UpDeck)
-    for i, ax in enumerate(["X", "Y1", "Y2", "Z", "A", "B", "C"]):
-        Stack(sd, DrvX[i], DrvX[i] + 28, UpDeck, "clip", Body("TB6600"), ZoneFill["drv"], lines=[ax],
-              size=1.5)
-    for key, label, a0, a1 in ssr:
-        Stack(sd, a0, a1, UpDeck, "rail", Body(key), ZoneFill["log"])
-    sh.Text(sd.X(ssrEnd + 2), sd.Y(UpDeck + 60) + 0.4, "SSRs", size=1.1)
-    sd.Box(120, UpDeck, 400, UpDeck + 38.1, lines=["motor duct, nearest the left side"], **duct)
-    sd.Box(410, UpDeck, 432, UpDeck + 40, fill=ZoneFill["drv"], dashed=True, lines=["clamp"], size=1.0,
-           rot=-90)
+    Elevation(sd, "y")
+    Tag(sd, Mid(lower["fuses"], "FB2"), LoDeck + 31, ["FB2"])
+    Tag(sd, Mid(lower["fuses"], "FB1"), LoDeck + 31, ["FB1"])
+    Tag(sd, Mid(lower["5 V PSU"]), LoDeck + 35, ["5 V PSU"])
+    Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 64, ["K2"])
+    Tag(sd, (Mid(lower["24 V"], "K2") + PsuX0 + PartSize["PSU24"][0]) / 2 + 20, LoDeck + 60,
+        ["24 V PSU behind"], size=1.0)
+    Tag(sd, Mid(lower["110 V"], "K1"), LoDeck + 62, ["K1"])
+    Tag(sd, Mid(upper["field"]), UpDeck + 21, ["field terminals, 42 on rail"])
+    Tag(sd, Mid(upper["logic"], "Mega"), UpDeck + 47, ["Mega"], size=1.0)
+    for key, label, a0, a1 in upper["drivers"]["run"]:
+        Tag(sd, (a0 + a1) / 2, UpDeck + 70, [label], size=1.4)
+    Tag(sd, upper["SSR"]["centre"], UpDeck + 60, ["SSRs"])
+    Tag(sd, BackRunX, UpDeck + 19, ["back run"], size=1.0, rot=-90)
     sd.DimV(0, BoxH, BoxD, "11 in (279 mm)")
     sh.Text(sd.X(2), sd.Y(0) + 2.4, "FRONT", size=1.2, weight="bold")
     sh.Text(sd.X(BoxD - 2), sd.Y(0) + 2.4, "BACK", size=1.2, weight="bold", anchor="end")
@@ -2731,27 +2979,31 @@ def BuildPacking():
     sh.Add('<rect x="%s" y="%s" width="5" height="2.2" fill="#fff" stroke="#000" stroke-width=".25" '
            'stroke-dasharray="1.2 .7"/>' % (Fmt(cx), Fmt(y - 1.7)))
     sh.Text(cx + 6.4, y, "dashed: size assumed, measure", size=1.5)
+    at = {k: Mm(u) for _, u, _, k in CableEntries}
+    if LowBayEntry > LowBayParts:
+        bay = ["The lower left grommet sets the lower bay:",
+               "its %s mm ring needs a %s mm window between" % (Mm(RingOD), Mm(LowBayEntry - 2 * F)),
+               "the bottom and mid rings. K2 alone would set",
+               "%s, which leaves %s (ADR-0011)." % (Mm(LowBayParts), Mm(LowBayParts - 2 * F))]
+    else:
+        bay = ["K2, the tallest lower part, sets the lower", "bay: %s + %s." % (Mm(MountedH("K2")), Mm(PartClear))]
     notes = [
         ("Mounting", [
             "Every part stands on a 7.5 mm DIN rail; parts",
             "without DIN feet add a printed clip, 10 mm.",
             "TB6600s stand on their 96 x 28 base, ears",
-            "88 apart across the rail, fins vertical.",
-            "The 24 V PSU stands on the face with the",
-            "four holes (200 x 32.5), rail across its",
-            "length, as in PSU DIN mount.SLDPRT. The",
-            "Mega lies parallel to its rail, so the screw",
-            "shield's terminals face both ducts."]),
+            "88 apart across the rail, fins vertical. The",
+            "24 V PSU lies flat on a 215 x 115 face, its",
+            "fan face %s mm from the right panel. The Mega" % Mm(BoxW - PsuY1),
+            "lies along its rail, USB jack to the front",
+            "grommet; the SSR sockets stand across their",
+            "own short rail."]),
         ("Height budget (mm)", [
-            "base plate %s, rail %s + clip 10 + PSU 115," % (Mm(BasePlateT), Mm(DinRailH)),
-            "clearance 3, upper plate %s, rail %s + clip" % (Mm(UpPlateT), Mm(DinRailH)),
-            "10 + drivers 68, wire room %d, lid ring 20 = 279.4."
-            % round(TopIn - UpDeck - DrvH),
-            "The base plate lies under the frame, so",
-            "the bottom ring costs no height. A taller",
-            "PSU moves the mid ring up and shrinks the",
-            "wire room (%d left with a %d mm PSU)."
-            % (round(TopIn - UpDeck - DrvH - 20), round(PsuH - Clip - DinRailH + 20))]),
+            "base plate %s, lower bay %s, upper plate %s,"
+            % (Mm(BasePlateT), Mm(LowBay), Mm(UpPlateT)),
+            "rail %s + clip 10 + drivers 68, wire room %s,"
+            % (Mm(DinRailH), Mm(round(room, 1))),
+            "lid ring 20 = 279.4."] + bay),
         ("Build and access", [
             "Two modules, like a platform-framed house.",
             "Lower: base plate, bottom ring and lower",
@@ -2762,16 +3014,15 @@ def BuildPacking():
             "locate the decks. Inter-deck wires cross on",
             "pluggable terminals. Frame: sheet 4."]),
         ("Heat and cables", [
-            "6 mm between drivers for air. The PSU fan is",
-            "on its top face, %s mm under the upper plate:" % Mm(PsuGap),
-            "widen that gap to a quarter of the fan",
-            "diameter once it is measured, and vent the",
-            "lower right panel. Cables leave through four",
-            "50 mm grommets: upper left, front and right,",
-            "and lower left; mains at the back wall beside",
-            "X0. Leaving the box: Mega USB to the Pi, and",
-            "J11 plus a fused 24 V feed to the ODrive in",
-            "the spincoater base."]),
+            "6 mm between drivers for air. The PSU fan",
+            "blows into the vent in the lower right panel;",
+            "its slots wait for the fan's size. Five 50 mm",
+            "grommets: upper left at x %s (field) and" % at["UL"],
+            "x %s (motors, at the back run's end), upper" % at["ULM"],
+            "front (USB, J11), upper right (a motor, the",
+            "tower), lower left (ODrive 24 V, Pi 5 V,",
+            "E-stop). Mains in at the back wall, in line",
+            "with the 110 V rail."]),
         ("Sizes: along x across x high (mm)", [
             "TB6600 28 x 96 x 68, measured. From the",
             "listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U",
@@ -2780,16 +3031,15 @@ def BuildPacking():
             "(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;",
             "5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega",
             "99 x 53 (A000067). Assumed (dashed): 24 V PSU",
-            "body 215 x 115 x 50, F0, end clamps, PE blocks,",
+            "215 x 115 x 50, F0, end clamps, PE blocks,",
             "shield clamp, Mega height. Heights add the rail."]),
-        ("At true size (2026-10-17)", [
-            "The six SSR sockets are 88 deep: they sit",
-            "on the drivers' rail, not the 65 mm logic row.",
-            "Terminals are 6.2 wide, not 5.2: the 0V-S",
-            "groups moved beside the Mega (sheet 2, rail",
-            "4), so the field rail ends clear of the",
-            "upper right grommet. Slot 2 opens into the",
-            "110 VAC compartment: DC leads only."]),
+        ("Layout 3b (ADR-0010)", [
+            "From the CP-SAT packing study: %s" % "{:,}".format(wireDrawn),
+            "conductor-mm as drawn (%s at the study's" % "{:,}".format(wireStudy),
+            "%s bay), against %s for the hand layout." % (Mm(LowBayParts), "{:,}".format(HandWire)),
+            "Each block centre is held to layout3b_build",
+            ".json; no box overlaps another, and no plate",
+            "slot lies over the mains (y %s and up)." % Mm(MainsWallY)]),
     ]
     y += 4.6
     for head, lines in notes:
@@ -2799,11 +3049,13 @@ def BuildPacking():
             sh.Text(cx, y, s2, size=1.45)
             y += 1.95
         y += 1.1
+    if y > 186.0:
+        raise ValueError("sheet 3 notes run into the title block (y %.1f)" % y)
     TitleBlock(sh, 288, 186, 60, 21.5, [
         "Packing study",
         "Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.",
-        "Redrawn 2026-10-17 with every part at its",
-        "real size; 1/16 in decks, acrylic walls.",
+        "Layout 3b (ADR-0010), 2026-10-17: the PSU",
+        "flat, every part at its real size.",
         "Frame and plates: sheet 4. Measure dashed sizes.",
     ])
     return sh
@@ -2918,11 +3170,12 @@ def BuildFrame():
         if kind in PeStud:
             px, py = PeStud[kind]
             sh.Text(v.X(px) - 1.2, v.Y(py) + 0.45, "PE", size=1.2, anchor="end", weight="bold")
-        sh.Text(v.X(BoxD / 2), v.Y(BoxW / 2) - 1.0, "5052-H32, 1/16 in: sheared and drilled", size=1.6,
+        ty = 0.75 * BoxW               # clear of the cable slots and the PE studs
+        sh.Text(v.X(BoxD / 2), v.Y(ty) - 1.0, "5052-H32, 1/16 in: sheared and drilled", size=1.6,
                 anchor="middle", weight="bold")
-        sh.Text(v.X(BoxD / 2), v.Y(BoxW / 2) + 1.4, "seen from above, front on the left",
+        sh.Text(v.X(BoxD / 2), v.Y(ty) + 1.4, "seen from above, front on the left",
                 size=1.3, anchor="middle")
-        sh.Text(v.X(BoxD / 2), v.Y(BoxW / 2) + 3.2, "dashed: %s" %
+        sh.Text(v.X(BoxD / 2), v.Y(ty) + 3.2, "dashed: %s" %
                 ("posts and bottom ring on the plate" if kind == "base"
                  else "upper posts on the plate, mid ring under it"), size=1.3, anchor="middle")
         xs = sorted(set(round(x, 1) for x, _, _ in holes) | {0.0, BoxD})
@@ -2948,7 +3201,8 @@ def BuildFrame():
                      "Cable slots, round ends, edge trim:  " +
                      ";  ".join("%d: x %s-%s, y %s-%s" % (i + 1, Mm(a0), Mm(a1), Mm(b0), Mm(b1))
                                 for i, (a0, b0, a1, b1) in enumerate(CableSlots)),
-                     "Slot 2 is over the 110 VAC compartment: DC leads only, or delete it"]
+                     "  ".join("%d: %s." % (i + 1, u) for i, u in enumerate(SlotUse)) +
+                     "  None over the 110 VAC compartment (y %s up)." % Mm(MainsWallY)]
         sh.Lines(v.X(0), v.Y(0) + 8.2, sched, size=1.3, lead=1.85)
 
     # ------------------------------------------------ the frame from the left and from the front
@@ -3115,8 +3369,9 @@ def BuildFrame():
     if open_:
         pending += ["the %s cut-out" % k for k in open_]
         hold.append("the back panel template")
-    sides = ", ".join("%s %s" % ("upper" if PanelWall[p][1] else "lower", PanelWall[p][0])
-                      for p, _, _ in CableEntries)
+    walls = ["%s %s" % ("upper" if PanelWall[p][1] else "lower", PanelWall[p][0]) for p, _, _, _ in CableEntries]
+    sides = ", ".join(("two " if walls.count(w) == 2 else "") + w
+                      for i, w in enumerate(walls) if w not in walls[:i])
     text = (
         "Acrylic panels on %d sheets of 24 x 18 in, each inside the %s x %s laser bed: one DXF per "
         "sheet, panels_acrylic_1.dxf to _%d.dxf. The aluminum lower back panel carries the inlet "
@@ -3141,9 +3396,11 @@ def BuildFrame():
     ax = 296.0
     sh.Text(ax, 126.0, "Assembly", size=1.7, weight="bold")
     steps = [
-        ["Measure the 24 V PSU before cutting: lower", "post = PSU body %s. Measure the first stick"
-         % ("%+.1f" % PsuBodyToPost),
-         "and a bracket leg, then rerun ScrewFits()."],
+        ["Caliper a grommet and K2 before cutting:" if LowBayEntry > LowBayParts else
+         "Measure K2 and the PSU before cutting:",
+         "the %s sets the lower posts (%s). Measure"
+         % ("lower grommet's ring" if LowBayEntry > LowBayParts else "tallest lower part", Mm(LowPostL)),
+         "the first stick and a bracket leg, then rerun", "ScrewFits()."],
         ["Cut the list, equal parts against one stop.", "Tap and drill the ends; drill and tap one",
          "bond hole in every rail."],
         ["Lower module: feet and lower posts on the", "base plate, bottom ring on brackets, plate",
@@ -3205,12 +3462,16 @@ def BomRows():
     nPieces = sum(n for _, n, _, _ in pieces)
     nSheets = PanelNest()
     nEntries = PanelChecks()
-    dinScrews = 5 * 3                      # five DIN rails, three screws each
+    dinRails = [s for s in DeckSolids() if s["kind"] == "rail"]
+    dinCuts = NestDinRails()
+    dinLen = [max(s["box"][2] - s["box"][0], s["box"][3] - s["box"][1]) for s in dinRails]
+    dinScrews = sum(max(2, 1 + math.ceil(L / 150.0)) for L in dinLen)   # one per 150 mm, 2 at least
+    ductLen = {w: sum(max(b[2] - b[0], b[3] - b[1]) for _, b, wd, _, _ in Ducts() if wd == w)
+               for w in (DuctNarrow, DuctWide)}
     trim = sum(2 * (max(s[2] - s[0], s[3] - s[1]) - min(s[2] - s[0], s[3] - s[1]))
                + math.pi * min(s[2] - s[0], s[3] - s[1]) for s in CableSlots)
     wireM = jumpers * JumperM
-    narrowDuct = sum([380 - 25, 432 - 100, 305 - 25, 305 - 108])
-    wideDuct = 400 - 120
+    narrowDuct, wideDuct = ductLen[DuctNarrow], ductLen[DuctWide]
     return [
         # ---- frame
         ("Frame", Amz, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
@@ -3267,7 +3528,7 @@ def BomRows():
          "Shear in the shop; drill and nibble through an acrylic template cut on the laser"),
         ("Plates and panels", Amz, "Edge trim, 1/16 in U-channel, 10 ft", "B0CQLC4P4S",
          "Rubber U-channel edge trim, fits 0 to 5/64 in edges, 10 ft, black", "%d mm" % round(trim), "10 ft", 1,
-         7.99, "the three cable slots in the upper plate", ""),
+         7.99, "the %d cable slots in the upper plate" % len(CableSlots), ""),
         ("Plates and panels", Amz, "Cast acrylic 1/8 x 18 x 24 in, clear, 4-pack", "B0CZLDGK69",
          "Langaelex 4 cast acrylic sheets 18 x 24 x 1/8 in (3 mm)", "%d sheets" % nSheets, "4-pack", 1, 49.99,
          "%d panels and %d grommet rings on %d sheets (sheet 4, NestPlan)"
@@ -3277,19 +3538,23 @@ def BomRows():
          % (Mm(LaserBed[0]), Mm(LaserBed[1]), Mm(LaserBed[0]))),
         ("Plates and panels", Amz, "Desk grommet 2 in (50 mm), 4-pack", "B0DYZP4256",
          "ZLTASYRY 4 desk grommets: 2 in (50 mm) hole, 2.36 in overall, ABS, removable cable cover, "
-         "slit rubber base; a hole saw and 6 cable ties included", nEntries, "4-pack", 1, 7.59,
-         "cable entries: " + "; ".join(c for _, _, c in CableEntries),
+         "slit rubber base; a hole saw and 6 cable ties included", nEntries, "4-pack",
+         math.ceil(nEntries / GrommetsInPack), 7.59,
+         "cable entries: " + "; ".join(c for _, _, c, _ in CableEntries),
          "Owner's choice, in place of cable glands: passes a USB-B plug. Holes %s mm in the panel "
          "DXFs, each grommet held by a %s mm acrylic ring on its sleeve; caliper one first"
          % (Mm(GrommetHole), Mm(RingOD))),
         # ---- duct
         ("Cable duct", Mc, "Slotted wire duct 1/2 W x 1 H, gray", "7578K114",
          "Slotted wire duct with snap-on cover, 1 in high x 1/2 in wide, gray", "%d mm" % round(narrowDuct),
-         "6 1/2 ft length", 1, 25.51, "upper signal and field runs, both lower runs",
+         "6 1/2 ft length", math.ceil(narrowDuct / (6.5 * 304.8)), 25.51,
+         "upper signal, field, SSR and 24 V feed runs; both lower runs",
          "McMaster price of 2026-10-15; shipping extra"),
         ("Cable duct", Mc, "Slotted wire duct 1 W x 1 1/2 H", "7578K14",
          "Slotted wire duct with snap-on cover, 1 1/2 in high x 1 in wide", "%d mm" % round(wideDuct),
-         "3 1/4 ft length", 1, 23.74, "upper motor-cable run", "McMaster price of 2026-10-15; gray or white"),
+         "3 1/4 ft length", math.ceil(wideDuct / (3.25 * 304.8)), 23.74,
+         "motor duct behind the drivers, past the clamp, and the back run to the upper left grommet",
+         "McMaster price of 2026-10-15; gray or white"),
         # ---- PE bonding of the box
         ("PE bonding", "owner, elsewhere", "Ground bar, %d terminals or more" % BarTerminals, "-",
          "Listed ground bar for 12 AWG copper; priced reference: Siemens EC2GB152 (B007ZZGSQI), $10.38",
@@ -3310,8 +3575,8 @@ def BomRows():
         ("PE bonding", Amz, "External tooth lock washers, 304, M2.5 to M12", "B0CP7YZ9JY",
          "500 pcs external tooth (star) lock washer assortment", lugs + 2 * nBars, "kit", 1, 9.99,
          "under each ring lug, under the bars on the base plate", "Per-size counts are not listed"),
-        ("PE bonding", "original BoM", "PE terminal block, one per DIN rail", "-", "", 5, "-", 0, None,
-         "bonds each DIN rail; its jumper lands bare", ""),
+        ("PE bonding", "original BoM", "PE terminal block, one per DIN rail", "-", "", len(dinRails), "-", 0,
+         None, "bonds each DIN rail; its jumper lands bare", ""),
         # ---- PE bonding of the gantry
         ("Gantry PE", "owner, elsewhere", "Ground bar, %d terminals or more" % BarTerminals, "-",
          "Listed ground bar for 12 AWG copper", 1, "each", 0, None,
@@ -3331,7 +3596,11 @@ def BomRows():
          "bond holes (4.2, then tap M5); mid and lid rail holes and upper post sockets (5.56)", ""),
         ("Not in this BoM", "original BoM", "Electrical parts", "-",
          "terminal blocks, PE blocks, fuse holder, distribution block, wire", "", "-", 0, None, "", ""),
-        ("Not in this BoM", "on hand", "Steel DIN rails, 16 in", "-", "five", 5, "each", 0, None, "", ""),
+        ("Not in this BoM", "on hand", "Steel DIN rails, 16 in", "-", "%d on hand" % DinRailsOnHand,
+         len(dinCuts), "each", 0, None,
+         "%d rail pieces, %d mm: %s" % (len(dinRails), round(sum(dinLen)),
+                                       "; ".join(" + ".join(Mm(L) for L in r) for r in dinCuts)),
+         "Cut from the rails on hand, first fit with a 3 mm kerf (NestDinRails)"),
         ("Not in this BoM", "not chosen", "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]

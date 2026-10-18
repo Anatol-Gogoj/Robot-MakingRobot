@@ -11,6 +11,7 @@ This project used **Claude** (Anthropic) as its main AI development tool, and Gi
 - **Web UIs**: RMR_Controller.html was generated with Claude. RMR_Touch.html, the Process Sequencer, the Run Log module, the colour themes, and the later fixes to both pages were written with Claude.
 - **Pi touch panel**: the serial-to-WebSocket bridge and its GPIO buttons, status tower and e-stop sense (`pi-panel/`) were written with Claude.
 - **Tooling and tests**: `tools/sync_runlog.py`, `tools/contrast_check.py` and the browser test harness under `tests/` were written with Claude.
+- **Control box drawings**: the wiring, packing and frame sheets under `docs/wiring/`, their generator `tools/draw_wiring.py` with its check scripts, and the CP-SAT packing study under `tools/layout_study/` were written with Claude. The project author made the design decisions recorded in ADRs 0008 to 0011.
 - **Repository maintenance**: Claude Code did the September 2026 consolidation, which merged the August spincoater pull-request stack and the September UI work into `main` (PRs #106 and #107), including the conflict resolutions recorded in their merge commits. It also did the later documentation refreshes and the October 2026 move of session handoffs out of the repository (issue #129).
 - **CAD commits**: Claude Code committed the files under `CAD/`. The models themselves were designed by the project author (see below).
 

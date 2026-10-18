@@ -14,7 +14,6 @@ import math
 import os
 import sys
 
-from ortools.sat.python import cp_model
 
 # ---------------------------------------------------------------- frame and stack (mm)
 BoxD, BoxW, BoxH = 457.0, 330.0, 279.4
@@ -112,6 +111,7 @@ def Heights(arch, blocks):
 def Solve(name, deckD=BoxD, deckW=BoxW, fixed=None, seconds=60.0, mainsRule=True, fanRule=True,
           freeExits=False):
     """Place every block; `fixed` = {block: (cx, cy, rot)} scores a given layout instead."""
+    from ortools.sat.python import cp_model   # only the solver needs OR-Tools; Score() runs without it
     arch = Arch(name)
     blocks = Geometry(arch)
     h = Heights(arch, blocks)
@@ -254,18 +254,21 @@ Current = {
 }
 
 
-def Score(name, fixed):
-    """Wire length of a given layout, no constraints: {block: (cx, cy, rot)}."""
+def Score(name, fixed, exits=None, nets=None, rise=None):
+    """Wire length of a given layout, no constraints: {block: (cx, cy, rot)}. exits and nets replace
+    Exits and Nets, and rise the deck rise of Heights(), for a layout drawn elsewhere
+    (tools/draw_wiring.py StudyScore())."""
     arch = Arch(name)
     blocks = Geometry(arch)
     h = Heights(arch, blocks)
     pts = {b: (cx, cy, arch["deck"][b]) for b, (cx, cy, _) in fixed.items()}
-    pts.update(Exits)
+    pts.update(Exits if exits is None else exits)
+    step = h["deck rise"] if rise is None else rise
     plan = rise = 0.0
-    for a, b, n in Nets:
+    for a, b, n in (Nets if nets is None else nets):
         (xa, ya, da), (xb, yb, db) = pts[a], pts[b]
         plan += n * (abs(xa - xb) + abs(ya - yb))
-        rise += n * h["deck rise"] if da != db else 0.0
+        rise += n * step if da != db else 0.0
     place = {}
     for b, (cx, cy, r) in fixed.items():
         L, d = blocks[b][0], blocks[b][1]
