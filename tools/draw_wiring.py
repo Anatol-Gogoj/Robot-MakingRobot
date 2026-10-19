@@ -1456,10 +1456,12 @@ BracketFill = "#888888"
 # Materials (ADR-0009): both decks are 1/16 in 5052-H32, sheared and drilled in the shop through
 # a template cut on the laser. The base plate is the floor of the 110 VAC compartment, and the
 # upper plate is its ceiling, so neither is plastic. Only the side and top panels are acrylic:
-# 1/8 in cast, which Langaelex lists as 3 mm.
+# 1/8 in cast, McMaster 8560K259 (24 x 24 in, trimmed to 24 x 18), which McMaster lists with a
+# thickness tolerance of -0.025 to +0.015 in (2.54 to 3.56 mm). The panel screw passes
+# ScrewFits() at both ends of that range.
 BasePlateT = 1.5875                # 1/16 in 5052-H32 aluminum
 UpPlateT = 1.5875                  # the same sheet stock
-PanelT = 3.0                       # 1/8 in cast acrylic side and top panels
+PanelT = 3.175                     # 1/8 in cast acrylic side and top panels, nominal
 # Every part stands on a 35 mm top-hat DIN rail screwed to its deck. EN 60715 makes that rail 7.5 or
 # 15 mm tall; the rails on hand measure 7.5 (owner, 2026-10-17): five 18 in slotted aluminum rails
 # from the 2026-09-14 order (B0BFFSMBC7, "7.5mm High"; issue #158). Parts without
@@ -3836,13 +3838,21 @@ def BomRows():
         ("Plates and panels", Amz, Buy, "Edge trim, 1/16 in U-channel, 10 ft", "B0CQLC4P4S",
          "Rubber U-channel edge trim, fits 0 to 5/64 in edges, 10 ft, black", "%d mm" % round(trim), "10 ft", 1,
          7.99, "the %d cable slots in the upper plate" % len(CableSlots), ""),
-        ("Plates and panels", Amz, Buy, "Cast acrylic 1/8 x 18 x 24 in, clear, 4-pack", "B0CZLDGK69",
-         "Langaelex 4 cast acrylic sheets 18 x 24 x 1/8 in (3 mm)", "%d sheets" % nSheets, "4-pack", 1, 49.99,
+        ("Plates and panels", Mc, Buy, "Cast acrylic 1/8 x 24 x 24 in, clear", "8560K259",
+         "Clear scratch- and UV-resistant cast acrylic sheet, 24 x 24 x 1/8 in", "%d sheets" % nSheets,
+         "each", nSheets + 1, 39.04,
          "%d panels and %d grommet rings on %d sheets (sheet 4, NestPlan)"
          % (sum(n for _, n, _, _, m, _ in EnclosurePanels() if m == "acrylic"), nEntries, nSheets),
-         "The spare sheet: the drilling templates, the upper plate's (both plates) and the lower back "
-         "panel's beside it. All fit the %s x %s mm bed, 24 in along %s"
-         % (Mm(LaserBed[0]), Mm(LaserBed[1]), Mm(LaserBed[0]))),
+         "Trim each sheet to 24 x 18 in first: the nest is laid out on that size, and the %s mm bed "
+         "takes no more than 18 in. The extra sheet: the drilling templates, the upper plate's (both "
+         "plates) and the lower back panel's beside it. The 6 in offcuts are spare. McMaster price of "
+         "2026-10-18; shipping extra. Ordered in place of the Amazon 4-pack of 18 x 24 in sheets "
+         "(B0CZLDGK69, $49.99)" % Mm(LaserBed[1])),
+        ("Plates and panels", Amz, Buy, "Acrylic bonding cement, 4 oz", "B0DS69HMN6",
+         "Berkland acrylic bonding cement, 4 oz", 1, "each", 1, 19.99,
+         "acrylic bonding (the owner's line)",
+         "In the Amazon order since 2026-10-15, kept by the owner on 2026-10-18; price read from the cart "
+         "that day"),
         ("Plates and panels", Amz, Buy, "Desk grommet 2 in (50 mm), 4-pack", "B0DYZP4256",
          "ZLTASYRY 4 desk grommets: 2 in (50 mm) hole, 2.36 in overall, ABS, removable cable cover, "
          "slit rubber base; a hole saw and 6 cable ties included", nEntries, "4-pack",
@@ -4043,8 +4053,8 @@ def BomCsv():
           "priced at $146 against $75 for the sticks (+$71)")
     Total("Total, all priced lines", sum(bySrc.values()),
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
-          "cable gland, the gantry PE wire and the issue #158 lines on %s), McMaster on 2026-10-15; shipping "
-          "and tax extra"
+          "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s), McMaster on "
+          "2026-10-15 (the acrylic on 2026-10-18); shipping and tax extra"
           % (BomDate, ToolDate))
     return out.getvalue()
 
