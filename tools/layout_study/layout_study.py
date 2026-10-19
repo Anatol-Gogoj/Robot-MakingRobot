@@ -30,7 +30,7 @@ Blocks = {
     "R110": (154.5, 82.0, 72.5, "mains", True),    # X0, F0, K1, X1, PE blocks on the 110 V rail
     "PSU": (215.0, 50.0, 132.5, "mains", True),    # 24 V 1200 W standing on its hole face
     "R24": (122.1, 85.1, 75.6, "dc", True),        # K2, Star S, two 0V-P bars
-    "RFB": (262.0, 47.8, 50.7, "dc", True),        # FB2 12-way + FB1 6-way
+    "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
     "PS6": (63.0, 58.0, 40.5, "dc", True),         # servo PSU
     "PS5": (76.0, 76.0, 49.5, "dc", True),         # 5 V PSU for the Pi
     "DRV": (242.0, 124.4, 85.5, "drv", True),      # 7 TB6600 + motor duct

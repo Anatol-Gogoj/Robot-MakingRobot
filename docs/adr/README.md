@@ -16,11 +16,12 @@ ID | title | status | scope
 0005 | The two HTML pages are the only UIs, and process parameters live in them | Accepted | `RMR_Controller.html`, `RMR_Touch.html`, G-code programs
 0006 | Over Web Serial the Touch UI reconnects by itself and the Controller does not | Accepted | both UIs, serial transport
 0008 | The control box is a 2020 frame in two modules, not off-the-shelf enclosures | Accepted; materials and sourcing superseded by 0009 | `docs/wiring` sheets 3 and 4, plate DXFs, `bom_frame.csv`
-0009 | The control box is built from Amazon parts: shop-cut 6 mm-slot 2020, 1/16 in aluminum decks, acrylic walls, every metal part home-run to PE | Accepted | `docs/wiring` sheets 3 and 4, `bom_frame.csv`
+0009 | The control box is built from Amazon parts: shop-cut 6 mm-slot 2020, 1/16 in aluminum decks, acrylic walls, every metal part home-run to PE | Accepted; ground bar sourcing superseded by 0014 | `docs/wiring` sheets 3 and 4, `bom_frame.csv`
 0010 | The control box layout lays the 24 V PSU flat and follows the CP-SAT packing study | Accepted, on the PSU mounting flat | `docs/wiring` sheets 3 and 4, plate and panel DXFs
 0011 | The lower bay is set by the lower wall's grommet, not by the tallest lower part | Accepted | `tools/draw_wiring.py` frame stack, `docs/wiring` sheets 3 and 4, plate and panel DXFs
 0012 | A bent 5052 wall closes the 110 VAC compartment, and the 110 V door cable leaves through the back panel | Rejected by the owner; see 0013 | `tools/draw_wiring.py`, `docs/wiring` sheets 3 to 5, base plate, back panel and wall DXFs
 0013 | No wall around the 110 VAC parts: the compartment is a zone of the lower deck | Accepted | `tools/draw_wiring.py`, `docs/wiring` sheets 3 and 4, base plate DXF, `bom_frame.csv`
+0014 | The control box is drawn and bought for the parts actually ordered: a 12-way FB1, aluminum DIN rail, and the ground bars, PE blocks and copper power wire bought | Proposed (issue #158) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 1 to 3, the lower left panel DXF, `bom_frame.csv`
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an

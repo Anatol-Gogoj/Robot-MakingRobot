@@ -657,7 +657,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="57.5" y="39.1" font-size="1.1" text-anchor="middle">6</text>
 <text x="61.5" y="39.1" font-size="1.1" text-anchor="middle">8</text>
 <text x="65" y="39.1" font-size="1.1" text-anchor="middle">A2</text>
-<text x="89" y="32.85" font-size="2" text-anchor="middle" font-weight="bold">FB1 6-way</text>
+<text x="89" y="32.85" font-size="2" text-anchor="middle" font-weight="bold">FB1 12-way</text>
 <text x="89" y="35.05" font-size="1.35" text-anchor="middle">always on</text>
 <text x="75" y="39.1" font-size="1.1" text-anchor="middle">IN</text>
 <text x="80" y="39.1" font-size="1.1" text-anchor="middle">F1-1</text>
@@ -1029,8 +1029,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="122" y="189" font-size="1.5">5  Field terminals X4 X5 X8 X7 X6, Pi 5, tower SSRs</text>
 <text x="122" y="192.4" font-size="1.5">Arrangement, not to scale; terminal positions are drawn where the routing is clearest.</text>
 <text x="122" y="194.65" font-size="1.5">Land each wire on the terminal it is drawn to. Measure parts before cutting rail and duct.</text>
-<text x="122" y="196.9" font-size="1.5">Gauges: PSU to FB1, K2, FB2 and S, and S to 0V-P: 12 AWG. F2-1 to F2-7: 18 AWG.</text>
-<text x="122" y="199.15" font-size="1.5">F2-8: 16 AWG. F0 rung: insulation rated 300 V or more. Everything else: 20 AWG.</text>
+<text x="122" y="196.9" font-size="1.5">Gauges, copper only: mains L and N, PSU to FB1, K2, FB2 and S, S to 0V-P: 12 AWG.</text>
+<text x="122" y="199.15" font-size="1.5">F2-1 to F2-7: 18 AWG. F2-8: 16. F0 rung: 300 V insulation. Everything else: 20 AWG.</text>
 <text x="122" y="201.4" font-size="1.5">TB6600, ODrive, bucks, SSR modules, Mega and Pi need DIN clips or carriers.</text>
 <text x="122" y="203.65" font-size="1.5">Bond every rail and the frame to PE (chassis stud); 0 V meets PE only at S.</text>
 <text x="122" y="205.9" font-size="1.5">Open items and the firmware gap: sheet 1, notes 3 to 5.</text>
