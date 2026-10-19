@@ -394,7 +394,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="18.43" y="91.74" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle">slot 3</text>
 <text x="54.43" y="116.83" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="end">field</text>
 <text x="129" y="116.83" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">motors</text>
-<text x="13.26" y="87.86" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle" transform="rotate(-90 13.26 87.86)">USB, J11</text>
+<text x="13.26" y="87.86" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle" transform="rotate(-90 13.26 87.86)">USB, J11, GPIO</text>
 <text x="101" y="28.26" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">motor, tower</text>
 <text x="75.29" y="121.39" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">18 in (457 mm)</text>
 <text x="143.77" y="72.14" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 143.77 72.14)">13 in (330 mm)</text>
@@ -523,12 +523,12 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="291" y="127.7" font-size="1.45">its slots wait for the fan's size. Five 50 mm</text>
 <text x="291" y="129.65" font-size="1.45">grommets: upper left at x 182 (field) and</text>
 <text x="291" y="131.6" font-size="1.45">x 390 (motors, at the back run's end), upper</text>
-<text x="291" y="133.55" font-size="1.45">front (USB, J11), upper right (a motor, the</text>
-<text x="291" y="135.5" font-size="1.45">tower), lower left (ODrive 24 V, Pi 5 V,</text>
-<text x="291" y="137.45" font-size="1.45">E-stop). Mains in at the back wall in line with</text>
-<text x="291" y="139.4" font-size="1.45">the 110 V rail; the 110 V door cable leaves</text>
-<text x="291" y="141.35" font-size="1.45">beside it by an M20 gland; no wall around</text>
-<text x="291" y="143.3" font-size="1.45">the mains parts (ADR-0013).</text>
+<text x="291" y="133.55" font-size="1.45">front (USB, J11, Pi GPIO), upper right (a</text>
+<text x="291" y="135.5" font-size="1.45">motor, the tower), lower left (ODrive 24 V,</text>
+<text x="291" y="137.45" font-size="1.45">Pi 5 V, E-stop). Mains in at the back wall in</text>
+<text x="291" y="139.4" font-size="1.45">line with the 110 V rail; the 110 V door cable</text>
+<text x="291" y="141.35" font-size="1.45">leaves beside it by an M20 gland; no wall</text>
+<text x="291" y="143.3" font-size="1.45">around the mains parts (ADR-0013).</text>
 <text x="291" y="146.35" font-size="1.75" font-weight="bold">Sizes: along x across x high (mm)</text>
 <text x="291" y="148.75" font-size="1.45">TB6600 28 x 96 x 68, measured. From the</text>
 <text x="291" y="150.7" font-size="1.45">listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U</text>

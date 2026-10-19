@@ -70,17 +70,13 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="ve" d="M96 36.3 L96 84"/>
 <path class="zp" d="M74.6 44 L74.6 47 L106.5 47 L106.5 48"/>
 <circle class="dot" cx="118" cy="19" r="0.6" fill="#0077BB"/>
-<path class="va" d="M118 19 L118 26"/>
-<rect class="symf" x="117" y="20.5" width="2" height="4"/>
-<path class="sym" d="M118 20.5 L118 24.5"/>
+<path class="va" d="M118 19 L118 21.5"/>
 <circle class="dot" cx="142" cy="19" r="0.6" fill="#0077BB"/>
 <path class="va" d="M142 19 L142 26"/>
 <rect class="symf" x="141" y="20.5" width="2" height="4"/>
 <path class="sym" d="M142 20.5 L142 24.5"/>
 <circle class="dot" cx="166" cy="19" r="0.6" fill="#0077BB"/>
-<path class="va" d="M166 19 L166 26"/>
-<rect class="symf" x="165" y="20.5" width="2" height="4"/>
-<path class="sym" d="M166 20.5 L166 24.5"/>
+<path class="va" d="M166 19 L166 21.5"/>
 <circle class="dot" cx="190" cy="19" r="0.6" fill="#0077BB"/>
 <path class="va" d="M190 19 L190 26"/>
 <rect class="symf" x="189" y="20.5" width="2" height="4"/>
@@ -91,30 +87,18 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sym" d="M210 20.5 L210 24.5"/>
 <circle class="dot" cx="230" cy="19" r="0.6" fill="#0077BB"/>
 <path class="va" d="M230 19 L230 21.5"/>
-<path class="va" d="M118 26 L118 28"/>
-<rect class="bx" x="110" y="28" width="16" height="8.5"/>
-<path class="zp" d="M113 36.5 L113 50"/>
-<path class="lv" d="M123 36.5 L123 41.4"/>
-<rect x="104.96" y="41.7" width="18.04" height="2.6" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
 <path class="va" d="M142 26 L142 28"/>
 <rect class="bx" x="134" y="28" width="16" height="8.5"/>
 <path class="zp" d="M137 36.5 L137 50"/>
 <path class="lv" d="M147 36.5 L147 41.4"/>
-<rect x="134.78" y="41.7" width="12.22" height="2.6" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
-<path class="va" d="M166 26 L166 28"/>
-<rect class="bx" x="158" y="28" width="16" height="8.5"/>
-<path class="zp" d="M161 36.5 L161 50"/>
-<path class="lv" d="M171 36.5 L171 41.4"/>
-<rect x="157.95" y="41.7" width="13.05" height="2.6" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
+<rect x="128.96" y="41.7" width="18.04" height="2.6" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
 <path class="va" d="M190 26 L190 28.6"/>
 <rect x="186" y="28.8" width="5.14" height="2.8" fill="#fff" stroke="#0077BB" stroke-width=".25"/>
 <path class="va" d="M210 26 L210 28.6"/>
 <rect x="206" y="28.8" width="5.14" height="2.8" fill="#fff" stroke="#0077BB" stroke-width=".25"/>
 <path class="zp" d="M108.8 50 L236 50"/>
 <rect class="bx" x="104.2" y="48" width="4.6" height="4"/>
-<circle class="dot" cx="113" cy="50" r="0.6" fill="#000"/>
 <circle class="dot" cx="137" cy="50" r="0.6" fill="#000"/>
-<circle class="dot" cx="161" cy="50" r="0.6" fill="#000"/>
 <path class="zp" d="M222 50 L222 53"/>
 <rect x="222" y="53.2" width="2.34" height="2.8" fill="#fff" stroke="#000" stroke-width=".25"/>
 <circle class="dot" cx="222" cy="50" r="0.6" fill="#000"/>
@@ -460,16 +444,14 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <circle class="dot" cx="100" cy="198" r="0.6" fill="#33BBEE"/>
 <path class="zs" d="M122 160 L122 198"/>
 <circle class="dot" cx="122" cy="198" r="0.6" fill="#33BBEE"/>
-<path class="lv" d="M134 160 L134 168"/>
-<rect x="134" y="168.35" width="11.54" height="2.5" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
 <path class="sg" d="M144 160 L144 186 L152 186"/>
 <rect class="bx" x="152" y="166" width="26" height="28"/>
 <path class="lv" d="M156 166 L156 163"/>
-<rect x="154" y="161.4" width="10.86" height="2.4" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
+<rect x="154" y="161.4" width="6.5" height="2.4" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
 <path class="sg" d="M174 166 L174 163.4 L236 163.4"/>
 <rect class="bx" x="236" y="160.6" width="14" height="10"/>
 <path class="lv" d="M243 170.6 L243 172.6"/>
-<rect x="232.81" y="172.85" width="10.19" height="2.3" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
+<rect x="234.16" y="172.85" width="8.84" height="2.3" fill="#fff" stroke="#EE7733" stroke-width=".25"/>
 <rect class="bx" x="190" y="168" width="14" height="16"/>
 <rect class="bx" x="214" y="168" width="12" height="16"/>
 <path class="sg" d="M178 170 L190 170"/>
@@ -527,7 +509,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M298.6 43 L298.6 44.5"/>
 <rect class="bx" x="256" y="186" width="92" height="21.5"/>
 <text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: wiring schematic</text>
-<text x="8" y="15.4" font-size="2.1">The layered E-stop panel as designed in the 2026-10-06 panel reference. Planned wiring, not the machine as it is wired today.</text>
+<text x="8" y="15.4" font-size="2.1">The layered E-stop panel of the 2026-10-06 panel reference, with the supplies of 2026-10-15. Planned wiring, not the machine as it is wired today.</text>
 <text x="8" y="21" font-size="2.4" font-weight="bold">Mains and 24 V supply</text>
 <text x="16.5" y="29" font-size="1.9" text-anchor="middle">Inlet</text>
 <text x="16.5" y="31.32" font-size="1.9" text-anchor="middle">110 VAC</text>
@@ -564,29 +546,19 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="80" y="46.2" font-size="1.6">V-  12 AWG</text>
 <text x="104" y="23.3" font-size="2.4" font-weight="bold" fill="#0077BB">FB1</text>
 <text x="104" y="25.6" font-size="1.6">12-way</text>
-<text x="119.6" y="22.3" font-size="1.7">F1-1</text>
-<text x="119.6" y="24.4" font-size="1.7">3 A</text>
+<text x="118" y="24.2" font-size="1.7" text-anchor="middle">F1-1 spare</text>
 <text x="143.6" y="22.3" font-size="1.7">F1-2</text>
 <text x="143.6" y="24.4" font-size="1.7">3 A</text>
-<text x="167.6" y="22.3" font-size="1.7">F1-3</text>
-<text x="167.6" y="24.4" font-size="1.7">3 A</text>
+<text x="166" y="24.2" font-size="1.7" text-anchor="middle">F1-3 spare</text>
 <text x="191.6" y="22.3" font-size="1.7">F1-4</text>
 <text x="191.6" y="24.4" font-size="1.7">3 A</text>
 <text x="211.6" y="22.3" font-size="1.7">F1-5</text>
 <text x="211.6" y="24.4" font-size="1.7">3 A</text>
 <text x="230" y="24.2" font-size="1.7" text-anchor="middle">F1-6 spare</text>
-<text x="118" y="31.4" font-size="1.9" text-anchor="middle" font-weight="bold">Mega buck</text>
-<text x="118" y="34.4" font-size="1.7" text-anchor="middle">5 V out</text>
-<text x="113.6" y="39" font-size="1.5">IN-</text>
-<text x="113.98" y="43.58" font-size="1.6" text-anchor="middle">5 V to Mega (note 4)</text>
-<text x="142" y="31.4" font-size="1.9" text-anchor="middle" font-weight="bold">Pi 5 buck</text>
-<text x="142" y="34.4" font-size="1.7" text-anchor="middle">5.1 V 5 A</text>
+<text x="142" y="31.4" font-size="1.9" text-anchor="middle" font-weight="bold">5 V PSU</text>
+<text x="142" y="34.4" font-size="1.7" text-anchor="middle">Pi at the panel</text>
 <text x="137.6" y="39" font-size="1.5">IN-</text>
-<text x="140.89" y="43.58" font-size="1.6" text-anchor="middle">5.1 V to Pi 5</text>
-<text x="166" y="31.4" font-size="1.9" text-anchor="middle" font-weight="bold">Screen</text>
-<text x="166" y="34.4" font-size="1.7" text-anchor="middle">supply</text>
-<text x="161.6" y="39" font-size="1.5">IN-</text>
-<text x="164.48" y="43.58" font-size="1.6" text-anchor="middle">to touchscreen</text>
+<text x="137.98" y="43.58" font-size="1.6" text-anchor="middle">5 V to Pi 5 (note 4)</text>
 <text x="188.57" y="30.85" font-size="1.8" text-anchor="middle">F1-4</text>
 <text x="184.5" y="34" font-size="1.6">to tower SSRs</text>
 <text x="208.57" y="30.85" font-size="1.8" text-anchor="middle">F1-5</text>
@@ -811,20 +783,21 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="123.2" y="190.8" font-size="1.4">0V-S to Mega</text>
 <text x="123.2" y="192.6" font-size="1.4">GND</text>
 <text x="134" y="158.8" font-size="1.7" text-anchor="middle" font-weight="bold">PWR</text>
-<text x="139.77" y="170.14" font-size="1.5" text-anchor="middle">Mega buck 5 V</text>
-<text x="134" y="174.4" font-size="1.4">(note 4)</text>
+<text x="133" y="164.8" font-size="1.4">not used:</text>
+<text x="133" y="166.7" font-size="1.4">USB from</text>
+<text x="133" y="168.6" font-size="1.4">the Pi</text>
 <text x="144" y="158.8" font-size="1.7" text-anchor="middle" font-weight="bold">USB</text>
 <text x="144.8" y="184.8" font-size="1.3">USB</text>
 <text x="165" y="171" font-size="1.9" text-anchor="middle" font-weight="bold">Raspberry</text>
 <text x="165" y="173.6" font-size="1.9" text-anchor="middle" font-weight="bold">Pi 5</text>
 <text x="165" y="176.6" font-size="1.4" text-anchor="middle">rmr_bridge.py</text>
 <text x="165" y="179" font-size="1.4" text-anchor="middle">GPIO = BCM</text>
-<text x="159.43" y="163.1" font-size="1.4" text-anchor="middle">5.1 V Pi buck</text>
+<text x="157.25" y="163.1" font-size="1.4" text-anchor="middle">5 V PSU</text>
 <text x="176" y="162.6" font-size="1.4">HDMI + USB touch</text>
 <text x="243" y="164.4" font-size="1.5" text-anchor="middle" font-weight="bold">10 in</text>
 <text x="243" y="166.6" font-size="1.5" text-anchor="middle" font-weight="bold">touch</text>
 <text x="243" y="168.8" font-size="1.5" text-anchor="middle" font-weight="bold">screen</text>
-<text x="237.91" y="174.47" font-size="1.3" text-anchor="middle">screen supply</text>
+<text x="238.58" y="174.47" font-size="1.3" text-anchor="middle">from the Pi</text>
 <text x="197" y="186.8" font-size="1.5" text-anchor="middle" font-weight="bold">SSR x 4</text>
 <text x="220" y="175.4" font-size="1.5" text-anchor="middle" font-weight="bold">Status</text>
 <text x="220" y="177.6" font-size="1.5" text-anchor="middle" font-weight="bold">tower</text>
@@ -887,11 +860,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="247" y="63.8" font-size="1.65">Read off the parts before wiring: tower common polarity, lid feed voltage,</text>
 <text x="247" y="66.1" font-size="1.65">valve coil, servo 6 V rating, and which side powers ODrive J11 logic.</text>
 <text x="244" y="68.9" font-size="1.65" font-weight="bold">4</text>
-<text x="247" y="68.9" font-size="1.65">Mega buck: the Mega datasheet (A000067, 2.1) rates VIN at 7 to 12 V and gives no</text>
-<text x="247" y="71.2" font-size="1.65">rating for feeding the 5 V pin. Pick the input, then set the buck output to suit.</text>
+<text x="247" y="68.9" font-size="1.65">5 V PSU (2026-10-15): it feeds the Pi 5 at the operator panel, which wants 5.1 V at</text>
+<text x="247" y="71.2" font-size="1.65">5 A; check its rating and the drop along the cable. The Mega runs on the Pi's USB.</text>
 <text x="244" y="74" font-size="1.65" font-weight="bold">5</text>
-<text x="247" y="74" font-size="1.65">Firmware gap (stage 0): kill() and motor-power loss leave pins 4 and 42 as they</text>
-<text x="247" y="76.3" font-size="1.65">were. With the UV behind K2, Reset relights the lamp until that is fixed.</text>
+<text x="247" y="74" font-size="1.65">Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to</text>
+<text x="247" y="76.3" font-size="1.65">their OFF level. The bootloader's seconds before setup() are not covered.</text>
 <text x="258" y="165" font-size="2" font-weight="bold">Drive and wiring rules</text>
 <text x="258" y="168" font-size="1.6">Every driver: PUL-, DIR- and ENA- jumpered at the driver (COM);</text>
 <text x="258" y="170.3" font-size="1.6">one COM wire per driver to 0V-S. Driver top: +V, 0V, A+, A-, B+, B-.</text>
@@ -901,8 +874,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="258" y="179.5" font-size="1.6">Servo, lid and UV wires cross the hinge: stranded, service loop,</text>
 <text x="258" y="181.8" font-size="1.6">strain relief at both ends.</text>
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: wiring schematic</text>
-<text x="258" y="194.4" font-size="2">Sheet 1 of 2. Legal 14 x 8.5 in, landscape. Print at 100 %.</text>
-<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-14.</text>
+<text x="258" y="194.4" font-size="2">Sheet 1. Legal 14 x 8.5 in, landscape. Print at 100 %.</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-19.</text>
 <text x="258" y="199.9" font-size="2">Status: design, not yet wired or tested on the machine.</text>
-<text x="258" y="202.65" font-size="2">Sheet 2 shows the same circuits on DIN rails.</text>
+<text x="258" y="202.65" font-size="2">Sheets 2A and 2B show the same circuits on the two decks.</text>
 </svg>
