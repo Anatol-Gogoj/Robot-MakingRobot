@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<title>RMR control box in the gantry</title>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}
+path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
+.ac{stroke:#CC3311;stroke-width:.6}
+.va{stroke:#0077BB;stroke-width:.5}
+.ve{stroke:#EE3377;stroke-width:.5}
+.zp{stroke:#000;stroke-width:.55}
+.zs{stroke:#33BBEE;stroke-width:.5}
+.pe{stroke:#009988;stroke-width:.45;stroke-dasharray:2.4 .7 .5 .7}
+.lv{stroke:#EE7733;stroke-width:.42}
+.sg{stroke:#000;stroke-width:.22}
+.zl{stroke:#000;stroke-width:.3}
+.cb{stroke:#000;stroke-width:.85}
+.sgc{stroke:#000;stroke-width:.5}
+.mo{stroke:#000;stroke-width:.3}
+.un{stroke-dasharray:1.1 .8}
+.mech{stroke:#000;stroke-width:.2;stroke-dasharray:.8 .6}
+.sym{stroke:#000;stroke-width:.32;fill:none}
+.symf{stroke:#000;stroke-width:.32;fill:#fff}
+.bx{fill:#fff;stroke:#000;stroke-width:.3}
+.bxl{fill:#fff;stroke:#000;stroke-width:.22}
+.frame{fill:none;stroke:#000;stroke-width:.4}
+.zone{fill:none;stroke:#888;stroke-width:.2;stroke-dasharray:1.5 1}
+.rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
+.duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
+.dot{stroke:none}
+</style>
+<rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
+<rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
+<path class="zl" d="M44 117.79 L171.4 117.79"/>
+<rect x="62" y="114.88" width="91.4" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="62" y="97.68" width="91.4" height="17.2" fill="#F6F6F6" stroke="#000" stroke-width="0.2"/>
+<rect x="62" y="93.68" width="91.4" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="62" y="93.36" width="91.4" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="62" y="63.32" width="91.4" height="30.04" fill="#F6F6F6" stroke="#000" stroke-width="0.2"/>
+<rect x="62" y="59.32" width="91.4" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.2"/>
+<rect x="62" y="58.69" width="91.4" height="0.64" fill="#DDDDDD" stroke="#000" stroke-width="0.12"/>
+<rect x="63.13" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="84.98" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="106.83" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="128.68" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="150.53" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="61.37" y="59.32" width="0.64" height="55.88" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
+<rect x="153.4" y="97.68" width="0.32" height="17.52" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="153.4" y="59.32" width="0.64" height="38.36" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
+<rect x="62" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="149.4" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="60.37" y="98.81" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="60.37" y="94.81" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="60.37" y="90.49" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="60.37" y="64.45" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<path d="M61.37 111.2 L57.37 111.2 L57.37 110.5 L60.66 110.5 L60.66 107.2 L61.37 107.2 Z" style="fill:#888888" stroke="#000" stroke-width="0.15"/>
+<rect x="59.66" y="108.33" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="58.49" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
+<path d="M57.37 111.2 L58.77 111.2 L58.77 111.56 L58.27 111.56 L58.27 111.8 L58.8 112.4 L59.92 112.4 L60.47 111.8 L60.47 111.56 L59.97 111.56 L59.97 111.2 L61.37 111.2 L61.37 112.6 L61.01 112.6 L61.01 112.1 L60.77 112.1 L60.16 112.64 L60.16 113.76 L60.77 114.3 L61.01 114.3 L61.01 113.8 L61.37 113.8 L61.37 115.2 L59.97 115.2 L59.97 114.84 L60.47 114.84 L60.47 114.6 L59.92 114 L58.8 114 L58.27 114.6 L58.27 114.84 L58.77 114.84 L58.77 115.2 L57.37 115.2 L57.37 113.8 L57.73 113.8 L57.73 114.3 L57.97 114.3 L58.56 113.76 L58.56 112.64 L57.97 112.1 L57.73 112.1 L57.73 112.6 L57.37 112.6 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M57.37 44.2 L58.77 44.2 L58.77 44.56 L58.27 44.56 L58.27 44.8 L58.8 45.4 L59.92 45.4 L60.47 44.8 L60.47 44.56 L59.97 44.56 L59.97 44.2 L61.37 44.2 L61.37 45.6 L61.01 45.6 L61.01 45.1 L60.77 45.1 L60.16 45.64 L60.16 46.76 L60.77 47.3 L61.01 47.3 L61.01 46.8 L61.37 46.8 L61.37 48.2 L59.97 48.2 L59.97 47.84 L60.47 47.84 L60.47 47.6 L59.92 47 L58.8 47 L58.27 47.6 L58.27 47.84 L58.77 47.84 L58.77 48.2 L57.37 48.2 L57.37 46.8 L57.73 46.8 L57.73 47.3 L57.97 47.3 L58.56 46.76 L58.56 45.64 L57.97 45.1 L57.73 45.1 L57.73 45.6 L57.37 45.6 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M57.37 31.2 L58.77 31.2 L58.77 31.56 L58.27 31.56 L58.27 31.8 L58.8 32.4 L59.92 32.4 L60.47 31.8 L60.47 31.56 L59.97 31.56 L59.97 31.2 L61.37 31.2 L61.37 32.6 L61.01 32.6 L61.01 32.1 L60.77 32.1 L60.16 32.64 L60.16 33.76 L60.77 34.3 L61.01 34.3 L61.01 33.8 L61.37 33.8 L61.37 35.2 L59.97 35.2 L59.97 34.84 L60.47 34.84 L60.47 34.6 L59.92 34 L58.8 34 L58.27 34.6 L58.27 34.84 L58.77 34.84 L58.77 35.2 L57.37 35.2 L57.37 33.8 L57.73 33.8 L57.73 34.3 L57.97 34.3 L58.56 33.76 L58.56 32.64 L57.97 32.1 L57.73 32.1 L57.73 32.6 L57.37 32.6 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="57.37" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="153.72" y="98.81" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="154.03" y="94.81" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="154.03" y="90.49" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="154.03" y="64.45" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<path d="M153.72 111.2 L157.72 111.2 L157.72 110.5 L154.42 110.5 L154.42 107.2 L153.72 107.2 Z" style="fill:#888888" stroke="#000" stroke-width="0.15"/>
+<rect x="154.42" y="108.33" width="1" height="1.74" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="154.85" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
+<path d="M153.72 111.2 L155.12 111.2 L155.12 111.56 L154.62 111.56 L154.62 111.8 L155.16 112.4 L156.28 112.4 L156.82 111.8 L156.82 111.56 L156.32 111.56 L156.32 111.2 L157.72 111.2 L157.72 112.6 L157.36 112.6 L157.36 112.1 L157.12 112.1 L156.52 112.64 L156.52 113.76 L157.12 114.3 L157.36 114.3 L157.36 113.8 L157.72 113.8 L157.72 115.2 L156.32 115.2 L156.32 114.84 L156.82 114.84 L156.82 114.6 L156.28 114 L155.16 114 L154.62 114.6 L154.62 114.84 L155.12 114.84 L155.12 115.2 L153.72 115.2 L153.72 113.8 L154.08 113.8 L154.08 114.3 L154.32 114.3 L154.92 113.76 L154.92 112.64 L154.32 112.1 L154.08 112.1 L154.08 112.6 L153.72 112.6 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M153.72 42.8 L155.12 42.8 L155.12 43.16 L154.62 43.16 L154.62 43.4 L155.16 44 L156.28 44 L156.82 43.4 L156.82 43.16 L156.32 43.16 L156.32 42.8 L157.72 42.8 L157.72 44.2 L157.36 44.2 L157.36 43.7 L157.12 43.7 L156.52 44.24 L156.52 45.36 L157.12 45.9 L157.36 45.9 L157.36 45.4 L157.72 45.4 L157.72 46.8 L156.32 46.8 L156.32 46.44 L156.82 46.44 L156.82 46.2 L156.28 45.6 L155.16 45.6 L154.62 46.2 L154.62 46.44 L155.12 46.44 L155.12 46.8 L153.72 46.8 L153.72 45.4 L154.08 45.4 L154.08 45.9 L154.32 45.9 L154.92 45.36 L154.92 44.24 L154.32 43.7 L154.08 43.7 L154.08 44.2 L153.72 44.2 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M153.72 31.2 L155.12 31.2 L155.12 31.56 L154.62 31.56 L154.62 31.8 L155.16 32.4 L156.28 32.4 L156.82 31.8 L156.82 31.56 L156.32 31.56 L156.32 31.2 L157.72 31.2 L157.72 32.6 L157.36 32.6 L157.36 32.1 L157.12 32.1 L156.52 32.64 L156.52 33.76 L157.12 34.3 L157.36 34.3 L157.36 33.8 L157.72 33.8 L157.72 35.2 L156.32 35.2 L156.32 34.84 L156.82 34.84 L156.82 34.6 L156.28 34 L155.16 34 L154.62 34.6 L154.62 34.84 L155.12 34.84 L155.12 35.2 L153.72 35.2 L153.72 33.8 L154.08 33.8 L154.08 34.3 L154.32 34.3 L154.92 33.76 L154.92 32.64 L154.32 32.1 L154.08 32.1 L154.08 32.6 L153.72 32.6 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="153.72" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="61.37" y="50.09" width="92.67" height="60.11" fill="none" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
+<path class="sgc" d="M116.84 68.32 L49.37 68.32"/>
+<path d="M48.16 68.32 L49.77 67.12 L49.77 69.52 Z" style="fill:#000" stroke="#000" stroke-width="0.1"/>
+<path class="sg" d="M55.37 111.2 L55.37 48.2"/>
+<path class="sg" d="M54.47 111.2 L56.27 111.2"/>
+<path class="sg" d="M54.47 48.2 L56.27 48.2"/>
+<path class="sg" d="M72.97 50.09 L72.97 48.2"/>
+<path class="sg" d="M72.07 50.09 L73.87 50.09"/>
+<path class="sg" d="M72.07 48.2 L73.87 48.2"/>
+<path class="sg" d="M159.72 42.8 L159.72 35.2"/>
+<path class="sg" d="M158.82 42.8 L160.62 42.8"/>
+<path class="sg" d="M158.82 35.2 L160.62 35.2"/>
+<path class="sg" d="M107.7 117.79 L107.7 110.2"/>
+<path class="sg" d="M106.8 117.79 L108.6 117.79"/>
+<path class="sg" d="M106.8 110.2 L108.6 110.2"/>
+<path class="sg" d="M191.72 115.2 L193.32 115.2"/>
+<path class="sg" d="M191.72 111.2 L193.32 111.2"/>
+<path class="sg" d="M191.72 59.32 L193.32 59.32"/>
+<path class="sg" d="M191.72 57.69 L193.32 57.69"/>
+<path class="sg" d="M191.72 48.2 L193.32 48.2"/>
+<path class="sg" d="M191.72 46.8 L193.32 46.8"/>
+<path class="sg" d="M191.72 44.2 L193.32 44.2"/>
+<path class="sg" d="M191.72 42.8 L193.32 42.8"/>
+<path class="sg" d="M191.72 35.2 L193.32 35.2"/>
+<path class="sg" d="M191.72 31.2 L193.32 31.2"/>
+<path class="zl" d="M205 117.79 L281 117.79"/>
+<rect x="210" y="97.68" width="66" height="17.52" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
+<circle cx="212" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="212" cy="99.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="274" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="274" cy="99.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="210" y="59.32" width="66" height="38.36" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
+<circle cx="232" cy="78.34" r="5.99" fill="#888888" stroke="#000" stroke-width="0.18"/>
+<circle cx="212" cy="91.36" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="212" cy="65.32" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="274" cy="91.36" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="274" cy="65.32" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="243" cy="95.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="210" y="58.69" width="66" height="0.64" fill="#DDDDDD" stroke="#000" stroke-width="0.12"/>
+<rect x="211.13" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="210" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="273.13" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="272" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="205" y="111.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="205" y="44.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="205" y="31.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="210.3" y="107.2" width="3.4" height="4" fill="#888888" stroke="#000" stroke-width="0.15"/>
+<circle cx="212" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="211.13" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
+<rect x="272.3" y="107.2" width="3.4" height="4" fill="#888888" stroke="#000" stroke-width="0.15"/>
+<circle cx="274" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="273.13" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
+<path class="sg" d="M282.6 115.2 L282.6 109.2"/>
+<path class="sg" d="M281.7 115.2 L283.5 115.2"/>
+<path class="sg" d="M281.7 109.2 L283.5 109.2"/>
+<rect x="319.18" y="76.41" width="29" height="1.59" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="319.18" y="32" width="20" height="44.41" fill="#BBBBBB" stroke="#000" stroke-width="0.2"/>
+<rect x="339.18" y="56.41" width="9" height="20" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="316" y="32" width="3.18" height="46" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M296 58 L303 58 L303 59.8 L300.5 59.8 L300.5 61 L303.2 64 L308.8 64 L311.5 61 L311.5 59.8 L309 59.8 L309 58 L316 58 L316 65 L314.2 65 L314.2 62.5 L313 62.5 L310 65.2 L310 70.8 L313 73.5 L314.2 73.5 L314.2 71 L316 71 L316 78 L309 78 L309 76.2 L311.5 76.2 L311.5 75 L308.8 72 L303.2 72 L300.5 75 L300.5 76.2 L303 76.2 L303 78 L296 78 L296 71 L297.8 71 L297.8 73.5 L299 73.5 L302 70.8 L302 65.2 L299 62.5 L297.8 62.5 L297.8 65 L296 65 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<path d="M316 58 L296 58 L296 54.5 L312.5 54.5 L312.5 38 L316 38 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
+<rect x="320.98" y="44" width="3.5" height="8" fill="#666666" stroke="#000" stroke-width="0.15"/>
+<rect x="312.5" y="45.5" width="12" height="5" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
+<rect x="307.5" y="43.65" width="5" height="8.7" fill="#BBBBBB" stroke="#000" stroke-width="0.2"/>
+<rect x="302" y="59.8" width="8" height="3.5" fill="#666666" stroke="#000" stroke-width="0.15"/>
+<rect x="303.5" y="54.5" width="5" height="8" fill="#BBBBBB" stroke="#000" stroke-width="0.15"/>
+<rect x="301.65" y="49.5" width="8.7" height="5" fill="#BBBBBB" stroke="#000" stroke-width="0.2"/>
+<rect x="296" y="78" width="20" height="12.95" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="319.18" y="78" width="20" height="12.95" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<path class="sg" d="M294.4 58 L294.4 48"/>
+<path class="sg" d="M293.5 58 L295.3 58"/>
+<path class="sg" d="M293.5 48 L295.3 48"/>
+<path class="sg" d="M306 36.6 L316 36.6"/>
+<path class="sg" d="M306 35.7 L306 37.5"/>
+<path class="sg" d="M316 35.7 L316 37.5"/>
+<rect class="bx" x="288" y="186" width="60" height="21.5"/>
+<text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control box: mount in the gantry</text>
+<text x="8" y="15.4" font-size="2.1">Four cast corner brackets hold the box to the gantry's lower members; it comes out by lifting 38 and sliding forward under the front middle member. Views 1:5, detail C 1:1, printed at 100 %. Millimetres; z up from the base plate's underside.</text>
+<text x="62" y="28.4" font-size="2.2" font-weight="bold">A  Box in the gantry, from the left side</text>
+<text x="153.4" y="28.4" font-size="1.4" text-anchor="end">front on the left</text>
+<text x="171" y="119.79" font-size="1.2" text-anchor="end">floor</text>
+<text x="107.7" y="106.74" font-size="1.3" text-anchor="middle" font-weight="bold">lower module</text>
+<text x="107.7" y="78.8" font-size="1.3" text-anchor="middle" font-weight="bold">upper module</text>
+<text x="56.37" y="113.65" font-size="1.2" text-anchor="end">front lower, z 0 to 20</text>
+<text x="56.37" y="46.65" font-size="1.2" text-anchor="end">front middle, z 335 to 355: moved up 85</text>
+<text x="56.37" y="33.65" font-size="1.2" text-anchor="end">front top, z 400 to 420</text>
+<text x="158.72" y="113.65" font-size="1.2">back lower, z 0 to 20</text>
+<text x="158.72" y="45.25" font-size="1.2">back center, z 342 to 362</text>
+<text x="158.72" y="33.65" font-size="1.2">back top, z 400 to 420</text>
+<text x="89.42" y="67.32" font-size="1.3" stroke="#fff" stroke-width="0.59" paint-order="stroke" text-anchor="middle">lifted 38 (dashed), then out forward</text>
+<text x="54.77" y="79.7" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 54.77 79.7)">315 (was 230)</text>
+<text x="73.57" y="49.15" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 73.57 49.15)">9.5 clear</text>
+<text x="160.32" y="39" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 160.32 39)">38</text>
+<text x="108.3" y="114" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 108.3 114)">lift 38</text>
+<text x="192.32" y="31.5" font-size="1.3" font-weight="bold">z</text>
+<text x="193.72" y="115.65" font-size="1.1">0</text>
+<text x="193.72" y="111.65" font-size="1.1">20</text>
+<text x="193.72" y="59.77" font-size="1.1">279.4</text>
+<text x="193.72" y="58.14" font-size="1.1">287.6</text>
+<text x="193.72" y="48.65" font-size="1.1">335</text>
+<text x="193.72" y="47.25" font-size="1.1">342</text>
+<text x="193.72" y="44.65" font-size="1.1">355</text>
+<text x="193.72" y="43.25" font-size="1.1">362</text>
+<text x="193.72" y="35.65" font-size="1.1">400</text>
+<text x="193.72" y="31.65" font-size="1.1">420</text>
+<text x="210" y="28.4" font-size="2.2" font-weight="bold">B  Front face, from the front</text>
+<text x="276" y="28.4" font-size="1.4" text-anchor="end">the back brackets and screws match</text>
+<text x="243" y="113.62" font-size="1.2" text-anchor="middle">front lower member (2020), part shown</text>
+<text x="243" y="46.62" font-size="1.2" text-anchor="middle">front middle member (2020), part shown</text>
+<text x="243" y="33.62" font-size="1.2" text-anchor="middle">front top member (2020), part shown</text>
+<text x="283.2" y="112.2" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 283.2 112.2)">30</text>
+<text x="210" y="121.79" font-size="1.2">Lower front and back panels: the post screws at z 30 pass the brackets; no bottom ring screw.</text>
+<text x="210" y="123.49" font-size="1.2">Upper panels unchanged. The gantry feet stand under the lower members, 8 in all.</text>
+<text x="289" y="28.4" font-size="2.2" font-weight="bold">C  Front mount bracket, 1:1</text>
+<text x="349" y="28.4" font-size="1.4" text-anchor="end">section on a post</text>
+<text x="306" y="68.45" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">gantry</text>
+<text x="329.18" y="38.45" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">post</text>
+<text x="343.68" y="66.86" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">ring</text>
+<text x="293.8" y="53" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 293.8 53)">10</text>
+<text x="311" y="36.1" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">10</text>
+<text x="289" y="94.35" font-size="1.2">M5 x 12 through leg and panel into the post's roll-in nut, tip 5.3;</text>
+<text x="289" y="96" font-size="1.2">M5 x 8 through the leg into the member's roll-in nut, tip 4.5.</text>
+<text x="289" y="97.65" font-size="1.2">Back: M5 x 10 through leg and aluminum panel, tip 4.9.</text>
+<text x="289" y="99.3" font-size="1.2">Leg 3.5 and holes 10 from the corner: assumed, measure.</text>
+<text x="12" y="128" font-size="1.7" font-weight="bold">The gantry (owner, 2026-10-19)</text>
+<text x="12" y="130.3" font-size="1.35">2020, 6 mm slot, so the kit's M5 roll-in T-nuts fit. The members run left to right in the</text>
+<text x="12" y="132.1" font-size="1.35">planes of the box's front and back faces; the lower ones stand on the same rubber feet as the</text>
+<text x="12" y="133.9" font-size="1.35">box (B08B87SRRG), their bottom faces level with the base plate's underside. Measured face to</text>
+<text x="12" y="135.7" font-size="1.35">face: front, lower to middle 230 and middle to top 130; back, center to top 38; front and back top</text>
+<text x="12" y="137.5" font-size="1.35">at one height. The front middle member moves up to 315 over the lower one, 45 under the top one.</text>
+<text x="12" y="140.3" font-size="1.7" font-weight="bold">Mount</text>
+<text x="12" y="142.6" font-size="1.35">4 spare cast corner brackets from the kit (40 bought, 32 in the frame, 1 is the saw stop), one at</text>
+<text x="12" y="144.4" font-size="1.35">each lower post, front and back: the vertical leg on the panel, held by the post's bottom panel</text>
+<text x="12" y="146.2" font-size="1.35">screw at z 30 in a 5.5 x 10 vertical slot, so the bracket seats on the member ±2.2; the horizontal leg</text>
+<text x="12" y="148" font-size="1.35">on the member's top face, one M5 into a roll-in T-nut. The front</text>
+<text x="12" y="149.8" font-size="1.35">and back lower panels lose their bottom ring screw: the member backs their bottom edge. Not</text>
+<text x="12" y="151.6" font-size="1.35">structural, and no bond: anodize insulates, so PE stays on the trunk to the gantry bar (ADR-0009).</text>
+<text x="12" y="154.4" font-size="1.7" font-weight="bold">Taking it out</text>
+<text x="12" y="156.7" font-size="1.35">Unplug the mains cord first. Free every cable that leaves the box: the door cable is wired to X1</text>
+<text x="12" y="158.5" font-size="1.35">inside, through the M20 gland, so free it at the door (S1, H1); the field and motor cables, the Mega</text>
+<text x="12" y="160.3" font-size="1.35">USB, and the PE trunk at the gantry bar. Take out the 4 member-side screws; the brackets stay on the</text>
+<text x="12" y="162.1" font-size="1.35">box. Lift 38, so the feet clear a lower member by 5; any lift from 33 to 47.4 works.</text>
+<text x="12" y="163.9" font-size="1.35">Slide it out forward: its top (z 287.6 with the top panel's screw heads) passes 9.5 under the front</text>
+<text x="12" y="165.7" font-size="1.35">middle member. Out the back it would pass 16.5 under the back center member, behind the mains.</text>
+<text x="12" y="168.5" font-size="1.7" font-weight="bold">Checked by GantryChecks()</text>
+<text x="12" y="170.8" font-size="1.35">Nothing proud of the front or back face (screw heads, grommet flanges, gland, PE stud, brackets)</text>
+<text x="12" y="172.6" font-size="1.35">meets a member; lifted, each face keeps 43.3 (front) and 24.6 (back) under its next member up.</text>
+<text x="12" y="174.4" font-size="1.35">Brackets on the posts, off the panel windows, clear of the gland and the PE stud. ScrewFits()</text>
+<text x="12" y="176.2" font-size="1.35">passes the three mount screws.</text>
+<text x="12" y="179" font-size="1.7" font-weight="bold">Gantry feet</text>
+<text x="12" y="181.3" font-size="1.35">8, on M5 screws into roll-in T-nuts in the lower members' bottom slots. The length lands the tip</text>
+<text x="12" y="183.1" font-size="1.35">4.2 to 5.5 past the slot face, so it needs the foot's stack under the head: measure a foot.</text>
+<text x="12" y="185.9" font-size="1.7" font-weight="bold">OPEN</text>
+<text x="12" y="188.2" font-size="1.35">mount bracket holes: at 10 from the corner the two socket heads overlap 2.85 in the corner, as in every frame bracket; measure a bracket</text>
+<text x="12" y="190" font-size="1.35">gantry foot screw length: the depth of the foot's washer (GantryFootStack)</text>
+<text x="290" y="190.6" font-size="3" font-weight="bold">Box in the gantry</text>
+<text x="290" y="194.4" font-size="2">Sheet 5. Legal, landscape, 100 %.</text>
+<text x="290" y="197.15" font-size="2">Views 1:5, detail C 1:1. Drawn 2026-10-19.</text>
+<text x="290" y="199.9" font-size="2">Issue #158, part A. Design, not yet built.</text>
+<text x="290" y="202.65" font-size="2">Gantry heights: owner's tape, 2026-10-19.</text>
+</svg>
