@@ -38,6 +38,24 @@ constants around them), so a change there moves all of them together. To make th
 Legal landscape with no margins, or use headless Edge with `--print-to-pdf` on a page whose
 `@page` size is `14in 8.5in`.
 
+## 3D block model
+
+`CAD/Control Box/ControlBoxBlocks.FCStd`, with a `.step` export beside it, is the box in 3D as blocks: the
+frame in its 2020 profile with the 32 corner brackets, both plates with every hole and cable slot, each DIN
+rail, part and duct of `DeckSolids()` with the printed clips, the panels with their grommets, vents and the door gland, and the
+110 VAC zone as a translucent volume. Nothing in it is drawn by hand; to rebuild it after a change in the
+generator, run this in the FreeCAD 1.x Python console:
+
+```python
+import runpy; runpy.run_path(r"<repo>/tools/build_box_model.py", run_name="__main__")
+```
+
+It rebuilds the document, refuses to save if two solids overlap, and writes both files. The lower module,
+the upper module and its lid are separate `App::Part` containers, so raising one shows the box exploded.
+A deck part whose size is assumed (dashed on sheet 3) is translucent, and every solid carries a `SizeSource`
+property. FreeCAD's axes are right-handed and the generator's x (front to back) and y (left to right) are
+not, so the model takes the generator's y as X and its x as Y; FreeCAD's Front view shows the box's front.
+
 ```bash
 python tools/check_wiring_pins.py
 ```
