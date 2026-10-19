@@ -3162,21 +3162,30 @@ def BondSummary():
 
 
 class View:
-    """Orthographic view: real (a, b) mm to paper mm. a runs right, b runs up."""
+    """Orthographic view: real (a, b) mm to paper mm. a runs right, b runs up; with down, b runs
+    down. A deck plan seen from above with the front at the left takes down: the generator's x and y
+    are a left-handed set, so with y running up the left wall would land at the bottom and the plan
+    would read as seen from below. Bottom is the real b of the view's lower edge on paper."""
 
-    def __init__(self, sh, x0, y0, aSpan, bSpan, scale):
+    def __init__(self, sh, x0, y0, aSpan, bSpan, scale, down=False):
         self.Sh, self.X0, self.Y0, self.ASpan, self.BSpan, self.S = sh, x0, y0, aSpan, bSpan, scale
+        self.Down = down
+        self.Bottom = bSpan if down else 0.0
 
     def X(self, a):
         return self.X0 + a / self.S
 
     def Y(self, b):
-        return self.Y0 + (self.BSpan - b) / self.S
+        return self.Y0 + (b if self.Down else self.BSpan - b) / self.S
+
+    def Top(self, b0, b1):
+        """Paper y of the upper edge of the band from b0 to b1."""
+        return min(self.Y(b0), self.Y(b1))
 
     def Box(self, a0, b0, a1, b1, fill="#fff", dashed=False, stroke=0.25, lines=(), size=1.4,
             bold=True, rot=0):
         sh = self.Sh
-        x, y = self.X(a0), self.Y(b1)
+        x, y = self.X(a0), self.Top(b0, b1)
         w, h = (a1 - a0) / self.S, (b1 - b0) / self.S
         dash = ' stroke-dasharray="1.2 .7"' if dashed else ""
         sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width="%s"%s/>'
@@ -3207,11 +3216,13 @@ class View:
                     % (Fmt(self.X(a)), Fmt(self.Y(b)), Fmt(dia / 2 / self.S), fill, Fmt(stroke)))
 
     def Obround(self, a0, b0, a1, b1, fill="#fff", stroke=0.25):
-        """Slot with full-round ends, along a or along b, from the DXF's own vertices."""
+        """Slot with full-round ends, along a or along b, from the DXF's own vertices. They run
+        counter-clockwise, which a view with b down draws clockwise, so its arcs sweep the other way."""
         rp = Fmt(min(a1 - a0, b1 - b0) / 2 / self.S)
         p = [(Fmt(self.X(a)), Fmt(self.Y(b))) for a, b, _ in ObroundPts(a0, b0, a1, b1)]
-        d = ("M%s %s L%s %s A%s %s 0 0 0 %s %s L%s %s A%s %s 0 0 0 %s %s Z"
-             % (p[0] + p[1] + (rp, rp) + p[2] + p[3] + (rp, rp) + p[0]))
+        sw = (1 if self.Down else 0,)
+        d = ("M%s %s L%s %s A%s %s 0 0 %s %s %s L%s %s A%s %s 0 0 %s %s %s Z"
+             % (p[0] + p[1] + (rp, rp) + sw + p[2] + p[3] + (rp, rp) + sw + p[0]))
         self.Sh.Add('<path d="%s" style="fill:%s" stroke="#000" stroke-width="%s"/>'
                     % (d, fill, Fmt(stroke)))
 
@@ -3259,28 +3270,31 @@ class View:
 
 
 def PlanFrame(v, deckLabel, upper=False):
+    """The frame of a deck plan. Each wall is named in its own frame band, nearest the plate's
+    edge; the right wall's band also carries the note on the ring, the left wall's the deck's name."""
     sh = v.Sh
     if upper:
         v.Poly(PlateGeom("upper")[0], fill="#fff", stroke=0.35)
-        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" '
-               'stroke-width=".2" stroke-dasharray="1.2 .7"/>'
-               % (Fmt(v.X(Frame)), Fmt(v.Y(BoxW - Frame)), Fmt(RingLong / v.S),
-                  Fmt(RingShort / v.S)))
-        top = "upper posts stand on the plate; mid ring (dashed) under it"
+        v.Box(Frame, Frame, BoxD - Frame, BoxW - Frame, fill="none", dashed=True, stroke=0.2)
+        note = "upper posts stand on the plate; mid ring (dashed) under it"
     else:
         v.Box(0, 0, BoxD, BoxW, fill=ZoneFill["frame"], stroke=0.35)
         v.Box(Frame, Frame, BoxD - Frame, BoxW - Frame, fill="#fff", stroke=0.25)
-        top = "bottom ring on the base plate"
+        note = "bottom ring on the base plate"
     for x, y in PostCentres:
         v.Box(x - Frame / 2, y - Frame / 2, x + Frame / 2, y + Frame / 2, fill=PostFill, stroke=0.3)
-    sh.Text(v.X(BoxD / 2), v.Y(BoxW) + 2.6, top, size=1.2, anchor="middle")
-    sh.Text(v.X(2), v.Y(BoxW / 2), "FRONT", size=1.3, anchor="middle", rot=-90, weight="bold")
-    sh.Text(v.X(BoxD - 2) + 0.9, v.Y(BoxW / 2), "BACK", size=1.3, anchor="middle", rot=-90,
-            weight="bold")
-    sh.Text(v.X(BoxD / 2), v.Y(2) + 0.5, "LEFT SIDE", size=1.2, anchor="middle", weight="bold")
-    sh.Text(v.X(BoxD / 2), v.Y(BoxW - 2) + 0.9, "RIGHT SIDE", size=1.2, anchor="middle",
-            weight="bold")
-    sh.Text(v.X(Frame + 4), v.Y(Frame / 2 - 2), deckLabel, size=1.2, italic=True)
+
+    def Band(b, line):
+        """Baseline of text line `line` (0 nearest the edge) in the band of the side wall at b."""
+        edge = v.Y(b)
+        return edge + 1.47 + 1.13 * line if edge < v.Y(BoxW - b) else edge - 0.6 - 1.45 * line
+    sh.Text(v.X(BoxD / 2), Band(0.0, 0), "LEFT SIDE", size=1.2, anchor="middle", weight="bold")
+    sh.Text(v.X(BoxD / 2), Band(BoxW, 0), "RIGHT SIDE", size=1.2, anchor="middle", weight="bold")
+    sh.Text(v.X(BoxD / 2), Band(BoxW, 1), note, size=1.2, anchor="middle")
+    sh.Text(v.X(Frame + 4), Band(0.0, 1), deckLabel, size=1.2, italic=True)
+    # turned to read upward, a name stands left of its x: both sit 0.6 inside the plate's edge
+    sh.Text(v.X(0) + 1.55, v.Y(BoxW / 2), "FRONT", size=1.3, anchor="middle", rot=-90, weight="bold")
+    sh.Text(v.X(BoxD) - 0.6, v.Y(BoxW / 2), "BACK", size=1.3, anchor="middle", rot=-90, weight="bold")
 
 
 def SectionFrame(v, span):
@@ -3708,7 +3722,7 @@ def BuildPacking():
                     short[key], size=1.0, anchor="start" if back else "end", halo=True)
 
     # ------------------------------------------------ upper deck plan
-    up = View(sh, 10.0, 25.0, BoxD, BoxW, S)
+    up = View(sh, 10.0, 25.0, BoxD, BoxW, S, down=True)
     up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size")
     PlanFrame(up, "upper plate 457 x 330, part of the upper module", upper=True)
     Plan(up, "upper")
@@ -3717,22 +3731,24 @@ def BuildPacking():
     up.Box(mega[2] - 6.0, yc - 9.5, mega[2], yc + 9.5, fill=ZoneFill["log"], stroke=0.2)
     sh.Text(up.X(mega[2] - 7.0), up.Y(yc + 12) + 0.4, "USB", size=1.0, anchor="end")
     fx0, fx1 = upper["field"]["a0"], upper["field"]["a1"]
-    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"] + 4) + 0.4, "field rail,", size=1.1)
-    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"] + 4) + 2.0, "%d mm" % round(lengths["field"]),
+    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) - 0.75, "field rail,", size=1.1)
+    sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) + 0.85, "%d mm" % round(lengths["field"]),
             size=1.1)
+    # in the open deck between slot 2 and the motor duct, past the shield clamp
     ax = (ClampBox()[2] + BackRunX - DuctWide / 2) / 2
+    ay = (CableSlots[1][3] + UpRows["motor duct"][0]) / 2
     for i, s2 in enumerate(["ODrive: in the", "spincoater base", "", "Pi: at the", "operator panel"]):
-        sh.Text(up.X(ax), up.Y(230) + 1.6 * i, s2, size=1.1, anchor="middle", italic=True)
+        sh.Text(up.X(ax), up.Y(ay) + 1.6 * (i - 2) + 0.4, s2, size=1.1, anchor="middle", italic=True)
     for i, (a0, b0, a1, b1) in enumerate(CableSlots):
         up.Obround(a0, b0, a1, b1, stroke=0.35)
         sh.Text(up.X((a0 + a1) / 2), up.Y((b0 + b1) / 2) + 0.45, "slot %d" % (i + 1), size=1.05,
                 anchor="middle", halo=True)
     Entries(up, "upper")
-    up.DimH(0, BoxD, 0, "18 in (457 mm)")
+    up.DimH(0, BoxD, up.Bottom, "18 in (457 mm)")
     up.DimV(0, BoxW, BoxD, "13 in (330 mm)")
 
     # ------------------------------------------------ lower deck plan
-    lo = View(sh, 150.0, 25.0, BoxD, BoxW, S)
+    lo = View(sh, 150.0, 25.0, BoxD, BoxW, S, down=True)
     lo.Title("B  Lower deck, upper deck lifted off", "1/16 in aluminum base plate, bonded to PE")
     PlanFrame(lo, "parts inside the bottom ring, 417 x 290 mm")
     Plan(lo, "lower")
@@ -3743,12 +3759,12 @@ def BuildPacking():
               Fmt(lo.X(MainsZoneX)), Fmt(lo.Y(BoxW - F)), TolRed))
     gu = DoorGland[0]
     lo.Box(BoxD - F, gu - DoorGland[2] / 2, BoxD, gu + DoorGland[2] / 2, fill="#fff", stroke=0.3)
-    sh.Text(lo.X(BoxD) + 0.8, lo.Y(gu) + 0.5, "door 110 V", size=1.1, rot=-90, anchor="middle")
+    sh.Text(lo.X(BoxD) + 1.5, lo.Y(gu) + 0.5, "door 110 V", size=1.1, rot=-90, anchor="middle")
     r110 = LowerRails()["110 V"]
     sh.Text(lo.X((r110["a0"] + BoxD - F) / 2), lo.Y((MainsZoneY + r110["centre"] - 41.0) / 2) + 0.5,
             "110 VAC compartment, no wall", size=1.3, anchor="middle", weight="bold", fill=TolRed)
     lo.Box(BoxD - F, InletU - 21, BoxD, InletU + 21, fill=ZoneFill["110"], stroke=0.35)
-    sh.Text(lo.X(BoxD) + 0.8, lo.Y(InletU) + 0.5, "mains in", size=1.2, rot=-90, anchor="middle")
+    sh.Text(lo.X(BoxD) + 1.5, lo.Y(InletU) + 0.5, "mains in", size=1.2, rot=-90, anchor="middle")
     lo.Box(PsuVentSpan[0], BoxW, PsuVentSpan[1], BoxW + 2.0, fill="#fff", dashed=True, stroke=0.2)
     sh.Text(lo.X(PsuVentSpan[0] + 30), lo.Y(BoxW - F / 2) + 0.4, "PSU vent (dashed)", size=1.0, halo=True)
     Entries(lo, "lower")
@@ -4028,19 +4044,19 @@ def BuildFrame():
     # ------------------------------------------------ the two plates, from above
     for kind, x0, title, sub in [("base", 16.0, "A  Base plate, lower deck", "deck_base_plate.dxf"),
                                  ("upper", 130.0, "B  Upper plate", "deck_upper_plate.dxf")]:
-        v = View(sh, x0, 30.0, BoxD, BoxW, S)
+        v = View(sh, x0, 30.0, BoxD, BoxW, S, down=True)
         v.Title(title, sub)
         outline, holes, slots = PlateGeom(kind)
         v.Poly(outline, fill="#EEEEEE", stroke=0.3)
         sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" '
                'stroke-width=".18" stroke-dasharray="1 .6"/>'
-               % (Fmt(v.X(F)), Fmt(v.Y(BoxW - F)), Fmt(RingLong / S), Fmt(RingShort / S)))
+               % (Fmt(v.X(F)), Fmt(v.Top(F, BoxW - F)), Fmt(RingLong / S), Fmt(RingShort / S)))
         for x, y in PostCentres:
             v.Box(x - F / 2, y - F / 2, x + F / 2, y + F / 2, fill="none", dashed=True, stroke=0.18)
         for s in slots:
             v.Obround(*s)
         for i, (a0, b0, a1, b1) in enumerate(CableSlots if kind == "upper" else []):
-            sh.Text(v.X((a0 + a1) / 2), v.Y(b1) - 0.6, str(i + 1), size=1.3, anchor="middle",
+            sh.Text(v.X((a0 + a1) / 2), v.Top(b0, b1) - 0.6, str(i + 1), size=1.3, anchor="middle",
                     weight="bold")
         for x, y, d in holes:
             v.Hole(x, y, d)
@@ -4050,14 +4066,15 @@ def BuildFrame():
         ty = 0.75 * BoxW               # clear of the cable slots and the PE studs
         sh.Text(v.X(BoxD / 2), v.Y(ty) - 1.0, "5052-H32, 1/16 in: sheared and drilled", size=1.6,
                 anchor="middle", weight="bold")
-        sh.Text(v.X(BoxD / 2), v.Y(ty) + 1.4, "seen from above, front on the left",
-                size=1.3, anchor="middle")
+        sh.Text(v.X(BoxD / 2), v.Y(ty) + 1.4,
+                "seen from above, front on the left; the DXF (y up) shows it from below", size=1.3,
+                anchor="middle")
         sh.Text(v.X(BoxD / 2), v.Y(ty) + 3.2, "dashed: %s" %
                 ("posts and bottom ring on the plate" if kind == "base"
                  else "upper posts on the plate, mid ring under it"), size=1.3, anchor="middle")
         xs = sorted(set(round(x, 1) for x, _, _ in holes) | {0.0, BoxD})
         ys = sorted(set(round(y, 1) for _, y, _ in holes) | {0.0, BoxW})
-        v.OrdX(xs, 0)
+        v.OrdX(xs, v.Bottom)
         v.OrdY(ys, 0)
         v.DimV(0, BoxW, BoxD, Mm(BoxW))
         nRing = len(RingHoles())
@@ -4098,7 +4115,7 @@ def BuildFrame():
                                 for i, (a0, b0, a1, b1) in enumerate(CableSlots)),
                      "  ".join("%d: %s." % (i + 1, u) for i, u in enumerate(SlotUse)) +
                      "  None over the 110 VAC compartment (y %s up)." % Mm(MainsZoneY)]
-        sh.Lines(v.X(0), v.Y(0) + 8.2, sched, size=1.3, lead=1.85)
+        sh.Lines(v.X(0), v.Y(v.Bottom) + 8.2, sched, size=1.3, lead=1.85)
 
     # ------------------------------------------------ the frame from the left and from the front
     sd = View(sh, 18.0, 133.0, BoxD, BoxH, S)
