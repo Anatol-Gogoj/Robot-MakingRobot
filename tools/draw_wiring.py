@@ -394,7 +394,7 @@ def BuildSchematic():
     fb1Drops = [(118, "F1-1", "3 A"), (142, "F1-2", "3 A"), (166, "F1-3", "3 A"),
                 (190, "F1-4", "3 A"), (210, "F1-5", "3 A"), (230, "F1-6", "")]
     sh.Text(104, 23.3, "FB1", size=2.4, weight="bold", fill=TolBlue)
-    sh.Text(104, 25.6, "6-way", size=1.6)
+    sh.Text(104, 25.6, "12-way", size=1.6)
     for x, name, amp in fb1Drops:
         sh.Dot(x, fb1Y, "va")
         if name == "F1-6":
@@ -1158,7 +1158,7 @@ def BuildPanel():
                   ("A1", 65.0, "A1")],
              bot=[("2", 49.5, "2"), ("4", 53.5, "4"), ("6", 57.5, "6"), ("8", 61.5, "8"),
                   ("A2", 65.0, "A2")])
-    p.Device("R1", "FB1", 73.0, 105.0, "FB1 6-way", sub=("always on",),
+    p.Device("R1", "FB1", 73.0, 105.0, "FB1 12-way", sub=("always on",),
              bot=[("IN", 75.0, "IN")] + [("F%d" % (i + 1), 80.0 + i * 4.5, "F1-%d" % (i + 1))
                                          for i in range(6)])
     for key, x0, t1, t2 in [("MB", 110.0, "Mega buck", "5 V"), ("PB", 128.0, "Pi buck", "5.1 V 5 A"),
@@ -1415,8 +1415,8 @@ def PanelFooter(sh):
         sh.Text(nx, y0 + 4.0 + i * 2.25, s2, size=1.5)
     notes = ["Arrangement, not to scale; terminal positions are drawn where the routing is clearest.",
              "Land each wire on the terminal it is drawn to. Measure parts before cutting rail and duct.",
-             "Gauges: PSU to FB1, K2, FB2 and S, and S to 0V-P: 12 AWG. F2-1 to F2-7: 18 AWG.",
-             "F2-8: 16 AWG. F0 rung: insulation rated 300 V or more. Everything else: 20 AWG.",
+             "Gauges, copper only: mains L and N, PSU to FB1, K2, FB2 and S, S to 0V-P: 12 AWG.",
+             "F2-1 to F2-7: 18 AWG. F2-8: 16. F0 rung: 300 V insulation. Everything else: 20 AWG.",
              "TB6600, ODrive, bucks, SSR modules, Mega and Pi need DIN clips or carriers.",
              "Bond every rail and the frame to PE (chassis stud); 0 V meets PE only at S.",
              "Open items and the firmware gap: sheet 1, notes 3 to 5."]
@@ -1461,7 +1461,8 @@ BasePlateT = 1.5875                # 1/16 in 5052-H32 aluminum
 UpPlateT = 1.5875                  # the same sheet stock
 PanelT = 3.0                       # 1/8 in cast acrylic side and top panels
 # Every part stands on a 35 mm top-hat DIN rail screwed to its deck. EN 60715 makes that rail 7.5 or
-# 15 mm tall; the five 16 in rails on hand measure 7.5 (owner, 2026-10-17). Parts without
+# 15 mm tall; the rails on hand measure 7.5 (owner, 2026-10-17): five 18 in slotted aluminum rails
+# from the 2026-09-14 order (B0BFFSMBC7, "7.5mm High"; issue #158). Parts without
 # DIN feet (TB6600s, the PSUs, the Mega) sit on a printed clip that adds Clip over the rail's top
 # face (the 2026-10-15 assumption; measure the first printed clip).
 DinRailH = 7.5
@@ -1482,15 +1483,18 @@ PartSize = {
                                                  # drawing: 0.24 x 3.47 x 2.79 in
     "K1": (36.1, 82.0, 65.0, True, "rail"),      # BAOMAIN HC1-63, B01J1RFZSY: 1.42 x 3.23 x 2.56 in
     "K2": (36.1, 85.1, 68.1, True, "rail"),      # BAOMAIN BMC7-25U, B0F9YJLLNB: 1.42 x 3.35 x 2.68 in
-    "FB1": (93.0, 47.8, 43.2, True, "rail"),     # OONO 6-way, B08PT3PXSB drawing
+    "FB1": (153.0, 47.8, 43.2, True, "rail"),    # 12-way like FB2: the 2026-09-14 order brought two
+                                                 # 12-position modules, not the 6-way (issue #158)
     "FB2": (153.0, 47.8, 43.2, True, "rail"),    # OONO 12-way, B08PT47SFD drawing
     "Bar": (20.0, 78.0, 53.0, True, "rail"),     # uxcell 1 in 9 out, B07XB8DY7Z: 78 x 53 x 20
     "Term": (6.2, 42.5, 42.0, True, "incl"),     # UK 2.5 B (GUETNEU kit B0GYRMR3W9); Phoenix UK 2,5 B
                                                  # per Conrad: 42.5 x 6.2 x 42
-    "PETerm": (6.2, 42.5, 42.0, False, "incl"),  # the kit's USLKG2.5 ground blocks, not measured
+    "PETerm": (6.2, 42.5, 42.0, False, "incl"),  # Erayco USLKG5N ground block, B07M9LDK8F: 6.2 wide;
+                                                 # depth and height assumed (issue #158)
     "Cover": (2.0, 42.5, 42.0, False, "incl"),   # end cover between terminal groups
     "Stop": (8.0, 42.5, 42.0, False, "incl"),    # end clamp
-    "F0": (18.0, 80.0, 60.0, False, "rail"),     # 5 x 20 mm DIN fuse holder, not chosen yet
+    "F0": (18.0, 80.0, 60.0, False, "rail"),     # Dinkle DK4-TF(5x20) fuse holder, B0F1DQLG89 (issue
+                                                 # #158); not measured, so this assumed size stays
     "Mega": (99.0, 53.0, 35.0, False, "clip"),   # A000067 board, lying along its rail on a DIN carrier
                                                  # with the screw shield; the 35 is assumed
     "PSU24": (215.0, 115.0, 50.0, False, "clip"),  # 24 V 1200 W lying flat on a 215 x 115 face
@@ -1526,12 +1530,13 @@ RingName = "Grommet ring"
 # the packing study's name for the exit). The owner chose the walls; the study (layout 3b, ADR-0010)
 # moved each along its wall: upper left at the middle of the field rail and in the back corridor
 # past its end, where the motor cables' back run ends (RunChecks); upper front on the Mega's centre
-# line; upper right behind the shield clamp; lower left between the fuse rail's end and the 5 V PSU.
+# line; upper right behind the shield clamp; lower left past the fuse rail's end, in front of the
+# 5 V PSU (moved from 292 when FB1 became a 12-way and the fuse rail grew over it: issue #158).
 CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Upper side, left", 390.0, "most motor cables", "ULM"),
                 ("Upper front", 110.0, "Mega USB, J11", "UF"),
                 ("Upper side, right", 292.0, "one motor cable, the tower", "UR"),
-                ("Lower side, left", 292.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
+                ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
 
 # The lower bay, from the deck to the underside of the upper plate, is the larger of two needs: the
 # tallest lower part plus PartClear, which with the PSU lying flat (ADR-0010) is K2's 78.6; and,
@@ -1815,7 +1820,7 @@ CableSlots = [(267.5, 156.0, 280.5, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0,
 SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V",
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
-# plate's stands outside the 110 VAC compartment, behind the 5 V PSU; the upper plate's behind the
+# plate's stands outside the 110 VAC compartment, in front of the 5 V PSU; the upper plate's behind the
 # motor cables' back run, clear of the mid ring's back right corner bracket under the plate, which
 # its nut would meet at (425, 300) (OpenScrews, issue #154).
 PeStud = {"base": (330.0, 150.0), "upper": (425.0, 280.0)}
@@ -2681,9 +2686,11 @@ def UpperRails():
 
 def LowerRails():
     """{rail: DinRun()} on the lower deck, every rail along x: the fuse rail along the left wall,
-    the 24 V rail one channel behind it with the servo PSU one channel past its end, the 5 V PSU one
-    channel past the fuse rail's end, and the mains strip along the right wall: the 24 V PSU lying
-    flat, then one channel behind it the 110 V rail, X0 at its back end by the inlet."""
+    the 24 V rail one channel behind it with the servo PSU one channel past its end, the 5 V PSU in
+    the same row against the back ring, past cable slot 2 and the base PE stud (the fuse rail, with FB1
+    a 12-way, leaves no room for it at its end: issue #158), and the mains strip along the right wall:
+    the 24 V PSU lying flat, then one channel behind it the 110 V rail, X0 at its back end by the
+    inlet."""
     x0 = y0 = Frame + RingClear
     fuses = DinRun(True, y0 + PartSize["FB2"][1] / 2,
                    RailRun(x0 + 5.0, [("FB2", "FB2"), 6.0, ("FB1", "FB1")]), "RFB", ZoneFill["24"])
@@ -2691,16 +2698,18 @@ def LowerRails():
     k2 = DinRun(True, yK + PartSize["K2"][1] / 2,
                 RailRun(R24Rail0 + 5.0, [("K2", "K2"), 6.0, ("Bar", "Star S"), 6.0, ("Bar", "0V-P"), 4.0,
                                          ("Bar", "0V-P")]), "R24", ZoneFill["24"])
-    mains = [("PETerm", "PE", 4), 4.0, ("Term", "X1", 3), 4.0, ("K1", "K1"), 4.0, ("F0", "F0"), 4.0,
+    mains = [("PETerm", "PE", PeBarTerms), 4.0, ("Term", "X1", 3), 4.0, ("K1", "K1"), 4.0, ("F0", "F0"), 4.0,
              ("Term", "X0", 5)]
     yM = (PsuY0 + PsuY1) / 2
+    servo = DinRun(True, yK + PartSize["PSU6"][1] / 2,
+                   RailRun(k2["a1"] + Chan, [("PSU6", "servo PSU")]), "PS6", ZoneFill["24"], 0.0)
     return {
         "fuses": fuses,
         "24 V": k2,
-        "servo PSU": DinRun(True, yK + PartSize["PSU6"][1] / 2,
-                            RailRun(k2["a1"] + Chan, [("PSU6", "servo PSU")]), "PS6", ZoneFill["24"], 0.0),
-        "5 V PSU": DinRun(True, y0 + PartSize["PSU5"][1] / 2,
-                          RailRun(fuses["a1"] + Chan, [("PSU5", "5 V PSU")]), "PS5", ZoneFill["24"], 0.0),
+        "servo PSU": servo,
+        "5 V PSU": DinRun(True, yK + PartSize["PSU5"][1] / 2,
+                          RailRun(BoxD - Frame - RingClear - PartSize["PSU5"][0], [("PSU5", "5 V PSU")]),
+                          "PS5", ZoneFill["24"], 0.0),
         "24 V PSU": DinRun(True, yM, RailRun(PsuX0, [("PSU24", "24 V PSU")]), "PSU", ZoneFill["110"], 0.0),
         "110 V": DinRun(True, yM, RailRun(BoxD - Frame - RingClear - 5.0 - RailRun(0.0, mains)[1], mains),
                         "R110", ZoneFill["110"]),
@@ -2911,12 +2920,31 @@ def RunChecks():
                              % (Mm(u), Mm(up["field"]["a1"])))
         if key == "UF" and abs(u - up["logic"]["centre"]) > 1e-6:
             raise ValueError("the front grommet is off the Mega's centre line")
+        if key == "LL" and u - GrommetHole / 2 < LowerRails()["fuses"]["a1"] + 5.0:
+            raise ValueError("the lower left grommet at x %s meets the fuse rail's end at x %s"
+                             % (Mm(u), Mm(LowerRails()["fuses"]["a1"])))
     StudyMatch()
     return {name: r["run"][-1][3] - r["run"][0][2]
             for rails in (up, LowerRails()) for name, r in rails.items()}
 
 
-DinRailStock, DinRailsOnHand = 16 * 25.4, 5   # the 16 in steel rails on hand (owner, 2026-10-17)
+DinRailStock, DinRailsOnHand = 18 * 25.4, 5   # the 18 in aluminum rails on hand (issue #158)
+PeBarTerms = 4                     # USLKG blocks in the PE bar on the 110 V rail (sheet 2, rail 1)
+# The aluminum rails are stiff enough once screwed down (issue #158): a TS35 x 7.5 rail of 1.0 mm sheet
+# (roughly the EN 60715 outline: a 27 mm base, two 6.5 mm webs, two 4 mm lips) lies on its plate, so gravity
+# only presses it down; the worst pull is a part hanging off it with the box on its side, taken as the
+# 24 V PSU's assumed 3 kg at 3 g (88 N), at midspan between two screws 150 mm apart.
+DinRailSection = [(27.0, 1.0, 0.5), (1.0, 6.5, 4.25), (1.0, 6.5, 4.25), (4.0, 1.0, 7.0), (4.0, 1.0, 7.0)]
+EAluminum, ESteel = 69000.0, 200000.0   # MPa
+RailPull, RailSpan = 3.0 * 9.81 * 3.0, 150.0
+
+
+def DinRailBend(E):
+    """Midspan deflection (mm) of a DIN rail between two screws under RailPull: F L^3 / (48 E I)."""
+    area = sum(w * h for w, h, _ in DinRailSection)
+    zc = sum(w * h * z for w, h, z in DinRailSection) / area
+    i = sum(w * h ** 3 / 12 + w * h * (z - zc) ** 2 for w, h, z in DinRailSection)
+    return RailPull * RailSpan ** 3 / (48 * E * i), i
 
 
 def NestDinRails():
@@ -2933,7 +2961,8 @@ def NestDinRails():
         else:
             rails.append([L])
     if len(rails) > DinRailsOnHand:
-        raise ValueError("the DIN rails need %d 16 in rails, %d on hand" % (len(rails), DinRailsOnHand))
+        raise ValueError("the DIN rails need %d rails of %s mm, %d on hand"
+                         % (len(rails), Mm(DinRailStock), DinRailsOnHand))
     return rails
 
 
@@ -3197,7 +3226,7 @@ def BuildPacking():
         ("Sizes: along x across x high (mm)", [
             "TB6600 28 x 96 x 68, measured. From the",
             "listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U",
-            "36 x 85 x 68; FB1 / FB2 93 / 153 x 48 x 43;",
+            "36 x 85 x 68; FB1 and FB2 153 x 48 x 43;",
             "uxcell bar 20 x 78 x 53; SSR 6.1 x 88 x 71",
             "(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;",
             "5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega",
@@ -3635,6 +3664,16 @@ Amz, Mc = "Amazon", "McMaster"
 # line.
 Buy, LabFirst, Optional, NotBought = "buy", "lab stock first", "optional", "not bought"
 RollM = 15.24                      # one 50 ft roll of wire
+GantryFeet = 8                     # the owner's estimate for the gantry (2026-10-18, issue #158)
+# The 12 AWG power runs of sheet 2, copper THHN/THWN-2, one 25 ft roll per colour (issue #158): the
+# 12 AWG hookup wire of the 2026-09-14 order is copper-clad aluminum. Colours: US practice for the
+# mains (white is the neutral); red and blue keep the 24 V pair apart from the black line conductor.
+Thhn12 = [("black", "B0G13JNC44", 18.99, "mains L from the inlet through K1 to the PSU"),
+          ("white", "B0G13KR5LS", 16.99, "mains N, the same path"),
+          ("red", "B0G13QR6XF", 16.99, "+24 V: PSU V+ to K2 and FB1, K2 to FB2"),
+          ("blue", "B0G13KQKBG", 18.99, "0 V power: PSU V- to Star S, Star S to the 0V-P bars")]
+# Copper and aluminum resistivity at 20 C, ohm m: CCA conducts like a copper wire of area A x ratio.
+RhoCu, RhoAl = 1.68e-8, 2.65e-8
 # Cutting the 2020 sticks in house (issue #145): a 10 in miter saw whose maker lists aluminum, a blade
 # made for thin aluminum, and an engineer's square to set the saw and check each end. From the
 # Metabo HPT C10FCG2 owner's manual (p. 6 specifications; p. 7 "Applications: Wood and aluminum
@@ -3707,6 +3746,16 @@ def BomRows():
             clips[s["key"]] = clips.get(s["key"], 0) + 1
     endDeg, sqDeg = CutToolChecks()
     read = "Price read %s" % ToolDate
+    peBlocks = len(dinRails) - 1 + PeBarTerms   # one per rail; the 110 V rail's is one of its PE bar's
+    feet = len(PostCentres) + GantryFeet
+    bendAl, railI = DinRailBend(EAluminum)
+    ccaMm2 = 3.31 * RhoCu / RhoAl              # 12 AWG CCA as an equivalent copper area
+    wire = [("Power wiring", Amz, Buy, "12 AWG stranded THHN, %s, 25 ft" % colour, part,
+             "YDDECW THHN/THWN-2 12 AWG stranded copper, 600 V, 90 C, UL 83, nylon over PVC, 25 ft, %s" % colour,
+             "the 12 AWG runs of sheet 2", "25 ft roll", 1, price, use,
+             ("Copper only: the 2026-09-14 order's 12 AWG is copper-clad aluminum (Not in this BoM). 12 AWG "
+              "copper is rated 30 A at 90 C (NEC Table 310.16). " if i == 0 else "") + read)
+            for i, (colour, part, price, use) in enumerate(Thhn12)]
     return [
         # ---- frame
         ("Frame", Amz, Buy, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
@@ -3773,8 +3822,10 @@ def BomRows():
          % (Mm(FootH - HeadM4H), read)),
         ("Frame", Amz, Buy, "Rubber feet 1 x 0.51 in, steel washer, 10-pack", "B08B87SRRG",
          "Round rubber bumper feet with built-in stainless washer, 0.51 in high, 1 in diameter",
-         len(PostCentres), "pack of 10", 1, 9.99, "feet under the lower posts",
-         "They add 0.51 in below the 11 in envelope"),
+         feet, "pack of 10", math.ceil(feet / 10), 9.99,
+         "under the lower posts %d; under the gantry %d (the owner's estimate, issue #158), so both stand "
+         "at the same height" % (len(PostCentres), GantryFeet),
+         "They add 0.51 in below the 11 in envelope. The gantry feet's screws wait for its mount (issue #158)"),
         ("Frame", "on hand", NotBought, "Blue threadlocker", "-", "", 1, "-", 0, None,
          "studs into the lower posts", ""),
         # ---- plates and panels
@@ -3812,12 +3863,13 @@ def BomRows():
          "motor duct behind the drivers, past the clamp, and the back run to the upper left grommet",
          "McMaster price of 2026-10-15; gray or white"),
         # ---- PE bonding of the box
-        ("PE bonding", "owner, elsewhere", NotBought, "Ground bar, %d terminals or more" % BarTerminals, "-",
-         "Listed ground bar for 12 AWG copper; priced reference: Siemens EC2GB152 (B007ZZGSQI), $10.38",
-         "lower %d, upper %d" % (bonds["lower"][1], bonds["upper"][1]), "each", 0, None,
+        ("PE bonding", Amz, Buy, "Ground bar kit, %d terminals" % BarTerminals, "B007ZZGSQI",
+         "SIEMENS EC2GB152 ground bar kit: %d terminal positions and a ground lug" % BarTerminals,
+         "lower %d, upper %d" % (bonds["lower"][1], bonds["upper"][1]), "each", nBars, 10.38,
          "on the plates' PE studs; home runs: lower %d, upper %d" % (bonds["lower"][0], bonds["upper"][0]),
-         "Bar counts assume %d terminals each; with smaller bars, add bars, never two parts per terminal"
-         % BarTerminals),
+         "None was on hand (issue #158); a spare uxcell 1-in 9-out block is no substitute: 9 ways, insulated "
+         "from the plate, and the same body as the 0 V blocks. Never two parts per terminal. Its foot is not "
+         "measured: sheet 4 gives the screw window from it. " + read),
         ("PE bonding", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
          "THHN wire 12 gauge 50 ft, stranded copper, green", "%.1f m" % wireM, "50 ft roll",
          boxRolls, 29.99,
@@ -3833,13 +3885,33 @@ def BomRows():
          "under each ring lug, under the bars on both plates",
          "Per-size counts are not listed; DIN 6797 A, taken as 0.6 thick for M5 (measure one: sheet 4's ground "
          "bar screw length counts it)"),
-        ("PE bonding", "original BoM", NotBought, "PE terminal block, one per DIN rail", "-", "", len(dinRails),
-         "-", 0, None, "bonds each DIN rail; its jumper lands bare", ""),
+        ("PE bonding", Amz, Buy, "Ground terminal block USLKG 5, green-yellow, 20", "B07M9LDK8F",
+         "Erayco USLKG5N DIN rail ground terminal blocks: 6.2 mm wide, 24 to 10 AWG (0.2 to 4 mm2), 600 V "
+         "30 A, 20 pcs", peBlocks, "pack of 20", 1, 21.99,
+         "one per DIN rail (%d), and %d more in the %d-way PE bar on the 110 V rail; each jumper lands bare"
+         % (len(dinRails), PeBarTerms - 1, PeBarTerms),
+         "In place of the terminal kits' 8 ground blocks, kept as spares: a 2.5 mm2 block takes 12 AWG (3.31 "
+         "mm2) at its limit at best, this one mid-range. The rails are aluminum: meter each block to its rail. "
+         + read),
+        *wire,
+        ("Power wiring", Amz, Buy, "DIN fuse holder 5 x 20 mm, 15-pack", "B0F1DQLG89",
+         "Dinkle DK4-TF(5x20) DIN rail fuse holder, UL 300 V 16 A, 12 to 24 AWG, 15 pcs", 1, "pack of 15", 1,
+         39.99, "F0, the 110 V control rung on the 110 V rail",
+         "UL listed; the rest are spares. Not measured: F0 stays dashed on sheet 3. " + read),
+        ("Power wiring", Amz, Buy, "Fuse 5 x 20 mm, 1 A time delay, ceramic, 5-pack", "B008R8XVHQ",
+         "T1AH250V ceramic cartridge fuses, 5 x 20 mm, 5 pcs", 1, "pack of 5", 1, 10.99, "F0 (1 A T)",
+         "High breaking capacity (H) on the mains side. The blade fuses on hand are 32 V automotive parts. "
+         + read),
+        ("Power wiring", Amz, Buy, "Cord 18/4 SJOOW, 300 V, 25 ft", "B0BKPRWN4N",
+         "GEARit 18 AWG 4-conductor SJOOW portable cord, 300 V, stranded copper, 25 ft", 1, "25 ft", 1, 24.30,
+         "the 110 V door cable: X1 1 to 3 and the plate PE, out through the M20 gland",
+         "Caliper the jacket: the gland takes 6 to 12 mm. " + read),
         # ---- PE bonding of the gantry
-        ("Gantry PE", "owner, elsewhere", NotBought, "Ground bar, %d terminals or more" % BarTerminals, "-",
-         "Listed ground bar for 12 AWG copper", 1, "each", 0, None,
-         "the gantry PE point, fed by the trunk from the upper bar",
-         "Jumper count from a survey: measure every metal part to this bar; bond each that reads open"),
+        ("Gantry PE", Amz, Buy, "Ground bar kit, %d terminals" % BarTerminals, "B007ZZGSQI",
+         "SIEMENS EC2GB152 ground bar kit: %d terminal positions and a ground lug" % BarTerminals, 1, "each", 1,
+         10.38, "the gantry PE point, fed by the trunk from the upper bar",
+         "Jumper count from a survey: measure every metal part to this bar; bond each that reads open. Over "
+         "%d jumpers, add a bar. %s" % (BarTerminals - 1, read)),
         ("Gantry PE", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
          "THHN wire 12 gauge 50 ft, stranded copper, green", "the survey sets it", "50 ft roll", 1, 29.99,
          "trunk and stationary gantry parts",
@@ -3899,13 +3971,23 @@ def BomRows():
          "the inlet cut-out", "Check the shop has them before ordering the sheet"),
         ("Tools", "shop", NotBought, "4.2 mm and 7/32 in (5.56 mm) drills", "-", "", "", "-", 0, None,
          "bond holes (4.2, then tap M5); mid and lid rail holes and upper post sockets (5.56)", ""),
-        ("Not in this BoM", "original BoM", NotBought, "Electrical parts", "-",
-         "terminal blocks, PE blocks, fuse holder, distribution block, wire", "", "-", 0, None, "", ""),
-        ("Not in this BoM", "on hand", NotBought, "Steel DIN rails, 16 in", "-",
-         "%d on hand" % DinRailsOnHand, len(dinCuts), "each", 0, None,
+        ("Not in this BoM", "ordered 2026-09-14", NotBought, "Electrical parts", "-",
+         "K1 and K2, two 12-way fuse modules (FB1, FB2), two terminal kits with 8 USLKG 2.5 ground blocks, five "
+         "uxcell 1-in 9-out blocks (Star S and 0V-P use 3), SSRs, buttons, E-stop, tower with buzzer, 20 AWG "
+         "wire, ferrules and crimper", "", "-", 0, None, "", ""),
+        ("Not in this BoM", "on hand", NotBought, "Aluminum DIN rails, 18 in, slotted", "B0BFFSMBC7",
+         "International Connector T&G 35 x 7.5 mm slotted aluminum, %d on hand (ordered 2026-09-14)"
+         % DinRailsOnHand, len(dinCuts), "each", 0, None,
          "%d rail pieces, %d mm: %s" % (len(dinRails), round(sum(dinLen)),
                                        "; ".join(" + ".join(Mm(L) for L in r) for r in dinCuts)),
-         "Cut from the rails on hand, first fit with a 3 mm kerf (NestDinRails)"),
+         "Cut with a hacksaw, first fit with a 3 mm kerf (NestDinRails). No steel rail needed: screwed down "
+         "every %s mm, a pull of %d N between two screws bends the rail %.2f mm (I = %d mm4; steel %.2f)"
+         % (Mm(RailSpan), round(RailPull), bendAl, round(railI), DinRailBend(ESteel)[0])),
+        ("Not in this BoM", "on hand", NotBought, "12 AWG copper-clad aluminum hookup wire", "-",
+         "VIABRICO 600 ft, 6 colours, copper clad aluminium, low voltage (ordered 2026-09-14)", "", "-", 0, None,
+         "nothing in the box",
+         "Aluminum's resistivity is %.2f times copper's, so 12 AWG CCA conducts like %.1f mm2 of copper, about "
+         "14 AWG; the 12 AWG power runs use the copper THHN above" % (RhoAl / RhoCu, ccaMm2)),
         ("Not in this BoM", "not chosen", NotBought, "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]
@@ -3947,13 +4029,14 @@ def BomCsv():
     Total("Total, gantry PE", gantry, "Bought with the box; the survey sets how much of it the gantry takes")
     Total("New spend: control box and gantry PE, fasteners from lab stock, no cutting tools", box - lab + gantry,
           "New spend is what has to be bought new: the control box total less the lab-stock fasteners, "
-          "plus the gantry PE wire. The optional cutting tools are not in it")
+          "plus the gantry PE. The optional cutting tools are not in it")
     Total("Total, cutting tools", byPlan.get(Optional, 0.0),
           "Optional: the alternatives are the shop's saw (no cost) or Misumi cut to order, which ADR-0009 "
           "priced at $146 against $75 for the sticks (+$71)")
     Total("Total, all priced lines", sum(bySrc.values()),
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
-          "cable gland and the gantry PE wire on %s), McMaster on 2026-10-15; shipping and tax extra"
+          "cable gland, the gantry PE wire and the issue #158 lines on %s), McMaster on 2026-10-15; shipping "
+          "and tax extra"
           % (BomDate, ToolDate))
     return out.getvalue()
 
