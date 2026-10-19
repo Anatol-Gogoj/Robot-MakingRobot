@@ -51,7 +51,7 @@ generator, run this in the FreeCAD 1.x Python console:
 import runpy; runpy.run_path(r"<repo>/tools/build_box_model.py", run_name="__main__")
 ```
 
-It rebuilds the document, refuses to save if two solids overlap, and writes both files. Since issue #158 part A the builder also adds the four gantry mount brackets to the lower module and the gantry members around the box (sheet 5, drawn 60 mm past it on each side); the committed files gain them at the next GUI rebuild. The lower module,
+It rebuilds the document, refuses to save if two solids overlap, and writes both files. Since issue #158 part A the builder also adds the four gantry mount brackets to the lower module and the gantry members around the box (sheet 5, drawn 60 mm past it on each side). The lower module,
 the upper module and its lid are separate `App::Part` containers, so raising one shows the box exploded.
 A deck part whose size is assumed (dashed on sheet 3) is translucent, and every solid carries a `SizeSource`
 property. FreeCAD's axes are right-handed and the generator's x (front to back) and y (left to right) are
