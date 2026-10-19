@@ -924,7 +924,7 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | RMR_SegmentRunner.html | repo root | Standalone Web Serial segment runner + named recipes (PRs #85, #88); shares no code with the two UIs. Never run against this firmware; its dispense template is E-axis (`:1640-1641`) |
 | SpinCoatUVCure.gcode | repo root | April 2026 Copilot protocol (2000/3000/4000/5000 RPM × 5 cycles). E-axis syringe moves, never run |
 | tests/ | `tests/` | Stub-DOM harness for the browser pages (PR #87): `run.mjs`, `harness.mjs`, `syntax-check.mjs` and twelve `*.test.mjs`, described in `tests/README.md`. Runs under Node 18+, or on Windows under VS Code's bundled Electron (`ELECTRON_RUN_AS_NODE=1`). On `main` (2026-10-14): **20 passed, 3 failed**; the three are the open issue #48 (`ok-attribution` Controller and Touch, `homing-indicator` Touch), and any other failure is a regression. `harness.mjs` runs **every** inline script of a page in one vm scope (it used to pick the first one, the pre-paint theme script, so nothing worked) |
-| CAD/ | `CAD/` | Printed-part CAD: FreeCAD sources and STEP exports (endstops, 150 mL syringe adapter, filter sandwich, power-switch mount) and the SolidWorks Gripper-A assembly (#136) |
+| CAD/ | `CAD/` | Printed-part CAD: FreeCAD sources and STEP exports (endstops, 150 mL syringe adapter, filter sandwich, power-switch mount) and the SolidWorks Gripper-A assembly (#136). `CAD/Control Box/` holds the control box's 3D block model, built by `tools/build_box_model.py`; never edit it by hand |
 | docs/adr/ | `docs/adr/` | Architecture decision records, one per durable decision, indexed in `docs/adr/README.md`. 0001 to 0006 came from the August handoffs (issue #129) |
 | RUN_SHEET.md | repo root | Bench run sheet (four lanes, Tasks 1–15) with dated results |
 | ODRIVE_CONFIG.md | repo root | The ODrive S1 configuration as recorded 2026-08-13 |
@@ -942,6 +942,7 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | pi-panel/requirements.txt | `pi-panel/` | Bridge Python deps (pyserial, websockets) |
 | pi-panel/README.md | `pi-panel/` | Pi panel setup guide (OS, venv, udev, kiosk, systemd, buttons, safety) |
 | tools/contrast_check.py | `tools/` | WCAG contrast checker for the UI color themes (parses the theme blocks out of both HTML files) |
+| tools/build_box_model.py | `tools/` | Builds the control box's 3D block model in FreeCAD from `tools/draw_wiring.py` (frame, plates, panels, `DeckSolids()`), refuses overlapping solids, and writes `CAD/Control Box/ControlBoxBlocks.FCStd` and `.step`. Run it inside FreeCAD; see `docs/wiring/README.md` |
 
 ## What's Left To Do
 
