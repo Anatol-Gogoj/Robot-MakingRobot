@@ -405,19 +405,22 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="300" y="76.7" font-size="1.35">bracket leg: M4 x 10, tip 4.9</text>
 <text x="300" y="78.5" font-size="1.35">acrylic panel: M5 x 8, tip 4.8</text>
 <text x="300" y="80.3" font-size="1.35">back panel + washer: M5 x 8, tip 5.4</text>
-<text x="300" y="82.1" font-size="1.35">Lid M5 x 35 needs 15 of end tap; feet M5 x 16.</text>
-<text x="300" y="84.9" font-size="1.7" font-weight="bold">PE bonding</text>
-<text x="300" y="87.2" font-size="1.35">Anodize insulates: each rail is its own part.</text>
-<text x="300" y="89" font-size="1.35">Drill Ø4.2 through a slot floor into the bore,</text>
-<text x="300" y="90.8" font-size="1.35">tap M5; M5 x 16 with a ring lug and a tooth</text>
-<text x="300" y="92.6" font-size="1.35">washer. One 12 AWG home run per part to its</text>
-<text x="300" y="94.4" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 26, 2 bars.</text>
-<text x="300" y="96.2" font-size="1.35">DIN rails through their PE terminals, TB6600s</text>
-<text x="300" y="98" font-size="1.35">under an ear screw. Measure each part to PE</text>
-<text x="300" y="99.8" font-size="1.35">at 0.2 to 10 A (IEC 60204-1 18.2.2).</text>
-<text x="300" y="102.6" font-size="1.7" font-weight="bold">Stiffness</text>
-<text x="300" y="104.9" font-size="1.35">5 kg on a plate, simply supported on its ring</text>
-<text x="300" y="106.7" font-size="1.35">(Timoshenko Table 8): 0.9 mm for 1/16 in 5052.</text>
+<text x="300" y="82.1" font-size="1.35">mount, front panel: M5 x 12, tip 5.3</text>
+<text x="300" y="83.9" font-size="1.35">mount, back panel: M5 x 10, tip 4.9</text>
+<text x="300" y="85.7" font-size="1.35">mount, gantry: M5 x 8, tip 4.5</text>
+<text x="300" y="87.5" font-size="1.35">Lid M5 x 35 needs 15 of end tap; feet M5 x 16.</text>
+<text x="300" y="90.3" font-size="1.7" font-weight="bold">PE bonding</text>
+<text x="300" y="92.6" font-size="1.35">Anodize insulates: each rail is its own part.</text>
+<text x="300" y="94.4" font-size="1.35">Drill Ø4.2 through a slot floor into the bore,</text>
+<text x="300" y="96.2" font-size="1.35">tap M5; M5 x 16 with a ring lug and a tooth</text>
+<text x="300" y="98" font-size="1.35">washer. One 12 AWG home run per part to its</text>
+<text x="300" y="99.8" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 26, 2 bars.</text>
+<text x="300" y="101.6" font-size="1.35">DIN rails through their PE terminals, TB6600s</text>
+<text x="300" y="103.4" font-size="1.35">under an ear screw. Measure each part to PE</text>
+<text x="300" y="105.2" font-size="1.35">at 0.2 to 10 A (IEC 60204-1 18.2.2).</text>
+<text x="300" y="108" font-size="1.7" font-weight="bold">Stiffness</text>
+<text x="300" y="110.3" font-size="1.35">5 kg on a plate, simply supported on its ring</text>
+<text x="300" y="112.1" font-size="1.35">(Timoshenko Table 8): 0.9 mm for 1/16 in 5052.</text>
 <text x="216" y="126" font-size="1.7" font-weight="bold">Cut list: 2020, 6 mm slot, from 1000 mm sticks</text>
 <text x="216.7" y="129.05" font-size="1.3" font-weight="bold">Part</text>
 <text x="243.7" y="129.05" font-size="1.3" font-weight="bold">Qty</text>
@@ -504,12 +507,14 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="216" y="183.35" font-size="1.2">to _3.dxf. The aluminum lower back panel carries the inlet and the door cable's M20 gland (every mains part sits on</text>
 <text x="216" y="185" font-size="1.2">metal); drill and nibble it through panel_lower_back_template.dxf, cut from the spare sheet. Each part is drawn from</text>
 <text x="216" y="186.65" font-size="1.2">outside: u along x (front at 0) or y (left at 0), v up; turn it over to match. Screws Ø5.5 on the slot centre lines,</text>
-<text x="216" y="188.3" font-size="1.2">10 from each post end, ring screws at an even pitch; the top has 8 into the lid ring and Ø10 over each lid screw.</text>
-<text x="216" y="189.95" font-size="1.2">Vents: 21 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk grommets in Ø50 holes (two upper left, upper</text>
-<text x="216" y="191.6" font-size="1.2">front, upper right, lower left), each held by a Ø64 acrylic ring pressed onto its sleeve behind the wall; caliper one</text>
-<text x="216" y="193.25" font-size="1.2">grommet before cutting. Q0 is the inlet's switch if that is 2-pole. Read back from the DXFs: least web 4 mm (2</text>
-<text x="216" y="194.9" font-size="1.2">needed). Order list: bom_frame.csv. NOT CUT YET, placeholders until the owner's data: the PSU fan vent (its diameter),</text>
-<text x="216" y="196.55" font-size="1.2">the IEC inlet with switch cut-out. Hold the lower side, right (acrylic 3) and the back panel template until then.</text>
+<text x="216" y="188.3" font-size="1.2">10 from each post end, ring screws at an even pitch, except the lower front and back panels: their bottom post screws</text>
+<text x="216" y="189.95" font-size="1.2">sit at 30 in vertical slots, through the gantry mount brackets, and they have no ring screw (sheet 5); the top has 8</text>
+<text x="216" y="191.6" font-size="1.2">into the lid ring and Ø10 over each lid screw. Vents: 21 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk</text>
+<text x="216" y="193.25" font-size="1.2">grommets in Ø50 holes (two upper left, upper front, upper right, lower left), each held by a Ø64 acrylic ring pressed</text>
+<text x="216" y="194.9" font-size="1.2">onto its sleeve behind the wall; caliper one grommet before cutting. Q0 is the inlet's switch if that is 2-pole. Read</text>
+<text x="216" y="196.55" font-size="1.2">back from the DXFs: least web 4 mm (2 needed). Order list: bom_frame.csv. NOT CUT YET, placeholders until the owner's</text>
+<text x="216" y="198.2" font-size="1.2">data: the PSU fan vent (its diameter), the IEC inlet with switch cut-out. Hold the lower side, right (acrylic 3) and</text>
+<text x="216" y="199.85" font-size="1.2">the back panel template until then.</text>
 <text x="296" y="126" font-size="1.7" font-weight="bold">Assembly</text>
 <text x="296" y="128.6" font-size="1.3" font-weight="bold">1</text>
 <text x="298.6" y="128.6" font-size="1.3">Caliper a grommet and K2 before cutting:</text>
@@ -541,7 +546,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="298.6" y="168.9" font-size="1.3">the PE link; measure; panels last.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Frame and deck plates</text>
 <text x="290" y="194.4" font-size="2">Sheet 4. Legal, landscape, 100 %.</text>
-<text x="290" y="197.15" font-size="2">Views 1:5, detail E 2:1. Redrawn 2026-10-17.</text>
+<text x="290" y="197.15" font-size="2">Views 1:5, detail E 2:1. Redrawn 2026-10-19.</text>
 <text x="290" y="199.9" font-size="2">Two modules. Design, not yet built.</text>
 <text x="290" y="202.65" font-size="2">DXFs: both deck plates, panel sheets, template.</text>
 </svg>

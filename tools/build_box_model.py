@@ -38,8 +38,9 @@ OutDir = os.path.join(os.path.dirname(Here), "CAD", "Control Box")
 DocName = "ControlBoxBlocks"
 V = App.Vector
 
+BracketW = W.BracketW              # cast corner bracket across, from the generator (the kit's listing)
+GantryOverhang = 60.0              # the gantry members are drawn this far past the box on each side
 # What the generator does not size. Each is drawn and flagged SizeSource = assumed.
-BracketW = 17.0                    # cast corner bracket across: the BoM's TOCLUX kit lists 17 x 20 mm
 FootD = 20.0                       # rubber foot diameter; sheet 4 draws the feet 20 wide
 StudD, StudH = 5.0, 15.0           # M5 PE stud and how far it stands off its plate or panel
 GrommetTall = 0.83 * 25.4          # grommet with its flange, from the listing's drawing (draw_wiring)
@@ -232,6 +233,30 @@ def Brackets():
     return out
 
 
+def MountBracketSolids():
+    """[(label, shape)]: the four gantry mount brackets (MountBrackets()), each with its inside corner
+    on its panel's outer face at a lower member's top face, the horizontal leg out over the member and
+    the vertical leg up the panel."""
+    out = []
+    for wall, u in W.MountBrackets():
+        face, out_ = (-W.PanelT, -1) if wall == "front" else (W.BoxD + W.BasePlateT, 1)
+        out.append(("mount bracket, %s, at the %s post" % (wall, "left" if u < W.BoxW / 2 else "right"),
+                    BracketSolid((face, u, W.Frame), (out_, 0, 0), (0, 0, 1), (0, 1, 0))))
+    return out
+
+
+def GantryRails():
+    """[(label, box)]: the gantry members of GantryMembers, in the planes of the box's front and back
+    faces (the lower panels' outer faces), drawn GantryOverhang past the box on each side."""
+    F = W.Frame
+    out = []
+    for wall, name, z0 in W.GantryMembers:
+        x0 = -W.PanelT - F if wall == "front" else W.BoxD + W.BasePlateT
+        out.append(("%s %s" % (wall, name),
+                    (x0, -GantryOverhang, z0, x0 + F, W.BoxW + GantryOverhang, z0 + F)))
+    return out
+
+
 def PlateSolid(kind, z0, t):
     """A deck plate from PlateGeom(): the outline with every hole and slot of its DXF."""
     outline, holes, slots = W.PlateGeom(kind)
@@ -419,8 +444,9 @@ def PeStud(module, kind, z0):
 
 
 def Build():
-    """The document: a root App::Part with the lower module, the upper module and its lid, and the
-    eight brackets that join the modules. Returns (root, every solid)."""
+    """The document: a root App::Part with the lower module, the upper module and its lid, the
+    eight brackets that join the modules, and the gantry members around the box. Returns (root, every
+    solid)."""
     global Doc
     if DocName in App.listDocuments():
         App.closeDocument(DocName)
@@ -447,6 +473,9 @@ def Build():
            (W.MainsZoneX, W.MainsZoneY, W.LoDeck, D - F, Wd - F, W.UpPlate0), W.ZoneFill["110"], ZoneTransp,
            Kind="zone", SizeSource="sourced")
     PanelGroup(lower, [n for n, wz in W.PanelWall.items() if wz[1] == 0.0])
+    mounts = Group(lower, "Gantry mount brackets (come out with the box)")
+    for label, shape in MountBracketSolids():
+        AddShape(mounts, "Bracket", label, shape, W.BracketFill, Kind="corner bracket", SizeSource="assumed")
 
     BracketGroup(root, "Module joint: lower posts to mid ring", ("lower post to mid ring",))
 
@@ -464,6 +493,8 @@ def Build():
     FrameGroup(lid, "Lid ring", RingRails(W.TopIn, True), W.LidFill)
     BracketGroup(lid, "Lid ring brackets", ("lid ring corner",))
     PanelGroup(lid, [W.TopPanel])
+
+    FrameGroup(root, "Gantry members", GantryRails(), "#CCCCCC")
 
     notes = Doc.addObject("App::TextDocument", "Notes")
     notes.Label = "Notes"
@@ -489,9 +520,15 @@ def NotesText():
         "SizeSource. Acrylic panels are drawn 80 % transparent, the aluminum back panel opaque.",
         "The pink volume is the 110 VAC zone of ADR-0013, not a part.",
         "",
-        "Assumed here, not in the generator: bracket width %s, foot diameter %s, PE stud %s long,"
-        % (W.Mm(BracketW), W.Mm(FootD), W.Mm(StudH)),
+        "Assumed here, not in the generator: foot diameter %s, PE stud %s long,"
+        % (W.Mm(FootD), W.Mm(StudH)),
         "grommet sleeve wall %s, door gland body and locknut size." % W.Mm(GrommetWall),
+        "",
+        "The gantry (sheet 5, issue #158): its members in the box's face planes, %s past the box on each"
+        % W.Mm(GantryOverhang),
+        "side, at the owner's heights of 2026-10-19 with the front middle member raised to %s over the"
+        % W.Mm(W.GantryMidGap),
+        "lower one; the four mount brackets belong to the lower module and come out with the box.",
         "Not modeled: wires, screws, T-nuts, nuts and tails under the plates, the locating studs,",
         "ground bars, the IEC inlet and the PSU vent (both still open in PanelOpen()).",
     ])

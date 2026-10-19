@@ -1526,6 +1526,7 @@ RingOD, RingGrip = 64.0, 0.2       # ring bore = sleeve - RingGrip, a press fit:
 GrommetsInPack = 4
 HeadM5 = 8.7                       # M5 socket head across, as its pack lists it (ISO 4762 allows 8.72
                                    # knurled): each grommet flange clears the panel screws
+HeadM5H = 5.0                      # and 5 tall (ISO 4762 k for M5), standing proud of what it holds
 EntryEdge = 1.0                    # from a ring's edge to the rail behind the panel
 RingName = "Grommet ring"
 # One grommet per entry, halfway up its panel's window: (panel, u of the centre, what leaves there,
@@ -1577,6 +1578,7 @@ SlotOpen, SlotLip, SlotDepth, SlotCavity, BoreD = 6.0, 1.8, 6.0, 11.0, 4.2
 # SlotDepth - 0.5. ScrewFits() checks every joint against that before anything is drawn.
 WasherM5 = 1.0                     # DIN 125 flat washer thickness
 BracketLegT = 3.5                  # cast 2020 corner bracket leg; assumed, measure the first one
+BracketW = 17.0                    # across the bracket: the BoM's TOCLUX kit lists 17 x 20 mm
 JointScrews = [
     # (joint, thread, length, stack under the head: plate, leg and washers)
     ("base plate to bottom ring, from below", "M4", 6, [BasePlateT]),
@@ -1584,6 +1586,11 @@ JointScrews = [
     ("upper-post bracket leg through the upper plate", "M4", 10, [BracketLegT, UpPlateT]),
     ("acrylic panel to the frame", "M5", 8, [PanelT]),
     ("aluminum back panel to the frame", "M5", 8, [WasherM5, BasePlateT]),
+    # the gantry mount (GantryChecks): through a bracket leg and the panel into a lower post, and
+    # through the other leg into a gantry member, each into an M5 roll-in T-nut
+    ("mount bracket over the acrylic front panel", "M5", 12, [BracketLegT, PanelT]),
+    ("mount bracket over the aluminum back panel", "M5", 10, [BracketLegT, BasePlateT]),
+    ("mount bracket to a gantry member", "M5", 8, [BracketLegT]),
 ]
 ThreadPitch = {"M4": 0.7, "M5": 0.8}
 
@@ -1953,15 +1960,16 @@ UpperPanelH = BoxH - LowerPanelH   # upper panels: from the mid ring to the top 
 def EnclosurePanels():
     """(name, qty, width, height, material, screws each). Each panel lies flat on its own outside
     face of the frame, so the corners stay open by one panel thickness. The screws are M5 into
-    T-nuts: lower panels into the lower posts (2 per post) and the bottom ring, upper panels into
-    the upper posts (2 per post) and the mid ring. None goes into the lid ring, so the lid ring
+    T-nuts: lower panels into the lower posts (2 per post) and, on the sides, the bottom ring (the
+    gantry member backs the front and back panels' bottom edge), upper panels into the upper posts
+    (2 per post) and the mid ring. None goes into the lid ring, so the lid ring
     still lifts off alone with the top. Every mains part sits on metal: the lower back panel,
     which carries the inlet and Q0, is cut from the base plate's sheet. Each panel is its own part:
     vents and gland holes make the left and right, or front and back, panels differ."""
     return [("Lower side, left", 1, BoxD, LowerPanelH, "acrylic", 6),
             ("Lower side, right", 1, BoxD, LowerPanelH, "acrylic", 6),
-            ("Lower front", 1, BoxW, LowerPanelH, "acrylic", 5),
-            ("Lower back: inlet and Q0", 1, BoxW, LowerPanelH, "aluminum", 5),
+            ("Lower front", 1, BoxW, LowerPanelH, "acrylic", 4),
+            ("Lower back: inlet and Q0", 1, BoxW, LowerPanelH, "aluminum", 4),
             ("Upper side, left", 1, BoxD, UpperPanelH, "acrylic", 6),
             ("Upper side, right", 1, BoxD, UpperPanelH, "acrylic", 6),
             ("Upper front", 1, BoxW, UpperPanelH, "acrylic", 5),
@@ -2067,6 +2075,43 @@ MainsSpan = (MainsZoneY, BoxW - Frame)
 # or shares a grommet with it: an M20 x 1.5 nylon cable gland (6 to 12 mm cable), halfway up the
 # window (ADR-0013). (u of the centre, hole, across the locknut's corners, assumed.)
 DoorGland = (205.0, 20.5, 30.0)
+# The box in the gantry (issue #158, part A). The gantry is 2020 with a 6 mm slot (owner, 2026-10-19),
+# so the kit's M5 roll-in T-nuts fit it. Its members run left to right against the box's front and back
+# faces, in those faces' planes, and its lower members stand on the same rubber feet as the box, so
+# their bottom faces are level with the base plate's underside, z = 0. The owner measured the gaps
+# face to face on 2026-10-19: in front, lower member to middle member 230 and middle to top 130; at
+# the back, center member to top 38; the front and back top members stand at the same height. The
+# front middle member, which can move, goes up to GantryMidGap so the box lifts out (GantryChecks);
+# the others stay where they were measured.
+GantryMeasured = {"front lower to middle": 230.0, "front middle to top": 130.0, "back center to top": 38.0}
+GantryMidGap = 315.0               # front, lower member's top face to the middle member's bottom face
+GantryTopZ = Frame + GantryMeasured["front lower to middle"] + Frame + GantryMeasured["front middle to top"]
+GantryMembers = [("front", "lower", 0.0), ("front", "middle", Frame + GantryMidGap),
+                 ("front", "top", GantryTopZ), ("back", "lower", 0.0),
+                 ("back", "center", GantryTopZ - GantryMeasured["back center to top"] - Frame),
+                 ("back", "top", GantryTopZ)]
+# Four spare cast corner brackets hold the box to the lower members, one at each lower post on the front
+# and back faces. The vertical leg lies on the panel, held by that post's bottom panel screw, which moves
+# up from PostScrewIn to clear the member; the horizontal leg rests on the member's top face, held by one
+# M5 into a roll-in T-nut. The front and back panels lose their bottom ring screw: the member backs the
+# panel's bottom edge. The joint only keeps the box in place; it is not structural. BracketHoleIn is a
+# hole's distance from the bracket's inside corner, assumed until a bracket is measured.
+BracketHoleIn = 10.0
+GantryScrewV = Frame + BracketHoleIn
+# The member's top face stands on the gantry's own feet, under another load, so its height against the
+# box is not exact. The bracket's panel screw therefore passes the panel in a vertical slot MountSlotL
+# long, which lets the bracket seat on the member +/- (MountSlotL - HoleM5) / 2 off its drawn height.
+MountSlotL = 10.0
+# A mains cut-out in the back panel (MainsCuts, Q0Cut) carries a flange outside, assumed this far past
+# the cut-out on every side until the part is chosen.
+CutFlange = 5.0
+# To come out, the box lifts until its feet clear a lower member's top face, then slides forward under
+# the front middle member. LiftMargin is the play wanted at each end of that lift.
+LiftMargin = 5.0
+# PLACEHOLDER, for the owner: the gantry's feet go on M5 screws into roll-in T-nuts in the lower
+# members' bottom slots. The screw's length needs the stack under its head inside the foot (the depth of
+# the foot's washer under its top face); None until a foot is measured.
+GantryFootStack = None
 
 
 def PanelSpec(name):
@@ -2089,10 +2134,11 @@ def PanelWindow(name):
 
 
 def PanelScrews(name):
-    """(u, v) of each M5 x 8 on the slot centre lines. A wall panel: two per post, PostScrewIn from
-    the post ends, and one (front, back) or two (sides) at an even pitch into the bottom ring
-    (lower panels) or the mid ring (upper panels). The top: three per long lid-ring rail between
-    the lid screws, one per short rail."""
+    """(u, v) of each M5 on the slot centre lines. A wall panel: two per post, PostScrewIn from
+    the post ends, and one (upper front, upper back) or two (sides) at an even pitch into the bottom
+    ring (lower panels) or the mid ring (upper panels). The lower front and back panels have no ring
+    screw, and their bottom post screws sit at GantryScrewV, through the mount brackets. The top: three
+    per long lid-ring rail between the lid screws, one per short rail."""
     wall, z0 = PanelWall[name]
     c = Frame / 2
     if wall == "top":
@@ -2100,11 +2146,13 @@ def PanelScrews(name):
         return ([(x, c) for x in xs] + [(x, BoxW - c) for x in xs]
                 + [(c, BoxW / 2), (BoxD - c, BoxW / 2)])
     span = BoxD if wall in ("left", "right") else BoxW
+    endWall = wall in ("front", "back")
     if z0 == 0.0:
-        posts, ring = (LoDeck + PostScrewIn, MidF0 - PostScrewIn), LoDeck + c
+        low = GantryScrewV if endWall else LoDeck + PostScrewIn
+        posts, ring = (low, MidF0 - PostScrewIn), LoDeck + c
     else:
         posts, ring = (UpDeck + PostScrewIn - z0, TopIn - PostScrewIn - z0), MidF0 + c - z0
-    n = 2 if wall in ("left", "right") else 1
+    n = 0 if endWall and z0 == 0.0 else 1 if endWall else 2
     us = [c + (span - Frame) * k / (n + 1) for k in range(1, n + 1)]
     return [(u, v) for u in (c, span - c) for v in posts] + [(u, ring) for u in us]
 
@@ -2170,8 +2218,13 @@ def PanelGeom(name):
     slots [(u0, v0, u1, v1)], cut-outs [[(u, v)]])."""
     _, _, w, h, _, _ = PanelSpec(name)
     outline = [(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)]
-    holes = [(u, v, HoleM5) for u, v in PanelScrews(name)]
-    slots, polys = [], []
+    wall, z0 = PanelWall[name]
+    holes, slots, polys = [], [], []
+    for u, v in PanelScrews(name):
+        if z0 == 0.0 and wall in ("front", "back") and abs(v - GantryScrewV) < 1e-6:
+            slots.append((u - HoleM5 / 2, v - MountSlotL / 2, u + HoleM5 / 2, v + MountSlotL / 2))
+        else:
+            holes.append((u, v, HoleM5))
     if name == TopPanel:
         holes += [(x, y, LidAccess) for x, y in PostCentres]
         slots += TopVents()
@@ -2240,6 +2293,158 @@ def PanelOpen():
     if PsuFanD is None:
         out.append("PSU fan diameter: no PSU vent in the lower right side panel")
     out += ["%s: body cut-out and screw spacing" % k for k, cut in MainsCuts.items() if cut is None]
+    return out
+
+
+def MountBrackets():
+    """[(wall, u)]: the four mount brackets, one at each lower post on the front and back faces,
+    centred on the post's screw line."""
+    return [(wall, u) for wall in ("front", "back") for u in (Frame / 2, BoxW - Frame / 2)]
+
+
+def LowerPanelOf(wall):
+    """The lower panel on the front or back wall."""
+    return [n for n, (w, z0) in PanelWall.items() if w == wall and z0 == 0.0][0]
+
+
+def FaceProtrusions(wall):
+    """[(what, u0, u1, z0, z1)]: what stands proud of the front or back face, in box z: the panel
+    screw heads, the grommet flanges, the back panel's door cable gland, PE stud and mains cut-outs
+    (with CutFlange), a panel thicker than the face's lower panel, and the mount brackets."""
+    out = []
+    plane = BasePlateT if PanelSpec(LowerPanelOf(wall))[4] == "aluminum" else PanelT
+    for name, (w, z0) in PanelWall.items():
+        if w != wall:
+            continue
+        short = name.split(":")[0].lower()
+        _, _, pw, ph, mat, _ = PanelSpec(name)
+        if (BasePlateT if mat == "aluminum" else PanelT) > plane + 1e-6:
+            out.append(("%s, proud of the lower panel's plane" % short, 0.0, pw, z0, z0 + ph))
+        for u, v in PanelScrews(name):
+            out.append(("%s screw at u %s" % (short, Mm(u)), u - HeadM5 / 2, u + HeadM5 / 2,
+                        z0 + v - HeadM5 / 2, z0 + v + HeadM5 / 2))
+        for p, u, v, cables in GrommetAt():
+            if p == name:
+                r = GrommetFlange / 2
+                out.append(("grommet flange (%s)" % cables, u - r, u + r, z0 + v - r, z0 + v + r))
+        if name == BackPanel:
+            _, w1, _, w3 = PanelWindow(BackPanel)
+            r, gv = DoorGland[2] / 2, (w1 + w3) / 2
+            out.append(("door cable gland", DoorGland[0] - r, DoorGland[0] + r, gv - r, gv + r))
+            u, v = BackPeStud
+            out.append(("PE stud", u - HeadM5 / 2, u + HeadM5 / 2, v - HeadM5 / 2, v + HeadM5 / 2))
+            for cutName, cut in list(MainsCuts.items()) + [("Q0", Q0Cut)]:
+                if cut is None:
+                    continue
+                (uc, vc), shape = cut[0], cut[1]
+                hw, hh = (shape[1] / 2, shape[2] / 2) if shape[0] == "rect" else (shape[1] / 2, shape[1] / 2)
+                out.append(("%s and its flange" % cutName, uc - hw - CutFlange, uc + hw + CutFlange,
+                            vc - hh - CutFlange, vc + hh + CutFlange))
+    for w, u in MountBrackets():
+        if w == wall:
+            out.append(("mount bracket at u %s" % Mm(u), u - BracketW / 2, u + BracketW / 2, Frame, 2 * Frame))
+    return out
+
+
+def RectGap(a, b):
+    """Least distance between two rectangles (u0, u1, z0, z1); 0 when they touch or overlap."""
+    du = max(a[0] - b[1], b[0] - a[1], 0.0)
+    dz = max(a[2] - b[3], b[2] - a[3], 0.0)
+    return math.hypot(du, dz)
+
+
+def GantryChecks():
+    """Raise unless the box stands in the gantry and lifts out; return what sheet 5 prints.
+
+    Standing: nothing proud of the front or back face meets a gantry member in that face's plane
+    (resting on a member's top face is allowed, as the brackets do); each mount bracket lies on its
+    post, off its panel's window, with the post's bottom screw through it, and clear of the gland, the
+    PE stud and the grommets; the members on a face do not run into each other.
+    Lifting out: the box rises until its feet clear a lower member's top face by LiftMargin. Raised that
+    far, every protrusion stays LiftMargin under the next member up on its face, and the box's top,
+    with the top panel's screw heads, passes LiftMargin or more under the front middle member on the
+    way out forward. The room under the back center member is reported, not required.
+    Also returns how far the two socket heads on a bracket overlap at BracketHoleIn (0 if they clear)
+    and the gantry foot screw's length (None while GantryFootStack is open)."""
+    lift = Frame + FootH + LiftMargin
+    boxTop = BoxH + PanelT + HeadM5H
+    z = {(w, n): z0 for w, n, z0 in GantryMembers}
+    out = {"lift": lift, "box top": boxTop}
+    for wall in ("front", "back"):
+        members = sorted(z0 for (w, _), z0 in z.items() if w == wall)
+        for a, b in zip(members, members[1:]):
+            if b < a + Frame:
+                raise ValueError("the %s gantry members at z %s and %s overlap" % (wall, Mm(a), Mm(b)))
+        prot = FaceProtrusions(wall)
+        for what, u0, u1, z0, z1 in prot:
+            for (w, name), m in z.items():
+                if w == wall and z0 < m + Frame - 1e-6 and z1 > m + 1e-6:
+                    raise ValueError("%s on the %s face meets the %s member (z %s to %s)"
+                                     % (what, wall, name, Mm(m), Mm(m + Frame)))
+        top = max(p[4] for p in prot)
+        nextUp = min(m for m in members if m > 0.0)
+        room = nextUp - (top + lift)
+        if room < LiftMargin:
+            raise ValueError("lifted %s, the %s face's top protrusion (z %s) comes %s under the member at z %s"
+                             % (Mm(round(lift, 1)), wall, Mm(round(top, 1)), Mm(round(room, 1)), Mm(nextUp)))
+        out["%s room" % wall] = room
+    fwd = z[("front", "middle")] - (boxTop + lift)
+    if fwd < LiftMargin:
+        raise ValueError("sliding out forward, the box's top (z %s, raised %s) passes %s under the front "
+                         "middle member" % (Mm(round(boxTop, 1)), Mm(round(lift, 1)), Mm(round(fwd, 1))))
+    out["forward"] = fwd
+    out["back exit"] = z[("back", "center")] - (boxTop + lift)
+    # The lift that works: the feet clear a lower member's top face, and the top passes under the front
+    # middle member; LiftMargin is wanted at each end.
+    out["lift band"] = (Frame + FootH, z[("front", "middle")] - boxTop)
+    for wall in ("front", "back"):
+        high = max(p[4] for p in FaceProtrusions(wall))
+        if high > boxTop:
+            raise ValueError("something on the %s face reaches z %s, over the box's top (%s), which the "
+                             "forward pass is checked against" % (wall, Mm(round(high, 1)), Mm(round(boxTop, 1))))
+    off = abs(BracketHoleIn - Frame / 2)
+    if off > (SlotOpen - 5.0) / 2:
+        raise ValueError("the mount bracket's member-side hole sits %s off the member's slot centre; an M5 "
+                         "passes the %s slot opening only within %s" % (Mm(round(off, 2)), Mm(SlotOpen),
+                                                                         Mm((SlotOpen - 5.0) / 2)))
+    out["mid to top"] = z[("front", "top")] - z[("front", "middle")] - Frame
+    for wall, u in MountBrackets():
+        name = LowerPanelOf(wall)
+        w0, _, w2, _ = PanelWindow(name)
+        u0, u1 = u - BracketW / 2, u + BracketW / 2
+        if not (u1 <= w0 or u0 >= w2) or u0 < 0.0 or u1 > BoxW:
+            raise ValueError("the %s mount bracket at u %s leaves its post" % (wall, Mm(u)))
+        if (u, GantryScrewV) not in PanelScrews(name):
+            raise ValueError("no panel screw through the %s mount bracket at u %s" % (wall, Mm(u)))
+        for what, a0, a1, b0, b1 in FaceProtrusions(wall):
+            if what.startswith(("door cable gland", "PE stud", "grommet", "IEC", "Q0")) and \
+                    RectGap((u0, u1, Frame, 2 * Frame), (a0, a1, b0, b1)) < EntryEdge:
+                raise ValueError("the %s mount bracket at u %s meets the %s" % (wall, Mm(u), what))
+    # The panel-side head stands on the vertical leg, BracketHoleIn up from the corner; the member-side
+    # head on the horizontal leg, BracketHoleIn out from the panel face. Each reaches BracketLegT +
+    # HeadM5H off its leg's rail and HeadM5 / 2 either side of its hole, so they meet in the corner
+    # unless BracketHoleIn - HeadM5 / 2 >= BracketLegT + HeadM5H.
+    out["head overlap"] = max(0.0, BracketLegT + HeadM5H - (BracketHoleIn - HeadM5 / 2))
+    if GantryFootStack is None:
+        out["foot screw"] = None
+    else:
+        lo, hi = SlotLip + 3 * ThreadPitch["M5"], SlotDepth - 0.5
+        fit = [L for L in (8, 10, 12, 16, 20, 25) if lo <= L - GantryFootStack <= hi]
+        if not fit:
+            raise ValueError("no M5 length lands a gantry foot screw %s to %s past the slot face"
+                             % (Mm(lo), Mm(hi)))
+        out["foot screw"] = fit[0]
+    return out
+
+
+def GantryOpen():
+    """What the gantry mount still waits on: listed on sheet 5 and on the console."""
+    g, out = GantryChecks(), []
+    if g["head overlap"] > 0:
+        out.append("mount bracket holes: at %s from the corner the two socket heads overlap %s in the corner, "
+                   "as in every frame bracket; measure a bracket" % (Mm(BracketHoleIn), "%.2f" % g["head overlap"]))
+    if g["foot screw"] is None:
+        out.append("gantry foot screw length: the depth of the foot's washer (GantryFootStack)")
     return out
 
 
@@ -3482,7 +3687,10 @@ def BuildFrame():
              "upper plate to mid ring": "upper plate",
              "upper-post bracket leg through the upper plate": "bracket leg",
              "acrylic panel to the frame": "acrylic panel",
-             "aluminum back panel to the frame": "back panel + washer"}
+             "aluminum back panel to the frame": "back panel + washer",
+             "mount bracket over the acrylic front panel": "mount, front panel",
+             "mount bracket over the aluminum back panel": "mount, back panel",
+             "mount bracket to a gantry member": "mount, gantry"}
     bond, _ = BondSummary()
 
     def Bars(n):
@@ -3599,14 +3807,16 @@ def BuildFrame():
         "(every mains part sits on metal); drill and nibble it through "
         "panel_lower_back_template.dxf, cut from the spare sheet. Each part is drawn from outside: "
         "u along x (front at 0) or y (left at 0), v up; turn it over to match. Screws %s%s on the "
-        "slot centre lines, %s from each post end, ring screws at an even pitch; the top has 8 "
+        "slot centre lines, %s from each post end, ring screws at an even pitch, except the lower front and "
+        "back panels: their bottom post screws sit at %s in vertical slots, through the gantry mount "
+        "brackets, and they have no ring screw (sheet 5); the top has 8 "
         "into the lid ring and %s%s over each lid screw. Vents: %d slots %s x %s on %s over the "
         "TB6600s. Cable entries: %d desk grommets in %s%s holes (%s), each held by a %s%s acrylic "
         "ring pressed onto its sleeve behind the wall; caliper one grommet before cutting. Q0 is "
         "the inlet's switch if that is 2-pole. Read back from the DXFs: least web %s mm (%s "
         "needed). Order list: bom_frame.csv."
         % (nSheets, Mm(LaserBed[0]), Mm(LaserBed[1]), nSheets, Dia, Mm(HoleM5), Mm(PostScrewIn),
-           Dia, Mm(LidAccess), len(vents), Mm(VentW), Mm(vents[0][3] - vents[0][1]), Mm(VentPitch),
+           Mm(GantryScrewV), Dia, Mm(LidAccess), len(vents), Mm(VentW), Mm(vents[0][3] - vents[0][1]), Mm(VentPitch),
            nEntries, Dia, Mm(GrommetHole), sides, Dia, Mm(RingOD), Mm(web), Mm(PanelWeb)))
     if pending:
         text += (" NOT CUT YET, placeholders until the owner's data: %s. Hold the %s until then."
@@ -3641,9 +3851,234 @@ def BuildFrame():
     TitleBlock(sh, 288, 186, 60, 21.5, [
         "Frame and deck plates",
         "Sheet 4. Legal, landscape, 100 %.",
-        "Views 1:5, detail E 2:1. Redrawn 2026-10-17.",
+        "Views 1:5, detail E 2:1. Redrawn 2026-10-19.",
         "Two modules. Design, not yet built.",
         "DXFs: both deck plates, panel sheets, template.",
+    ])
+    return sh
+
+
+FrameBrackets = 8 + 8 + 4 + 8 + 4  # bottom ring, lower posts to mid ring, mid ring, upper posts, lid ring
+
+
+def BuildGantry():
+    sh = Sheet("RMR control box in the gantry")
+    g = GantryChecks()
+    fits = {j: (scr, tip) for j, scr, tip, _ in ScrewFits()}
+    F, S, t, tb = Frame, 5.0, BracketLegT, BasePlateT
+    z = {(w, n): z0 for w, n, z0 in GantryMembers}
+    zMid, zTop, zCtr = z[("front", "middle")], z[("front", "top")], z[("back", "center")]
+    lift, boxTop = g["lift"], g["box top"]
+    DrawFrame(sh, "RMR control box: mount in the gantry",
+              "Four cast corner brackets hold the box to the gantry's lower members; it comes out by lifting %s "
+              "and sliding forward under the front middle member. Views 1:5, detail C 1:1, printed at 100 %%. "
+              "Millimetres; z up from the base plate's underside." % Mm(round(lift, 1)))
+    span = zTop + F + 6.0
+    panelFill, rubber = "#DDDDDD", "#555555"
+
+    def Heads(v, a0, a1, zs):
+        for zz in sorted(set(round(q, 2) for q in zs)):
+            v.Box(min(a0, a1), zz - HeadM5 / 2, max(a0, a1), zz + HeadM5 / 2, fill="#BBBBBB", stroke=0.12)
+
+    def BracketL(v, a, sgn):
+        """The mount bracket seen from the side: inside corner at (a, F), horizontal leg outward (sgn)."""
+        v.Poly([(a, F), (a + sgn * F, F), (a + sgn * F, F + t), (a + sgn * t, F + t), (a + sgn * t, 2 * F),
+                (a, 2 * F)], fill=BracketFill, stroke=0.15)
+
+    # ------------------------------------------------ A: from the left side, front on the left
+    va = View(sh, 62.0, 30.0, BoxD, span, S)
+    va.Title("A  Box in the gantry, from the left side", "front on the left")
+    va.Line([(-90, -FootH), (BoxD + 90, -FootH)], "zl")
+    sh.Text(va.X(BoxD + 88), va.Y(-FootH) + 2.0, "floor", size=1.2, anchor="end")
+    va.Box(0, 0, BoxD, LoDeck, fill=PlateFill, stroke=0.1)
+    va.Box(0, LoDeck, BoxD, MidF0, fill="#F6F6F6", stroke=0.2, lines=["lower module"], size=1.3)
+    va.Box(0, MidF0, BoxD, UpPlate0, fill=ZoneFill["frame"], stroke=0.2)
+    va.Box(0, UpPlate0, BoxD, UpDeck, fill=PlateFill, stroke=0.1)
+    va.Box(0, UpDeck, BoxD, TopIn, fill="#F6F6F6", stroke=0.2, lines=["upper module"], size=1.3)
+    va.Box(0, TopIn, BoxD, BoxH, fill=LidFill, stroke=0.2)
+    va.Box(0, BoxH, BoxD, BoxH + PanelT, fill=panelFill, stroke=0.12)
+    for x in sorted(set(round(u, 2) for u, _ in PanelScrews(TopPanel))):
+        va.Box(x - HeadM5 / 2, BoxH + PanelT, x + HeadM5 / 2, boxTop, fill="#BBBBBB", stroke=0.12)
+    va.Box(-PanelT, 0, 0, BoxH, fill=panelFill, stroke=0.15)
+    va.Box(BoxD, 0, BoxD + tb, LowerPanelH, fill=PlateFill, stroke=0.12)
+    va.Box(BoxD, LowerPanelH, BoxD + PanelT, BoxH, fill=panelFill, stroke=0.15)
+    for x in (F / 2, BoxD - F / 2):
+        va.Box(x - 10, -FootH, x + 10, 0, fill=rubber, stroke=0.12)
+    for wall, x0, sgn in (("front", -PanelT, -1), ("back", BoxD + tb, 1)):
+        upFace = -PanelT if wall == "front" else BoxD + PanelT
+        zs = [z0 + v for name, (w, z0) in PanelWall.items() if w == wall for _, v in PanelScrews(name)]
+        free = [q for q in zs if abs(q - GantryScrewV) > 1e-6]
+        Heads(va, x0, x0 + sgn * HeadM5H, [q for q in free if q <= LowerPanelH])
+        Heads(va, upFace, upFace + sgn * HeadM5H, [q for q in free if q > LowerPanelH])
+        BracketL(va, x0, sgn)
+        Heads(va, x0 + sgn * t, x0 + sgn * (t + HeadM5H), [GantryScrewV])
+        xm = x0 + sgn * BracketHoleIn
+        va.Box(xm - HeadM5 / 2, F + t, xm + HeadM5 / 2, F + t + HeadM5H, fill="#999999", stroke=0.12)
+        for (w, name), m in sorted(z.items(), key=lambda kv: kv[1]):
+            if w != wall:
+                continue
+            a0 = x0 if sgn > 0 else x0 - F
+            va.Poly([(a0 + u, m + F - vv) for u, vv in RailProfile()], fill=ZoneFill["frame"], stroke=0.2)
+            label = "%s %s, z %s to %s" % (wall, name, Mm(m), Mm(m + F))
+            if (w, name) == ("front", "middle"):
+                label += ": moved up %s" % Mm(round(m - (F + GantryMeasured["front lower to middle"]), 1))
+            if sgn < 0:
+                sh.Text(va.X(a0) - 1.0, va.Y(m + F / 2) + 0.45, label, size=1.2, anchor="end")
+            else:
+                sh.Text(va.X(a0 + F) + 1.0, va.Y(m + F / 2) + 0.45, label, size=1.2)
+        a0 = x0 if sgn > 0 else x0 - F
+        va.Box(a0, -FootH, a0 + F, 0, fill=rubber, stroke=0.12)
+    # the way out: lifted, then forward
+    va.Box(-PanelT, lift - FootH, BoxD + PanelT, boxTop + lift, fill="none", dashed=True, stroke=0.2)
+    ya = TopIn - 25.0               # over the upper module's label
+    va.Line([(BoxD * 0.6, ya), (-PanelT - F - 40, ya)], "sgc")
+    va.Poly([(-PanelT - F - 46, ya), (-PanelT - F - 38, ya + 6), (-PanelT - F - 38, ya - 6)], fill="#000", stroke=0.1)
+    sh.Text(va.X(BoxD * 0.3), va.Y(ya) - 1.0, "lifted %s (dashed), then out forward" % Mm(round(lift, 1)),
+            size=1.3, anchor="middle", halo=True)
+    xA = -PanelT - F
+    va.DimV(F, zMid, xA, "%s (was %s)" % (Mm(GantryMidGap), Mm(GantryMeasured["front lower to middle"])),
+            right=False, off=2.0)
+    va.DimV(boxTop + lift, zMid, BoxD * 0.12, "%s clear" % Mm(round(g["forward"], 1)), off=0.0)
+    va.DimV(zCtr + F, zTop, BoxD + tb + F, Mm(GantryMeasured["back center to top"]), off=2.0)
+    va.DimV(-FootH, lift - FootH, BoxD * 0.5, "lift %s" % Mm(round(lift, 1)), off=0.0)
+    xT = va.X(BoxD + tb + F) + 34.0
+    sh.Text(xT + 0.6, va.Y(span) + 1.5, "z", size=1.3, weight="bold")
+    for zz in sorted({0.0, F, BoxH, boxTop, zMid, zMid + F, zCtr, zCtr + F, zTop, zTop + F}):
+        sh.Wire([(xT, va.Y(zz)), (xT + 1.6, va.Y(zz))], "sg")
+        sh.Text(xT + 2.0, va.Y(zz) + 0.45, Mm(round(zz, 1)), size=1.1)
+
+    # ------------------------------------------------ B: the front face
+    vb = View(sh, 210.0, 30.0, BoxW, span, S)
+    vb.Title("B  Front face, from the front", "the back brackets and screws match")
+    vb.Line([(-25, -FootH), (BoxW + 25, -FootH)], "zl")
+    for name in ("Lower front", "Upper front"):
+        _, z0 = PanelWall[name]
+        _, _, w, h, _, _ = PanelSpec(name)
+        vb.Box(0, z0, w, z0 + h, fill="#EEEEEE", stroke=0.25)
+        for p, u, v, _ in GrommetAt():
+            if p == name:
+                vb.Hole(u, z0 + v, GrommetFlange, fill="#888888")
+        for u, v in PanelScrews(name):
+            vb.Hole(u, z0 + v, HeadM5, fill="#BBBBBB")
+    vb.Box(0, BoxH, BoxW, BoxH + PanelT, fill=panelFill, stroke=0.12)
+    for u in (F / 2, BoxW - F / 2):
+        vb.Box(u - HeadM5 / 2, BoxH + PanelT, u + HeadM5 / 2, boxTop, fill="#BBBBBB", stroke=0.12)
+        vb.Box(u - 10, -FootH, u + 10, 0, fill=rubber, stroke=0.12)
+    for (w, name), m in z.items():
+        if w == "front":
+            vb.Box(-25, m, BoxW + 25, m + F, fill=ZoneFill["frame"], stroke=0.2,
+                   lines=["front %s member (2020), part shown" % name], size=1.2, bold=False)
+    for wall, u in MountBrackets():
+        if wall == "front":
+            vb.Box(u - BracketW / 2, F, u + BracketW / 2, 2 * F, fill=BracketFill, stroke=0.15)
+            vb.Hole(u, GantryScrewV, HeadM5, fill="#BBBBBB")
+            vb.Box(u - HeadM5 / 2, F + t, u + HeadM5 / 2, F + t + HeadM5H, fill="#999999", stroke=0.12)
+    vb.DimV(0, GantryScrewV, BoxW + 25, "%s" % Mm(GantryScrewV), off=1.6)
+    sh.Lines(vb.X(0), vb.Y(-FootH) + 4.0, [
+        "Lower front and back panels: the post screws at z %s pass the brackets; no bottom ring screw." % Mm(GantryScrewV),
+        "Upper panels unchanged. The gantry feet stand under the lower members, %d in all." % GantryFeet],
+        size=1.2, lead=1.7)
+
+    # ------------------------------------------------ C: the front bracket, 1:1
+    ox = PanelT + F + 7.0
+    vc = View(sh, 289.0, 30.0, 60.0, 48.0, 1.0)
+    vc.Title("C  Front mount bracket, 1:1", "section on a post")
+
+    def A(a):
+        return a + ox
+    vc.Box(A(0), 0, A(29), LoDeck, fill=PlateFill, stroke=0.1)
+    vc.Box(A(0), LoDeck, A(F), 46, fill=PostFill, stroke=0.2)
+    vc.Box(A(F), LoDeck, A(29), LoDeck + F, fill=ZoneFill["frame"], stroke=0.2)
+    vc.Box(A(-PanelT), 0, A(0), 46, fill=panelFill, stroke=0.2)
+    vc.Poly([(A(-PanelT - F + u), F - vv) for u, vv in RailProfile()], fill=ZoneFill["frame"], stroke=0.2)
+    vc.Poly([(A(-PanelT), F), (A(-PanelT - F), F), (A(-PanelT - F), F + t), (A(-PanelT - t), F + t),
+             (A(-PanelT - t), 2 * F), (A(-PanelT), 2 * F)], fill=BracketFill, stroke=0.2)
+    scrP, tipP = fits["mount bracket over the acrylic front panel"]
+    scrM, tipM = fits["mount bracket to a gantry member"]
+    vc.Box(A(SlotLip), GantryScrewV - 4, A(SlotLip + 3.5), GantryScrewV + 4, fill="#666666", stroke=0.15)
+    vc.Box(A(-PanelT - t), GantryScrewV - 2.5, A(tipP), GantryScrewV + 2.5, fill="#BBBBBB", stroke=0.15)
+    vc.Box(A(-PanelT - t - HeadM5H), GantryScrewV - HeadM5 / 2, A(-PanelT - t), GantryScrewV + HeadM5 / 2,
+           fill="#BBBBBB", stroke=0.2)
+    xm = -PanelT - BracketHoleIn
+    vc.Box(A(xm - 4), F - SlotLip - 3.5, A(xm + 4), F - SlotLip, fill="#666666", stroke=0.15)
+    vc.Box(A(xm - 2.5), F - tipM, A(xm + 2.5), F + t, fill="#BBBBBB", stroke=0.15)
+    vc.Box(A(xm - HeadM5 / 2), F + t, A(xm + HeadM5 / 2), F + t + HeadM5H, fill="#BBBBBB", stroke=0.2)
+    vc.Box(A(-PanelT - F), -FootH, A(-PanelT), 0, fill=rubber, stroke=0.12)
+    vc.Box(A(F / 2 - 10), -FootH, A(F / 2 + 10), 0, fill=rubber, stroke=0.12)
+    sh.Text(vc.X(A(-PanelT - F / 2)), vc.Y(F / 2) + 0.45, "gantry", size=1.1, anchor="middle", halo=True)
+    sh.Text(vc.X(A(F / 2)), vc.Y(40) + 0.45, "post", size=1.1, anchor="middle", halo=True)
+    sh.Text(vc.X(A(24.5)), vc.Y(LoDeck + F / 2) + 0.45, "ring", size=1.1, anchor="middle", halo=True)
+    vc.DimV(F, GantryScrewV, A(-PanelT - F), "%s" % Mm(BracketHoleIn), right=False, off=1.6)
+    vc.DimH(A(xm), A(-PanelT), 2 * F, Mm(BracketHoleIn), below=False, off=1.4)
+    scrB, tipB = fits["mount bracket over the aluminum back panel"]
+    sh.Lines(vc.X(0), vc.Y(-FootH) + 3.4, [
+        "%s through leg and panel into the post's roll-in nut, tip %s;" % (scrP, Mm(round(tipP, 2))),
+        "%s through the leg into the member's roll-in nut, tip %s." % (scrM, Mm(round(tipM, 2))),
+        "Back: %s through leg and aluminum panel, tip %s." % (scrB, Mm(round(tipB, 2))),
+        "Leg %s and holes %s from the corner: assumed, measure." % (Mm(BracketLegT), Mm(BracketHoleIn))],
+        size=1.2, lead=1.65)
+
+    # ------------------------------------------------ notes
+    open_ = GantryOpen()
+    notes = [
+        ("The gantry (owner, 2026-10-19)", [
+            "2020, 6 mm slot, so the kit's M5 roll-in T-nuts fit. The members run left to right in the",
+            "planes of the box's front and back faces; the lower ones stand on the same rubber feet as the",
+            "box (B08B87SRRG), their bottom faces level with the base plate's underside. Measured face to",
+            "face: front, lower to middle %s and middle to top %s; back, center to top %s; front and back top"
+            % (Mm(GantryMeasured["front lower to middle"]), Mm(GantryMeasured["front middle to top"]),
+               Mm(GantryMeasured["back center to top"])),
+            "at one height. The front middle member moves up to %s over the lower one, %s under the top one."
+            % (Mm(GantryMidGap), Mm(round(g["mid to top"], 1)))]),
+        ("Mount", [
+            "%d spare cast corner brackets from the kit (40 bought, %d in the frame, 1 is the saw stop), one at"
+            % (len(MountBrackets()), FrameBrackets),
+            "each lower post, front and back: the vertical leg on the panel, held by the post's bottom panel",
+            "screw at z %s in a %s x %s vertical slot, so the bracket seats on the member %s%s; the horizontal leg"
+            % (Mm(GantryScrewV), Mm(HoleM5), Mm(MountSlotL), "\u00b1", Mm((MountSlotL - HoleM5) / 2)),
+            "on the member's top face, one M5 into a roll-in T-nut. The front",
+            "and back lower panels lose their bottom ring screw: the member backs their bottom edge. Not",
+            "structural, and no bond: anodize insulates, so PE stays on the trunk to the gantry bar (ADR-0009)."]),
+        ("Taking it out", [
+            "Unplug the mains cord first. Free every cable that leaves the box: the door cable is wired to X1",
+            "inside, through the M20 gland, so free it at the door (S1, H1); the field and motor cables, the Mega",
+            "USB, and the PE trunk at the gantry bar. Take out the 4 member-side screws; the brackets stay on the",
+            "box. Lift %s, so the feet clear a lower member by %s; any lift from %s to %s works."
+            % (Mm(round(lift, 1)), Mm(LiftMargin), Mm(round(g["lift band"][0], 1)), Mm(round(g["lift band"][1], 1))),
+            "Slide it out forward: its top (z %s with the top panel's screw heads) passes %s under the front"
+            % (Mm(round(boxTop, 1)), Mm(round(g["forward"], 1))),
+            "middle member. Out the back it would pass %s under the back center member, behind the mains."
+            % Mm(round(g["back exit"], 1))]),
+        ("Checked by GantryChecks()", [
+            "Nothing proud of the front or back face (screw heads, grommet flanges, gland, PE stud, brackets)",
+            "meets a member; lifted, each face keeps %s (front) and %s (back) under its next member up."
+            % (Mm(round(g["front room"], 1)), Mm(round(g["back room"], 1))),
+            "Brackets on the posts, off the panel windows, clear of the gland and the PE stud. ScrewFits()",
+            "passes the three mount screws."]),
+        ("Gantry feet", [
+            "%d, on M5 screws into roll-in T-nuts in the lower members' bottom slots. The length lands the tip"
+            % GantryFeet,
+            "%s to %s past the slot face, so it needs the foot's stack under the head: %s."
+            % (Mm(SlotLip + 3 * ThreadPitch["M5"]), Mm(SlotDepth - 0.5),
+               "measure a foot" if g["foot screw"] is None else "M5 x %d" % g["foot screw"])]),
+    ]
+    if open_:
+        notes.append(("OPEN", open_))
+    y = 128.0
+    for head, lines in notes:
+        sh.Text(12.0, y, head, size=1.7, weight="bold")
+        y += 2.3
+        for s2 in lines:
+            for piece in textwrap.wrap(s2, 150):
+                sh.Text(12.0, y, piece, size=1.35)
+                y += 1.8
+        y += 1.0
+    TitleBlock(sh, 288, 186, 60, 21.5, [
+        "Box in the gantry",
+        "Sheet 5. Legal, landscape, 100 %.",
+        "Views 1:5, detail C 1:1. Drawn 2026-10-19.",
+        "Issue #158, part A. Design, not yet built.",
+        "Gantry heights: owner's tape, 2026-10-19.",
     ])
     return sh
 
@@ -3716,7 +4151,9 @@ def Link(src, part):
 def BomRows():
     """(section, source, plan, item, part or ASIN, description, qty needed, order unit, units to
     order, price per unit or None, used for, notes)."""
-    brackets = 8 + 8 + 4 + 8 + 4   # bottom ring, lower posts to mid ring, mid ring, upper posts, lid
+    mounts = len(MountBrackets())
+    brackets = FrameBrackets + mounts
+    gantry = GantryChecks()
     ringScrews = len(RingHoles())  # per plate
     legs = len(BracketSlots())
     panelScrews = sum(n * k for _, n, _, _, _, k in EnclosurePanels())
@@ -3769,12 +4206,14 @@ def BomRows():
         ("Frame", Amz, Buy, "Corner bracket kit, 2020, 40 sets", "B0FK9W8KGW",
          "TOCLUX 40 cast corner brackets 17 x 20 mm, 80 M5 sliding T-nuts, 80 M5 socket cap screws, hex key",
          brackets, "kit of 40", 1, 24.99,
-         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4",
+         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4, gantry mount %d"
+         % mounts,
          "Slide the kit's nuts in from the rail ends before each joint closes"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M5, 2020, 100", "B0DX7B5ZNN",
          "Yaocom 100 pcs 2020 series M5 half roll-in spring T-nuts",
-         panelScrews, "pack of 100", 1, 9.99, "panels %d" % panelScrews,
-         "Spring-leaf roll-in nut: drops in after assembly. Ball-spring nuts were $8.89 for 25 (B082F9B1TZ)"),
+         panelScrews + mounts + GantryFeet, "pack of 100", 1, 9.99,
+         "panels %d, gantry mount %d, gantry feet %d (sheet 5)" % (panelScrews, mounts, GantryFeet),
+         "Spring-leaf roll-in nut: drops in after assembly, so it also goes into the standing gantry. Ball-spring nuts were $8.89 for 25 (B082F9B1TZ)"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M4, 2020, 100", "B0FLP1BW2M",
          "Yaocom 100 pcs 2020 series M4 half roll-in spring T-nuts",
          2 * ringScrews + legs, "pack of 100", 1, 9.99,
@@ -3782,7 +4221,8 @@ def BomRows():
         ("Frame", Amz, LabFirst, "Socket head M5 x 8, 304, 100", "B0DF75LXL4",
          "Joamang 100 pcs M5-0.8 x 8 304 (A2-70) stainless socket head cap screws, fully threaded, head %s "
          "across, 5 tall" % Mm(HeadM5),
-         panelScrews, "pack of 100", 1, 9.88, "panels %d" % panelScrews,
+         panelScrews, "pack of 100", 1, 9.88,
+         "panels %d, mount brackets to the gantry %d" % (panelScrews - mounts, mounts),
          "Back panel: add a flat washer. Acrylic panels: snug by hand. " + read),
         ("Frame", Amz, LabFirst, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
          "100 pcs M5-0.8 x 16 304 stainless socket head cap screws",
@@ -3790,9 +4230,13 @@ def BomRows():
          "feet %d, rail bond holes %d" % (len(PostCentres), railBonds), "Also the gantry bond holes"),
         ("Frame", Amz, LabFirst, "M5 socket head assortment, nuts and washers", "B0FGV561HZ",
          "Fgruh 272 pcs: 72 M5 socket cap screws 8 to 35 mm (9 per size), 40 nuts, 80 flat, 80 spring washers",
-         "M5 x 35: %d" % len(PostCentres), "kit", 1, 9.99,
-         "lid ring to the upper posts, back panel washers and PE stud, ground bar screws (x 12) and nuts",
-         "Black 12.9 alloy steel"),
+         "M5 x 35: %d; x 12: %d; x 10: %d; gantry feet: %d" % (len(PostCentres), mounts // 2, mounts // 2, GantryFeet),
+         "kit", 1, 9.99,
+         "lid ring to the upper posts, back panel washers and PE stud, ground bar screws (x 12) and nuts; the "
+         "mount brackets' panel screws (x 12 front, x 10 back); the gantry feet (%s)"
+         % ("length open: measure a foot" if gantry["foot screw"] is None else "x %d" % gantry["foot screw"]),
+         "Black 12.9 alloy steel. The listing gives 8 to 35 mm, 9 per size: check it has 10 and 12, and buy a "
+         "pack of one length if the ground bar screws and the gantry feet land on it together"),
         ("Frame", Amz, LabFirst, "Threaded rod M5 x 50, 304, 5-pack", "B0BLGQLPDF",
          "MECCANIXITY fully threaded rod M5 x 50, 304 stainless", len(PostCentres), "pack of 5", 1, 6.59,
          "locating studs, lower posts to upper posts", "Blue threadlocker into the lower posts"),
@@ -3827,7 +4271,8 @@ def BomRows():
          feet, "pack of 10", math.ceil(feet / 10), 9.99,
          "under the lower posts %d; under the gantry %d (the owner's estimate, issue #158), so both stand "
          "at the same height" % (len(PostCentres), GantryFeet),
-         "They add 0.51 in below the 11 in envelope. The gantry feet's screws wait for its mount (issue #158)"),
+         "They add 0.51 in below the 11 in envelope. Gantry feet: M5 into roll-in T-nuts in the lower "
+         "members' bottom slots; the screw length waits on the foot (GantryFootStack, sheet 5)"),
         ("Frame", "on hand", NotBought, "Blue threadlocker", "-", "", 1, "-", 0, None,
          "studs into the lower posts", ""),
         # ---- plates and panels
@@ -4065,7 +4510,8 @@ def Main():
     sheets = [("wiring_schematic_legal.svg", BuildSchematic()),
               ("wiring_din_rails_legal.svg", BuildPanel()),
               ("packing_study_legal.svg", BuildPacking()),
-              ("frame_plates_legal.svg", BuildFrame())]
+              ("frame_plates_legal.svg", BuildFrame()),
+              ("gantry_mount_legal.svg", BuildGantry())]
     for name, sh in sheets:
         path = os.path.join(outDir, name)
         with open(path, "w", encoding="utf-8", newline="\n") as f:
@@ -4086,6 +4532,8 @@ def Main():
         print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
     for item in PanelOpen():
         print("OPEN, not cut yet:", item)
+    for item in GantryOpen():
+        print("OPEN, gantry mount:", item)
     path = os.path.join(outDir, "bom_frame.csv")
     with open(path, "w", encoding="utf-8", newline="") as f:
         f.write(BomCsv())
