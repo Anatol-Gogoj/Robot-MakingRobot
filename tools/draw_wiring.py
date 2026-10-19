@@ -3906,6 +3906,11 @@ def BomRows():
          "GEARit 18 AWG 4-conductor SJOOW portable cord, 300 V, stranded copper, 25 ft", 1, "25 ft", 1, 24.30,
          "the 110 V door cable: X1 1 to 3 and the plate PE, out through the M20 gland",
          "Caliper the jacket: the gland takes 6 to 12 mm. " + read),
+        ("Wire marking", Amz, Buy, "Flexible ID tape 12 mm, TZe-FX231 type, 4-pack", "B0FJ25359S",
+         "Greateam TZe-FX231 compatible flexible ID laminated tape, black on white, 12 mm x 8 m, 4 cassettes",
+         "both ends of every wire and cable", "4-pack", 1, 16.29,
+         "the owner's Brother PT-D220: wrap a cable, fold a flag on thin wire; names by function (X-PUL, F2-4)",
+         "The listing names the PT-D220. At about 40 mm a flag, one 8 m cassette makes some 200. " + read),
         # ---- PE bonding of the gantry
         ("Gantry PE", Amz, Buy, "Ground bar kit, %d terminals" % BarTerminals, "B007ZZGSQI",
          "SIEMENS EC2GB152 ground bar kit: %d terminal positions and a ground lug" % BarTerminals, 1, "each", 1,
@@ -3983,6 +3988,9 @@ def BomRows():
          "Cut with a hacksaw, first fit with a 3 mm kerf (NestDinRails). No steel rail needed: screwed down "
          "every %s mm, a pull of %d N between two screws bends the rail %.2f mm (I = %d mm4; steel %.2f)"
          % (Mm(RailSpan), round(RailPull), bendAl, round(railI), DinRailBend(ESteel)[0])),
+        ("Not in this BoM", "on hand", NotBought, "Brother PT-D220 label maker", "-",
+         "TZe tape up to 12 mm", "", "-", 0, None, "wire, terminal strip and device labels",
+         "Standard TZe tape on the terminal kits' marker strips and on the devices"),
         ("Not in this BoM", "on hand", NotBought, "12 AWG copper-clad aluminum hookup wire", "-",
          "VIABRICO 600 ft, 6 colours, copper clad aluminium, low voltage (ordered 2026-09-14)", "", "-", 0, None,
          "nothing in the box",
