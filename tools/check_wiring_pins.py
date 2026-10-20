@@ -2,8 +2,8 @@
 
 Compares tools/draw_wiring.py's DriverPins, EndstopPins and OtherPins with
 pins_RAMPS_14_RMR.h (which includes pins_RAMPS.h) and Configuration_adv.h, then
-confirms each pin label appears in both generated SVG sheets. Exits non-zero on
-any mismatch.
+confirms each pin label appears on sheet 1 and each pin is a wired terminal of the
+Mega on sheet 2B. Exits non-zero on any mismatch.
 
 Usage: python tools/check_wiring_pins.py
 """
@@ -91,15 +91,31 @@ def Main():
               % ("ok" if ok else "FAIL", what, label, BoardToDigital(label), name, fw))
 
     svgDir = os.path.join(Root, "docs", "wiring")
-    for name in ("wiring_schematic_legal.svg", "wiring_din_rails_legal.svg"):
-        with open(os.path.join(svgDir, name), encoding="utf-8") as f:
-            svg = f.read()
-        labels = set(re.findall(r">([^<>]+)</text>", svg))
-        words = set(w for s in labels for w in s.split())
-        missing = [label for _, label, _, _ in rows if label not in words]
-        bad += len(missing)
-        print("%s: %s" % (name, "every pin label present" if not missing
-                          else "MISSING " + ", ".join(missing)))
+    with open(os.path.join(svgDir, "wiring_schematic_legal.svg"), encoding="utf-8") as f:
+        svg = f.read()
+    labels = set(re.findall(r">([^<>]+)</text>", svg))
+    words = set(w for s in labels for w in s.split())
+    missing = [label for _, label, _, _ in rows if label not in words]
+    bad += len(missing)
+    print("wiring_schematic_legal.svg: %s" % ("every pin label present" if not missing
+                                              else "MISSING " + ", ".join(missing)))
+    # Sheet 2B: a word search would pass on terminal numbers and X4's labels, so ask the generator
+    # for the Mega's own terminals instead: each pin must be one (a driver's three pins share the
+    # terminal of its signal cable), and each terminal must carry a wire.
+    d = draw_wiring.DeckSheet("upper")[1]
+    wired = set(w[k] for w in d.Wires for k in ("a", "b"))
+    have = {}
+    for key in d.Ends:
+        if key.startswith("MEGA.g"):
+            for pin in draw_wiring.DriverPins[key[len("MEGA.g"):]]:
+                have[pin] = key
+        elif key.startswith("MEGA."):
+            have[key[len("MEGA."):]] = key
+    missing = [label for _, label, _, _ in rows if label not in have]
+    unwired = sorted(set(k for k in have.values() if k not in wired))
+    bad += len(missing) + len(unwired)
+    print("sheet 2B, the Mega's terminals: %s" % ("every pin present and wired" if not missing and not unwired
+                                                 else "MISSING %s, UNWIRED %s" % (missing, unwired)))
     print("PASS" if not bad else "FAIL: %d problem(s)" % bad)
     return 1 if bad else 0
 

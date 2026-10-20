@@ -1,7 +1,8 @@
 """Draw the RMR control panel wiring diagrams as legal-size (14 x 8.5 in) SVG sheets.
 
 Sheet 1: wiring schematic (every circuit on one page).
-Sheet 2: the same circuits arranged on DIN rails, wired through ducts.
+Sheets 2A and 2B: the same circuits on the lower and upper decks of the box, every part where sheet 3
+puts it and every wire routed through the ducts and channels from terminal to terminal.
 Sheet 3: packing study, two decks in a 2020 frame.
 Sheet 4: the frame and its two deck plates; the plates, and the side and top panels on their nest
 sheets, are also written as DXF for laser cutting.
@@ -306,7 +307,7 @@ def TitleBlock(sh, x, y, w, h, lines):
 def BuildSchematic():
     sh = Sheet("RMR control panel wiring schematic")
     DrawFrame(sh, "RMR control panel: wiring schematic",
-              "The layered E-stop panel as designed in the 2026-10-06 panel reference. "
+              "The layered E-stop panel of the 2026-10-06 panel reference, with the supplies of 2026-10-15. "
               "Planned wiring, not the machine as it is wired today.")
 
     # ------------------------------------------------ band 1: mains, PSU, K2 poles
@@ -391,23 +392,22 @@ def BuildSchematic():
     sh.Text(80, 46.2, "V-  12 AWG", size=1.6)
 
     # ------------------------------------------------ FB1 and its loads
-    fb1Drops = [(118, "F1-1", "3 A"), (142, "F1-2", "3 A"), (166, "F1-3", "3 A"),
+    fb1Drops = [(118, "F1-1", ""), (142, "F1-2", "3 A"), (166, "F1-3", ""),
                 (190, "F1-4", "3 A"), (210, "F1-5", "3 A"), (230, "F1-6", "")]
     sh.Text(104, 23.3, "FB1", size=2.4, weight="bold", fill=TolBlue)
     sh.Text(104, 25.6, "12-way", size=1.6)
     for x, name, amp in fb1Drops:
         sh.Dot(x, fb1Y, "va")
-        if name == "F1-6":
+        if not amp:
             sh.Wire([(x, fb1Y), (x, 21.5)], "va")
-            sh.Text(x, 24.2, "F1-6 spare", size=1.7, anchor="middle")
+            sh.Text(x, 24.2, name + " spare", size=1.7, anchor="middle")
             continue
         FuseV(sh, x, fb1Y, 26.0, "va")
         sh.Text(x + 1.6, 22.3, name, size=1.7)
         sh.Text(x + 1.6, 24.4, amp, size=1.7)
-    # bucks
-    bucks = [(118, "Mega buck", "5 V out", "5 V to Mega (note 4)"),
-             (142, "Pi 5 buck", "5.1 V 5 A", "5.1 V to Pi 5"),
-             (166, "Screen", "supply", "to touchscreen")]
+    # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel; the Mega runs on the Pi's USB
+    # and the screen on the Pi, so F1-1 and F1-3 (the Mega buck and the screen supply) are spare
+    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)")]
     for x, l1, l2, outLabel in bucks:
         sh.Wire([(x, 26.0), (x, 28.0)], "va")
         sh.Rect(x - 8, 28.0, 16, 8.5, "bx")
@@ -432,7 +432,7 @@ def BuildSchematic():
     sh.Rect(104.2, sY - 2.0, 4.6, 4.0, "bx")
     sh.Text(106.5, sY + 0.75, "S", size=2.2, anchor="middle", weight="bold")
     sh.Text(170, sY - 1.0, "Star S at PSU V-: every 0 V return lands here on its own wire", size=1.7)
-    for x in (113, 137, 161):
+    for x in (137,):
         sh.Dot(x, sY)
     # servo PSU IN- tag stub and 0V-P drop and PE bond
     sh.Wire([(222, sY), (222, sY + 3.0)], "zp")
@@ -778,9 +778,9 @@ def BuildSchematic():
     # Mega power input
     x = 134
     sh.Text(x, megaY1 - 1.2, "PWR", size=1.7, anchor="middle", weight="bold")
-    sh.Wire([(x, megaY1), (x, 168.0)], "lv")
-    Tag(sh, x, 169.6, "Mega buck 5 V", "lv", side="right", size=1.5)
-    sh.Text(x, 174.4, "(note 4)", size=1.4)
+    sh.Text(x - 1.0, 164.8, "not used:", size=1.4)
+    sh.Text(x - 1.0, 166.7, "USB from", size=1.4)
+    sh.Text(x - 1.0, 168.6, "the Pi", size=1.4)
     # USB to Pi
     x = 144
     sh.Text(x, megaY1 - 1.2, "USB", size=1.7, anchor="middle", weight="bold")
@@ -795,7 +795,7 @@ def BuildSchematic():
     sh.Text(165, pY0 + 10.6, "rmr_bridge.py", size=1.4, anchor="middle")
     sh.Text(165, pY0 + 13.0, "GPIO = BCM", size=1.4, anchor="middle")
     sh.Wire([(156, pY0), (156, 163.0)], "lv")
-    Tag(sh, 154.0, 162.6, "5.1 V Pi buck", "lv", side="right", size=1.4)
+    Tag(sh, 154.0, 162.6, "5 V PSU", "lv", side="right", size=1.4)
     # HDMI to screen
     sh.Wire([(174, pY0), (174, 163.4), (236, 163.4)], "sg")
     sh.Text(176, 162.6, "HDMI + USB touch", size=1.4)
@@ -804,7 +804,7 @@ def BuildSchematic():
     sh.Text(243, 166.6, "touch", size=1.5, anchor="middle", weight="bold")
     sh.Text(243, 168.8, "screen", size=1.5, anchor="middle", weight="bold")
     sh.Wire([(243, 170.6), (243, 172.6)], "lv")
-    Tag(sh, 243, 174.0, "screen supply", "lv", side="left", size=1.3)
+    Tag(sh, 243, 174.0, "from the Pi", "lv", side="left", size=1.3)
     # tower SSRs
     gp = [(170.0, "5", "red"), (174.0, "6", "amber"), (178.0, "13", "green"), (182.0, "26", "buzzer")]
     sh.Rect(190, 168.0, 14, 16.0, "bx")
@@ -867,10 +867,10 @@ def BuildSchematic():
                "UV, valve). FB1 keeps Mega, Pi, screen and tower alive to report it."]),
         ("3", ["Read off the parts before wiring: tower common polarity, lid feed voltage,",
                "valve coil, servo 6 V rating, and which side powers ODrive J11 logic."]),
-        ("4", ["Mega buck: the Mega datasheet (A000067, 2.1) rates VIN at 7 to 12 V and gives no",
-               "rating for feeding the 5 V pin. Pick the input, then set the buck output to suit."]),
-        ("5", ["Firmware gap (stage 0): kill() and motor-power loss leave pins 4 and 42 as they",
-               "were. With the UV behind K2, Reset relights the lamp until that is fixed."]),
+        ("4", ["5 V PSU (2026-10-15): it feeds the Pi 5 at the operator panel, which wants 5.1 V at",
+               "5 A; check its rating and the drop along the cable. The Mega runs on the Pi's USB."]),
+        ("5", ["Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to",
+               "their OFF level. The bootloader's seconds before setup() are not covered."]),
     ]
     ny = 48.0
     sh.Text(lx, ny, "Notes", size=2.4, weight="bold")
@@ -894,541 +894,1011 @@ def BuildSchematic():
         sh.Text(258, 168.0 + i * 2.3, s2, size=1.6)
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: wiring schematic",
-        "Sheet 1 of 2. Legal 14 x 8.5 in, landscape. Print at 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14.",
+        "Sheet 1. Legal 14 x 8.5 in, landscape. Print at 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-19.",
         "Status: design, not yet wired or tested on the machine.",
-        "Sheet 2 shows the same circuits on DIN rails.",
+        "Sheets 2A and 2B show the same circuits on the two decks.",
     ])
     return sh
 
 
-# ---------------------------------------------------------------- sheet 2: DIN rails
+# ---------------------------------------------------------------- sheet 2: wiring on the two decks
 
-class Panel:
-    """Devices on horizontal DIN rails. A wire leaves its terminal vertically into the duct
-    beside the rail, runs horizontally on a track of that duct, and changes duct only in a
-    side duct (lane) or through a gap between two devices on a rail."""
+# Sheet 2 draws sheet 1's circuits on the two decks of the box, one deck per page (2A lower, 2B upper),
+# seen from above with the front at the left, so the left wall is at the top. Every rail, part, duct,
+# cable slot, grommet and PE stud comes from the enclosure constants further down (DeckSolids(),
+# CableSlots, CableEntries, PeStud and the rest), so the wiring follows the layout. Wires run in lanes:
+# the ducts, and the free channels between rails. A wire leaves its terminal at right angles into the
+# lane beside it, takes a track of that lane, and turns only where two lanes cross or meet at right
+# angles. A wire that changes deck ends in its cable slot on both pages; SlotWires() lists each one
+# once, and both pages draw and tabulate it from there. A lane is drawn as wide as its wires need:
+# DeckSheet() widens each crowded duct or channel on paper and narrows the rest, so the parts keep
+# their order and their places relative to each other but not their exact distances; sheet 3 gives
+# those.
+# The parts follow the owner's decisions of 2026-10-15: the Pi sits at the operator panel on the 5 V
+# PSU, the Mega runs on the Pi's USB, the screen has no supply of its own, the tower runs on 24 V
+# through SSRs in the box, and the ODrive sits in the spin coater's base. Sheet 1 carries the same.
 
-    Pitch = 0.56
-    LanePitch = 0.5
+WirePitch = 0.5                    # paper mm between two tracks of a lane
+WireMargin = 0.45                  # paper mm from a lane's edge to its first track
+WireGap = 0.8                      # paper mm between two runs on one track
+TurnCost = 25.0                    # paper mm a turn costs when a path is chosen
+DeckPaper = (20.0, 30.0, 228.0, 162.0)   # the plan's paper box: x, y, width, height
 
-    def __init__(self, sh):
-        self.Sh = sh
-        self.Ducts = {}     # name -> (y0, y1)
-        self.Rows = {}      # name -> (bodyTop, bodyBot, ductAbove, ductBelow)
-        self.Terms = {}     # key -> (x, y, duct, side)
-        self.Reqs = []
-        self.SideX = {}     # 'L' / 'R' -> (x0, x1)
-        self.Tracks = {}
-        self.Lanes = {"L": [], "R": []}
 
-    def AddDuct(self, name, y0, y1):
-        self.Ducts[name] = (y0, y1)
-        n = int((y1 - y0 - 1.2) / self.Pitch) + 1
-        self.Tracks[name] = [[] for _ in range(n)]
+class DeckMap:
+    """Deck (x, y) in mm to paper mm, seen from above with the front at the left: x runs right and
+    y runs down, so the left wall is at the top. Each axis is piecewise linear; a band (lo, hi, k)
+    is drawn k times denser than the rest of its axis. With no bands the map is a uniform scale."""
 
-    def TrackY(self, duct, i):
-        return self.Ducts[duct][0] + 0.6 + i * self.Pitch
-
-    def LaneX(self, side, i):
-        x0, x1 = self.SideX[side]
-        return (x1 - 0.6 - i * self.LanePitch) if side == "L" else (x0 + 0.6 + i * self.LanePitch)
-
-    def Device(self, row, key, x0, x1, title, sub=(), top=(), bot=(), titleSize=2.0):
-        sh = self.Sh
-        yT, yB, dA, dB = self.Rows[row]
-        sh.Rect(x0, yT, x1 - x0, yB - yT, "bx")
-        ty = (yT + yB) / 2 - len(sub) * 1.0 + 0.6
-        sh.Text((x0 + x1) / 2, ty, title, size=titleSize, anchor="middle", weight="bold")
-        for i, s2 in enumerate(sub):
-            sh.Text((x0 + x1) / 2, ty + 2.2 + i * 1.8, s2, size=1.35, anchor="middle")
-        for tkey, x, lab in top:
-            sh.Rect(x - 0.45, yT, 0.9, 0.9, "symf")
-            if lab:
-                sh.Text(x, yT + 2.4, lab, size=1.1, anchor="middle")
-            self.Terms["%s.%s" % (key, tkey)] = (x, yT, dA, "up")
-        for tkey, x, lab in bot:
-            sh.Rect(x - 0.45, yB - 0.9, 0.9, 0.9, "symf")
-            if lab:
-                sh.Text(x, yB - 1.4, lab, size=1.1, anchor="middle")
-            self.Terms["%s.%s" % (key, tkey)] = (x, yB, dB, "down")
-
-    def TermBlock(self, row, key, x0, labels, title, pitch=3.4, bridges=(), note=None):
-        """Feed-through terminal block. Terminal n has a top clamp KEY.nt and a bottom
-        clamp KEY.nb; bridges join terminals (i, j) with a comb across the slices."""
-        sh = self.Sh
-        yT, yB, dA, dB = self.Rows[row]
-        n = len(labels)
-        x1 = x0 + pitch * n
-        sh.Rect(x0, yT, x1 - x0, yB - yT, "bx")
-        for i, lab in enumerate(labels):
-            xc = x0 + pitch * (i + 0.5)
-            if i:
-                sh.Wire([(x0 + pitch * i, yT), (x0 + pitch * i, yB)], "sym")
-            if len(lab) > 2:
-                sh.Text(xc + 0.45, (yT + yB) / 2 + 1.2, lab, size=1.2, anchor="middle", weight="bold",
-                        rot=-90)
-            else:
-                sh.Text(xc, (yT + yB) / 2 + 1.6, lab, size=1.25, anchor="middle", weight="bold")
-            self.Terms["%s.%dt" % (key, i + 1)] = (xc, yT, dA, "up")
-            self.Terms["%s.%db" % (key, i + 1)] = (xc, yB, dB, "down")
-            sh.Text(xc, yT + 1.9, str(i + 1), size=0.95, anchor="middle", fill="#555")
-        for i, j in bridges:
-            xa = x0 + pitch * (i + 0.5)
-            xb = x0 + pitch * (j + 0.5)
-            sh.Wire([(xa, yT + 3.2), (xb, yT + 3.2)], "sym")
-            for k in range(i, j + 1):
-                sh.Dot(x0 + pitch * (k + 0.5), yT + 3.2, r=0.35)
-        sh.Text((x0 + x1) / 2, yT - 0.7, title, size=1.45, anchor="middle", weight="bold", halo=True)
-        if note:
-            sh.Text((x0 + x1) / 2, yB + 2.0, note, size=1.15, anchor="middle", halo=True)
-        return x1
-
-    def W(self, cls, a, b, via=None, dash=False):
-        self.Reqs.append(dict(kind="wire", cls=cls, a=a, b=b, via=via, dash=dash))
-
-    def Exit(self, cls, keys, side, lines, up=False):
-        self.Reqs.append(dict(kind="exit", cls=cls, keys=keys, side=side, lines=lines, up=up))
+    def __init__(self, bandsX=(), bandsY=()):
+        x0, y0, w, h = DeckPaper
+        self.Ax = self.Axis(BoxD, w, bandsX, x0)
+        self.Ay = self.Axis(BoxW, h, bandsY, y0)
 
     @staticmethod
-    def _Free(ivs, lo, hi, gap=0.7):
-        return all(hi + gap < a or lo - gap > b for a, b in ivs)
+    def Axis(span, width, bands, off):
+        cuts = sorted(set([0.0, span] + [min(max(v, 0.0), span) for a, b, _ in bands for v in (a, b)]))
+        dens = []
+        for a, b in zip(cuts, cuts[1:]):
+            ks = [k for lo, hi, k in bands if lo <= a + 1e-9 and b <= hi + 1e-9]
+            dens.append((a, b, max(ks) if ks else 1.0))
+        s = width / sum((b - a) * k for a, b, k in dens)
+        pts = [(0.0, off)]
+        for a, b, k in dens:
+            pts.append((b, pts[-1][1] + (b - a) * k * s))
+        return pts
 
-    def _TakeTrack(self, duct, lo, hi, pref):
-        tr = self.Tracks[duct]
-        n = len(tr)
-        if pref == "top":
+    @staticmethod
+    def At(pts, v):
+        for (a, pa), (b, pb) in zip(pts, pts[1:]):
+            if v <= b + 1e-9 or b == pts[-1][0]:
+                return pa + (v - a) * (pb - pa) / (b - a)
+        return pts[-1][1]
+
+    def X(self, x):
+        return self.At(self.Ax, x)
+
+    def Y(self, y):
+        return self.At(self.Ay, y)
+
+    def R(self, box):
+        x0, y0, x1, y1 = box
+        return (self.X(x0), self.Y(y0), self.X(x1), self.Y(y1))
+
+
+class Lane:
+    """A routing lane on paper: a duct, or a free channel between parts. Its tracks run along its
+    axis, 'x' (left to right on paper) or 'y' (top to bottom)."""
+
+    def __init__(self, name, rect, axis, real):
+        self.Name, self.Rect, self.Axis, self.Real = name, rect, axis, real
+        x0, y0, x1, y1 = rect
+        self.Across = (y0, y1) if axis == "x" else (x0, x1)
+        self.Along = (x0, x1) if axis == "x" else (y0, y1)
+        n = int((self.Across[1] - self.Across[0] - 2 * WireMargin) / WirePitch + 1e-9) + 1
+        self.Cap = max(n, 1)
+        self.At = [self.Across[0] + WireMargin + i * WirePitch for i in range(self.Cap)]
+        self.Used = [[] for _ in range(self.Cap)]
+
+    def Track(self, i):
+        while i >= len(self.At):
+            self.At.append(self.At[-1] + WirePitch)
+            self.Used.append([])
+        return self.At[i]
+
+
+class DeckWiring:
+    """One deck of sheet 2: its lanes, its parts and their terminals, its wires, and the router."""
+
+    def __init__(self, sh, deck, dmap):
+        self.Sh, self.Deck, self.M = sh, deck, dmap
+        self.Lanes, self.Ends, self.Parts, self.Wires, self.Exits = {}, {}, {}, [], {}
+        self.Dots, self.Drawn = [], []
+        self.Mains = ()            # lanes inside the 110 VAC compartment
+
+    # ---- geometry
+    def AddLane(self, name, box, axis):
+        self.Lanes[name] = Lane(name, self.M.R(box), axis, box)
+
+    def Part(self, key, box, lines=(), size=1.5, rot=0, dashed=False, fill="#fff", at=None):
+        """A part's footprint, with its name lines centred in it (or at=(fx, fy), fractions of its box)."""
+        sh = self.Sh
+        r = self.M.R(box)
+        self.Parts[key] = r
+        dash = ' stroke-dasharray="1.2 .7"' if dashed else ""
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width=".25"%s/>'
+               % (Fmt(r[0]), Fmt(r[1]), Fmt(r[2] - r[0]), Fmt(r[3] - r[1]), fill, dash))
+        if lines:
+            fx, fy = at or (0.5, 0.5)
+            cx, cy = r[0] + (r[2] - r[0]) * fx, r[1] + (r[3] - r[1]) * fy
+            lead = size * 1.2
+            for i, s2 in enumerate(lines):
+                off = (i - (len(lines) - 1) / 2) * lead
+                sz = size if i == 0 else size * 0.78
+                if rot:
+                    sh.Text(cx + off + sz * 0.35, cy, s2, size=sz, anchor="middle", rot=rot,
+                            weight="bold" if i == 0 else "normal")
+                else:
+                    sh.Text(cx, cy + off + sz * 0.35, s2, size=sz, anchor="middle",
+                            weight="bold" if i == 0 else "normal")
+        return r
+
+    def InLane(self, name, lane, x=None, y=None):
+        """An end inside a lane: a cable slot, the shield clamp, or a grommet at the lane's end."""
+        L = self.Lanes[lane]
+        self.Ends[name] = ("i", self.M.X(x) if L.Axis == "x" else self.M.Y(y), lane)
+
+    def Face(self, key, face, lane, names, labels=None, pad=0.1, size=1.0):
+        """Terminals spread along one face ('x0', 'x1', 'y0' or 'y1' in deck terms) of part key,
+        wired into lane; labels default to the names, and an empty label draws the terminal alone."""
+        x0, y0, x1, y1 = self.Parts[key]
+        lo, hi = (x0, x1) if face[0] == "y" else (y0, y1)
+        n = len(names)
+        labels = names if labels is None else labels
+        for i, (nm, lab) in enumerate(zip(names, labels)):
+            u = lo + (hi - lo) * (pad + (1 - 2 * pad) * (i + 0.5) / n)
+            p = {"y0": (u, y0), "y1": (u, y1), "x0": (x0, u), "x1": (x1, u)}[face]
+            self.Ends["%s.%s" % (key, nm)] = ("t", p[0], p[1], lane)
+            self.TermMark(p, face, lab, size)
+
+    def TermMark(self, p, face, lab, size=1.0):
+        sh, s = self.Sh, 0.6
+        x, y = p
+        bx = {"y0": (x - s / 2, y), "y1": (x - s / 2, y - s), "x0": (x, y - s / 2), "x1": (x - s, y - s / 2)}[face]
+        sh.Rect(bx[0], bx[1], s, s, "symf")
+        if not lab:
+            return
+        if face == "y0":
+            sh.Text(x, y + s + size * 0.9, lab, size=size, anchor="middle")
+        elif face == "y1":
+            sh.Text(x, y - s - size * 0.25, lab, size=size, anchor="middle")
+        elif face == "x0":
+            sh.Text(x + s + 0.3, y + size * 0.35, lab, size=size)
+        else:
+            sh.Text(x - s - 0.3, y + size * 0.35, lab, size=size, anchor="end")
+
+    def Block(self, key, box, labels, laneA, laneB, bridges=(), title=None, size=1.0, note=None):
+        """Feed-through terminals over box, slices along x: slice n has clamp KEY.na on the y0 face
+        (into laneA) and KEY.nb on the y1 face (into laneB); bridges join slices (i, j)."""
+        sh = self.Sh
+        x0, y0, x1, y1 = self.Part(key, box)
+        n = len(labels)
+        w = (x1 - x0) / n
+        for i, lab in enumerate(labels):
+            xc = x0 + w * (i + 0.5)
+            if i:
+                sh.Wire([(x0 + w * i, y0), (x0 + w * i, y1)], "sym")
+            self.Ends["%s.%da" % (key, i + 1)] = ("t", xc, y0, laneA)
+            self.Ends["%s.%db" % (key, i + 1)] = ("t", xc, y1, laneB)
+            self.TermMark((xc, y0), "y0", "", size)
+            self.TermMark((xc, y1), "y1", "", size)
+            ym = (y0 + y1) / 2
+            if len(lab) > 2:
+                sh.Text(xc + size * 0.36, ym, lab, size=size, anchor="middle", weight="bold", rot=-90)
+            else:
+                sh.Text(xc, ym + size * 0.35, lab, size=size, anchor="middle", weight="bold")
+            sh.Text(xc, y0 + 2.1, str(i + 1), size=0.8, anchor="middle", fill="#555")
+        for i, j in bridges:
+            xa, xb = x0 + w * (i + 0.5), x0 + w * (j + 0.5)
+            yb = y1 - 2.2
+            sh.Wire([(xa, yb), (xb, yb)], "sym")
+            for k in range(i, j + 1):
+                sh.Dot(x0 + w * (k + 0.5), yb, r=0.28)
+        if title:
+            sh.Text((x0 + x1) / 2, (y0 + y1) / 2 + (y1 - y0) * 0.33, title, size=1.25, anchor="middle",
+                    weight="bold", halo=True)
+        if note:
+            sh.Text((x0 + x1) / 2, (y0 + y1) / 2 - (y1 - y0) * 0.27, note, size=0.95, anchor="middle", halo=True)
+
+    # ---- wires
+    def W(self, cls, a, b, via=None, weight=1, dash=False):
+        self.Wires.append(dict(cls=cls, a=a, b=b, via=via, weight=weight, dash=dash))
+
+    def Exit(self, name, lane, wall, u0, u1):
+        """A grommet, gland or inlet in a wall, reached from lane: its ends spread over u0 to u1 (deck
+        mm along the wall). wall is 'left', 'right', 'front' or 'back'."""
+        self.Exits[name] = dict(lane=lane, wall=wall, u=(u0, u1), wires=[])
+
+    def Out(self, cls, a, exitName, weight=1, dash=False):
+        w = dict(cls=cls, a=a, b=None, via=None, weight=weight, dash=dash)
+        self.Exits[exitName]["wires"].append(w)
+        self.Wires.append(w)
+
+    def Point(self, e):
+        if e[0] == "t":
+            return e[1], e[2]
+        L = self.Lanes[e[2]]
+        c = (L.Across[0] + L.Across[1]) / 2
+        return (e[1], c) if L.Axis == "x" else (c, e[1])
+
+    def PlaceExits(self):
+        """Spread each exit's ends over its opening, in the order their wires arrive."""
+        M = self.M
+        for name, ex in self.Exits.items():
+            wires, wall = ex["wires"], ex["wall"]
+            alongX = wall in ("left", "right")
+            wires.sort(key=lambda w: self.Point(self.Ends[w["a"]])[0 if alongX else 1])
+            u0, u1 = ex["u"]
+            p0, p1 = (M.X(u0), M.X(u1)) if alongX else (M.Y(u0), M.Y(u1))
+            n = len(wires)
+            # the stub from the wall must not run on the line of a terminal's stub or a slot end in the
+            # same lane, or the two would read as joined: shift the whole spread off them
+            near = [self.Point(e)[0 if alongX else 1] for e in self.Ends.values() if e[-1] == ex["lane"]]
+            step = (p1 - p0) / n
+            shift = min((k * WirePitch / 2 for k in range(-int(step / WirePitch), int(step / WirePitch) + 1)),
+                        key=lambda s: (any(abs(p0 + step * (i + 0.5) + s - q) < WirePitch for i in range(n)
+                                           for q in near), abs(s)))
+            ex["pts"] = []
+            for i, w in enumerate(wires):
+                p = p0 + step * (i + 0.5) + shift
+                pt = {"left": (p, M.Y(0.0)), "right": (p, M.Y(BoxW)), "front": (M.X(0.0), p),
+                      "back": (M.X(BoxD), p)}[wall]
+                key = "%s#%d" % (name, i)
+                self.Ends[key] = ("t", pt[0], pt[1], ex["lane"])
+                w["b"] = key
+                ex["pts"].append((pt, w["cls"]))
+
+    # ---- routing
+    def Joint(self, a, b, tol=0.3):
+        """Where lanes a and b cross or meet, or None: only lanes at right angles join."""
+        A, B = self.Lanes[a], self.Lanes[b]
+        if A.Axis == B.Axis:
+            return None
+        ax0, ay0, ax1, ay1 = A.Rect
+        bx0, by0, bx1, by1 = B.Rect
+        x0, x1 = max(ax0, bx0) - tol, min(ax1, bx1) + tol
+        y0, y1 = max(ay0, by0) - tol, min(ay1, by1) + tol
+        if x0 > x1 or y0 > y1:
+            return None
+        return ((x0 + x1) / 2, (y0 + y1) / 2)
+
+    def Path(self, la, pa, lb, pb):
+        """The lanes from la to lb with the least length plus TurnCost per turn."""
+        best = [None]
+
+        def Go(path, cost, pt):
+            cur = path[-1]
+            if cur == lb:
+                total = cost + abs(pt[0] - pb[0]) + abs(pt[1] - pb[1])
+                if best[0] is None or total < best[0][0]:
+                    best[0] = (total, list(path))
+                return
+            if len(path) > 8:
+                return
+            for n in self.Lanes:
+                if n in path:
+                    continue
+                j = self.Joint(cur, n)
+                if j is None:
+                    continue
+                c = cost + abs(pt[0] - j[0]) + abs(pt[1] - j[1]) + TurnCost
+                if best[0] is not None and c >= best[0][0]:
+                    continue
+                path.append(n)
+                Go(path, c, j)
+                path.pop()
+
+        Go([la], 0.0, pa)
+        if best[0] is None:
+            raise ValueError("%s deck: no path from lane %s to lane %s" % (self.Deck, la, lb))
+        return best[0][1]
+
+    @staticmethod
+    def Free(ivs, lo, hi):
+        return all(hi + WireGap < a or lo - WireGap > b for a, b in ivs)
+
+    def Take(self, L, lo, hi, pref, weight):
+        """The first free track (weight tracks side by side) in the preferred order; past the lane's
+        capacity it adds tracks beyond its far edge, which DeckSheet() then widens the lane to hold."""
+        n = L.Cap
+        if pref == "lo":
             order = list(range(n))
-        elif pref == "bottom":
+        elif pref == "hi":
             order = list(range(n - 1, -1, -1))
         else:
-            order = sorted(range(n), key=lambda i: abs(i - n // 2))
-        for i in order:
-            if self._Free(tr[i], lo, hi):
-                tr[i].append((lo, hi))
-                return i
-        raise RuntimeError("duct %s is full for the span %.1f to %.1f" % (duct, lo, hi))
-
-    def _TakeLane(self, side, lo, hi):
-        lanes = self.Lanes[side]
-        for i, ivs in enumerate(lanes):
-            if self._Free(ivs, lo, hi, gap=0.5):
-                ivs.append((lo, hi))
-                return i
-        lanes.append([(lo, hi)])
-        return len(lanes) - 1
-
-    @staticmethod
-    def _Pref(side):
-        # a terminal on the rail above the duct ('down' clamp) prefers the duct's top tracks
-        return "top" if side == "down" else "bottom"
+            order = sorted(range(n), key=lambda i: abs(i - (n - 1) / 2))
+        for i in order + list(range(n, n + 400)):
+            ks = list(range(i, i + weight)) if (pref != "hi" or i >= n) else list(range(i - weight + 1, i + 1))
+            if min(ks) < 0:
+                continue
+            for k in ks:
+                L.Track(k)
+            if all(self.Free(L.Used[k], lo, hi) for k in ks):
+                for k in ks:
+                    L.Used[k].append((lo, hi))
+                return sum(L.At[k] for k in ks) / len(ks)
+        raise RuntimeError("lane %s: no track" % L.Name)
 
     def Route(self):
-        sh = self.Sh
-        for r in self.Reqs:
-            if r["kind"] != "wire":
-                continue
-            r["A"] = self.Terms[r["a"]]
-            r["B"] = self.Terms[r["b"]]
-            if r["via"] in ("L", "R"):
-                da, db = r["A"][2], r["B"][2]
-                lo = min(self.Ducts[da][0], self.Ducts[db][0])
-                hi = max(self.Ducts[da][1], self.Ducts[db][1])
-                r["lane"] = self._TakeLane(r["via"], lo, hi)
-        segs = []
-        for r in self.Reqs:
-            if r["kind"] == "wire":
-                xa, ya, da, sa = r["A"]
-                xb, yb, db, sb = r["B"]
-                if r["via"] is None:
-                    if da != db:
-                        raise ValueError("%s to %s needs a via" % (r["a"], r["b"]))
-                    pref = self._Pref(sa) if sa == sb else "mid"
-                    segs.append((abs(xb - xa), r, "t", da, min(xa, xb), max(xa, xb), pref))
-                else:
-                    vx = self.LaneX(r["via"], r["lane"]) if r["via"] in ("L", "R") else r["via"]
-                    r["vx"] = vx
-                    segs.append((abs(vx - xa), r, "ta", da, min(xa, vx), max(xa, vx), self._Pref(sa)))
-                    segs.append((abs(vx - xb), r, "tb", db, min(xb, vx), max(xb, vx), self._Pref(sb)))
-            elif r["side"] in ("L", "R"):
-                xs = [self.Terms[k][0] for k in r["keys"]]
-                x, y, duct, side = self.Terms[r["keys"][0]]
-                edge = 4.6 if r["side"] == "L" else PageW - 4.6
-                r["edge"], r["duct"] = edge, duct
-                lo, hi = min(xs + [edge]), max(xs + [edge])
-                segs.append((-1000 + hi - lo, r, "te", duct, lo, hi, self._Pref(side)))
-        # cables leaving the panel go first and keep a free track on each side
-        segs.sort(key=lambda t: t[0])
-        for _, r, slot, duct, lo, hi, pref in segs:
-            i = self._TakeTrack(duct, lo, hi, pref)
-            if slot == "te":
-                for j in (i - 1, i + 1):
-                    if 0 <= j < len(self.Tracks[duct]):
-                        self.Tracks[duct][j].append((lo, hi))
-            r[slot] = self.TrackY(duct, i)
-        for r in self.Reqs:
-            if r["kind"] == "wire":
-                xa, ya, da, sa = r["A"]
-                xb, yb, db, sb = r["B"]
-                if r["via"] is None:
-                    pts = [(xa, ya), (xa, r["t"]), (xb, r["t"]), (xb, yb)]
-                else:
-                    pts = [(xa, ya), (xa, r["ta"]), (r["vx"], r["ta"]), (r["vx"], r["tb"]),
-                           (xb, r["tb"]), (xb, yb)]
-                clean = [pts[0]]
-                for q in pts[1:]:
-                    if abs(q[0] - clean[-1][0]) > 1e-6 or abs(q[1] - clean[-1][1]) > 1e-6:
-                        clean.append(q)
-                sh.Wire(clean, r["cls"], ' stroke-dasharray="1.1 .8"' if r["dash"] else "")
-            elif r["side"] in ("L", "R"):
-                t = r["te"]
-                xs = [self.Terms[k][0] for k in r["keys"]]
-                for k in r["keys"]:
-                    x, y = self.Terms[k][:2]
-                    sh.Wire([(x, y), (x, t)], "sg")
-                far = max(xs) if r["side"] == "L" else min(xs)
-                sh.Wire([(far, t), (r["edge"], t)], r["cls"])
-                for x in xs:
-                    sh.Dot(x, t, r=0.35)
-                # label runs along the outer edge of the side duct, rotated
-                x0, x1 = self.SideX[r["side"]]
-                n = len(r["lines"])
-                for i, s2 in enumerate(r["lines"]):
-                    lx = (x0 + 1.5 + i * 1.6) if r["side"] == "L" else (x1 - 0.6 - (n - 1 - i) * 1.6)
-                    if r.get("up"):
-                        sh.Text(lx, t - 1.2, s2, size=1.3, anchor="start", rot=-90, halo=True)
+        """Path and tracks for every wire. Returns {lane: (tracks it needs, tracks that fit)}."""
+        self.PlaceExits()
+        segs = {n: [] for n in self.Lanes}
+        for w in self.Wires:
+            ea, eb = self.Ends[w["a"]], self.Ends[w["b"]]
+            w["path"] = w["via"] or self.Path(ea[-1], self.Point(ea), eb[-1], self.Point(eb))
+            if w["path"][0] != ea[-1] or w["path"][-1] != eb[-1]:
+                raise ValueError("%s to %s: via must start and end in the ends' lanes" % (w["a"], w["b"]))
+            w["tracks"] = [None] * len(w["path"])
+            for k, ln in enumerate(w["path"]):
+                L = self.Lanes[ln]
+                vals, sides = [], []
+                for end in (0, 1):
+                    if (k == 0) if end == 0 else (k == len(w["path"]) - 1):
+                        e = ea if end == 0 else eb
+                        if e[0] == "t":
+                            along, across = (e[1], e[2]) if L.Axis == "x" else (e[2], e[1])
+                            if not L.Along[0] - 1.0 <= along <= L.Along[1] + 1.0:
+                                raise ValueError("%s deck: %s is off the end of lane %s"
+                                                 % (self.Deck, w["a"] if end == 0 else w["b"], ln))
+                            vals.append(along)
+                            sides.append("lo" if across <= L.Across[0] + 1e-6 else
+                                         "hi" if across >= L.Across[1] - 1e-6 else "mid")
+                        else:
+                            vals.append(e[1])
+                            sides.append("mid")
                     else:
-                        sh.Text(lx, t + 1.2, s2, size=1.3, anchor="end", rot=-90, halo=True)
+                        nb = self.Lanes[w["path"][k - 1] if end == 0 else w["path"][k + 1]]
+                        if self.Joint(ln, nb.Name) is None:
+                            raise ValueError("lanes %s and %s do not meet" % (ln, nb.Name))
+                        vals += list(nb.Across)
+                        mid = (L.Across[0] + L.Across[1]) / 2
+                        sides.append("lo" if nb.Along[1] <= mid else "hi" if nb.Along[0] >= mid else "mid")
+                pref = sides[0] if sides[0] == sides[1] else "mid"
+                segs[ln].append((w, k, min(vals), max(vals), pref))
+        for ln, lst in segs.items():
+            L = self.Lanes[ln]
+            lst.sort(key=lambda s: (s[0]["weight"] == 1, s[3] - s[2]))
+            for w, k, lo, hi, pref in lst:
+                w["tracks"][k] = self.Take(L, lo, hi, pref, w["weight"])
+        return {n: (max([i + 1 for i, u in enumerate(L.Used) if u] or [0]), L.Cap) for n, L in self.Lanes.items()}
+
+    def Draw(self):
+        sh = self.Sh
+        for w in sorted(self.Wires, key=lambda w: 0 if w["cls"] == "cb" else 1):
+            ea, eb = self.Ends[w["a"]], self.Ends[w["b"]]
+            t, path = w["tracks"], w["path"]
+            pts = []
+            L0 = self.Lanes[path[0]]
+            if ea[0] == "t":
+                pts.append((ea[1], ea[2]))
+                pts.append((ea[1], t[0]) if L0.Axis == "x" else (t[0], ea[2]))
             else:
-                xs = [self.Terms[k][0] for k in r["keys"]]
-                y0 = self.Terms[r["keys"][0]][1]
-                d0, d1 = self.Ducts["D5"]
-                ty = d0 + 2.2
-                for x in xs:
-                    sh.Wire([(x, y0), (x, ty)], "sg")
-                xm = (min(xs) + max(xs)) / 2
-                if len(xs) > 1:
-                    sh.Wire([(min(xs), ty), (max(xs), ty)], r["cls"])
-                    for x in xs:
-                        sh.Dot(x, ty, r=0.35)
-                sh.Wire([(xm, ty), (xm, d1 + 1.6)], r["cls"])
-                for i, s2 in enumerate(r["lines"]):
-                    sh.Text(xm, d1 + 3.7 + i * 1.6, s2, size=1.3, anchor="middle")
+                pts.append((ea[1], t[0]) if L0.Axis == "x" else (t[0], ea[1]))
+                self.Dots.append((pts[-1], w["cls"]))
+            for k in range(1, len(path)):
+                prev = self.Lanes[path[k - 1]]
+                pts.append((t[k], t[k - 1]) if prev.Axis == "x" else (t[k - 1], t[k]))
+            L1 = self.Lanes[path[-1]]
+            if eb[0] == "t":
+                pts.append((eb[1], t[-1]) if L1.Axis == "x" else (t[-1], eb[2]))
+                pts.append((eb[1], eb[2]))
+            else:
+                pts.append((eb[1], t[-1]) if L1.Axis == "x" else (t[-1], eb[1]))
+                self.Dots.append((pts[-1], w["cls"]))
+            clean = [pts[0]]
+            for q in pts[1:]:
+                if abs(q[0] - clean[-1][0]) > 1e-6 or abs(q[1] - clean[-1][1]) > 1e-6:
+                    clean.append(q)
+            if len(clean) > 1:
+                sh.Wire(clean, w["cls"], ' stroke-dasharray="1.1 .8"' if w["dash"] else "")
+                self.Drawn.append((clean, w["cls"], w))
+        for (x, y), cls in self.Dots:
+            sh.Dot(x, y, cls, r=0.3)
 
 
-def BuildPanel():
-    sh = Sheet("RMR control panel DIN-rail layout")
-    sh.CssExtra = (".ac{stroke-width:.4}.va,.ve{stroke-width:.34}.zp{stroke-width:.38}"
-                   ".zs,.pe{stroke-width:.3}.lv{stroke-width:.3}.zl{stroke-width:.24}"
-                   ".sg{stroke-width:.17}.sgc{stroke-width:.36}.cb{stroke-width:.7}")
-    DrawFrame(sh, "RMR control panel: DIN-rail layout and wiring",
-              "Sheet 1's circuits on five DIN rails with wire ducts between them. Every wire runs "
-              "in a duct; the line shows its route and the terminal labels name both ends.")
-    p = Panel(sh)
-    p.SideX["L"] = (6.0, 16.0)
-    p.SideX["R"] = (340.0, 350.0)
-    rows = [("R1", 26.0, 40.5), ("R2", 56.5, 69.0), ("R3", 86.0, 104.0), ("R4", 121.0, 133.5),
-            ("R5", 150.0, 161.5)]
-    ducts = [("D0", 18.0, 25.0), ("D1", 41.5, 55.5), ("D2", 70.0, 85.0), ("D3", 105.0, 120.0),
-             ("D4", 134.5, 149.0), ("D5", 162.5, 168.5)]
-    for n, y0, y1 in ducts:
-        p.AddDuct(n, y0, y1)
-    for i, (n, yT, yB) in enumerate(rows):
-        p.Rows[n] = (yT, yB, "D%d" % i, "D%d" % (i + 1))
-    for n, y0, y1 in ducts:
-        sh.Rect(17.0, y0, 322.5, y1 - y0, "duct")
-    for side, (x0, x1) in p.SideX.items():
-        sh.Rect(x0, 18.0, x1 - x0, 150.5, "duct")
-    for i, (n, yT, yB) in enumerate(rows):
-        yc = (yT + yB) / 2
-        sh.Rect(17.0, yc - 3.0, 322.5, 6.0, "rail")
-        sh.Circle(18.6, yc, 1.9, "symf")
-        sh.Text(18.6, yc + 0.75, str(i + 1), size=2.1, anchor="middle", weight="bold")
-    for d in ("D0", "D1"):
-        y0, y1 = p.Ducts[d]
-        sh.Wire([(236.0, y0), (236.0, y1)], "zl", ' stroke-dasharray="1 .6"')
-    sh.Text(237.0, 17.2, "110 VAC compartment: separator in both ducts", size=1.3, weight="bold",
-            fill=TolRed)
+# ---- what is on each deck
 
-    # ------------------------------------------------ rail 1
-    p.TermBlock("R1", "X2", 21.0, ["1", "2", "2b", "3", "3b", "4", "5"], "X2 door 24 V",
-                pitch=3.1, bridges=[(1, 2), (3, 4)])
-    p.Device("R1", "K2", 47.0, 67.0, "K2", sub=("BMC7-25U", "coil 24 V"),
-             top=[("1", 49.5, "1"), ("3", 53.5, "3"), ("5", 57.5, "5"), ("7", 61.5, "7"),
-                  ("A1", 65.0, "A1")],
-             bot=[("2", 49.5, "2"), ("4", 53.5, "4"), ("6", 57.5, "6"), ("8", 61.5, "8"),
-                  ("A2", 65.0, "A2")])
-    p.Device("R1", "FB1", 73.0, 105.0, "FB1 12-way", sub=("always on",),
-             bot=[("IN", 75.0, "IN")] + [("F%d" % (i + 1), 80.0 + i * 4.5, "F1-%d" % (i + 1))
-                                         for i in range(6)])
-    for key, x0, t1, t2 in [("MB", 110.0, "Mega buck", "5 V"), ("PB", 128.0, "Pi buck", "5.1 V 5 A"),
-                            ("SB", 146.0, "Screen", "supply")]:
-        p.Device("R1", key, x0, x0 + 14.0, t1, sub=(t2,), titleSize=1.5,
-                 bot=[("IN+", x0 + 1.8, "+"), ("IN-", x0 + 5.2, "-"), ("OUT+", x0 + 8.6, "o+"),
-                      ("OUT-", x0 + 12.0, "o-")])
-    p.Device("R1", "PSU", 166.0, 232.0, "PSU 24 V 1200 W", sub=("DIN clips or panel screws",),
-             bot=[("V+a", 169.0, "+V"), ("V+b", 173.0, "+V"), ("V-a", 179.0, "-V"),
-                  ("FG", 205.0, "FG"), ("N", 218.0, "N"), ("L", 223.0, "L")])
-    p.Device("R1", "K1", 240.0, 256.0, "K1", sub=("HC1-63", "coil 110 VAC"),
-             top=[("1", 243.0, "1"), ("3", 248.0, "3"), ("A1", 253.0, "A1")],
-             bot=[("2", 243.0, "2"), ("4", 248.0, "4"), ("A2", 253.0, "A2")])
-    p.Device("R1", "F0", 260.5, 267.5, "F0", sub=("1 A T",), titleSize=1.6,
-             top=[("out", 264.0, "")], bot=[("in", 264.0, "")])
-    p.TermBlock("R1", "X1", 272.0, ["1", "2", "3"], "X1 door 110 V")
-    p.TermBlock("R1", "X0", 286.0, ["L", "L", "N", "N", "PE"], "X0 mains in",
-                bridges=[(0, 1), (2, 3)])
-    p.Device("R1", "PE", 309.0, 337.0, "PE bar", sub=("on rail 1",),
-             top=[("t1", 313.0, "")],
-             bot=[("b1", 313.0, ""), ("b2", 317.0, ""), ("b3", 321.0, ""), ("b4", 325.0, "")])
+def DeckBoxes(deck):
+    """{label: box} of the labelled parts on a deck; a repeated label gets ' 2', ' 3' after it."""
+    out, seen = {}, {}
+    for s in DeckSolids():
+        if s["deck"] != deck or s["kind"] not in ("part", "clamp") or not s["label"]:
+            continue
+        lab = s["label"]
+        seen[lab] = seen.get(lab, 0) + 1
+        out[lab if seen[lab] == 1 else "%s %d" % (lab, seen[lab])] = s["box"]
+    return out
 
-    # ------------------------------------------------ rail 2
-    p.Device("R2", "S", 21.0, 36.0, "Star S", sub=("dist. block",), titleSize=1.5,
-             top=[("IN", 23.0, "in"), ("MB", 26.0, ""), ("PB", 29.0, ""), ("SB", 32.0, ""),
-                  ("PE", 34.5, "")],
-             bot=[("0VP", 23.0, ""), ("SP", 28.0, "")])
-    zbot = [("IN", 43.0, "in")] + [("d%d" % (i + 1), 50.0 + i * 6.0, "") for i in range(8)] + \
-           [("UV", 98.0, ""), ("V", 104.0, ""), ("T", 110.0, "")]
-    p.Device("R2", "ZP", 40.0, 114.0, "0V-P power bus", sub=("two uxcell bars, linked",),
-             top=[("K2", 45.0, "")], bot=zbot)
-    p.Device("R2", "FB2", 120.0, 182.0, "FB2 12-way", sub=("E-stop side, behind K2",),
-             top=[("IN", 122.0, "IN")],
-             bot=[("F%d" % (i + 1), 124.0 + i * 5.0, "%d" % (i + 1)) for i in range(12)])
-    p.Device("R2", "SP", 188.0, 203.0, "Servo PSU", sub=("6 V",), titleSize=1.5,
-             bot=[("IN+", 189.8, "+"), ("IN-", 193.2, "-"), ("OUT+", 196.6, "o+"),
-                  ("OUT-", 200.0, "o-")])
-    sh.Text(270.0, 64.2, "spare rail", size=1.6, anchor="middle", italic=True)
 
-    # ------------------------------------------------ rail 3
-    drv = [("X", 50.0), ("Y1", 78.0), ("Y2", 106.0), ("Z", 134.0), ("A", 162.0), ("B", 190.0),
-           ("C", 218.0)]
-    for ax, x0 in drv:
-        p.Device("R3", ax, x0, x0 + 24.0, ax, sub=("TB6600",), titleSize=2.6,
-                 top=[("+V", x0 + 2.5, "+V"), ("0V", x0 + 6.0, "0V"), ("M", x0 + 16.0, "motor")],
-                 bot=[("SIG", x0 + 10.0, "sig"), ("COM", x0 + 18.0, "com")])
-    p.Device("R3", "OD", 248.0, 282.0, "ODrive S1", sub=("on a DIN carrier",), titleSize=2.0,
-             top=[("DC+", 250.5, "+"), ("DC-", 254.0, "-"), ("PH", 264.0, "A B C"),
-                  ("ENC", 275.0, "enc")],
-             bot=[("TX", 252.0, "TX"), ("RX", 256.0, "RX"), ("GND", 260.0, "G"),
-                  ("5V", 264.0, "5V")])
-    p.Device("R3", "SC", 288.0, 322.0, "Shield clamp bar", sub=("motor cable shields",),
-             titleSize=1.6, top=[("PE", 318.0, "PE")])
+def DuctBox(deck, start):
+    return [box for d, box, _, label, _ in Ducts() if d == deck and label.startswith(start)][0]
 
-    # ------------------------------------------------ rail 4
-    p.TermBlock("R4", "ZS", 19.5, ["X", "Y1", "Y2", "Z", "A", "B", "C", "J", "lk"], "0V-S bus",
-                pitch=3.0, bridges=[(0, 8)])
-    megaTop = [("PWR+", 51.0, "+"), ("PWR-", 54.0, "-")]
-    groups = dict((ax, " ".join(DriverPins[ax])) for ax in DriverPins)
-    for ax, x0 in drv:
-        megaTop.append(("g" + ax, x0 + 10.0, ""))
-    megaTop += [("17", 238.0, "17"), ("16", 242.0, "16")]
-    megaBot = [("GND", 51.5, "G")] + \
-              [(pn, 55.5 + i * 3.8, pn) for i, (ax, pn) in enumerate(EndstopPins)] + \
-              [("5", 80.0, "5"), ("6", 84.0, "6"), ("USB", 124.0, "USB"), ("43", 160.0, "43"),
-               ("5V", 164.0, "5V"), ("39", 236.0, "39"), ("4", 240.0, "4"), ("42", 244.0, "42")]
-    p.Device("R4", "MEGA", 48.0, 247.0, "Arduino Mega 2560, screw-terminal breakout on a DIN carrier",
-             titleSize=1.8, top=megaTop, bot=megaBot)
-    for ax, x0 in drv:
-        sh.Text(x0 + 10.0, 124.3, groups[ax], size=1.1, anchor="middle")
-    sh.Text(148.0, 131.2, "1 k from 5V to 43 and 100 nF from 40 to GND, both on the breakout",
-            size=1.2, anchor="middle")
-    p.Device("R4", "SU", 251.0, 265.0, "SSR-UV", titleSize=1.5, sub=("DC SSR",),
-             top=[("OUT+", 258.0, "+")],
-             bot=[("OUT-", 253.0, "-"), ("IN+", 257.5, "i+"), ("IN-", 262.0, "i-")])
-    p.Device("R4", "SV", 269.0, 283.0, "SSR-valve", titleSize=1.5, sub=("DC SSR",),
-             top=[("OUT+", 276.0, "+")],
-             bot=[("OUT-", 271.0, "-"), ("IN+", 275.5, "i+"), ("IN-", 280.0, "i-")])
-    p.TermBlock("R4", "ZT", 288.0, ["1", "2", "3", "lk"], "0V-S, 2nd group", pitch=3.0,
-                bridges=[(0, 3)])
-    sh.Text(318.0, 128.8, "spare rail", size=1.6, anchor="middle", italic=True)
 
-    # ------------------------------------------------ rail 5
-    p.TermBlock("R5", "X4", 21.0, ["3", "14", "40", "15", "23", "A9", "C", "C", "C", "C", "C", "C"],
-                "X4 endstops", pitch=3.2, bridges=[(6, 11)])
-    p.TermBlock("R5", "X5", 63.0, ["6V", "6V", "0V", "0V", "P0", "P1"], "X5 servos",
-                bridges=[(0, 1), (2, 3)])
-    p.TermBlock("R5", "X8", 87.0, ["s+", "s-", "22", "G"], "X8 door")
-    piTop = [("5V", 110.0, "5V"), ("GNDp", 113.0, "G"), ("USB", 117.0, "USB"), ("5", 122.0, "5"),
-             ("6", 125.0, "6"), ("13", 128.0, "13"), ("26", 131.0, "26"), ("GND2", 134.0, "G"),
-             ("20", 138.0, "20"), ("GND", 141.0, "G"), ("3V3", 144.0, "3V3"), ("22", 147.5, "22"),
-             ("GND3", 150.5, "G")]
-    p.Device("R5", "PI", 107.0, 153.0, "Raspberry Pi 5", sub=("DIN case, GPIO terminals",),
-             titleSize=1.7, top=piTop, bot=[("HDMI", 130.0, "HDMI + USB")])
-    sh.Text(141.5, 167.3, "1 k from 3V3 to 20 at the Pi", size=1.1, anchor="middle", halo=True)
-    ts = [("IN%d" % (i + 1), 159.0 + i * 3.0, str(i + 1)) for i in range(4)] + \
-         [("IN-", 171.0, "i-"), ("OUT+", 175.0, "o+")] + \
-         [("O%d" % (i + 1), 178.5 + i * 3.0, str(i + 1)) for i in range(4)]
-    p.Device("R5", "TS", 157.0, 190.0, "Tower SSR x 4", sub=("IN- and OUT+ jumpered",),
-             titleSize=1.5, top=ts)
-    p.TermBlock("R5", "X7", 194.0, ["R", "A", "G", "Bz", "C"], "X7 tower")
-    sh.Text(202.5, 167.3, "C: tower common, 0 V assumed", size=1.1, anchor="middle", halo=True)
-    p.TermBlock("R5", "X6", 250.0, ["UV+", "UV-", "S5", "S5c", "V+", "V-"], "X6 lid, valve")
-    sh.Text(306.0, 156.8, "spare rail", size=1.6, anchor="middle", italic=True)
+def GroundBar(kind):
+    """The ground bar's footprint on its plate's PE stud, its first screw on the stud. The bar is
+    not chosen in size (OpenScrews()); this box only places it."""
+    px, py = PeStud[kind]
+    return (px - 6.0, py - 3.0, px + 6.0, py + 23.0) if kind == "base" else (px - 4.0, py - 6.0, px + 4.0, py + 24.0)
 
-    W = p.W
-    # ------------------------------------------------ 110 VAC
-    W("ac", "X0.1t", "K1.1")
-    W("ac", "X0.3t", "K1.3")
-    W("ac", "X0.2b", "F0.in")
-    W("ac", "F0.out", "X1.1t")
-    W("ac", "X1.2t", "K1.A1")
-    W("ac", "X0.4t", "X1.3t")
-    W("ac", "X0.4b", "K1.A2")
+
+SsrNames = ["SSR-UV", "SSR-valve", "tower R", "tower A", "tower G", "buzzer"]
+TowerSsr = ["tower R", "tower A", "tower G", "buzzer"]
+PiTowerGpio = ["5", "6", "13", "26"]
+
+
+def SlotWires():
+    """[(slot, class, lower end, upper end, what)] for every conductor that changes deck, each once.
+    An end in a slot or a grommet is named by it; the door cable passes slot 3 to the lower left
+    grommet."""
+    out = []
+    for i, ax in enumerate(DriveAxes):
+        out.append((1, "ve", "FB2.%d" % (i + 1), "%s.+V" % ax, "F2-%d to driver %s +V" % (i + 1, ax)))
+    for ax in DriveAxes:
+        out.append((1, "zp", "0V-P.%s" % ax, "%s.0V" % ax, "0V-P 1 to driver %s 0V" % ax))
+    out += [(2, "ve", "FB2.10", "SSR-UV.OUT+", "F2-10 to SSR-UV +"),
+            (2, "ve", "FB2.11", "SSR-valve.OUT+", "F2-11 to SSR-valve +"),
+            (2, "va", "FB1.4", "tower R.OUT+", "F1-4 to the tower SSRs + (jumpered)"),
+            (2, "zp", "0V-P 2.UV", "X6.2b", "0V-P 2 to X6 UV-"),
+            (2, "zp", "0V-P 2.V", "X6.6b", "0V-P 2 to X6 V-"),
+            (2, "zp", "0V-P 2.T", "X7.5b", "0V-P 2 to X7 C (tower common)"),
+            (2, "lv", "servo PSU.OUT+", "X5.1b", "servo PSU +6 V to X5 6V"),
+            (2, "zl", "servo PSU.OUT-", "X5.3b", "servo PSU 0 V to X5 0V"),
+            (2, "pe", "bar.3", "bar.2", "lower ground bar to upper ground bar"),
+            (3, "va", "FB1.5", "X2.1b", "F1-5 to X2 1 (E-stop latch)"),
+            (3, "ve", "K2.5", "X2.3b", "K2 5 to X2 2b (seal-in, node X)"),
+            (3, "ve", "K2.6", "X2.4b", "K2 6 to X2 3 (node Y)"),
+            (3, "ve", "K2.A1", "X2.5b", "K2 A1 to X2 3b (coil, node Y)"),
+            (3, "sg", "K2.7", "MEGA.43", "K2 7 to Mega 43 (motor power sense)"),
+            (3, "zs", "K2.8", "0V-S.1a", "K2 8 to 0V-S"),
+            (3, "va", "LL", "X2.1a", "door cable: X2 1 to S2 NC1, via the lower left grommet"),
+            (3, "ve", "LL", "X2.2a", "door cable: NC1 and S3 (node X) to X2 2"),
+            (3, "ve", "LL", "X2.4a", "door cable: S3 (node Y) to X2 3")]
+    return out
+
+
+def LowerWiring(d):
+    B = DeckBoxes("lower")
+    In, Out = Frame + RingClear, BoxD - Frame - RingClear
+    low = DuctBox("lower", "duct 1/2 x 1 in: 24 V")
+    mains = DuctBox("lower", "duct 1/2 x 1 in: mains")
+    lo = LowerRails()
+    r24, sp, k2, k1 = lo["24 V"], B["servo PSU"], B["K2"], B["K1"]
+    bar = GroundBar("base")
+    s1, s2, s3 = CableSlots
+    llu = [u for _, u, _, k in CableEntries if k == "LL"][0]
+    # lanes: the duct between the fuse rail and the 24 V row runs on (free) to the back ring; free
+    # channels in front of the 24 V row, along its top, in the channel at its end, over the servo PSU,
+    # and behind it round the base PE stud; the mains duct, and the strips each side of the 110 V rail
+    d.AddLane("duct", (In, low[1], BoxD - Frame, low[3]), "x")
+    d.AddLane("front", (In, low[3], r24["a0"], MainsZoneY), "y")
+    d.AddLane("slot 3", (In, s3[1], r24["a0"], s3[3]), "x")
+    d.AddLane("top", (In, k2[3], r24["a1"], MainsZoneY), "x")
+    d.AddLane("channel", (r24["a1"], low[3], sp[0], MainsZoneY), "y")
+    d.AddLane("over servo", (r24["a1"], sp[3], bar[0] - 2.0, MainsZoneY), "x")
+    d.AddLane("behind servo", (sp[2], low[3], bar[0] - 2.0, MainsZoneY), "y")
+    d.AddLane("slot 2", (sp[2], s2[1], bar[0] - 2.0, s2[3]), "x")
+    d.AddLane("mains duct", (mains[0], sp[3], mains[2], mains[3]), "y")
+    d.AddLane("mains front", (mains[2], PsuY0, Out, k1[1]), "x")
+    d.AddLane("mains back", (mains[2], k1[3], Out, PsuY1), "x")
+    d.AddLane("back", (Out, PsuY0, BoxD, PsuY1), "y")
+    d.AddLane("LL", (llu - GrommetHole / 2, 0.0, llu + GrommetHole / 2, low[1]), "y")
+    d.Mains = ("mains front", "mains back", "back")
+    d.InLane("S1", "over servo", x=(s1[0] + s1[2]) / 2)
+    d.InLane("S2", "slot 2", x=min((s2[0] + s2[2]) / 2, bar[0] - 6.0))
+    d.InLane("S3", "slot 3", x=(s3[0] + s3[2]) / 2)
+    d.InLane("LL", "LL", y=0.0)
+    d.Exit("inlet", "back", "back", InletU - 9.0, InletU + 9.0)
+    d.Exit("gland", "back", "back", DoorGland[0] - 6.0, DoorGland[0] + 6.0)
+
+    # parts and terminals
+    out12 = [str(i + 1) for i in range(12)]
+    d.Part("FB2", B["FB2"], ["FB2  12-way", "+24 V cut by the E-stop (K2)"], size=1.7, at=(0.5, 0.42))
+    d.Face("FB2", "y1", "duct", out12 + ["IN"], [""] * 12 + ["IN"])
+    d.Part("FB1", B["FB1"], ["FB1  12-way", "+24 V always on"], size=1.7, at=(0.5, 0.42))
+    d.Face("FB1", "y1", "duct", ["IN"] + out12, ["IN"] + [""] * 12)
+    d.Part("K2", k2, ["K2", "BMC7-25U", "coil 24 V"], size=1.6)
+    d.Face("K2", "y0", "duct", ["2", "4", "6", "8", "A2"])
+    d.Face("K2", "y1", "top", ["1", "3", "5", "7", "A1"])
+    d.Part("Star S", B["Star S"], ["Star S", "uxcell"], size=1.35, rot=-90)
+    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP"], ["", "", ""])
+    d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
+    d.Part("0V-P", B["0V-P"], ["0V-P 1", "linked to 0V-P 2"], size=1.35, rot=-90)
+    d.Face("0V-P", "y0", "duct", ["IN", "K2", "LK"], ["in", "", ""])
+    d.Face("0V-P", "y1", "top", DriveAxes, [""] * 7)
+    d.Part("0V-P 2", B["0V-P 2"], ["0V-P 2"], size=1.35, rot=-90)
+    d.Face("0V-P 2", "y0", "duct", ["IN", "OD"], ["in", ""])
+    d.Face("0V-P 2", "y1", "top", ["UV", "V", "T"], [""] * 3)
+    d.Part("servo PSU", sp, ["Servo PSU", "6 V, DC-DC"], size=1.5)
+    d.Face("servo PSU", "y0", "duct", ["IN+", "IN-"], ["+24", "0V"])
+    d.Face("servo PSU", "x1", "behind servo", ["OUT+", "OUT-"], ["+6V", "0V"])
+    d.Part("5 V PSU", B["5 V PSU"], ["5 V PSU", "feeds the Pi", "at the panel"], size=1.5, at=(0.5, 0.6))
+    d.Face("5 V PSU", "y0", "duct", ["IN+", "IN-", "OUT+", "OUT-"], ["+24", "0V", "+5V", "0V"])
+    d.Part("PSU", B["24 V PSU"], ["24 V PSU 1200 W, lying flat", "terminals toward the mains duct,",
+                                  "fan toward the right wall"], size=1.7, dashed=True)
+    d.Face("PSU", "x1", "mains duct", ["V+a", "V+b", "V-a", "V-b", "FG", "N", "L"],
+           ["+V", "+V", "-V", "-V", "FG", "N", "L"])
+    d.Part("K1", k1, ["K1", "HC1-63", "coil 110 VAC"], size=1.5)
+    d.Face("K1", "y0", "mains front", ["1", "3", "A2"])
+    d.Face("K1", "y1", "mains back", ["2", "4", "A1"])
+    d.Part("F0", B["F0"], ["F0", "1 A T"], size=1.3, dashed=True, rot=-90)
+    d.Face("F0", "y0", "mains front", ["in"], [""])
+    d.Face("F0", "y1", "mains back", ["out"], [""])
+    d.Block("PE", B["PE"], ["PE", "PE", "PE", "PE"], "mains front", "mains back", title="PE")
+    d.Block("X1", B["X1"], ["1", "2", "3"], "mains front", "mains back", title="X1", note="door 110 V")
+    d.Block("X0", B["X0"], ["L", "L", "N", "N", "PE"], "mains front", "mains back", bridges=[(0, 1), (2, 3)],
+            title="X0", note="mains in")
+    d.Part("bar", bar, ["ground bar"], size=1.1, rot=-90, dashed=True)
+    d.Face("bar", "x0", "behind servo", ["1", "2", "3"], ["", "", ""])
+
+    # 110 VAC
+    W = d.W
+    W("ac", "X0.1a", "K1.1")
+    W("ac", "X0.3a", "K1.3")
+    W("ac", "X0.2a", "F0.in")
+    W("ac", "F0.out", "X1.1b")
+    W("ac", "X1.2b", "K1.A1")
+    W("ac", "X0.4b", "X1.3b")
+    W("ac", "X0.4a", "K1.A2")
     W("ac", "K1.2", "PSU.L")
     W("ac", "K1.4", "PSU.N")
-    W("pe", "PSU.FG", "PE.b1")
-    W("pe", "X0.5t", "PE.t1")
-    p.Exit("cb", ["X0.1b", "X0.3b", "X0.5b"], "R", ["from rear switch Q0:", "L, N, PE"], up=True)
-    p.Exit("cb", ["X1.1b", "X1.2b", "X1.3b", "PE.b2"], "R",
-           ["to door plate: S1 knob,", "H1 lamp, plate PE"])
-    # ------------------------------------------------ 24 V and the E-stop latch
+    d.Out("ac", "X0.1b", "inlet")
+    d.Out("ac", "X0.3b", "inlet")
+    d.Out("pe", "X0.5b", "inlet")
+    for i in range(3):
+        d.Out("ac", "X1.%da" % (i + 1), "gland")
+    d.Out("pe", "PE.3a", "gland")
+    W("pe", "X0.5a", "PE.1a")
+    W("pe", "PSU.FG", "PE.2b")
+    W("pe", "PE.4a", "bar.1")
+    W("pe", "Star S.PE", "bar.2")
+    # 24 V, the E-stop contactor, the star and the 0 V buses
     W("va", "PSU.V+a", "FB1.IN")
-    W("va", "PSU.V+b", "K2.1", via=70.0)
-    W("va", "K2.2", "K2.3", via=44.6)
+    W("va", "PSU.V+b", "K2.1")
+    W("va", "K2.2", "K2.3")
     W("ve", "K2.4", "FB2.IN")
-    W("zp", "PSU.V-a", "S.IN")
-    W("va", "FB1.F1", "MB.IN+")
-    W("va", "FB1.F2", "PB.IN+")
-    W("va", "FB1.F3", "SB.IN+")
-    W("zp", "MB.IN-", "S.MB")
-    W("zp", "PB.IN-", "S.PB")
-    W("zp", "SB.IN-", "S.SB")
-    W("va", "FB1.F5", "X2.1b")
-    W("va", "FB1.F4", "TS.OUT+", via="L")
-    W("ve", "X2.3t", "K2.5")
-    W("ve", "X2.4b", "K2.6")
-    W("ve", "X2.5t", "K2.A1")
-    W("zp", "K2.A2", "ZP.K2")
-    W("sg", "K2.7", "MEGA.43", via="L")
-    W("zs", "K2.8", "ZS.1b", via="L")
-    W("sg", "X2.6b", "PI.20", via="L")
-    W("sg", "X2.7b", "PI.GND", via="L")
-    p.Exit("cb", ["X2.1t", "X2.2t", "X2.4t", "X2.6t", "X2.7t"], "L",
-           ["to door plate: S2 E-stop", "NC1 + NC2, S3 Reset"])
-    W("lv", "MB.OUT+", "MEGA.PWR+", via="L")
-    W("zl", "MB.OUT-", "MEGA.PWR-", via="L")
-    W("lv", "PB.OUT+", "PI.5V", via="L")
-    W("zl", "PB.OUT-", "PI.GNDp", via="L")
-    W("lv", "SB.OUT+", "X8.1t", via="L")
-    W("zl", "SB.OUT-", "X8.2t", via="L")
-    # ------------------------------------------------ rail 2 distribution
-    W("zp", "S.0VP", "ZP.IN")
-    W("pe", "S.PE", "PE.b3")
-    W("zp", "SP.IN-", "S.SP")
-    W("ve", "FB2.F9", "SP.IN+")
-    W("lv", "SP.OUT+", "X5.1t", via="L")
-    W("zl", "SP.OUT-", "X5.3t", via="L")
-    for i, (ax, x0) in enumerate(drv):
-        W("ve", "FB2.F%d" % (i + 1), ax + ".+V")
-        W("zp", "ZP.d%d" % (i + 1), ax + ".0V")
-    W("ve", "FB2.F8", "OD.DC+")
-    W("zp", "ZP.d8", "OD.DC-")
-    W("ve", "FB2.F10", "SU.OUT+", via="R")
-    W("ve", "FB2.F11", "SV.OUT+", via="R")
-    W("zp", "ZP.UV", "X6.2t", via="R")
-    W("zp", "ZP.V", "X6.6t", via="R")
-    W("zp", "ZP.T", "X7.5t", via="R")
-    W("pe", "SC.PE", "PE.b4", via="R")
-    p.Exit("cb", [ax + ".M" for ax, x0 in drv] + ["OD.PH", "OD.ENC"], "R",
-           ["motor + encoder cables out,", "shields on the clamp bar"])
-    # ------------------------------------------------ rail 3 to rail 4 signals
-    for i, (ax, x0) in enumerate(drv):
-        W("sgc", ax + ".SIG", "MEGA.g" + ax)
-        W("zs", ax + ".COM", "ZS.%dt" % (i + 1))
-    W("zs", "OD.GND", "ZS.8t")
-    W("sg", "OD.TX", "MEGA.17")
-    W("sg", "OD.RX", "MEGA.16")
-    # ------------------------------------------------ rail 4 to rail 5
-    W("zs", "MEGA.GND", "ZS.2b")
-    for i, (ax, pn) in enumerate(EndstopPins):
-        W("sg", "MEGA." + pn, "X4.%dt" % (i + 1))
-    W("zs", "X4.7t", "ZS.3b")
-    W("sg", "MEGA.5", "X5.5t")
-    W("sg", "MEGA.6", "X5.6t")
-    W("sg", "MEGA.4", "SU.IN+")
-    W("sg", "MEGA.42", "SV.IN+")
-    W("zs", "SU.IN-", "ZT.1b")
-    W("zs", "SV.IN-", "ZT.2b")
-    W("zs", "ZT.4t", "ZS.9t")
-    W("sg", "MEGA.39", "X6.3t")
-    W("zs", "X6.4t", "ZT.3b")
-    W("sgc", "MEGA.USB", "PI.USB")
-    W("ve", "SU.OUT-", "X6.1t")
-    W("ve", "SV.OUT-", "X6.5t")
-    for i, g in enumerate(["5", "6", "13", "26"]):
-        W("sg", "PI." + g, "TS.IN%d" % (i + 1))
-        W("va", "TS.O%d" % (i + 1), "X7.%dt" % (i + 1))
-    W("sg", "TS.IN-", "PI.GND2")
-    W("sg", "PI.22", "X8.3t")
-    W("sg", "PI.GND3", "X8.4t")
-    # field cables out of the bottom
-    p.Exit("cb", ["X4.%db" % (i + 1) for i in range(12)], "B",
-           ["to endstops X Y Z A B C,", "one twisted pair each"])
-    p.Exit("cb", ["X5.%db" % (i + 1) for i in range(6)], "B", ["to gripper", "and lid servos"])
-    p.Exit("cb", ["X8.%db" % (i + 1) for i in range(4)], "B", ["to screen power,", "home button"])
-    p.Exit("cb", ["PI.HDMI"], "B", ["HDMI + USB", "to screen"])
-    p.Exit("cb", ["X7.%db" % (i + 1) for i in range(5)], "B", ["to status", "tower"])
-    p.Exit("cb", ["X6.%db" % (i + 1) for i in range(6)], "B",
-           ["to lid (S4 + UV array, S5)", "and argon valve (D1 there)"])
-    p.Route()
-    # ODrive J11 logic supply: unresolved
-    x, y = p.Terms["OD.5V"][:2]
-    sh.Wire([(x, y), (x, y + 3.0)], "lv", ' stroke-dasharray="1.1 .8"')
-    sh.Text(x + 0.8, y + 3.2, "J11 5 V: which side? (sheet 1 note 3)", size=1.2, halo=True)
-    PanelFooter(sh)
-    return sh
+    W("zp", "PSU.V-a", "Star S.IN")
+    W("zp", "Star S.0VP", "0V-P.IN")
+    W("zp", "0V-P.LK", "0V-P 2.IN")
+    W("zp", "K2.A2", "0V-P.K2")
+    W("va", "FB1.2", "5 V PSU.IN+")
+    W("zp", "5 V PSU.IN-", "Star S.P5")
+    W("ve", "FB2.9", "servo PSU.IN+")
+    W("zp", "servo PSU.IN-", "Star S.SP")
+    W("ve", "FB2.8", "LL")
+    W("zp", "0V-P 2.OD", "LL")
+    W("lv", "5 V PSU.OUT+", "LL")
+    W("zl", "5 V PSU.OUT-", "LL")
+    for slot, cls, a, b, _ in SlotWires():
+        W(cls, a if a != "LL" else "S%d" % slot, "S%d" % slot if a != "LL" else "LL")
+    return d
 
 
-def PanelFooter(sh):
-    y0 = 176.0
-    # legend
-    sh.Text(8, y0 + 1.0, "Legend", size=2.2, weight="bold")
-    items = [("ac", "110 VAC"), ("va", "+24 V always on"), ("ve", "+24 V behind K2"),
-             ("zp", "0 V power"), ("zs", "0V-S signal bus"), ("pe", "PE"),
-             ("lv", "logic supply +"), ("zl", "logic supply 0 V"), ("sg", "signal"),
-             ("sgc", "multi-core signal cable"), ("cb", "cable leaving the panel")]
+def UpperWiring(d):
+    B = DeckBoxes("upper")
+    In = Frame + RingClear
+    fd, sd, md = UpRows["field duct"], UpRows["signal duct"], UpRows["motor duct"]
+    up = UpperRails()
+    clamp = ClampBox()
+    back0, back1 = BackRunX - DuctWide / 2, BackRunX + DuctWide / 2
+    feed = DuctBox("upper", "24 V feeds")
+    ssrIn = DuctBox("upper", "SSR inputs")
+    ssr = B["SSR-UV"]
+    bar = GroundBar("upper")
+    s1, s2, s3 = CableSlots
+    u = dict((k, uu) for _, uu, _, k in CableEntries)
+    # lanes: the ducts (the 24 V feed duct reaching down to slot 1, the motor duct in two parts either
+    # side of the shield clamp, the back run reaching the left wall); free channels in front of the
+    # logic rail (slot 3, the front grommet), along the left wall (field cables), behind the SSRs
+    # (their outputs, slot 2), along the right wall, and behind the back run to the ground bar
+    d.AddLane("front", (Frame + 1.0, 2.0, LogicRail0 - 0.5, sd[0]), "y")
+    d.AddLane("left wall", (Frame + 1.0, 2.0, BoxD - Frame, FieldRail0 - 17.0), "x")
+    d.AddLane("field duct", (LogicRail0 - 0.5, fd[0], back0, fd[1]), "x")
+    d.AddLane("signal duct", (In, sd[0], up["drivers"]["a1"], sd[1]), "x")
+    d.AddLane("SSR inputs", ssrIn, "y")
+    d.AddLane("SSR outputs", (ssr[2], fd[1], back0, s2[3]), "y")
+    d.AddLane("slot 2", (s2[0] - 2.0, s2[1], back0, s2[3]), "x")
+    d.AddLane("feed duct", (feed[0], UpRows["drivers"][0], feed[2], md[0]), "y")
+    d.AddLane("motor duct", (In, md[0], clamp[0], md[1]), "x")
+    d.AddLane("motor duct 2", (clamp[2], md[0], back0, md[1]), "x")
+    d.AddLane("back run", (back0, 0.0, back1, md[1]), "y")
+    d.AddLane("to UR", (clamp[0] + 1.0, md[0], clamp[2] - 1.0, BoxW), "y")
+    d.AddLane("right wall", (Frame + 1.0, md[1], back1, BoxW - 2.0), "x")
+    d.AddLane("behind", (back1, In, bar[0] - 2.0, BoxW - 2.0), "y")
+    d.InLane("S1", "feed duct", y=(s1[1] + s1[3]) / 2)
+    d.InLane("S2", "slot 2", x=(s2[0] + s2[2]) / 2)
+    d.InLane("S3", "front", y=(s3[1] + s3[3]) / 2)
+    d.InLane("clamp", "motor duct", x=clamp[0])
+    d.InLane("clamp out", "motor duct 2", x=clamp[2])
+    d.InLane("clamp out UR", "to UR", y=(md[0] + md[1]) / 2)
+    d.InLane("ULM", "back run", y=0.0)
+    d.Exit("UL", "left wall", "left", u["UL"] - 21.0, u["UL"] + 21.0)
+    d.Exit("UF", "front", "front", u["UF"] - 21.0, u["UF"] + 21.0)
+    d.Exit("UR", "right wall", "right", u["UR"] - 21.0, u["UR"] + 21.0)
+
+    # field rail
+    blocks = [("X2", ["1", "2", "2b", "3", "3b", "4", "5"], [(1, 2), (3, 4)], "E-stop"),
+              ("X4", ["3", "14", "40", "15", "23", "A9"] + ["C"] * 6, [(6, 11)], "endstops"),
+              ("X5", ["6V", "6V", "0V", "0V", "P0", "P1"], [(0, 1), (2, 3)], "servos"),
+              ("X6", ["UV+", "UV-", "S5", "S5c", "V+", "V-"], [], "lid, valve"),
+              ("X7", ["R", "A", "G", "Bz", "C"], [], "tower"),
+              ("X8", ["-", "-", "-", "-"], [], "spare")]
+    for key, labels, bridges, note in blocks:
+        d.Block(key, B[key], labels, "left wall", "field duct", bridges=bridges, title=key, note=note)
+    # logic rail
+    d.Part("MEGA", B["Mega 2560"], ["Arduino Mega 2560", "screw-terminal shield", "on a DIN carrier",
+                                           "USB from the Pi"], size=1.6, at=(0.5, 0.47))
+    top = [p for _, p in EndstopPins] + ["GND", "5", "6", "39", "43", "4", "42"]
+    d.Face("MEGA", "y0", "field duct", top)
+    d.Face("MEGA", "y1", "signal duct", ["g" + ax for ax in DriveAxes] + ["16", "17"],
+           [""] * 7 + ["16 TX2", "17 RX2"], pad=0.04)
+    for ax in DriveAxes:
+        x, y = d.Ends["MEGA.g" + ax][1:3]
+        d.Sh.Text(x + 0.4, y - 1.2, "%s: %s" % (ax, " ".join(DriverPins[ax])), size=0.95, anchor="start", rot=-90)
+    d.Face("MEGA", "x0", "front", ["USB"])
+    d.Block("0V-S", B["0V-S"], ["X", "Y1", "Y2", "Z", "A", "B", "C", "J", "lk"], "field duct", "signal duct",
+            bridges=[(0, 8)], title="0V-S")
+    d.Block("0V-S2", B["0V-S2"], ["1", "2", "3", "lk"], "field duct", "signal duct", bridges=[(0, 3)], title="0V-S2")
+    # SSR rail
+    for name in SsrNames:
+        d.Part(name, B[name], [name], size=1.05, at=(0.5, 0.55))
+        d.Face(name, "x0", "SSR inputs", ["IN+", "IN-"], ["+", "-"], size=0.8, pad=0.05)
+        d.Face(name, "x1", "SSR outputs", ["OUT+", "OUT-"], ["+", "-"], size=0.8, pad=0.05)
+    # drivers and the shield clamp
+    for ax in DriveAxes:
+        d.Part(ax, B[ax], [ax, "TB6600"], size=2.0)
+        d.Face(ax, "y0", "signal duct", ["SIG", "COM"], ["sig", "com"])
+        d.Face(ax, "y1", "motor duct", ["+V", "0V", "M"], ["+V", "0V", "M"])
+    d.Part("clamp", clamp, ["shield clamp", "motor shields"], size=1.2, rot=-90, dashed=True)
+    d.Face("clamp", "y1", "right wall", ["PE"], [""])
+    d.Part("bar", bar, ["ground bar"], size=1.1, rot=-90, dashed=True)
+    d.Face("bar", "x0", "behind", ["1", "2", "3"], ["", "", ""])
+
+    W = d.W
+    for i, ax in enumerate(DriveAxes):
+        W("sgc", "MEGA.g" + ax, ax + ".SIG")
+        W("zs", ax + ".COM", "0V-S.%db" % (i + 1))
+        W("cb", ax + ".M", "clamp", weight=2)
+    W("cb", "clamp out", "ULM", weight=3)
+    d.Out("cb", "clamp out UR", "UR", weight=2)
+    for i, (ax, pin) in enumerate(EndstopPins):
+        W("sg", "MEGA." + pin, "X4.%db" % (i + 1))
+    W("zs", "X4.7b", "0V-S.3a")
+    W("zs", "MEGA.GND", "0V-S.2a")
+    W("sg", "MEGA.5", "X5.5b")
+    W("sg", "MEGA.6", "X5.6b")
+    W("sg", "MEGA.39", "X6.3b")
+    W("zs", "X6.4b", "0V-S2.3a")
+    W("sg", "MEGA.4", "SSR-UV.IN+")
+    W("sg", "MEGA.42", "SSR-valve.IN+")
+    W("zs", "SSR-UV.IN-", "0V-S2.1b")
+    W("zs", "SSR-valve.IN-", "0V-S2.2b")
+    W("zs", "0V-S2.4a", "0V-S.9a")
+    W("ve", "SSR-UV.OUT-", "X6.1b")
+    W("ve", "SSR-valve.OUT-", "X6.5b")
+    for i, name in enumerate(TowerSsr):
+        W("va", name + ".OUT-", "X7.%db" % (i + 1))
+    for a, b in zip(TowerSsr, TowerSsr[1:]):
+        W("va", a + ".OUT+", b + ".OUT+")
+        W("sg", a + ".IN-", b + ".IN-")
+    # cables to the Pi and the ODrive at the operator panel and the spin coater, through the front
+    d.Out("sgc", "MEGA.USB", "UF")
+    d.Out("sg", "MEGA.17", "UF")
+    d.Out("sg", "MEGA.16", "UF")
+    d.Out("zs", "0V-S.8b", "UF")
+    for name in TowerSsr:
+        d.Out("sg", name + ".IN+", "UF")
+    d.Out("sg", "tower R.IN-", "UF")
+    # field cables
+    fieldCls = {"X4": ["sg"] * 6 + ["zs"] * 6, "X5": ["lv", "lv", "zl", "zl", "sg", "sg"],
+                "X6": ["ve", "zp", "sg", "zs", "ve", "zp"]}
+    for key, cls in fieldCls.items():
+        for i, c in enumerate(cls):
+            d.Out(c, "%s.%da" % (key, i + 1), "UL")
+    for i, c in enumerate(["va", "va", "va", "va", "zp"]):
+        d.Out(c, "X7.%da" % (i + 1), "UR")
+    W("pe", "clamp.PE", "bar.1")
+    W("pe", "bar.3", "ULM")
+    for slot, cls, a, b, _ in SlotWires():
+        W(cls, "S%d" % slot, b)
+    return d
+
+
+# ---- the page
+
+WireCss = (".ac{stroke-width:.4}.va,.ve{stroke-width:.32}.zp{stroke-width:.34}"
+           ".zs,.pe{stroke-width:.28}.lv{stroke-width:.3}.zl{stroke-width:.24}"
+           ".sg{stroke-width:.17}.sgc{stroke-width:.36}.cb{stroke-width:.75}")
+
+
+def DeckFrame(d):
+    """The deck's frame, plate or ring, rails, ducts, slots, PE stud, 110 VAC compartment, walls."""
+    sh, M = d.Sh, d.M
+    F = Frame
+
+    def Rect(box, fill, stroke=0.25, cls=None):
+        x0, y0, x1, y1 = M.R(box)
+        if cls:
+            sh.Rect(x0, y0, x1 - x0, y1 - y0, cls)
+            return
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width="%s"/>'
+               % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0), fill, Fmt(stroke)))
+
+    Rect((0, 0, BoxD, BoxW), "#fff", 0.35)
+    if d.Deck == "lower":
+        for box in ((0, 0, BoxD, F), (0, BoxW - F, BoxD, BoxW), (0, F, F, BoxW - F), (BoxD - F, F, BoxD, BoxW - F)):
+            Rect(box, ZoneFill["frame"], 0.15)
+    else:
+        x0, y0, x1, y1 = M.R((F, F, BoxD - F, BoxW - F))
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" stroke-width=".2" '
+               'stroke-dasharray="1.2 .7"/>' % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0)))
+    for x, y in PostCentres:
+        Rect((x - F / 2, y - F / 2, x + F / 2, y + F / 2), PostFill, 0.25)
+    for s in DeckSolids():
+        if s["deck"] == d.Deck and s["kind"] == "rail":
+            Rect(s["box"], None, cls="rail")
+    for s in DeckSolids():
+        if s["deck"] == d.Deck and s["kind"] == "duct":
+            Rect(s["box"], None, cls="duct")
+    # cable slots: holes in the upper plate; on the lower deck they are overhead
+    for i, (a0, b0, a1, b1) in enumerate(CableSlots):
+        x0, y0, x1, y1 = M.R((a0, b0, a1, b1))
+        r = min(x1 - x0, y1 - y0) / 2
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="none" stroke="%s" stroke-width=".35"%s/>'
+               % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0), Fmt(r), TolOrange,
+                  ' stroke-dasharray="1 .6"' if d.Deck == "lower" else ""))
+        lx, ly = (x1 + 0.8, y0 + 1.6) if i != 2 else (x0 + 0.4, y1 + 1.8)
+        sh.Text(lx, ly, "slot %d" % (i + 1), size=1.2, weight="bold", fill="#a0450f", halo=True)
+    px, py = PeStud["base" if d.Deck == "lower" else "upper"]
+    sh.Circle(M.X(px), M.Y(py), 0.9, "symf")
+    sh.Text(M.X(px) + 1.2, M.Y(py) - 0.9, "PE stud", size=1.0, halo=True)
+    if d.Deck == "lower":
+        zx, zy = M.X(MainsZoneX), M.Y(MainsZoneY)
+        sh.Wire([(zx, M.Y(BoxW - F)), (zx, zy), (M.X(BoxD - F), zy)], "ac", ' stroke-dasharray="2 1"')
+        sh.Text(zx + 1.0, zy + 2.4, "110 VAC compartment: no wall (ADR-0013); mains parts 10 mm inside this line,"
+                " low voltage outside it", size=1.15, fill=TolRed, weight="bold", halo=True)
+    # walls
+    x0, y0, x1, y1 = M.R((0, 0, BoxD, BoxW))
+    sh.Text(x0 + 1.0, y0 - 1.2, "LEFT WALL", size=1.4, weight="bold", halo=True)
+    sh.Text(x0 + 1.0, y1 + 2.6, "RIGHT WALL", size=1.4, weight="bold", halo=True)
+    sh.Text(x0 - 1.2, (y0 + y1) / 2, "FRONT", size=1.4, anchor="middle", weight="bold", rot=-90)
+    sh.Text(x1 + 2.4, (y0 + y1) / 2, "BACK", size=1.4, anchor="middle", weight="bold", rot=-90)
+
+
+def DeckExits(d, notes):
+    """The grommets, inlet and gland on the walls, with what leaves through each."""
+    sh, M = d.Sh, d.M
+    r = GrommetHole / 2
+    marks = []
+    for panel, u, what, key in CableEntries:
+        wall, z0 = PanelWall[panel]
+        if ("lower" if z0 == 0.0 else "upper") == d.Deck:
+            marks.append((key, wall, u - r, u + r))
+    if d.Deck == "lower":
+        marks += [("inlet", "back", InletU - 12.0, InletU + 12.0),
+                  ("gland", "back", DoorGland[0] - DoorGland[1] / 2, DoorGland[0] + DoorGland[1] / 2)]
+    for key, wall, a, b in marks:
+        if wall in ("left", "right"):
+            y = M.Y(0.0) - 0.9 if wall == "left" else M.Y(BoxW)
+            sh.FillRect(M.X(a), y, M.X(b) - M.X(a), 0.9, "#000")
+        else:
+            x = M.X(0.0) - 0.9 if wall == "front" else M.X(BoxD)
+            sh.FillRect(x, M.Y(a), 0.9, M.Y(b) - M.Y(a), "#000")
+        lines = notes[key]
+        bold = ["bold"] + ["normal"] * (len(lines) - 1)
+        if wall == "left":
+            for i, s2 in enumerate(lines):
+                sh.Text(M.X(b) + 1.0, M.Y(0.0) - 2.3 - (len(lines) - 1 - i) * 1.5, s2, size=1.15, weight=bold[i],
+                        halo=True)
+        elif wall == "right":
+            for i, s2 in enumerate(lines):
+                sh.Text(M.X(b) + 1.0, M.Y(BoxW) + 2.3 + i * 1.5, s2, size=1.15, weight=bold[i], halo=True)
+        elif wall == "front":
+            for i, s2 in enumerate(lines):
+                sh.Text(M.X(0.0) - 2.6 - (len(lines) - 1 - i) * 1.5, (M.Y(a) + M.Y(b)) / 2, s2, size=1.15,
+                        anchor="middle", rot=-90, weight=bold[i])
+        else:
+            for i, s2 in enumerate(lines):
+                sh.Text(M.X(BoxD) + 2.0 + i * 1.5, (M.Y(a) + M.Y(b)) / 2, s2, size=1.1, anchor="middle", rot=-90,
+                        weight=bold[i])
+
+
+def WireLegend(sh, x, y, w):
+    sh.Text(x, y, "Legend", size=2.0, weight="bold")
+    items = [("ac", "110 VAC"), ("va", "+24 V always on (FB1)"), ("ve", "+24 V behind K2 (FB2)"),
+             ("zp", "0 V power (0V-P, star S)"), ("zs", "0V-S signal 0 V"), ("pe", "PE"),
+             ("lv", "+6 V servo, +5 V Pi"), ("zl", "their 0 V"), ("sg", "signal"),
+             ("sgc", "multi-core signal cable"), ("cb", "motor cable")]
+    col = w / 2
     for i, (cls, lab) in enumerate(items):
-        cx = 8 + (i % 3) * 37.0
-        cy = y0 + 4.2 + (i // 3) * 2.6
-        sh.Wire([(cx, cy - 0.5), (cx + 5.5, cy - 0.5)], cls)
-        sh.Text(cx + 6.5, cy, lab, size=1.6)
-    cy = y0 + 4.2 + 4 * 2.6
-    sh.Rect(8, cy - 1.6, 5.5, 2.2, "duct")
-    sh.Text(14.5, cy, "wire duct", size=1.6)
-    sh.Rect(45, cy - 1.4, 5.5, 1.8, "rail")
-    sh.Text(51.5, cy, "DIN rail (TS35)", size=1.6)
-    sh.Rect(82, cy - 1.6, 1.0, 2.2, "bx")
-    sh.Rect(83, cy - 1.6, 1.0, 2.2, "bx")
-    sh.Wire([(82.5, cy - 0.5), (83.5, cy - 0.5)], "sym")
-    sh.Text(85.2, cy, "terminal block, bridged", size=1.6)
-    cy += 2.8
-    sh.Text(8, cy, "Field cables: one twisted pair per endstop; motor cables shielded, shield to PE at the drive end.",
-            size=1.45)
-    # rails and notes
-    nx = 122.0
-    sh.Text(nx, y0 + 1.0, "Five rails, top to bottom", size=2.2, weight="bold")
-    rl = ["1  X2, K2, FB1, Mega / Pi / screen bucks, PSU, K1, F0, X1, X0, PE bar",
-          "2  Star S, 0V-P bus, FB2, servo PSU (spare length at the right)",
-          "3  Drivers X Y1 Y2 Z A B C, ODrive S1, shield clamp bar",
-          "4  0V-S bus, Mega breakout, SSR-UV, SSR-valve",
-          "5  Field terminals X4 X5 X8 X7 X6, Pi 5, tower SSRs"]
-    for i, s2 in enumerate(rl):
-        sh.Text(nx, y0 + 4.0 + i * 2.25, s2, size=1.5)
-    notes = ["Arrangement, not to scale; terminal positions are drawn where the routing is clearest.",
-             "Land each wire on the terminal it is drawn to. Measure parts before cutting rail and duct.",
-             "Gauges, copper only: mains L and N, PSU to FB1, K2, FB2 and S, S to 0V-P: 12 AWG.",
-             "F2-1 to F2-7: 18 AWG. F2-8: 16. F0 rung: 300 V insulation. Everything else: 20 AWG.",
-             "TB6600, ODrive, bucks, SSR modules, Mega and Pi need DIN clips or carriers.",
-             "Bond every rail and the frame to PE (chassis stud); 0 V meets PE only at S.",
-             "Open items and the firmware gap: sheet 1, notes 3 to 5."]
-    for i, s2 in enumerate(notes):
-        sh.Text(nx, y0 + 16.4 + i * 2.25, s2, size=1.5)
+        cx, cy = x + (i % 2) * col, y + 3.2 + (i // 2) * 2.3
+        sh.Wire([(cx, cy - 0.45), (cx + 5.0, cy - 0.45)], cls)
+        sh.Text(cx + 6.0, cy, lab, size=1.3)
+    cy = y + 3.2 + 6 * 2.3
+    sh.Rect(x, cy - 1.4, 5.0, 1.8, "duct")
+    sh.Text(x + 6.0, cy, "wire duct", size=1.3)
+    sh.Rect(x + col, cy - 1.2, 5.0, 1.4, "rail")
+    sh.Text(x + col + 6.0, cy, "DIN rail", size=1.3)
+    cy += 2.3
+    sh.Add('<rect x="%s" y="%s" width="5" height="1.8" rx=".9" fill="none" stroke="%s" stroke-width=".35"/>'
+           % (Fmt(x), Fmt(cy - 1.4), TolOrange))
+    sh.Text(x + 6.0, cy, "cable slot (dashed: overhead)", size=1.3)
+    sh.Dot(x + col + 2.5, cy - 0.45, "zp", r=0.3)
+    sh.Text(x + col + 6.0, cy, "wire ends in a slot", size=1.3)
+    cy += 2.3
+    sh.FillRect(x, cy - 1.0, 5.0, 0.9, "#000")
+    sh.Text(x + 6.0, cy, "grommet, inlet or gland", size=1.3)
+    sh.Rect(x + col, cy - 1.4, 5.0, 1.8, "bx")
+    sh.Text(x + col + 6.0, cy, "part (dashed: size assumed)", size=1.3)
+    return cy + 1.5
+
+
+def SlotTable(sh, x, y):
+    sh.Text(x, y, "Wires between the decks", size=2.0, weight="bold")
+    y += 2.8
+    cur = None
+    for slot, cls, a, b, what in SlotWires():
+        if slot != cur:
+            cur = slot
+            x0, y0, x1, y1 = CableSlots[slot - 1]
+            sh.Text(x, y, "Slot %d (x %s-%s, y %s-%s)" % (slot, Mm(x0), Mm(x1), Mm(y0), Mm(y1)), size=1.3,
+                    weight="bold")
+            y += 1.8
+        sh.Wire([(x + 0.4, y - 0.45), (x + 3.4, y - 0.45)], cls)
+        sh.Text(x + 4.2, y, what, size=1.2)
+        y += 1.55
+    return y
+
+
+def DeckSheet(deck):
+    """Sheet 2A or 2B. Routes the deck, widens every lane its wires overflow, and routes again until
+    every wire has a track inside its lane."""
+    bands = {}
+    for _ in range(12):
+        bx = [(lo, hi, k) for ax, lo, hi, k in bands.values() if ax == "x"]
+        by = [(lo, hi, k) for ax, lo, hi, k in bands.values() if ax == "y"]
+        sh = Sheet("RMR control panel wiring, %s deck" % deck)
+        sh.CssExtra = WireCss
+        d = DeckWiring(sh, deck, DeckMap(bx, by))
+        DeckFrame(d)
+        (LowerWiring if deck == "lower" else UpperWiring)(d)
+        use = d.Route()
+        over = [n for n, (need, cap) in use.items() if need > cap]
+        if not over:
+            break
+        for n in over:
+            L = d.Lanes[n]
+            need = 2 * WireMargin + (use[n][0] - 1) * WirePitch + 0.25
+            have = L.Across[1] - L.Across[0]
+            x0, y0, x1, y1 = L.Real
+            band = ("y", y0, y1) if L.Axis == "x" else ("x", x0, x1)
+            k = bands[n][3] if n in bands else 1.0
+            bands[n] = band + (k * need / have * 1.04,)
+    else:
+        raise ValueError("%s deck: the lanes %s still overflow" % (deck, ", ".join(over)))
+    MainsWireChecks(d)
+    d.Draw()
+    CrossChecks(d)
+    return sh, d, use, bands
+
+
+def CrossChecks(d):
+    """Raise unless no two parts overlap on paper and no drawn wire passes through a part: a run may
+    end on a part's face but not cross its inside. Motor cables pass the shield clamp, which holds
+    their shields."""
+    eps = 0.05
+
+    def Inside(a, b):
+        return a[0] < b[2] - eps and b[0] < a[2] - eps and a[1] < b[3] - eps and b[1] < a[3] - eps
+
+    parts = list(d.Parts.items())
+    for i, (ka, ra) in enumerate(parts):
+        for kb, rb in parts[i + 1:]:
+            if Inside(ra, rb):
+                raise ValueError("%s deck: %s overlaps %s" % (d.Deck, ka, kb))
+    segs = []
+    for pts, cls, w in d.Drawn:
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            segs.append((min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2), w))
+    for pts, cls, w in d.Drawn:
+        # no corner or end of one wire on another wire: that would read as a joint. Wires that meet at
+        # a terminal are joined there anyway; wires that cross at right angles are not joined
+        mine = set(e for e in (w["a"], w["b"]) if d.Ends[e][0] == "t")
+        for x, y in pts:
+            for x0, y0, x1, y1, v in segs:
+                if v is not w and not mine & set((v["a"], v["b"])) and                         x0 - 1e-6 <= x <= x1 + 1e-6 and y0 - 1e-6 <= y <= y1 + 1e-6:
+                    raise ValueError("%s deck: %s to %s touches %s to %s at (%.2f, %.2f)"
+                                     % (d.Deck, w["a"], w["b"], v["a"], v["b"], x, y))
+    for pts, cls, w in d.Drawn:
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            seg = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+            for key, r in parts:
+                if cls == "cb" and key == "clamp":
+                    continue
+                if (x1 == x2 and r[0] + eps < x1 < r[2] - eps and Inside((r[0], seg[1], r[2], seg[3]), r)) or                         (y1 == y2 and r[1] + eps < y1 < r[3] - eps and Inside((seg[0], r[1], seg[2], r[3]), r)):
+                    raise ValueError("%s deck: a %s wire runs through %s" % (d.Deck, cls, key))
+
+
+def MainsWireChecks(d):
+    """Raise unless every 110 VAC wire stays in the compartment's lanes and the mains duct; the PSU's
+    own DC leads keep to the mains duct; and no other wire but PE enters any of them (ADR-0013)."""
+    inside = set(d.Mains) | ({"mains duct"} if d.Mains else set())
+    for w in d.Wires:
+        lanes = set(w["path"])
+        dc = w["cls"] != "ac" and (w["a"].startswith("PSU.") or w["b"].startswith("PSU."))
+        if w["cls"] == "ac" and not lanes <= inside:
+            raise ValueError("110 VAC wire %s to %s leaves the compartment by %s" % (w["a"], w["b"], lanes - inside))
+        if w["cls"] not in ("ac", "pe") and lanes & (set(d.Mains) if dc else inside):
+            raise ValueError("low-voltage wire %s to %s runs in the 110 VAC compartment" % (w["a"], w["b"]))
+
+
+ExitNotes = {
+    "LL": ["Lower left grommet", "ODrive 24 V: F2-8 and 0V-P 2", "Pi 5 V: the 5 V PSU", "E-stop loop: the door cable from X2"],
+    "inlet": ["IEC inlet with switch Q0", "L, N, PE"],
+    "gland": ["M20 gland: door 110 V", "X1 1-3 and PE"],
+    "UL": ["Upper left grommet: field cables", "X4 to the endstops, a pair each; X5 to the servos;",
+           "X6 to the lid (S4 and UV array, S5) and the argon valve"],
+    "ULM": ["Upper left grommet 2", "6 motor cables, gantry PE trunk"],
+    "UF": ["Upper front grommet", "to the operator panel: Mega USB, Pi GPIO to the tower SSRs;",
+           "to the spin coater base: J11 (ODrive UART)"],
+    "UR": ["Upper right grommet", "X7 to the tower, 1 motor cable"],
+}
+FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "spare"],
+           "FB1": ["spare", "5 V PSU", "spare", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
+                   "spare"]}
+FuseAmps = {"FB2": ["5", "5", "5", "5", "5", "5", "5", "10", "3", "2", "2", ""],
+            "FB1": ["", "3", "", "3", "3", "", "", "", "", "", "", ""]}
+
+
+def WireNotes(deck):
+    common = [
+        "Seen from above, front at the left, so the left wall is at the top. Each part sits where sheet 3",
+        "puts it; ducts and channels are drawn wider than scale so that every wire shows: measure from sheet 3.",
+        "Terminals are drawn on the face their wires leave from; read the real order off each part.",
+        "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and",
+        "the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button",
+        "are wired at the panel). The ODrive sits in the spin coater's base.",
+        "Gauges, copper only: mains, the PSU to FB1, K2 and S, K2 to FB2, S to 0V-P: 12 AWG. F2-1 to F2-7:",
+        "18 AWG; F2-8: 16 AWG; the F0 rung: 300 V insulation; everything else: 20 AWG.",
+        "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
+        "0 V meets PE only at star S, by its one wire to the lower ground bar.",
+        "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
+        "5 V PSU's current for the Pi 5 (5.1 V, 5 A)."]
+    if deck == "lower":
+        return common + [
+            "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
+            "terminal finger-safe or covered (ADR-0013). Fuses: F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A,",
+            "F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T. The PSU's terminal order is assumed."]
+    return common + [
+        "Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper",
+        "right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.",
+        "The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck",
+        "behind every rail; the upper left grommet, beside X7, would save most of that run.",
+        "1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield."]
+
+
+def BuildDeckWiring(deck):
+    """Sheet 2A (lower deck) or 2B (upper deck)."""
+    sh, d, use, bands = DeckSheet(deck)
+    lower = deck == "lower"
+    DrawFrame(sh, "RMR control panel: %s deck wiring" % deck,
+              ("Lower deck, on the base plate: 110 VAC and 24 V power. " if lower else
+               "Upper deck, on the upper plate: drives, logic and field terminals. ") +
+              "Sheet 1's circuits on the parts of sheet 3, every wire from terminal to terminal.")
+    DeckExits(d, ExitNotes)
+    if lower:
+        for key in ("FB2", "FB1"):
+            for i in range(12):
+                x, y = d.Ends["%s.%d" % (key, i + 1)][1:3]
+                amps = FuseAmps[key][i]
+                lab = "F%s-%d  %s" % (key[2], i + 1, FuseUse[key][i]) + ("  %s A" % amps if amps else "")
+                d.Sh.Text(x + 0.33, y - 1.2, lab, size=0.95, anchor="start", rot=-90,
+                          fill="#555" if FuseUse[key][i] == "spare" else None)
+    cx, cw = 256.0, 94.0
+    y = WireLegend(sh, cx, 30.0, cw)
+    y = SlotTable(sh, cx, y + 3.4)
+    sh.Text(cx, y + 2.6, "Notes", size=2.0, weight="bold")
+    for i, s2 in enumerate(WireNotes(deck)):
+        sh.Text(cx, y + 5.4 + i * 1.75, s2, size=1.2)
     TitleBlock(sh, 256, 186, 92, 21.5, [
-        "RMR control panel: DIN-rail layout",
-        "Sheet 2 of 2. Legal 14 x 8.5 in, landscape. Print at 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14.",
+        "RMR control panel: %s deck wiring" % deck,
+        "Sheet 2%s (2%s: %s deck). Legal 14 x 8.5 in, landscape, 100 %%." % (("A", "B", "upper") if lower else
+                                                                            ("B", "A", "lower")),
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).",
         "Status: design, not yet built or tested.",
-        "Circuits and part data: sheet 1.",
+        "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
     ])
+    return sh
 
 
 # ---------------------------------------------------------------- sheets 3 and 4: enclosure
@@ -1537,7 +2007,7 @@ RingName = "Grommet ring"
 # 5 V PSU (moved from 292 when FB1 became a 12-way and the fuse rail grew over it: issue #158).
 CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Upper side, left", 390.0, "most motor cables", "ULM"),
-                ("Upper front", 110.0, "Mega USB, J11", "UF"),
+                ("Upper front", 110.0, "Mega USB, J11, Pi GPIO", "UF"),
                 ("Upper side, right", 292.0, "one motor cable, the tower", "UR"),
                 ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
 
@@ -3136,7 +3606,7 @@ def RunChecks():
 
 
 DinRailStock, DinRailsOnHand = 18 * 25.4, 5   # the 18 in aluminum rails on hand (issue #158)
-PeBarTerms = 4                     # USLKG blocks in the PE bar on the 110 V rail (sheet 2, rail 1)
+PeBarTerms = 4                     # USLKG blocks in the PE bar on the 110 V rail (sheet 2A)
 # The aluminum rails are stiff enough once screwed down (issue #158): a TS35 x 7.5 rail of 1.0 mm sheet
 # (roughly the EN 60715 outline: a 27 mm base, two 6.5 mm webs, two 4 mm lips) lies on its plate, so gravity
 # only presses it down; the worst pull is a part hanging off it with the box on its side, taken as the
@@ -3206,7 +3676,7 @@ def BuildPacking():
     upper = UpperRails()
     wireStudy, wireDrawn = StudyScore()
     room = TopIn - UpDeck - DrvH
-    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11", "UR": "motor, tower", "LL": "ODrive, Pi, E-stop"}
+    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11, GPIO", "UR": "motor, tower", "LL": "ODrive, Pi, E-stop"}
 
     def Plan(v, deck):
         """Rails first, then ducts, parts and the clamp, each at its footprint."""
@@ -3424,12 +3894,12 @@ def BuildPacking():
             "its slots wait for the fan's size. Five 50 mm",
             "grommets: upper left at x %s (field) and" % at["UL"],
             "x %s (motors, at the back run's end), upper" % at["ULM"],
-            "front (USB, J11), upper right (a motor, the",
-            "tower), lower left (ODrive 24 V, Pi 5 V,",
-            "E-stop). Mains in at the back wall in line with",
-            "the 110 V rail; the 110 V door cable leaves",
-            "beside it by an M20 gland; no wall around",
-            "the mains parts (ADR-0013)."]),
+            "front (USB, J11, Pi GPIO), upper right (a",
+            "motor, the tower), lower left (ODrive 24 V,",
+            "Pi 5 V, E-stop). Mains in at the back wall in",
+            "line with the 110 V rail; the 110 V door cable",
+            "leaves beside it by an M20 gland; no wall",
+            "around the mains parts (ADR-0013)."]),
         ("Sizes: along x across x high (mm)", [
             "TB6600 28 x 96 x 68, measured. From the",
             "listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U",
@@ -4508,7 +4978,8 @@ def Main():
     outDir = sys.argv[1] if len(sys.argv) > 1 else os.path.join("docs", "wiring")
     os.makedirs(outDir, exist_ok=True)
     sheets = [("wiring_schematic_legal.svg", BuildSchematic()),
-              ("wiring_din_rails_legal.svg", BuildPanel()),
+              ("wiring_din_rails_lower_legal.svg", BuildDeckWiring("lower")),
+              ("wiring_din_rails_upper_legal.svg", BuildDeckWiring("upper")),
               ("packing_study_legal.svg", BuildPacking()),
               ("frame_plates_legal.svg", BuildFrame()),
               ("gantry_mount_legal.svg", BuildGantry())]
