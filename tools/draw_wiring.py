@@ -3773,10 +3773,14 @@ def BuildPacking():
     RailFill, ClipFill = "#888888", "#FFFFFF"
 
     def Elevation(v, depth):
-        """Every solid seen from the front (depth "x": a = y) or from the left (depth "y": a = x),
-        painted farthest first: DIN rails dark, printed clips white and dashed."""
-        k = 0 if depth == "x" else 1
-        for s in sorted(solids, key=lambda t: -t["box"][k]):
+        """Every solid seen from the front (depth "x": a = y) or from the right wall (depth "y": a = x,
+        so the front stays at the left, under the plan), painted farthest first: DIN rails dark,
+        printed clips white and dashed."""
+        if depth == "x":
+            order = lambda t: -t["box"][0]       # the front face nearest
+        else:
+            order = lambda t: t["box"][3]        # the right wall's side nearest
+        for s in sorted(solids, key=order):
             x0, y0, x1, y1 = s["box"]
             a0, a1 = (y0, y1) if depth == "x" else (x0, x1)
             base = LoDeck if s["deck"] == "lower" else UpDeck
@@ -3799,8 +3803,8 @@ def BuildPacking():
                 sh.Text(v.X(a), v.Y(z) + off + size * 0.35, s2, size=size, anchor="middle", halo=True)
 
     def Mid(rail, key=None):
-        """Centre of a rail's run, or of its first part `key`, along the rail."""
-        p = [q for q in rail["run"] if key is None or q[0] == key]
+        """Centre of a rail's run, or of its parts whose key or label is `key`, along the rail."""
+        p = [q for q in rail["run"] if key is None or key in q[:2]]
         return (p[0][2] + p[-1][3]) / 2
 
     lower = LowerRails()
@@ -3828,19 +3832,24 @@ def BuildPacking():
     sh.Text(fr.X(BoxW / 2), fr.Y(0) + 2.4, "base plate under the frame", size=1.1, anchor="middle")
     sh.Text(fr.X(BoxW - 2), fr.Y(0) + 2.4, "RIGHT", size=1.2, weight="bold", anchor="end")
 
+    # Seen from the right wall, projected from plan B above it: the 24 V PSU, the 110 V rail and the
+    # motor duct stand nearest and hide the fuse modules, the field terminals and the Mega.
     sd = View(sh, 150.0, 127.5, BoxD, BoxH, S)
-    sd.Title("D  Side view from the left", "left rails left off; nearer parts hide farther ones")
+    sd.Title("D  Side view from the right", "right rails left off; nearer parts hide farther ones")
     SectionFrame(sd, BoxD)
     Elevation(sd, "y")
-    Tag(sd, Mid(lower["fuses"], "FB2"), LoDeck + 31, ["FB2"])
-    Tag(sd, Mid(lower["fuses"], "FB1"), LoDeck + 31, ["FB1"])
-    Tag(sd, Mid(lower["5 V PSU"]), LoDeck + 35, ["5 V PSU"])
-    Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 64, ["K2"])
-    Tag(sd, (Mid(lower["24 V"], "K2") + PsuX0 + PartSize["PSU24"][0]) / 2 + 20, LoDeck + 60,
-        ["24 V PSU behind"], size=1.0)
-    Tag(sd, Mid(lower["110 V"], "K1"), LoDeck + 62, ["K1"])
-    Tag(sd, Mid(upper["field"]), UpDeck + 21, ["field terminals, 42 on rail"])
-    Tag(sd, Mid(upper["logic"], "Mega"), UpDeck + 47, ["Mega"], size=1.0)
+    mainsDuct = [s["box"] for s in solids if s["kind"] == "duct" and s["mains"]][0]
+    clamp = ClampBox()
+    Tag(sd, Mid(lower["24 V PSU"]), LoDeck + 42, ["24 V PSU, flat", "fan face this side"])
+    Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 71.6, ["K2 behind"], size=1.0)
+    Tag(sd, (mainsDuct[0] + mainsDuct[2]) / 2, LoDeck + 12.7, ["mains"], size=1.0, rot=-90)
+    for label, z in (("PE", 30), ("X1", 30), ("K1", 60), ("F0", 55), ("X0", 30)):
+        Tag(sd, Mid(lower["110 V"], label), LoDeck + z, [label])
+    # the strips of the 5 V PSU and FB1 that show over the 42 mm terminal blocks
+    Tag(sd, Mid(lower["110 V"], "X0"), LoDeck + 45.7, ["5 V PSU behind"], size=0.9)
+    Tag(sd, (Mid(lower["110 V"], "PE") + Mid(lower["110 V"], "X1")) / 2, LoDeck + 46.3, ["FB1 behind"], size=0.9)
+    Tag(sd, (upper["drivers"]["a0"] + clamp[0]) / 2, UpDeck + 19, ["motor duct"])
+    Tag(sd, (clamp[0] + clamp[2]) / 2, UpDeck + 20, ["shield clamp"], size=1.0, rot=-90)
     for key, label, a0, a1 in upper["drivers"]["run"]:
         Tag(sd, (a0 + a1) / 2, UpDeck + 70, [label], size=1.4)
     Tag(sd, upper["SSR"]["centre"], UpDeck + 60, ["SSRs"])
@@ -3986,7 +3995,8 @@ def ModuleBrace(sh, x, y0, y1, label):
 
 
 def FrameElevation(sh, v, span, fromFront):
-    """The frame seen from the left side (span = BoxD) or from the front (span = BoxW)."""
+    """The frame seen from the right side (span = BoxD, the front at the left, under the plates) or
+    from the front (span = BoxW)."""
     F = Frame
     dash = ' stroke-dasharray="1 .6"'
     railLen = RingShort if fromFront else RingLong
@@ -4117,9 +4127,9 @@ def BuildFrame():
                      "  None over the 110 VAC compartment (y %s up)." % Mm(MainsZoneY)]
         sh.Lines(v.X(0), v.Y(v.Bottom) + 8.2, sched, size=1.3, lead=1.85)
 
-    # ------------------------------------------------ the frame from the left and from the front
+    # ------------------------------------------------ the frame from the right and from the front
     sd = View(sh, 18.0, 133.0, BoxD, BoxH, S)
-    sd.Title("C  Frame from the left side", "studs dark, screws dashed")
+    sd.Title("C  Frame from the right side", "studs dark, screws dashed")
     FrameElevation(sh, sd, BoxD, False)
     sd.DimV(LoDeck, UpPlate0, 300, "%s lower bay" % Mm(UpPlate0 - LoDeck))
     sd.DimV(UpDeck, TopIn, 300, "%s upper bay" % Mm(TopIn - UpDeck))
@@ -4372,9 +4382,9 @@ def BuildGantry():
         v.Poly([(a, F), (a + sgn * F, F), (a + sgn * F, F + t), (a + sgn * t, F + t), (a + sgn * t, 2 * F),
                 (a, 2 * F)], fill=BracketFill, stroke=0.15)
 
-    # ------------------------------------------------ A: from the left side, front on the left
+    # ------------------------------------------------ A: from the right side, front on the left
     va = View(sh, 62.0, 30.0, BoxD, span, S)
-    va.Title("A  Box in the gantry, from the left side", "front on the left")
+    va.Title("A  Box in the gantry, from the right side", "front on the left")
     va.Line([(-90, -FootH), (BoxD + 90, -FootH)], "zl")
     sh.Text(va.X(BoxD + 88), va.Y(-FootH) + 2.0, "floor", size=1.2, anchor="end")
     va.Box(0, 0, BoxD, LoDeck, fill=PlateFill, stroke=0.1)
