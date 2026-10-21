@@ -17,7 +17,7 @@ This project used **Claude** (Anthropic) as its main AI development tool, and Gi
 
 ## What GitHub Copilot Was Used For
 
-- The GitHub Copilot coding agent contributed to the April to August 2026 work that was squashed into PR #106 (it is a co-author on that commit). That includes the `SpinCoatUVCure.gcode` protocol, which has never been run on the machine.
+- The GitHub Copilot coding agent contributed to the April to August 2026 work that was squashed into PR #106 (it is a co-author on that commit). That includes the `SpinCoatUVCure.gcode` protocol (now `archive/e-axis-programs/SpinCoatUVCure.gcode`), which has never been run on the machine.
 
 ## What AI Was NOT Used For
 
