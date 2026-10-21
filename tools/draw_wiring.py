@@ -2177,9 +2177,9 @@ def BuildNomenclature():
 # Pi behind it, S1 (the power knob, its H1 lamp inside), S2 (the E-stop) and S3 (Reset), as ordered on
 # 2026-09-14: a 22 mm latching rotary selector with a green 110 V lamp, a 2NC red mushroom, and a blue
 # momentary button. The screen shows the Touch UI's Jog tab. Sizes are assumed (OpPanel): the screen is
-# a generic 10.1 in HDMI module and the housing is not designed yet. Beside it, dashed and faint, a
-# future pad of arrow keys and a select key, to drive the screen without touching it; nothing about it
-# is designed (OpNav).
+# a generic 10.1 in HDMI module and the housing is not designed yet. A faint extension of the housing,
+# inside a dashed outline round the whole future panel, holds a pad of arrow keys and a select key to
+# drive the screen without touching it; nothing about it is designed (OpNav).
 OpScale = 1.5                                      # real mm per paper mm
 OpPanel = (360.0, 220.0)                           # housing front, assumed
 OpScreen = (15.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
@@ -2224,7 +2224,7 @@ def BuildOperatorPanel():
     sh = Sheet("RMR operator panel")
     DrawFrame(sh, "RMR control panel: operator panel",
               "Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what "
-              "each control wires to. The dashed pad beside it is a future feature.")
+              "each control wires to. The dashed outline is the panel as it may grow.")
     sh.Add(OpDefs)
     X0, Y0, S = 14.0, 27.0, OpScale
 
@@ -2253,6 +2253,12 @@ def BuildOperatorPanel():
 
     W, H = OpPanel
     # housing, screen module, active area
+    # the panel as it may grow: a faint extension joined to the housing's right edge, and a dashed
+    # outline round both. Drawn first, so the housing's own outline stays on top where they meet
+    pitch, key, sel = OpNav
+    ext = 2 * pitch + key + 28.0
+    Rect(W - 8.0, 0, ext + 8.0, H, "url(#opHousing)", stroke="none", sw=0, rx=8.0, extra=' fill-opacity=".35"')
+    Rect(0, 0, W + ext, H, "none", sw=0.35, rx=8.0, extra=' stroke-dasharray="1.6 1"')
     Rect(0, 0, W, H, "url(#opHousing)", sw=0.4, rx=8.0)
     sx, sy, sw_, sh_ = OpScreen
     Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=4.0)
@@ -2304,15 +2310,10 @@ def BuildOperatorPanel():
     Label(kx + 20.0, 170.0, ["I"], size=1.4)
     Plate(kx, 195.0, 50.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
 
-    # the future arrow pad, dashed and faint, off to the right of the panel: four arrow keys round a
-    # select key, to move between the screen's controls and press one without touching the screen
-    pitch, key, sel = OpNav
-    fw, fh = 2 * pitch + key + 24.0, 2 * pitch + key + 40.0
-    fx, fy = W + 14.0, (H - fh) / 2
+    # the future arrow pad, in the extension drawn first above: four arrow keys round a select key,
+    # to move between the screen's controls and press one without touching the screen
+    cx, cy = W + ext / 2, 80.0
     ghost = ' fill-opacity=".4" stroke-dasharray="1 .7"'
-    Rect(fx, fy, fw, fh, "url(#opHousing)", stroke="#000", sw=0.35, rx=6.0,
-         extra=' fill-opacity=".35" stroke-dasharray="1.6 1"')
-    cx, cy = fx + fw / 2, fy + 12.0 + pitch + key / 2
     for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0)):
         kx_, ky_ = cx + dx * pitch, cy + dy * pitch
         Rect(kx_ - key / 2, ky_ - key / 2, key, key, "#777777", sw=0.25, rx=3.0, extra=ghost)
@@ -2324,17 +2325,15 @@ def BuildOperatorPanel():
     Disc(cx, cy, sel + 6.0, "url(#opRing)", sw=0.25, extra=ghost)
     Disc(cx, cy, sel, "#228833", sw=0.25, extra=ghost)
     Label(cx, cy + 1.5, ["SELECT"], size=1.3, fill="#FFFFFF")
-    Label(cx, fy + fh - 10.0, ["arrow keys and select"], size=1.4, fill="#555555")
-    Label(cx, fy - 4.0, ["FUTURE"], size=1.8, fill="#555555")
-    lx, ly = P(W, H / 2)
-    rx_, _ = P(fx, 0)
-    sh.Wire([(lx + 0.6, ly), (rx_ - 0.6, ly)], "mech")
-    px, py = P(fx, fy + fh + 8.0)
-    for i, s2 in enumerate(["Arrow keys and select, to use the screen without touching it",
-                            "(gloves, dirty hands). Not designed: how the keys reach the Pi",
-                            "(a USB keypad sends arrows and Enter with no new wiring; GPIO",
-                            "keys would need new code, since rmr_bridge.py's buttons only",
-                            "send G-code), and how the Touch UI moves between its controls."]):
+    Label(cx, 18.0, ["FUTURE"], size=1.8, fill="#555555")
+    Label(cx, cy + pitch + key / 2 + 14.0, ["arrow keys and select"], size=1.4, fill="#555555")
+    px, py = P(W + 8.0, cy + pitch + key / 2 + 26.0)
+    for i, s2 in enumerate(["To use the screen without touching it (gloves,",
+                            "dirty hands). Not designed: how the keys reach",
+                            "the Pi (a USB keypad sends arrows and Enter with",
+                            "no new wiring; GPIO keys need new code, since",
+                            "rmr_bridge.py's buttons only send G-code), and",
+                            "how the Touch UI moves between its controls."]):
         TextFill(sh, px, py + i * 2.0, s2, 1.35, "#555555")
 
     # what each control wires to
