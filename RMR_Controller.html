@@ -1871,6 +1871,10 @@ function processLine(line) {
       // exit that can leave the stat block partial. Vbus and the Home card are
       // not cycle results, so they stay.
       if (state === 'CONNECTING') spinClearStats();
+      // BOOTING precedes boot(), which runs only until the first boot after a
+      // reset succeeds, and the datum is RAM-only: whatever the Home card shows
+      // died with that reset. InitialPos refills it if boot() captures one.
+      if (state === 'BOOTING') document.getElementById('spinValHome').textContent = '—';
     }
 
     // ── Terminal markers: OK: / ERR: ──

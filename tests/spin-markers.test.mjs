@@ -151,6 +151,14 @@ for (const [v, want] of [['1281.38', '136.8'], ['-0.25', '270.0'], ['3433.00', '
 }
 feed('echo:SPIN DATA: InitialPos=10.3757');
 ok('DATA: InitialPos uses the same transform', el('spinValHome').textContent === '135.3', el('spinValHome').textContent);
+// A boot after a reset: the old datum is gone; with no stable read, boot()
+// emits no InitialPos, so the card must stay blank (spincoater.cpp:337-341).
+el('spinValHome').textContent = '136.8';
+feedAll(['echo:SPIN STATE:BOOTING',
+         'echo:SPIN WARN: could not read a consistent initial position -- no datum, run M751 before relying on angles',
+         'echo:SPIN OK: READY']);
+ok('STATE:BOOTING blanks the Home card until boot() reports a datum',
+   el('spinValHome').textContent === DASH, el('spinValHome').textContent);
 el('spinValHome').textContent = 'untouched';
 feed('echo:SPIN DATA: DegFromHome=12.5');
 ok('DegFromHome (never emitted) no longer drives the card', el('spinValHome').textContent === 'untouched',
