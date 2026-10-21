@@ -563,6 +563,7 @@
   .spin-phase-dot.warn { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
   .spin-phase-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
   .spin-phase-label { font-size: 13px; font-weight: 600; }
+  .spin-warn { background: var(--bg); border: 2px solid var(--yellow); border-left-width: 6px; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; color: var(--yellow); font-size: 13px; white-space: pre-line; }
 
   @media (max-width: 600px) {
     .spin-2col { grid-template-columns: 1fr !important; }
@@ -963,6 +964,8 @@
         <span class="spin-phase-dot" id="spinPhaseDot"></span>
         <span class="spin-phase-label" id="spinPhaseLabel">Idle</span>
       </div>
+      <!-- echo:SPIN WARN: lines for the command whose verdict is above (#47) -->
+      <div class="spin-warn" id="spinWarn" role="status" hidden></div>
       <div class="spin-telem-row">
         <div class="rpm-gauge gauge-stale" id="spinGaugeRPM">
           <div class="gauge-label">Speed</div>
@@ -1017,7 +1020,7 @@
             <div class="spin-stat-card"><div class="label">Max</div><div class="value" id="spinValMax">&mdash;</div><div class="unit">RPM</div></div>
             <div class="spin-stat-card"><div class="label">Samples</div><div class="value" id="spinValSamples">&mdash;</div><div class="unit">&nbsp;</div></div>
             <div class="spin-stat-card"><div class="label">Bus Voltage</div><div class="value" id="spinValVbus">&mdash;</div><div class="unit">V</div></div>
-            <div class="spin-stat-card"><div class="label">Home Pos</div><div class="value" id="spinValHome">&mdash;</div><div class="unit">deg</div></div>
+            <div class="spin-stat-card" title="Home datum from DATA: HomePos (M751) or DATA: InitialPos (boot). The firmware sends it in ODrive turns to 0.01 turn, so this is the angle within one turn, good to 1.8 deg either way."><div class="label">Home Pos</div><div class="value" id="spinValHome">&mdash;</div><div class="unit">deg in turn &plusmn;1.8</div></div>
             <div class="spin-stat-card"><div class="label">Range</div><div class="value" id="spinValRange">&mdash;</div><div class="unit">RPM</div></div>
           </div>
         </div>
@@ -1721,6 +1724,7 @@ function processLine(line) {
   rlRx(line);   // Run Log observes every line (spin DATA:/OK:/ERR:, 'start', MOTOR POWER LOST)
   if (line.startsWith('echo:SPIN ')) {
     const spinMsg = line.substring(10);
+    spinWarnTrack(spinMsg);   // WARN: row + toast; never touches the verdict
     if (spinMsg.startsWith('TELEM:')) {
       const rpmM = spinMsg.match(/RPM=([-\d.]+)/), degM = spinMsg.match(/DEG=([-\d.]+)/);
       if (rpmM) spinUpdateGaugeRPM(parseFloat(rpmM[1]));
@@ -1732,14 +1736,14 @@ function processLine(line) {
       const stateMap = {
         'BOOTING':['warn','Booting ODrive...'],'WAITING_ODRIVE':['warn','Waiting for ODrive...'],
         'INDEX_SEARCH_BOOT':['warn','Boot index search...'],'INDEX_SEARCH_ACTIVE':['warn','Index search active...'],
-        'INDEX_SETTLE_BOOT':['warn','Settling to index...'],'INDEX_SETTLE':['warn','Settling to index...'],
+        'INDEX_SETTLE_BOOT':['warn','Settling to index...'],
         'CONNECTING':['warn','Connecting to ODrive...'],'ODRIVE_FOUND':['active','ODrive found'],
         'CALIBRATING':['warn','Calibrating...'],'FULL_CALIBRATION':['warn','Full calibration...'],
         'CLOSED_LOOP':['active','Closed-loop active'],'RAMP_UP':['active','Ramping up...'],
         'MEASURING':['active','Measuring speed...'],'RAMP_DOWN':['warn','Decelerating...'],
         'SETTLING':['warn','Settling...'],'STOPPED':['active','Motor stopped'],
         'HOMING':['warn','Homing...'],'ENTERING_IDLE':['warn','Entering idle...'],
-        'INDEX_FOUND_INSTANT':['active','Index found'],'HOME_SETTLE':['warn','Settling to datum...'],
+        'HOME_SETTLE':['warn','Settling to datum...'],
         'RAMP_TIMEOUT':['error','Ramp-up timeout!'],'RAMP_STALL':['error','RPM stall detected!'],
         'MEASURE_LINK_LOST':['error','Telemetry lost while measuring!'],
         'DECEL_LINK_LOST':['error','Telemetry lost while decelerating!'],
@@ -1755,6 +1759,13 @@ function processLine(line) {
       // the previous phase on screen, which reads as "still running".
       if (hit) spinSetPhase(...stateMap[hit]);
       else     spinSetPhase('warn', 'State: ' + state);
+      // A new cycle starts with blank RPM stat cards, so a Samples=0 measure or
+      // a MEASURE_LINK_LOST abort shows dashes, not the last cycle's numbers
+      // (#47). CONNECTING is emitted only by M750, once per cycle, after the two
+      // returns that run no cycle (bad parameters, boot failure) and before any
+      // exit that can leave the stat block partial. Vbus and the Home card are
+      // not cycle results, so they stay.
+      if (state === 'CONNECTING') spinClearStats();
     }
 
     // ── Terminal markers: OK: / ERR: ──
@@ -1790,6 +1801,10 @@ function processLine(line) {
       else if (tok.startsWith('INDEX_COMPLETE')) spinSetPhase('idle','Index search done');
       else if (tok.startsWith('HOME_SET'))       spinSetPhase('idle','Home datum set');
       else if (tok.startsWith('READY'))          spinSetPhase('idle','ODrive ready');
+      // M410 (the sequencer's Stop) honored by a running M750. STATE:STOPPED
+      // arrives first and reads "Motor stopped", the same as a normal stop;
+      // this line comes after it, so it is the one left on screen.
+      else if (tok.startsWith('ABORTED'))        { spinSetPhase('warn','Aborted by operator'); showToast('Spin aborted by operator', 'warn'); }
       // "OK: Cycle — RPM=..." is a summary line, not a terminal marker. It falls
       // through on purpose; CYCLE_COMPLETE is what closes the phase.
     }
@@ -1802,17 +1817,18 @@ function processLine(line) {
       if (key==='MaxRPM')     document.getElementById('spinValMax').textContent=num.toFixed(1);
       if (key==='Samples')    document.getElementById('spinValSamples').textContent=Math.round(num);
       if (key==='Vbus')       document.getElementById('spinValVbus').textContent=num.toFixed(1);
-      if (key==='HomePos')    document.getElementById('spinValHome').textContent=(num*360).toFixed(1);
-      // boot() re-datums to wherever the rotor is and announces it as InitialPos.
-      // Neither UI displayed it, so the Home card kept showing a datum that no
-      // longer existed after any Mega reset (#47).
-      if (key==='InitialPos') document.getElementById('spinValHome').textContent=(num*360).toFixed(1);
-      if (key==='DegFromHome')document.getElementById('spinValHome').textContent=num.toFixed(1);
+      // HomePos (M751) and InitialPos (boot(), which re-datums to wherever the
+      // rotor is) are both the datum in absolute ODrive turns, a multi-turn
+      // float. Whole turns carry no angle, so the card shows the angle within
+      // one turn. It used to be keyed on DegFromHome too, which the firmware
+      // never emits (#47).
+      if (key==='HomePos' || key==='InitialPos') document.getElementById('spinValHome').textContent=spinTurnsToDeg(num);
       if (key==='Range')      document.getElementById('spinValRange').textContent=num.toFixed(1);
     }
     const vbusAlt = spinMsg.match(/Vbus=([\d.]+)/);
     if (vbusAlt) document.getElementById('spinValVbus').textContent=parseFloat(vbusAlt[1]).toFixed(1);
-    if (!spinMsg.startsWith('TELEM:')) logRx(line);
+    if (spinMsg.startsWith('ERR:')) logErr(line);          // a spincoater ERR: is styled as an error
+    else if (!spinMsg.startsWith('TELEM:')) logRx(line);
     return;
   }
   const posMatch = line.match(/X:([\d.-]+)\s+Y:([\d.-]+)\s+Z:([\d.-]+)/);
@@ -2197,6 +2213,48 @@ function spinSetPhase(state, text) {
   dot.className = 'spin-phase-dot';
   if (state==='active') dot.classList.add('active'); else if (state==='warn') dot.classList.add('warn'); else if (state==='error') dot.classList.add('error');
   document.getElementById('spinPhaseLabel').textContent = text;
+}
+
+// echo:SPIN WARN: lines (#47). A WARN is the firmware saying "done, but": the
+// boot datum is the index mark and not the operator's zero, an index result
+// could not be verified, a datum was kept rather than reached. It never changes
+// the verdict, so it never goes through spinSetPhase(); it gets its own row
+// under the phase bar and a warn toast. The row belongs to the command whose
+// verdict is on screen: a terminal marker closes that command, and the next
+// command's first line (anything but a WARN, a TELEM or another terminal
+// marker) clears it. OK: READY is not terminal, so the boot WARNs stay up for
+// the whole M75x that booted the ODrive. M750's abort paths end with no
+// terminal marker, so after a failed cycle the row stays up until a later
+// command closes with one. The \b keeps HOME_SET from matching a longer token.
+const SPIN_TERMINAL = /^(OK:\s*(CYCLE_COMPLETE|INDEX_COMPLETE|HOME_SET|ABORTED)|ERR:\s*(CYCLE_COMPLETE_NO_HOME|INDEX_HOME_FAILED|HOME_SET_FAILED))\b/;
+let spinWarnLines = [], spinWarnClosed = false;
+function spinWarnTrack(msg) {
+  if (msg.startsWith('WARN:')) {
+    const text = msg.substring(5).trim();
+    spinWarnLines.push(text);
+    if (spinWarnLines.length > 6) spinWarnLines.shift();
+    showToast(text, 'warn');
+  } else {
+    const terminal = SPIN_TERMINAL.test(msg);
+    const clear = spinWarnClosed && !terminal && !msg.startsWith('TELEM:');
+    if (terminal) spinWarnClosed = true;
+    if (!clear) return;
+    spinWarnLines = []; spinWarnClosed = false;
+  }
+  const row = document.getElementById('spinWarn');
+  row.textContent = spinWarnLines.map(t => 'Warning: ' + t).join('\n');
+  row.hidden = spinWarnLines.length === 0;
+}
+function spinClearStats() {
+  for (const id of ['spinValMean','spinValStd','spinValMin','spinValMax','spinValRange','spinValSamples'])
+    document.getElementById(id).textContent = '—';
+}
+// Datum in absolute turns -> angle within one turn, [0, 360). The firmware
+// prints the float to 2 decimals, so 0.01 turn (3.6 deg) is the real step.
+function spinTurnsToDeg(turns) {
+  if (!isFinite(turns)) return '—';
+  const deg = ((turns % 1) + 1) % 1 * 360;
+  return (deg >= 359.95 ? 0 : deg).toFixed(1);   // never print 360.0
 }
 
 // ═══════════════ Process Sequencer ═══════════════
