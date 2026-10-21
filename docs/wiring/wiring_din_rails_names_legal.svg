@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<title>RMR control panel names and terminals</title>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}
+path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
+.ac{stroke:#CC3311;stroke-width:.6}
+.va{stroke:#0077BB;stroke-width:.5}
+.ve{stroke:#EE3377;stroke-width:.5}
+.zp{stroke:#000;stroke-width:.55}
+.zs{stroke:#33BBEE;stroke-width:.5}
+.pe{stroke:#009988;stroke-width:.45;stroke-dasharray:2.4 .7 .5 .7}
+.lv{stroke:#EE7733;stroke-width:.42}
+.sg{stroke:#000;stroke-width:.22}
+.zl{stroke:#000;stroke-width:.3}
+.cb{stroke:#000;stroke-width:.85}
+.sgc{stroke:#000;stroke-width:.5}
+.mo{stroke:#000;stroke-width:.3}
+.un{stroke-dasharray:1.1 .8}
+.mech{stroke:#000;stroke-width:.2;stroke-dasharray:.8 .6}
+.sym{stroke:#000;stroke-width:.32;fill:none}
+.symf{stroke:#000;stroke-width:.32;fill:#fff}
+.bx{fill:#fff;stroke:#000;stroke-width:.3}
+.bxl{fill:#fff;stroke:#000;stroke-width:.22}
+.frame{fill:none;stroke:#000;stroke-width:.4}
+.zone{fill:none;stroke:#888;stroke-width:.2;stroke-dasharray:1.5 1}
+.rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
+.duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
+.dot{stroke:none}
+</style>
+<rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
+<rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
+<rect class="bx" x="256" y="186" width="92" height="21.5"/>
+<text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: names and terminals</text>
+<text x="8" y="15.4" font-size="2.1">Sheet 2C: what each name on sheets 1, 2A and 2B is and where it sits, and what lands on every terminal. The terminal plan is read from the wire lists that draw sheets 2A and 2B.</text>
+<text x="8" y="22" font-size="2.3" font-weight="bold">Lower deck: 110 VAC and 24 V power</text>
+<text x="8" y="25" font-size="1.8" font-weight="bold">Q0</text>
+<text x="26" y="25" font-size="1.8">switch on the IEC inlet: isolates the mains</text>
+<text x="73" y="25" font-size="1.8">back wall</text>
+<text x="8" y="27.4" font-size="1.8" font-weight="bold">X0</text>
+<text x="26" y="27.4" font-size="1.8">mains in: L, L, N, N, PE from the inlet</text>
+<text x="73" y="27.4" font-size="1.8">110 V rail</text>
+<text x="8" y="29.8" font-size="1.8" font-weight="bold">F0</text>
+<text x="26" y="29.8" font-size="1.8">fuse holder, 1 A T: feeds the K1 rung</text>
+<text x="73" y="29.8" font-size="1.8">110 V rail</text>
+<text x="8" y="32.2" font-size="1.8" font-weight="bold">K1</text>
+<text x="26" y="32.2" font-size="1.8">110 VAC contactor HC1-63: mains to the 24 V PSU,</text>
+<text x="26" y="34.6" font-size="1.8">coil by S1</text>
+<text x="73" y="32.2" font-size="1.8">110 V rail</text>
+<text x="8" y="37" font-size="1.8" font-weight="bold">X1</text>
+<text x="26" y="37" font-size="1.8">door 110 V: out to S1 and H1 on the panel</text>
+<text x="73" y="37" font-size="1.8">110 V rail</text>
+<text x="8" y="39.4" font-size="1.8" font-weight="bold">PE</text>
+<text x="26" y="39.4" font-size="1.8">4 ground blocks: inlet PE, PSU FG, door plate,</text>
+<text x="26" y="41.8" font-size="1.8">lower bar</text>
+<text x="73" y="39.4" font-size="1.8">110 V rail</text>
+<text x="8" y="44.2" font-size="1.8" font-weight="bold">PSU</text>
+<text x="26" y="44.2" font-size="1.8">24 V 1200 W supply, lying flat, fan to the right</text>
+<text x="26" y="46.6" font-size="1.8">wall</text>
+<text x="73" y="44.2" font-size="1.8">110 VAC area</text>
+<text x="8" y="49" font-size="1.8" font-weight="bold">FB1</text>
+<text x="26" y="49" font-size="1.8">12-way fuse module: +24 V always on</text>
+<text x="73" y="49" font-size="1.8">fuse rail</text>
+<text x="8" y="51.4" font-size="1.8" font-weight="bold">FB2</text>
+<text x="26" y="51.4" font-size="1.8">12-way fuse module: +24 V cut by the E-stop</text>
+<text x="26" y="53.8" font-size="1.8">(behind K2)</text>
+<text x="73" y="51.4" font-size="1.8">fuse rail</text>
+<text x="8" y="56.2" font-size="1.8" font-weight="bold">K2</text>
+<text x="26" y="56.2" font-size="1.8">24 V contactor BMC7-25U: 1-2 and 3-4 in series</text>
+<text x="26" y="58.6" font-size="1.8">feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 that</text>
+<text x="26" y="61" font-size="1.8">motor power is on</text>
+<text x="73" y="56.2" font-size="1.8">24 V rail</text>
+<text x="8" y="63.4" font-size="1.8" font-weight="bold">star S</text>
+<text x="26" y="63.4" font-size="1.8">the 0 V star at the PSU's -V; the only 0 V to PE</text>
+<text x="26" y="65.8" font-size="1.8">bond</text>
+<text x="73" y="63.4" font-size="1.8">24 V rail</text>
+<text x="8" y="68.2" font-size="1.8" font-weight="bold">0V-P 1, 2</text>
+<text x="26" y="68.2" font-size="1.8">0 V power buses, linked: drivers, ODrive, K2</text>
+<text x="26" y="70.6" font-size="1.8">coil, loads</text>
+<text x="73" y="68.2" font-size="1.8">24 V rail</text>
+<text x="8" y="73" font-size="1.8" font-weight="bold">servo PSU</text>
+<text x="26" y="73" font-size="1.8">6 V DC-DC for the gripper and lid servos</text>
+<text x="73" y="73" font-size="1.8">beside 24 V rail</text>
+<text x="8" y="75.4" font-size="1.8" font-weight="bold">5 V PSU</text>
+<text x="26" y="75.4" font-size="1.8">feeds the Pi at the operator panel</text>
+<text x="73" y="75.4" font-size="1.8">24 V row, back</text>
+<text x="8" y="77.8" font-size="1.8" font-weight="bold">ground bar</text>
+<text x="26" y="77.8" font-size="1.8">lower PE bar on the base plate's PE stud</text>
+<text x="73" y="77.8" font-size="1.8">behind servo PSU</text>
+<text x="8" y="81.4" font-size="2.3" font-weight="bold">Upper deck: drives, logic, field terminals</text>
+<text x="8" y="84.4" font-size="1.8" font-weight="bold">X2</text>
+<text x="26" y="84.4" font-size="1.8">E-stop latch: the door cable from S2 and S3</text>
+<text x="73" y="84.4" font-size="1.8">field rail</text>
+<text x="8" y="86.8" font-size="1.8" font-weight="bold">X4</text>
+<text x="26" y="86.8" font-size="1.8">endstops: a signal and a common for each axis</text>
+<text x="73" y="86.8" font-size="1.8">field rail</text>
+<text x="8" y="89.2" font-size="1.8" font-weight="bold">X5</text>
+<text x="26" y="89.2" font-size="1.8">servos: 6 V, 0 V and signal for the gripper and</text>
+<text x="26" y="91.6" font-size="1.8">lid</text>
+<text x="73" y="89.2" font-size="1.8">field rail</text>
+<text x="8" y="94" font-size="1.8" font-weight="bold">X6</text>
+<text x="26" y="94" font-size="1.8">lid (UV array, switch S5) and the argon valve</text>
+<text x="73" y="94" font-size="1.8">field rail</text>
+<text x="8" y="96.4" font-size="1.8" font-weight="bold">X7</text>
+<text x="26" y="96.4" font-size="1.8">status tower: red, amber, green, buzzer, common</text>
+<text x="73" y="96.4" font-size="1.8">field rail</text>
+<text x="8" y="98.8" font-size="1.8" font-weight="bold">X8</text>
+<text x="26" y="98.8" font-size="1.8">spare (was the screen supply and the home</text>
+<text x="26" y="101.2" font-size="1.8">button)</text>
+<text x="73" y="98.8" font-size="1.8">field rail</text>
+<text x="8" y="103.6" font-size="1.8" font-weight="bold">Mega</text>
+<text x="26" y="103.6" font-size="1.8">Arduino Mega 2560 on a screw shield; runs on the</text>
+<text x="26" y="106" font-size="1.8">Pi's USB</text>
+<text x="73" y="103.6" font-size="1.8">logic rail</text>
+<text x="8" y="108.4" font-size="1.8" font-weight="bold">0V-S</text>
+<text x="26" y="108.4" font-size="1.8">signal 0 V bus, 9 linked: driver COMs, Mega GND,</text>
+<text x="26" y="110.8" font-size="1.8">endstops</text>
+<text x="73" y="108.4" font-size="1.8">logic rail</text>
+<text x="8" y="113.2" font-size="1.8" font-weight="bold">0V-S2</text>
+<text x="26" y="113.2" font-size="1.8">second 0V-S group: SSR input returns, S5 return</text>
+<text x="73" y="113.2" font-size="1.8">logic rail</text>
+<text x="8" y="115.6" font-size="1.8" font-weight="bold">SSR-UV</text>
+<text x="26" y="115.6" font-size="1.8">DC solid-state relay: Mega pin 4 switches the UV</text>
+<text x="26" y="118" font-size="1.8">array</text>
+<text x="73" y="115.6" font-size="1.8">SSR rail</text>
+<text x="8" y="120.4" font-size="1.8" font-weight="bold">SSR-valve</text>
+<text x="26" y="120.4" font-size="1.8">DC solid-state relay: Mega pin 42 switches the</text>
+<text x="26" y="122.8" font-size="1.8">argon valve</text>
+<text x="73" y="120.4" font-size="1.8">SSR rail</text>
+<text x="8" y="125.2" font-size="1.8" font-weight="bold">tower R A G</text>
+<text x="26" y="125.2" font-size="1.8">DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber,</text>
+<text x="26" y="127.6" font-size="1.8">green lamps</text>
+<text x="73" y="125.2" font-size="1.8">SSR rail</text>
+<text x="8" y="130" font-size="1.8" font-weight="bold">buzzer</text>
+<text x="26" y="130" font-size="1.8">DC SSR: Pi GPIO 26 switches the tower's buzzer</text>
+<text x="73" y="130" font-size="1.8">SSR rail</text>
+<text x="8" y="132.4" font-size="1.8" font-weight="bold">X ... C</text>
+<text x="26" y="132.4" font-size="1.8">TB6600 drivers: X, Y1, Y2 (follows Y), Z, A</text>
+<text x="26" y="134.8" font-size="1.8">(filter feed), B (syringe height), C (syringe)</text>
+<text x="73" y="132.4" font-size="1.8">drivers rail</text>
+<text x="8" y="137.2" font-size="1.8" font-weight="bold">shield clamp</text>
+<text x="26" y="137.2" font-size="1.8">grips the motor cables' shields, bonded to PE</text>
+<text x="73" y="137.2" font-size="1.8">past the drivers</text>
+<text x="8" y="139.6" font-size="1.8" font-weight="bold">ground bar</text>
+<text x="26" y="139.6" font-size="1.8">upper PE bar on the upper plate's PE stud</text>
+<text x="73" y="139.6" font-size="1.8">behind back run</text>
+<text x="8" y="143.2" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
+<text x="8" y="146.2" font-size="1.8" font-weight="bold">S1, H1</text>
+<text x="26" y="146.2" font-size="1.8">panel knob that switches K1 on; H1 its lamp, lit</text>
+<text x="26" y="148.6" font-size="1.8">while K1 is in</text>
+<text x="73" y="146.2" font-size="1.8">operator panel</text>
+<text x="8" y="151" font-size="1.8" font-weight="bold">S2</text>
+<text x="26" y="151" font-size="1.8">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
+<text x="26" y="153.4" font-size="1.8">(GPIO 20)</text>
+<text x="73" y="151" font-size="1.8">operator panel</text>
+<text x="8" y="155.8" font-size="1.8" font-weight="bold">S3</text>
+<text x="26" y="155.8" font-size="1.8">Reset push button (NO): pulls K2 in after an</text>
+<text x="26" y="158.2" font-size="1.8">E-stop</text>
+<text x="73" y="155.8" font-size="1.8">operator panel</text>
+<text x="8" y="160.6" font-size="1.8" font-weight="bold">S4</text>
+<text x="26" y="160.6" font-size="1.8">lid switch in series with the UV array: closed =</text>
+<text x="26" y="163" font-size="1.8">lid shut</text>
+<text x="73" y="160.6" font-size="1.8">lid</text>
+<text x="8" y="165.4" font-size="1.8" font-weight="bold">S5</text>
+<text x="26" y="165.4" font-size="1.8">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
+<text x="26" y="167.8" font-size="1.8">for now)</text>
+<text x="73" y="165.4" font-size="1.8">lid</text>
+<text x="8" y="170.2" font-size="1.8" font-weight="bold">D1</text>
+<text x="26" y="170.2" font-size="1.8">1N4007 across the argon valve's coil, band to +</text>
+<text x="73" y="170.2" font-size="1.8">at the valve</text>
+<text x="8" y="172.6" font-size="1.8" font-weight="bold">Pi</text>
+<text x="26" y="172.6" font-size="1.8">Raspberry Pi 5 with the touch screen, runs</text>
+<text x="26" y="175" font-size="1.8">rmr_bridge.py</text>
+<text x="73" y="172.6" font-size="1.8">operator panel</text>
+<text x="8" y="177.4" font-size="1.8" font-weight="bold">ODrive</text>
+<text x="26" y="177.4" font-size="1.8">ODrive S1 spin coater drive; J11 is its UART</text>
+<text x="73" y="177.4" font-size="1.8">spin coater base</text>
+<text x="8" y="179.8" font-size="1.8" font-weight="bold">X, Y (nodes)</text>
+<text x="26" y="179.8" font-size="1.8">E-stop latch nodes: X after NC1, Y after S3</text>
+<text x="26" y="182.2" font-size="1.8">(sheet 1, rung B)</text>
+<text x="73" y="179.8" font-size="1.8"></text>
+<text x="95" y="22" font-size="2.3" font-weight="bold">Terminal plan</text>
+<text x="95" y="25" font-size="1.8" font-weight="bold" fill="#555">No.</text>
+<text x="100" y="25" font-size="1.8" fill="#555">label</text>
+<text x="107.5" y="25" font-size="1.8" fill="#555">in the box (by)</text>
+<text x="147" y="25" font-size="1.8" fill="#555">field side (by)</text>
+<text x="95" y="28.6" font-size="2.3" font-weight="bold">X2  (upper deck)</text>
+<text x="95" y="31.6" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="31.6" font-size="1.8">1</text>
+<text x="107.5" y="31.6" font-size="1.8">door cable, LL (slot 3); F1-5 (slot 3)</text>
+<text x="147" y="31.6" font-size="1.8">+24 V to S2 NC1</text>
+<text x="95" y="34" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="34" font-size="1.8">2</text>
+<text x="107.5" y="34" font-size="1.8">door cable, LL (slot 3)</text>
+<text x="147" y="34" font-size="1.8">NC1 out, S3 in (node X)</text>
+<text x="95" y="36.4" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="36.4" font-size="1.8">2b</text>
+<text x="107.5" y="36.4" font-size="1.8">K2 5 (slot 3)</text>
+<text x="147" y="36.4" font-size="1.8">-</text>
+<text x="95" y="38.8" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="38.8" font-size="1.8">3</text>
+<text x="107.5" y="38.8" font-size="1.8">door cable, LL (slot 3); K2 6 (slot 3)</text>
+<text x="147" y="38.8" font-size="1.8">S3 out (node Y)</text>
+<text x="95" y="41.2" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="41.2" font-size="1.8">3b</text>
+<text x="107.5" y="41.2" font-size="1.8">K2 A1 (slot 3)</text>
+<text x="147" y="41.2" font-size="1.8">-</text>
+<text x="95" y="43.6" font-size="1.8" font-weight="bold">6</text>
+<text x="100" y="43.6" font-size="1.8">4</text>
+<text x="107.5" y="43.6" font-size="1.8">-</text>
+<text x="147" y="43.6" font-size="1.8">spare: NC2 is wired at the panel</text>
+<text x="95" y="46" font-size="1.8" font-weight="bold">7</text>
+<text x="100" y="46" font-size="1.8">5</text>
+<text x="107.5" y="46" font-size="1.8">-</text>
+<text x="147" y="46" font-size="1.8">spare</text>
+<text x="95" y="49.6" font-size="2.3" font-weight="bold">X4  (upper deck)</text>
+<text x="95" y="52.6" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="52.6" font-size="1.8">3</text>
+<text x="107.5" y="52.6" font-size="1.8">Mega 3</text>
+<text x="147" y="52.6" font-size="1.8">endstop X signal (UL)</text>
+<text x="95" y="55" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="55" font-size="1.8">14</text>
+<text x="107.5" y="55" font-size="1.8">Mega 14</text>
+<text x="147" y="55" font-size="1.8">endstop Y signal (UL)</text>
+<text x="95" y="57.4" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="57.4" font-size="1.8">40</text>
+<text x="107.5" y="57.4" font-size="1.8">Mega 40</text>
+<text x="147" y="57.4" font-size="1.8">endstop Z signal (UL)</text>
+<text x="95" y="59.8" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="59.8" font-size="1.8">15</text>
+<text x="107.5" y="59.8" font-size="1.8">Mega 15</text>
+<text x="147" y="59.8" font-size="1.8">endstop A signal (UL)</text>
+<text x="95" y="62.2" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="62.2" font-size="1.8">23</text>
+<text x="107.5" y="62.2" font-size="1.8">Mega 23</text>
+<text x="147" y="62.2" font-size="1.8">endstop B signal (UL)</text>
+<text x="95" y="64.6" font-size="1.8" font-weight="bold">6</text>
+<text x="100" y="64.6" font-size="1.8">A9</text>
+<text x="107.5" y="64.6" font-size="1.8">Mega A9</text>
+<text x="147" y="64.6" font-size="1.8">endstop C signal (UL)</text>
+<text x="95" y="67" font-size="1.8" font-weight="bold">7</text>
+<text x="100" y="67" font-size="1.8">C</text>
+<text x="107.5" y="67" font-size="1.8">0V-S</text>
+<text x="147" y="67" font-size="1.8">endstop X common (UL)</text>
+<text x="95" y="69.4" font-size="1.8" font-weight="bold">8</text>
+<text x="100" y="69.4" font-size="1.8">C</text>
+<text x="107.5" y="69.4" font-size="1.8">bridged to 7</text>
+<text x="147" y="69.4" font-size="1.8">endstop Y common (UL)</text>
+<text x="95" y="71.8" font-size="1.8" font-weight="bold">9</text>
+<text x="100" y="71.8" font-size="1.8">C</text>
+<text x="107.5" y="71.8" font-size="1.8">bridged to 7</text>
+<text x="147" y="71.8" font-size="1.8">endstop Z common (UL)</text>
+<text x="95" y="74.2" font-size="1.8" font-weight="bold">10</text>
+<text x="100" y="74.2" font-size="1.8">C</text>
+<text x="107.5" y="74.2" font-size="1.8">bridged to 7</text>
+<text x="147" y="74.2" font-size="1.8">endstop A common (UL)</text>
+<text x="95" y="76.6" font-size="1.8" font-weight="bold">11</text>
+<text x="100" y="76.6" font-size="1.8">C</text>
+<text x="107.5" y="76.6" font-size="1.8">bridged to 7</text>
+<text x="147" y="76.6" font-size="1.8">endstop B common (UL)</text>
+<text x="95" y="79" font-size="1.8" font-weight="bold">12</text>
+<text x="100" y="79" font-size="1.8">C</text>
+<text x="107.5" y="79" font-size="1.8">bridged to 7</text>
+<text x="147" y="79" font-size="1.8">endstop C common (UL)</text>
+<text x="95" y="82.6" font-size="2.3" font-weight="bold">X5  (upper deck)</text>
+<text x="95" y="85.6" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="85.6" font-size="1.8">6V</text>
+<text x="107.5" y="85.6" font-size="1.8">servo PSU OUT+ (slot 2)</text>
+<text x="147" y="85.6" font-size="1.8">gripper servo +6 V (UL)</text>
+<text x="95" y="88" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="88" font-size="1.8">6V</text>
+<text x="107.5" y="88" font-size="1.8">bridged to 1</text>
+<text x="147" y="88" font-size="1.8">lid servo +6 V (UL)</text>
+<text x="95" y="90.4" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="90.4" font-size="1.8">0V</text>
+<text x="107.5" y="90.4" font-size="1.8">servo PSU OUT- (slot 2)</text>
+<text x="147" y="90.4" font-size="1.8">gripper servo 0 V (UL)</text>
+<text x="95" y="92.8" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="92.8" font-size="1.8">0V</text>
+<text x="107.5" y="92.8" font-size="1.8">bridged to 3</text>
+<text x="147" y="92.8" font-size="1.8">lid servo 0 V (UL)</text>
+<text x="95" y="95.2" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="95.2" font-size="1.8">P0</text>
+<text x="107.5" y="95.2" font-size="1.8">Mega 5</text>
+<text x="147" y="95.2" font-size="1.8">gripper servo signal (UL)</text>
+<text x="95" y="97.6" font-size="1.8" font-weight="bold">6</text>
+<text x="100" y="97.6" font-size="1.8">P1</text>
+<text x="107.5" y="97.6" font-size="1.8">Mega 6</text>
+<text x="147" y="97.6" font-size="1.8">lid servo signal (UL)</text>
+<text x="95" y="101.2" font-size="2.3" font-weight="bold">X6  (upper deck)</text>
+<text x="95" y="104.2" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="104.2" font-size="1.8">UV+</text>
+<text x="107.5" y="104.2" font-size="1.8">SSR-UV out -</text>
+<text x="147" y="104.2" font-size="1.8">S4, then the UV array + (UL)</text>
+<text x="95" y="106.6" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="106.6" font-size="1.8">UV-</text>
+<text x="107.5" y="106.6" font-size="1.8">0V-P 2 (slot 2)</text>
+<text x="147" y="106.6" font-size="1.8">UV array - (UL)</text>
+<text x="95" y="109" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="109" font-size="1.8">S5</text>
+<text x="107.5" y="109" font-size="1.8">Mega 39</text>
+<text x="147" y="109" font-size="1.8">lid switch S5 (UL)</text>
+<text x="95" y="111.4" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="111.4" font-size="1.8">S5c</text>
+<text x="107.5" y="111.4" font-size="1.8">0V-S2</text>
+<text x="147" y="111.4" font-size="1.8">S5's other side (UL)</text>
+<text x="95" y="113.8" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="113.8" font-size="1.8">V+</text>
+<text x="107.5" y="113.8" font-size="1.8">SSR-valve out -</text>
+<text x="147" y="113.8" font-size="1.8">argon valve + (D1 across) (UL)</text>
+<text x="95" y="116.2" font-size="1.8" font-weight="bold">6</text>
+<text x="100" y="116.2" font-size="1.8">V-</text>
+<text x="107.5" y="116.2" font-size="1.8">0V-P 2 (slot 2)</text>
+<text x="147" y="116.2" font-size="1.8">argon valve - (UL)</text>
+<text x="95" y="119.8" font-size="2.3" font-weight="bold">X7  (upper deck)</text>
+<text x="95" y="122.8" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="122.8" font-size="1.8">R</text>
+<text x="107.5" y="122.8" font-size="1.8">tower R out -</text>
+<text x="147" y="122.8" font-size="1.8">tower red (UR)</text>
+<text x="95" y="125.2" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="125.2" font-size="1.8">A</text>
+<text x="107.5" y="125.2" font-size="1.8">tower A out -</text>
+<text x="147" y="125.2" font-size="1.8">tower amber (UR)</text>
+<text x="95" y="127.6" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="127.6" font-size="1.8">G</text>
+<text x="107.5" y="127.6" font-size="1.8">tower G out -</text>
+<text x="147" y="127.6" font-size="1.8">tower green (UR)</text>
+<text x="95" y="130" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="130" font-size="1.8">Bz</text>
+<text x="107.5" y="130" font-size="1.8">buzzer out -</text>
+<text x="147" y="130" font-size="1.8">tower buzzer (UR)</text>
+<text x="95" y="132.4" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="132.4" font-size="1.8">C</text>
+<text x="107.5" y="132.4" font-size="1.8">0V-P 2 (slot 2)</text>
+<text x="147" y="132.4" font-size="1.8">tower common (UR)</text>
+<text x="95" y="136" font-size="2.3" font-weight="bold">X8  (upper deck)</text>
+<text x="95" y="139" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="139" font-size="1.8">-</text>
+<text x="107.5" y="139" font-size="1.8">-</text>
+<text x="147" y="139" font-size="1.8">-</text>
+<text x="95" y="141.4" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="141.4" font-size="1.8">-</text>
+<text x="107.5" y="141.4" font-size="1.8">-</text>
+<text x="147" y="141.4" font-size="1.8">-</text>
+<text x="95" y="143.8" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="143.8" font-size="1.8">-</text>
+<text x="107.5" y="143.8" font-size="1.8">-</text>
+<text x="147" y="143.8" font-size="1.8">-</text>
+<text x="95" y="146.2" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="146.2" font-size="1.8">-</text>
+<text x="107.5" y="146.2" font-size="1.8">-</text>
+<text x="147" y="146.2" font-size="1.8">-</text>
+<text x="95" y="149.8" font-size="2.3" font-weight="bold">0V-S  (upper deck)</text>
+<text x="95" y="152.8" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="152.8" font-size="1.8">X</text>
+<text x="107.5" y="152.8" font-size="1.8">K2 8 (slot 3); driver X COM</text>
+<text x="147" y="152.8" font-size="1.8">-</text>
+<text x="95" y="155.2" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="155.2" font-size="1.8">Y1</text>
+<text x="107.5" y="155.2" font-size="1.8">Mega GND; driver Y1 COM</text>
+<text x="147" y="155.2" font-size="1.8">-</text>
+<text x="95" y="157.6" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="157.6" font-size="1.8">Y2</text>
+<text x="107.5" y="157.6" font-size="1.8">X4 7; driver Y2 COM</text>
+<text x="147" y="157.6" font-size="1.8">-</text>
+<text x="95" y="160" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="160" font-size="1.8">Z</text>
+<text x="107.5" y="160" font-size="1.8">driver Z COM</text>
+<text x="147" y="160" font-size="1.8">-</text>
+<text x="95" y="162.4" font-size="1.8" font-weight="bold">5</text>
+<text x="100" y="162.4" font-size="1.8">A</text>
+<text x="107.5" y="162.4" font-size="1.8">driver A COM</text>
+<text x="147" y="162.4" font-size="1.8">-</text>
+<text x="95" y="164.8" font-size="1.8" font-weight="bold">6</text>
+<text x="100" y="164.8" font-size="1.8">B</text>
+<text x="107.5" y="164.8" font-size="1.8">driver B COM</text>
+<text x="147" y="164.8" font-size="1.8">-</text>
+<text x="95" y="167.2" font-size="1.8" font-weight="bold">7</text>
+<text x="100" y="167.2" font-size="1.8">C</text>
+<text x="107.5" y="167.2" font-size="1.8">driver C COM</text>
+<text x="147" y="167.2" font-size="1.8">-</text>
+<text x="95" y="169.6" font-size="1.8" font-weight="bold">8</text>
+<text x="100" y="169.6" font-size="1.8">J</text>
+<text x="107.5" y="169.6" font-size="1.8">bridged to 1</text>
+<text x="147" y="169.6" font-size="1.8">ODrive J11 GND (UF)</text>
+<text x="95" y="172" font-size="1.8" font-weight="bold">9</text>
+<text x="100" y="172" font-size="1.8">lk</text>
+<text x="107.5" y="172" font-size="1.8">0V-S2</text>
+<text x="147" y="172" font-size="1.8">-</text>
+<text x="95" y="175.6" font-size="2.3" font-weight="bold">0V-S2  (upper deck)</text>
+<text x="95" y="178.6" font-size="1.8" font-weight="bold">1</text>
+<text x="100" y="178.6" font-size="1.8">1</text>
+<text x="107.5" y="178.6" font-size="1.8">SSR-UV in -</text>
+<text x="147" y="178.6" font-size="1.8">-</text>
+<text x="95" y="181" font-size="1.8" font-weight="bold">2</text>
+<text x="100" y="181" font-size="1.8">2</text>
+<text x="107.5" y="181" font-size="1.8">SSR-valve in -</text>
+<text x="147" y="181" font-size="1.8">-</text>
+<text x="95" y="183.4" font-size="1.8" font-weight="bold">3</text>
+<text x="100" y="183.4" font-size="1.8">3</text>
+<text x="107.5" y="183.4" font-size="1.8">X6 4</text>
+<text x="147" y="183.4" font-size="1.8">-</text>
+<text x="95" y="185.8" font-size="1.8" font-weight="bold">4</text>
+<text x="100" y="185.8" font-size="1.8">lk</text>
+<text x="107.5" y="185.8" font-size="1.8">0V-S</text>
+<text x="147" y="185.8" font-size="1.8">-</text>
+<text x="182" y="22" font-size="2.3" font-weight="bold">X0  (lower deck)</text>
+<text x="182" y="25" font-size="1.8" font-weight="bold">1</text>
+<text x="187" y="25" font-size="1.8">L</text>
+<text x="194.5" y="25" font-size="1.8">K1 1</text>
+<text x="234" y="25" font-size="1.8">L from the inlet (inlet)</text>
+<text x="182" y="27.4" font-size="1.8" font-weight="bold">2</text>
+<text x="187" y="27.4" font-size="1.8">L</text>
+<text x="194.5" y="27.4" font-size="1.8">F0 in</text>
+<text x="234" y="27.4" font-size="1.8">-</text>
+<text x="182" y="29.8" font-size="1.8" font-weight="bold">3</text>
+<text x="187" y="29.8" font-size="1.8">N</text>
+<text x="194.5" y="29.8" font-size="1.8">K1 3</text>
+<text x="234" y="29.8" font-size="1.8">N from the inlet (inlet)</text>
+<text x="182" y="32.2" font-size="1.8" font-weight="bold">4</text>
+<text x="187" y="32.2" font-size="1.8">N</text>
+<text x="194.5" y="32.2" font-size="1.8">K1 A2; X1 3</text>
+<text x="234" y="32.2" font-size="1.8">-</text>
+<text x="182" y="34.6" font-size="1.8" font-weight="bold">5</text>
+<text x="187" y="34.6" font-size="1.8">PE</text>
+<text x="194.5" y="34.6" font-size="1.8">PE 1</text>
+<text x="234" y="34.6" font-size="1.8">PE from the inlet (inlet)</text>
+<text x="182" y="38.2" font-size="2.3" font-weight="bold">X1  (lower deck)</text>
+<text x="182" y="41.2" font-size="1.8" font-weight="bold">1</text>
+<text x="187" y="41.2" font-size="1.8">1</text>
+<text x="194.5" y="41.2" font-size="1.8">F0 out</text>
+<text x="234" y="41.2" font-size="1.8">to S1 (gland)</text>
+<text x="182" y="43.6" font-size="1.8" font-weight="bold">2</text>
+<text x="187" y="43.6" font-size="1.8">2</text>
+<text x="194.5" y="43.6" font-size="1.8">K1 A1</text>
+<text x="234" y="43.6" font-size="1.8">from S1: K1 coil, H1 (gland)</text>
+<text x="182" y="46" font-size="1.8" font-weight="bold">3</text>
+<text x="187" y="46" font-size="1.8">3</text>
+<text x="194.5" y="46" font-size="1.8">X0 4</text>
+<text x="234" y="46" font-size="1.8">N to H1 (gland)</text>
+<text x="182" y="49.6" font-size="2.3" font-weight="bold">PE  (lower deck)</text>
+<text x="182" y="52.6" font-size="1.8" font-weight="bold">1</text>
+<text x="187" y="52.6" font-size="1.8">PE</text>
+<text x="194.5" y="52.6" font-size="1.8">X0 5</text>
+<text x="234" y="52.6" font-size="1.8">-</text>
+<text x="182" y="55" font-size="1.8" font-weight="bold">2</text>
+<text x="187" y="55" font-size="1.8">PE</text>
+<text x="194.5" y="55" font-size="1.8">PSU FG</text>
+<text x="234" y="55" font-size="1.8">-</text>
+<text x="182" y="57.4" font-size="1.8" font-weight="bold">3</text>
+<text x="187" y="57.4" font-size="1.8">PE</text>
+<text x="194.5" y="57.4" font-size="1.8">-</text>
+<text x="234" y="57.4" font-size="1.8">door plate PE (gland)</text>
+<text x="182" y="59.8" font-size="1.8" font-weight="bold">4</text>
+<text x="187" y="59.8" font-size="1.8">PE</text>
+<text x="194.5" y="59.8" font-size="1.8">ground bar</text>
+<text x="234" y="59.8" font-size="1.8">-</text>
+<text x="182" y="63.4" font-size="2.3" font-weight="bold">Buses on the lower deck</text>
+<text x="182" y="66.4" font-size="1.8" font-weight="bold">star S</text>
+<text x="194.5" y="66.4" font-size="1.8">0V-P 1; PSU -V; 5 V PSU IN-; ground bar; servo PSU IN-</text>
+<text x="182" y="68.8" font-size="1.8" font-weight="bold">0V-P 1</text>
+<text x="194.5" y="68.8" font-size="1.8">driver A 0V (slot 1); driver B 0V (slot 1); driver C 0V (slot 1); star S;</text>
+<text x="194.5" y="71.2" font-size="1.8">K2 A2; 0V-P 2; driver X 0V (slot 1); driver Y1 0V (slot 1); driver Y2 0V</text>
+<text x="194.5" y="73.6" font-size="1.8">(slot 1); driver Z 0V (slot 1)</text>
+<text x="182" y="76" font-size="1.8" font-weight="bold">0V-P 2</text>
+<text x="194.5" y="76" font-size="1.8">0V-P 1; ODrive DC- (LL); X7 5 (slot 2); X6 2 (slot 2); X6 6 (slot 2)</text>
+<text x="182" y="79.6" font-size="2.3" font-weight="bold">Fuses</text>
+<text x="182" y="82.6" font-size="1.8" font-weight="bold">FB1</text>
+<text x="189" y="82.6" font-size="1.8">F1-1 spare, F1-2 5 V PSU (3 A), F1-3 spare, F1-4 tower (3 A), F1-5 latch (3 A),</text>
+<text x="189" y="85" font-size="1.8">F1-6 spare, F1-7 spare, F1-8 spare, F1-9 spare, F1-10 spare, F1-11 spare, F1-12</text>
+<text x="189" y="87.4" font-size="1.8">spare</text>
+<text x="182" y="89.8" font-size="1.8" font-weight="bold">FB2</text>
+<text x="189" y="89.8" font-size="1.8">F2-1 X (5 A), F2-2 Y1 (5 A), F2-3 Y2 (5 A), F2-4 Z (5 A), F2-5 A (5 A), F2-6 B</text>
+<text x="189" y="92.2" font-size="1.8">(5 A), F2-7 C (5 A), F2-8 ODrive (10 A), F2-9 servo (3 A), F2-10 UV (2 A), F2-11</text>
+<text x="189" y="94.6" font-size="1.8">valve (2 A), F2-12 spare</text>
+<text x="182" y="97" font-size="1.8" font-weight="bold">F0</text>
+<text x="189" y="97" font-size="1.8">1 A T, 5 x 20 mm: the K1 rung (S1, K1 coil, H1)</text>
+<text x="268" y="22" font-size="2.3" font-weight="bold">Cable entries and slots</text>
+<text x="268" y="25" font-size="1.8" font-weight="bold">UL</text>
+<text x="278" y="25" font-size="1.8">upper left grommet: field cables X4, X5, X6</text>
+<text x="268" y="27.4" font-size="1.8" font-weight="bold">ULM</text>
+<text x="278" y="27.4" font-size="1.8">upper left grommet 2: 6 motor cables, gantry PE</text>
+<text x="268" y="29.8" font-size="1.8" font-weight="bold">UF</text>
+<text x="278" y="29.8" font-size="1.8">upper front grommet: Mega USB, J11, Pi GPIO</text>
+<text x="268" y="32.2" font-size="1.8" font-weight="bold">UR</text>
+<text x="278" y="32.2" font-size="1.8">upper right grommet: X7 tower, 1 motor cable</text>
+<text x="268" y="34.6" font-size="1.8" font-weight="bold">LL</text>
+<text x="278" y="34.6" font-size="1.8">lower left grommet: ODrive 24 V, Pi 5 V, door cable</text>
+<text x="268" y="37" font-size="1.8" font-weight="bold">inlet</text>
+<text x="278" y="37" font-size="1.8">IEC inlet with switch Q0, back panel</text>
+<text x="268" y="39.4" font-size="1.8" font-weight="bold">gland</text>
+<text x="278" y="39.4" font-size="1.8">M20 gland, back panel: door 110 V cable</text>
+<text x="268" y="41.8" font-size="1.8" font-weight="bold">slot 1</text>
+<text x="278" y="41.8" font-size="1.8">upper plate: driver +V and 0 V</text>
+<text x="268" y="44.2" font-size="1.8" font-weight="bold">slot 2</text>
+<text x="278" y="44.2" font-size="1.8">upper plate: SSR feeds, returns, servo 6 V, PE link</text>
+<text x="268" y="46.6" font-size="1.8" font-weight="bold">slot 3</text>
+<text x="278" y="46.6" font-size="1.8">upper plate: E-stop latch, pin 43, door cable</text>
+<text x="268" y="50.2" font-size="2.3" font-weight="bold">Abbreviations</text>
+<text x="268" y="53.2" font-size="1.8" font-weight="bold">PE</text>
+<text x="287" y="53.2" font-size="1.8">protective earth</text>
+<text x="268" y="55.6" font-size="1.8" font-weight="bold">FG</text>
+<text x="287" y="55.6" font-size="1.8">the PSU's frame ground (earth) terminal</text>
+<text x="268" y="58" font-size="1.8" font-weight="bold">NC, NO</text>
+<text x="287" y="58" font-size="1.8">normally closed, normally open contact</text>
+<text x="268" y="60.4" font-size="1.8" font-weight="bold">SSR</text>
+<text x="287" y="60.4" font-size="1.8">solid-state relay</text>
+<text x="268" y="62.8" font-size="1.8" font-weight="bold">COM</text>
+<text x="287" y="62.8" font-size="1.8">common</text>
+<text x="268" y="65.2" font-size="1.8" font-weight="bold">PUL, DIR, ENA</text>
+<text x="287" y="65.2" font-size="1.8">a TB6600's step, direction, enable inputs</text>
+<text x="268" y="67.6" font-size="1.8" font-weight="bold">F1-n, F2-n</text>
+<text x="287" y="67.6" font-size="1.8">fuse n of FB1, of FB2</text>
+<text x="268" y="70" font-size="1.8" font-weight="bold">0V-P, 0V-S</text>
+<text x="287" y="70" font-size="1.8">0 V power, 0 V signal</text>
+<text x="268" y="72.4" font-size="1.8" font-weight="bold">GPIO</text>
+<text x="287" y="72.4" font-size="1.8">a Pi input/output pin (BCM numbers)</text>
+<text x="268" y="74.8" font-size="1.8" font-weight="bold">J11</text>
+<text x="287" y="74.8" font-size="1.8">the ODrive's isolated UART connector</text>
+<text x="268" y="77.2" font-size="1.8" font-weight="bold">RX2, TX2</text>
+<text x="287" y="77.2" font-size="1.8">the Mega's Serial2 pins (17, 16)</text>
+<text x="268" y="79.6" font-size="1.8" font-weight="bold">USLKG 5</text>
+<text x="287" y="79.6" font-size="1.8">DIN ground terminal block</text>
+<text x="268" y="82" font-size="1.8" font-weight="bold">UK 2.5 B</text>
+<text x="287" y="82" font-size="1.8">DIN feed-through terminal block</text>
+<text x="268" y="84.4" font-size="1.8" font-weight="bold">TS35</text>
+<text x="287" y="84.4" font-size="1.8">35 mm top-hat DIN rail</text>
+<text x="268" y="86.8" font-size="1.8" font-weight="bold">SJOOW</text>
+<text x="287" y="86.8" font-size="1.8">oil-resistant portable cord, 300 V</text>
+<text x="268" y="89.2" font-size="1.8" font-weight="bold">AWG</text>
+<text x="287" y="89.2" font-size="1.8">American wire gauge</text>
+<text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: names and terminals</text>
+<text x="258" y="194.4" font-size="2">Sheet 2C (2A, 2B: the decks). Legal 14 x 8.5 in, landscape, 100 %.</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).</text>
+<text x="258" y="199.9" font-size="2">Status: design, not yet built or tested.</text>
+<text x="258" y="202.65" font-size="2">Circuits: sheet 1. Positions: sheet 3. Wiring: sheets 2A, 2B.</text>
+</svg>

@@ -2,7 +2,8 @@
 
 Sheet 1: wiring schematic (every circuit on one page).
 Sheets 2A and 2B: the same circuits on the lower and upper decks of the box, every part where sheet 3
-puts it and every wire routed through the ducts and channels from terminal to terminal.
+puts it and every wire routed through the ducts and channels from terminal to terminal. Sheet 2C: what
+each name means, and the terminal plan read from the same wire lists.
 Sheet 3: packing study, two decks in a 2020 frame.
 Sheet 4: the frame and its two deck plates; the plates, and the side and top panels on their nest
 sheets, are also written as DXF for laser cutting.
@@ -996,6 +997,7 @@ class DeckWiring:
         self.Lanes, self.Ends, self.Parts, self.Wires, self.Exits = {}, {}, {}, [], {}
         self.Dots, self.Drawn = [], []
         self.Mains = ()            # lanes inside the 110 VAC compartment
+        self.Labels = {}           # terminal block: (slice labels, bridges), for sheet 2C
 
     # ---- geometry
     def AddLane(self, name, box, axis):
@@ -1063,6 +1065,7 @@ class DeckWiring:
         (into laneA) and KEY.nb on the y1 face (into laneB); bridges join slices (i, j)."""
         sh = self.Sh
         x0, y0, x1, y1 = self.Part(key, box)
+        self.Labels[key] = (labels, list(bridges))
         n = len(labels)
         w = (x1 - x0) / n
         for i, lab in enumerate(labels):
@@ -1897,6 +1900,273 @@ def BuildDeckWiring(deck):
         "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
+    ])
+    return sh
+
+
+# ---- sheet 2C: names and terminals
+
+# What each name on sheets 1, 2A and 2B means and where it sits, then the terminal plan: what lands on
+# every terminal block and bus, read from the same wire lists that draw sheets 2A and 2B (LowerWiring(),
+# UpperWiring(), SlotWires()), so the plan cannot drift from the drawings. Only the field side of a
+# terminal (what the cable meets outside the box) is written here by hand, in FieldUse.
+
+NameParts = [
+    ("Lower deck: 110 VAC and 24 V power", [
+        ("Q0", "switch on the IEC inlet: isolates the mains", "back wall"),
+        ("X0", "mains in: L, L, N, N, PE from the inlet", "110 V rail"),
+        ("F0", "fuse holder, 1 A T: feeds the K1 rung", "110 V rail"),
+        ("K1", "110 VAC contactor HC1-63: mains to the 24 V PSU, coil by S1", "110 V rail"),
+        ("X1", "door 110 V: out to S1 and H1 on the panel", "110 V rail"),
+        ("PE", "4 ground blocks: inlet PE, PSU FG, door plate, lower bar", "110 V rail"),
+        ("PSU", "24 V 1200 W supply, lying flat, fan to the right wall", "110 VAC area"),
+        ("FB1", "12-way fuse module: +24 V always on", "fuse rail"),
+        ("FB2", "12-way fuse module: +24 V cut by the E-stop (behind K2)", "fuse rail"),
+        ("K2", "24 V contactor BMC7-25U: 1-2 and 3-4 in series feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 "
+               "that motor power is on", "24 V rail"),
+        ("star S", "the 0 V star at the PSU's -V; the only 0 V to PE bond", "24 V rail"),
+        ("0V-P 1, 2", "0 V power buses, linked: drivers, ODrive, K2 coil, loads", "24 V rail"),
+        ("servo PSU", "6 V DC-DC for the gripper and lid servos", "beside 24 V rail"),
+        ("5 V PSU", "feeds the Pi at the operator panel", "24 V row, back"),
+        ("ground bar", "lower PE bar on the base plate's PE stud", "behind servo PSU"),
+    ]),
+    ("Upper deck: drives, logic, field terminals", [
+        ("X2", "E-stop latch: the door cable from S2 and S3", "field rail"),
+        ("X4", "endstops: a signal and a common for each axis", "field rail"),
+        ("X5", "servos: 6 V, 0 V and signal for the gripper and lid", "field rail"),
+        ("X6", "lid (UV array, switch S5) and the argon valve", "field rail"),
+        ("X7", "status tower: red, amber, green, buzzer, common", "field rail"),
+        ("X8", "spare (was the screen supply and the home button)", "field rail"),
+        ("Mega", "Arduino Mega 2560 on a screw shield; runs on the Pi's USB", "logic rail"),
+        ("0V-S", "signal 0 V bus, 9 linked: driver COMs, Mega GND, endstops", "logic rail"),
+        ("0V-S2", "second 0V-S group: SSR input returns, S5 return", "logic rail"),
+        ("SSR-UV", "DC solid-state relay: Mega pin 4 switches the UV array", "SSR rail"),
+        ("SSR-valve", "DC solid-state relay: Mega pin 42 switches the argon valve", "SSR rail"),
+        ("tower R A G", "DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber, green lamps", "SSR rail"),
+        ("buzzer", "DC SSR: Pi GPIO 26 switches the tower's buzzer", "SSR rail"),
+        ("X ... C", "TB6600 drivers: X, Y1, Y2 (follows Y), Z, A (filter feed), B (syringe height), "
+                    "C (syringe)", "drivers rail"),
+        ("shield clamp", "grips the motor cables' shields, bonded to PE", "past the drivers"),
+        ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
+    ]),
+    ("Outside the box (sheet 1)", [
+        ("S1, H1", "panel knob that switches K1 on; H1 its lamp, lit while K1 is in", "operator panel"),
+        ("S2", "E-stop mushroom: NC1 drops K2, NC2 tells the Pi (GPIO 20)", "operator panel"),
+        ("S3", "Reset push button (NO): pulls K2 in after an E-stop", "operator panel"),
+        ("S4", "lid switch in series with the UV array: closed = lid shut", "lid"),
+        ("S5", "lid switch to Mega pin 39 (UV_LID_INTERLOCK, off for now)", "lid"),
+        ("D1", "1N4007 across the argon valve's coil, band to +", "at the valve"),
+        ("Pi", "Raspberry Pi 5 with the touch screen, runs rmr_bridge.py", "operator panel"),
+        ("ODrive", "ODrive S1 spin coater drive; J11 is its UART", "spin coater base"),
+        ("X, Y (nodes)", "E-stop latch nodes: X after NC1, Y after S3 (sheet 1, rung B)", ""),
+    ]),
+]
+
+NameEntries = [
+    ("UL", "upper left grommet: field cables X4, X5, X6"),
+    ("ULM", "upper left grommet 2: 6 motor cables, gantry PE"),
+    ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
+    ("UR", "upper right grommet: X7 tower, 1 motor cable"),
+    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, door cable"),
+    ("inlet", "IEC inlet with switch Q0, back panel"),
+    ("gland", "M20 gland, back panel: door 110 V cable"),
+    ("slot 1", "upper plate: driver +V and 0 V"),
+    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link"),
+    ("slot 3", "upper plate: E-stop latch, pin 43, door cable"),
+]
+
+NameAbbrev = [
+    ("PE", "protective earth"), ("FG", "the PSU's frame ground (earth) terminal"),
+    ("NC, NO", "normally closed, normally open contact"), ("SSR", "solid-state relay"),
+    ("COM", "common"), ("PUL, DIR, ENA", "a TB6600's step, direction, enable inputs"),
+    ("F1-n, F2-n", "fuse n of FB1, of FB2"), ("0V-P, 0V-S", "0 V power, 0 V signal"),
+    ("GPIO", "a Pi input/output pin (BCM numbers)"), ("J11", "the ODrive's isolated UART connector"),
+    ("RX2, TX2", "the Mega's Serial2 pins (17, 16)"), ("USLKG 5", "DIN ground terminal block"),
+    ("UK 2.5 B", "DIN feed-through terminal block"), ("TS35", "35 mm top-hat DIN rail"),
+    ("SJOOW", "oil-resistant portable cord, 300 V"), ("AWG", "American wire gauge"),
+]
+
+# The field side of each terminal: what the cable meets outside the box, by (block, terminal).
+FieldUse = {}
+for _i, (_ax, _pin) in enumerate(EndstopPins):
+    FieldUse[("X4", _i + 1)] = "endstop %s signal" % _ax
+    FieldUse[("X4", _i + 7)] = "endstop %s common" % _ax
+FieldUse.update({
+    ("X5", 1): "gripper servo +6 V", ("X5", 2): "lid servo +6 V", ("X5", 3): "gripper servo 0 V",
+    ("X5", 4): "lid servo 0 V", ("X5", 5): "gripper servo signal", ("X5", 6): "lid servo signal",
+    ("X6", 1): "S4, then the UV array +", ("X6", 2): "UV array -", ("X6", 3): "lid switch S5",
+    ("X6", 4): "S5's other side", ("X6", 5): "argon valve + (D1 across)", ("X6", 6): "argon valve -",
+    ("X7", 1): "tower red", ("X7", 2): "tower amber", ("X7", 3): "tower green", ("X7", 4): "tower buzzer",
+    ("X7", 5): "tower common",
+    ("X2", 1): "+24 V to S2 NC1", ("X2", 2): "NC1 out, S3 in (node X)", ("X2", 4): "S3 out (node Y)",
+    ("X2", 6): "spare: NC2 is wired at the panel", ("X2", 7): "spare",
+    ("X0", 1): "L from the inlet", ("X0", 3): "N from the inlet", ("X0", 5): "PE from the inlet",
+    ("X1", 1): "to S1", ("X1", 2): "from S1: K1 coil, H1", ("X1", 3): "N to H1",
+    ("PE", 3): "door plate PE", ("0V-S", 8): "ODrive J11 GND", ("0V-P 2", "OD"): "ODrive DC-",
+})
+
+
+def NameEnd(name):
+    """A wire end as the terminal plan writes it."""
+    if name in ("S1", "S2", "S3"):
+        return "slot " + name[1]
+    if name == "LL":
+        return "LL"
+    if name == "ULM":
+        return "ULM"
+    if "#" in name:
+        return name.split("#")[0]
+    if "." not in name:
+        return "shield clamp" if name.startswith("clamp") else name
+    key, term = name.split(".", 1)
+    if key == "MEGA":
+        return "Mega " + ({"GND": "GND", "USB": "USB"}.get(term) or
+                          (term[1:] + " signals" if term.startswith("g") else term))
+    if key == "PSU":
+        return "PSU " + {"V+a": "+V", "V+b": "+V", "V-a": "-V", "V-b": "-V"}.get(term, term)
+    if key in DriveAxes:
+        return "driver %s %s" % (key, term)
+    if key in ("FB1", "FB2"):
+        return "%s %s" % (key, term) if term == "IN" else "F%s-%s" % (key[2], term)
+    for bus, text in (("0V-S2", "0V-S2"), ("0V-S", "0V-S"), ("0V-P 2", "0V-P 2"), ("0V-P", "0V-P 1"),
+                      ("Star S", "star S"), ("bar", "ground bar"), ("clamp", "shield clamp")):
+        if key == bus:
+            return text
+    if key in SsrNames:
+        return "%s %s" % (key, term.replace("OUT", "out ").replace("IN", "in ").replace("+", "+").strip())
+    if key[0] == "X" or key == "PE":
+        return "%s %s" % (key, term.rstrip("ab"))
+    return "%s %s" % (key, term)
+
+
+def TerminalPlan(d):
+    """{(part, terminal): [(where the other end goes, by)]} for one deck; by is the slot or the
+    grommet a wire passes, or ''. A wire to a slot is followed to its end on the other deck."""
+    slotUp = dict(((s, b), a) for s, _, a, b, _ in SlotWires())
+    slotLo = dict(((s, a), b) for s, _, a, b, _ in SlotWires())
+    out = {}
+    for w in d.Wires:
+        for here, there in ((w["a"], w["b"]), (w["b"], w["a"])):
+            if here not in d.Ends or d.Ends[here][0] != "t" or "#" in here:
+                continue
+            key, term = here.split(".", 1)
+            if there in ("S1", "S2", "S3"):
+                s = int(there[1])
+                far = slotUp.get((s, here)) if d.Deck == "upper" else slotLo.get((s, here))
+                text, by = (NameEnd(far) if far != "LL" else "door cable, LL"), "slot %d" % s
+            elif "#" in there or there in ("LL", "ULM"):
+                text, by = None, NameEnd(there)
+            else:
+                text, by = NameEnd(there), ""
+            out.setdefault((key, term), []).append((text, by))
+    return out
+
+
+def Wrap(s, width):
+    return textwrap.wrap(s, width) or [""]
+
+
+def BuildNomenclature():
+    """Sheet 2C: names, the terminal plan, fuses, cable entries and abbreviations."""
+    sh = Sheet("RMR control panel names and terminals")
+    DrawFrame(sh, "RMR control panel: names and terminals",
+              "Sheet 2C: what each name on sheets 1, 2A and 2B is and where it sits, and what lands on every "
+              "terminal. The terminal plan is read from the wire lists that draw sheets 2A and 2B.")
+    lead, size = 2.4, 1.8
+    perChar = 0.53 * size              # average width of a character of Arial at this size, mm
+    cols = [8.0, 95.0, 182.0, 268.0]       # four columns, each 84 mm wide
+
+    class Cursor:
+        col, y = 0, 22.0
+
+    def Need(n):
+        bottom = 207.0 if Cursor.col < 2 else 183.0       # columns 3 and 4 stop above the title block
+        if Cursor.y + n * lead > bottom:
+            Cursor.col += 1
+            Cursor.y = 22.0
+            if Cursor.col >= len(cols):
+                raise ValueError("sheet 2C: the names run off the page")
+
+    def Break():
+        Cursor.col += 1
+        Cursor.y = 22.0
+
+    def Head(text, keep=0):
+        """A heading, kept in one column with the keep rows that follow it."""
+        Need(2 + keep)
+        Cursor.y += 1.2 if Cursor.y > 22.0 else 0.0
+        sh.Text(cols[Cursor.col], Cursor.y, text, size=2.3, weight="bold")
+        Cursor.y += lead + 0.6
+
+    def Row(cells, bold0=True, fill=None):
+        """cells: [(dx, text, width)] in the current column, dx and width in mm; wraps each cell."""
+        wrapped = [(dx, Wrap(t, max(4, int(wd / perChar)))) for dx, t, wd in cells]
+        k = max(len(lines) for _, lines in wrapped)
+        Need(k)
+        x0 = cols[Cursor.col]
+        for j, (dx, lines) in enumerate(wrapped):
+            for i, s2 in enumerate(lines):
+                sh.Text(x0 + dx, Cursor.y + i * lead, s2, size=size, weight="bold" if (j == 0 and bold0) else "normal",
+                        fill=fill)
+        Cursor.y += k * lead
+
+    for title, rows in NameParts:
+        Head(title)
+        for name, what, where in rows:
+            Row([(0.0, name, 17.0), (18.0, what, 46.0), (65.0, where, 19.0)])
+    lo, up = DeckSheet("lower")[1], DeckSheet("upper")[1]
+    plans = {"lower": TerminalPlan(lo), "upper": TerminalPlan(up)}
+    Head("Terminal plan", keep=12)
+    Row([(0.0, "No.", 5.0), (5.0, "label", 7.0), (12.5, "in the box (by)", 38.0), (52.0, "field side (by)", 32.0)],
+        fill="#555")
+    blocks = [("upper", "X2"), ("upper", "X4"), ("upper", "X5"), ("upper", "X6"), ("upper", "X7"), ("upper", "X8"),
+              ("upper", "0V-S"), ("upper", "0V-S2"), ("lower", "X0"), ("lower", "X1"), ("lower", "PE")]
+    for deck, key in blocks:
+        d = lo if deck == "lower" else up
+        labels, bridges = d.Labels[key]
+        Head("%s  (%s deck)" % (key, deck), keep=len(labels) + 2)
+        for n, lab in enumerate(labels, 1):
+            first = [i + 1 for i, j in bridges if i + 1 < n <= j + 1]
+            inside, field, by = [], FieldUse.get((key, n), ""), set()
+            for side in ("a", "b"):
+                for text, via in plans[deck].get((key, "%d%s" % (n, side)), []):
+                    if text is None:
+                        by.add(via)
+                    else:
+                        inside.append(text + (" (%s)" % via if via else ""))
+            if by:
+                field = (field + " " if field else "") + "(%s)" % ", ".join(sorted(by))
+            if not inside and first:
+                inside = ["bridged to %d" % first[0]]
+            Row([(0.0, str(n), 5.0), (5.0, lab, 7.0), (12.5, "; ".join(inside) or "-", 38.0),
+                 (52.0, field or "-", 32.0)])
+    Head("Buses on the lower deck")
+    for key, title in (("Star S", "star S"), ("0V-P", "0V-P 1"), ("0V-P 2", "0V-P 2")):
+        ends = []
+        for (k, term), lst in sorted(plans["lower"].items()):
+            if k == key:
+                ends += [t + (" (%s)" % v if v else "") if t else "%s (%s)" % (FieldUse.get((k, term), "out"), v)
+                         for t, v in lst]
+        Row([(0.0, title, 11.0), (12.5, "; ".join(ends), 71.0)])
+    Head("Fuses")
+    for fb in ("FB1", "FB2"):
+        uses = ["%s-%d %s%s" % ("F" + fb[2], i + 1, FuseUse[fb][i], (" (%s A)" % FuseAmps[fb][i]) if FuseAmps[fb][i] else "")
+                for i in range(12)]
+        Row([(0.0, fb, 6.0), (7.0, ", ".join(uses), 77.0)])
+    Row([(0.0, "F0", 6.0), (7.0, "1 A T, 5 x 20 mm: the K1 rung (S1, K1 coil, H1)", 77.0)])
+    Break()
+    Head("Cable entries and slots")
+    for name, what in NameEntries:
+        Row([(0.0, name, 9.0), (10.0, what, 74.0)])
+    Head("Abbreviations")
+    for name, what in NameAbbrev:
+        Row([(0.0, name, 18.0), (19.0, what, 65.0)])
+    TitleBlock(sh, 256, 186, 92, 21.5, [
+        "RMR control panel: names and terminals",
+        "Sheet 2C (2A, 2B: the decks). Legal 14 x 8.5 in, landscape, 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
+        "Status: design, not yet built or tested.",
+        "Circuits: sheet 1. Positions: sheet 3. Wiring: sheets 2A, 2B.",
     ])
     return sh
 
@@ -5007,6 +5277,7 @@ def Main():
     sheets = [("wiring_schematic_legal.svg", BuildSchematic()),
               ("wiring_din_rails_lower_legal.svg", BuildDeckWiring("lower")),
               ("wiring_din_rails_upper_legal.svg", BuildDeckWiring("upper")),
+              ("wiring_din_rails_names_legal.svg", BuildNomenclature()),
               ("packing_study_legal.svg", BuildPacking()),
               ("frame_plates_legal.svg", BuildFrame()),
               ("gantry_mount_legal.svg", BuildGantry())]
