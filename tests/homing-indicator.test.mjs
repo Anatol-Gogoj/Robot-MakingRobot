@@ -38,5 +38,15 @@ ev('processLine')('ok');     // <- now G28's own
 await flush();
 ok('G28 own ok clears it', ev('__cleared') === 1, ev('__cleared'));
 
+// A G28 whose 'ok' can no longer come (firmware restart, kill, link lost) must not leave the
+// indicator on for good; the ledger reset drops it, without a "Homing complete" toast.
+const homing = () => ev("document.getElementById('jogColXY').classList.contains('homing')");
+ev('sendCmd')('G28');
+await flush();
+ok('a G28 marks the jog columns homing', homing() === true, homing());
+ev('processLine')('start');
+ok('a firmware restart drops the indicator', homing() === false, homing());
+ok('without the "Homing complete" toast', ev('__cleared') === 1, ev('__cleared'));
+
 console.log(fails ? '\n' + fails + ' FAILED' : '\nall passed');
 process.exit(fails ? 1 : 0);

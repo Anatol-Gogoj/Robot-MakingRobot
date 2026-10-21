@@ -120,6 +120,118 @@ ok('program stopped', ev('progRunning') === false);
 ok('ledger cleared', ev('okLedger').length === 0);
 ok('poll not left running at a halted board', ev('autoReportInterval') === null);
 
+// == T9: Pi bridge: entries come from the echo stream ==
+// rmr_bridge.py echoes every write it makes, for every client and physical button, and the echo
+// is queued before the bytes leave, so the echo stream is the order the Mega receives commands in.
+console.log('\nT9  bridge mode: attribution follows the echo stream, every source counted');
+ev('globalThis.WebSocket = { OPEN: 1 }');
+ev('useWS = true');
+ev(`ws = { readyState: 1, send: c => { globalThis.__wire.push(String(c)); } }`);
+const bridge = m => ev('handleWSMessage')(JSON.stringify(m));
+ev('okLedgerReset')();
+startProgram();
+await flush();
+ok('line 1 sent to the bridge', last() === 'G28');
+ok('no entry before its echo', ev('okLedger').length === 0);
+bridge({ _rmr: 'tx', cmd: 'M114', source: 'ws' });                     // another client's poll, written first
+bridge({ _rmr: 'tx', cmd: 'G28', source: 'ws' });                      // this page's line 1
+bridge({ _rmr: 'tx', cmd: 'G28\nM118 RMR:HOMED_ALL', source: 'button:home_all' });   // a two-line button
+ok('four entries: the other poll, line 1, both button lines', ev('okLedger').length === 4);
+rx('ok');                                                              // the other client's M114
+await flush();
+ok("another client's ok advanced nothing", last() === 'G28');
+rx('ok');                                                              // line 1's own
+await flush();
+ok("line 1's own ok advanced to line 2", last() === PROG[1]);
+rx('ok'); rx('ok');                                                    // the button's G28 and M118
+await flush();
+ok("the button's two oks advanced nothing", last() === PROG[1] && ev('progWaitingOk') === true);
+bridge({ _rmr: 'tx', cmd: PROG[1], source: 'ws' });
+bridge({ _rmr: 'error', msg: 'serial not open; dropped: ' + PROG[1] });
+ok('a write the bridge dropped halts the run and clears the ledger', ev('progRunning') === false && ev('okLedger').length === 0);
+ev('okLedgerReset')();
+startProgram();
+await flush();
+bridge({ _rmr: 'tx', cmd: 'G28', source: 'ws' });
+bridge({ _rmr: 'status', serial: 'closed', port: '/dev/rmr-mega' });
+ok('the bridge losing the port halts the run', ev('progRunning') === false && ev('okLedger').length === 0);
+ev('useWS = false');
+ev('wsOwnPending = []');
+
+// == T10: firmware lines after which nothing outstanding is answered ==
+console.log('\nT10 a firmware restart, kill, motor-power loss or RX flush halts the run');
+for (const [what, line] of [
+  ["'start'", 'start'],
+  ['kill()', 'Error:Printer halted. kill() called!'],
+  ['MOTOR POWER LOST', 'echo:MOTOR POWER LOST \u2014 motion halted; re-home (G28) required'],
+  ["M999's 'Resend:'", 'Resend: 1'],
+]) {
+  ev('okLedgerReset')();
+  startProgram();
+  await flush();
+  rx(line);
+  ok(what + ': run halted, ledger cleared', ev('progRunning') === false && ev('okLedger').length === 0);
+}
+
+// == T11: which lines earn an ok ==
+console.log('\nT11 only lines Marlin answers get an entry');
+ev('okLedgerReset')();
+ev('sendCmd')('; a comment on its own');
+ev('sendCmd')('M410');
+ev('sendCmd')('M108');
+ev('sendCmd')('G4 S1 ; with a comment');
+await flush();
+ok('a comment-only line gets none; M410, M108 and a commented G4 get one each', ev('okLedger').length === 3);
+ev('sendCmd')('M112');
+await flush();
+ok('M112 gets none and clears the ledger', ev('okLedger').length === 0);
+
+// == T12: a stopped run's late ok ==
+console.log("\nT12 a stopped run's late ok does not advance the next run");
+ev('okLedgerReset')();
+startProgram();
+await flush();
+ev('progStop')();                                    // line 1 still running on the machine
+startProgram();
+await flush();
+const before12 = wire.length;
+rx('ok');                                            // <- the stopped run's G28
+await flush();
+ok("the old line's ok sent nothing", wire.length === before12);
+rx('ok');                                            // <- the new run's own
+await flush();
+ok("the new line's own ok advanced it", last() === PROG[1]);
+ev('progStop')();
+
+// == T13: Resume on the Pause button ==
+console.log('\nT13 the Pause button resumes, sending the next line if its ok came during the pause');
+ev('okLedgerReset')();
+startProgram();
+await flush();
+ev('progPause')();
+rx('ok');                                            // line 1 finishes while paused
+await flush();
+ok('nothing sent while paused', last() === 'G28');
+ev('progPause')();                                   // the same button, now reading Resume
+await flush();
+ok('Resume sent line 2', last() === PROG[1]);
+ev('progStop')();
+
+// == T14: the poll waits for an empty ledger ==
+console.log('\nT14 the auto-report poll sends only while nothing is unanswered');
+ev('okLedgerReset')();
+ev('sendCmd')('G28 X');
+await flush();
+const before14 = wire.length;
+ev('autoReportTick')();
+await flush();
+ok('no M114 behind an unanswered command', wire.length === before14);
+rx('ok');
+ev('autoReportTick')();
+await flush();
+ok('M114 once nothing is unanswered', last() === 'M114');
+ev('okLedgerReset')();
+
 if (ev('autoReportInterval')) clearInterval(ev('autoReportInterval'));
 console.log(fails ? `\n${fails} FAILED` : '\nall passed');
 process.exit(fails ? 1 : 0);
