@@ -1487,7 +1487,7 @@
             <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvLid" checked> Close lid during cure, reopen after</label>
           </div>
           <div class="seq-field full">
-            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0"><input type="checkbox" id="uvSpinHome"> Home spincoater during cure (set Spin &ldquo;home after spin&rdquo; OFF)</label>
+            <label class="seq-enable-lbl" style="text-transform:none; letter-spacing:0" title="M752 runs once the lamp is off and the argon is closed, before the lid reopens. It turns the chuck and holds the Mega's serial input until it ends, so it never runs during the cure. The sequencer waits up to 150 s for it (the first M752 after a reset also boots the ODrive)."><input type="checkbox" id="uvSpinHome"> Home spincoater after the cure, lid still closed (set Spin &ldquo;home after spin&rdquo; OFF)</label>
           </div>
           <div class="seq-field"><label>Lid closed angle (&deg;)</label><input type="number" id="uvLidClose" value="115" min="0" max="180"></div>
           <div class="seq-field"><label>Lid open angle (&deg;)</label><input type="number" id="uvLidOpen" value="30" min="0" max="180"></div>
@@ -1826,6 +1826,7 @@ function processLine(line) {
   if (line.startsWith('echo:SPIN ')) {
     const spinMsg = line.substring(10); // strip "echo:SPIN "
     spinWarnTrack(spinMsg);   // WARN: row under the phase bar; never touches the verdict
+    uvIndexRx(spinMsg);       // the verdict of the UV block's M752, if one is running
 
     // Telemetry: "TELEM: RPM=... POS=... DEG=..."
     if (spinMsg.startsWith('TELEM:')) {
@@ -3347,6 +3348,50 @@ function uvProgressRender(p, tNow, uvOn, arOpen, mode) {
   const wrap = document.getElementById('uvProgress');
   if (wrap) wrap.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
 }
+// Optional spincoater index search (M752), run AFTER the cure (#183). M752 blocks Marlin's
+// serial input until it returns, so sent during the cure it held back the lamp-off, the
+// argon-close and a Stop's lamp-off for as long as it ran (M410 does not interrupt it). It now
+// runs once the lamp is off and the argon is closed, with the lid still closed (it turns the
+// chuck), as a step that waits for its own 'ok'.
+//
+// Timeout: M752's worst case, summed from the bounded waits in spincoater.cpp with every ODrive
+// reply at its limit (readRaw 0.5 s, feedback 0.2 s, feedbackStable 1.35 s, reportFault 1.5 s,
+// forceIdle 3.6 s). A first-use boot() after a reset: Vbus probe 15.5 + index start 5.6 + index
+// search 30.6 + result 0.5 + arm 2.5 + feedbackStable 1.35 + settle 8.25 + dwells and the closing
+// feedbackStable 2.1 = 66.4 s. doIndexHome(): liveness 6.1 + IDLE 3.8 + index start 5.1 (with its
+// fault report) + search 30.6 + result 0.8 + feedbackStable 1.35 + arm 2.5 + settle 8.25 +
+// feedbackStable 1.35 + unwind 3.6 + report 0.2 = 63.7 s. About 130 s in all; 150 s leaves margin.
+const UV_INDEX_TIMEOUT_MS = 150000;
+// 'ok' says only that M752 was parsed; its terminal marker says whether the chuck reached the
+// datum. '' while the UV block's M752 runs (until a marker arrives), null otherwise.
+let uvIndexVerdict = null;
+function uvIndexRx(spinMsg) {
+  if (uvIndexVerdict === null) return;
+  // STATE:BOOTING / STATE:HOMING open an M752, so a marker printed by an earlier command
+  // (another client's M752, say) is not read as this one's.
+  if (/^STATE:(BOOTING|HOMING)\b/.test(spinMsg))         uvIndexVerdict = '';
+  else if (/^OK:\s*INDEX_COMPLETE\b/.test(spinMsg))      uvIndexVerdict = 'complete';
+  else if (/^ERR:\s*INDEX_HOME_FAILED\b/.test(spinMsg))  uvIndexVerdict = 'failed';
+  else if (/^ERR:\s*ODrive boot failed\b/.test(spinMsg)) uvIndexVerdict = 'boot failed';
+}
+async function uvIndexHome(manageLid) {
+  const lidNote = manageLid ? ' The lid stays closed.' : '';
+  seqSetStatus('UV — lamp off; indexing the spincoater (M752)…');
+  logInfo('UV: spincoater index search (M752) after the cure' + (manageLid ? ', lid still closed' : ''));
+  uvIndexVerdict = '';
+  let verdict;
+  try {
+    await seqCmd('M752', true, UV_INDEX_TIMEOUT_MS);
+    verdict = uvIndexVerdict;
+  } catch (e) {
+    if (seqAbort) logInfo('UV: Stop does not interrupt M752; the index search runs to its end on the machine.' + lidNote);
+    throw e;
+  } finally { uvIndexVerdict = null; }
+  if (verdict === 'complete') { logInfo('UV: spincoater at its datum (OK: INDEX_COMPLETE)'); return; }
+  throw new Error(verdict === 'failed'      ? 'spincoater index search failed (ERR: INDEX_HOME_FAILED): the chuck is not at its datum, see the console.' + lidNote
+                : verdict === 'boot failed' ? 'spincoater index search did not run: the ODrive boot failed, check its power and the Serial2 link.' + lidNote
+                :                             'M752 ended without OK: INDEX_COMPLETE or ERR: INDEX_HOME_FAILED, so the chuck may not be at its datum.' + lidNote);
+}
 async function runUvBlock() {
   const p = uvArgonPlan();
   if (!(p.t > 0)) throw new Error('UV cure time must be greater than 0 s');
@@ -3388,11 +3433,6 @@ async function runUvBlock() {
         if (uvInterlockMsg) throw new Error(uvInterlockMsg);          // firmware refused: lid not closed
         uvIsOn = true;
         rlEvent('uv.on', { pin: p.pin, setS: p.t, argon: p.arOn, lid: manageLid });
-        // Optionally index-home the spincoater DURING the cure (parallel, fire-and-forget);
-        // confirmed finished below so the platter sits at its datum before the block ends.
-        // Its 'ok' goes to its own ledger entry (#180): a later step's wait includes the rest
-        // of the M752, and never ends on the M752's 'ok' in place of its own.
-        if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
       }
       if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; rlEvent('uv.off', {}); }
       draw();
@@ -3400,14 +3440,12 @@ async function runUvBlock() {
     uvProgressRender(p, p.tEnd, false, false, 'done');
   } finally {
     // Safe state no matter how we got here (Stop / fault / error): lamp OFF, argon CLOSED.
+    // Nothing this block sent is still blocking the Mega here (the M752 comes later), so these go out at once.
     if (uvIsOn)   { sendCmd('M42 P' + p.pin + ' S0');   uvIsOn = false; rlEvent('uv.off', { aborted: true }); }
     if (arIsOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; }
   }
-  if (uvHomeSpin && !seqAbort) {
-    // M752 blocks Marlin and is answered first, so this M400's own 'ok' comes after it (at once if the M752 is already done).
-    seqSetStatus('UV — confirming the spincoater reached its datum…');
-    await seqCmd('M400', true, 40000);
-  }
+  // Reached only after a full cure: a Stop or fault above skips the M752 and leaves the lid alone.
+  if (uvHomeSpin && !seqAbort) await uvIndexHome(manageLid);   // lamp off, argon closed, lid still closed
   if (manageLid && !seqAbort) {
     await seqCmd('M280 P1 S' + lidOpen + ' T' + lidMs);     // reopen lid
   }

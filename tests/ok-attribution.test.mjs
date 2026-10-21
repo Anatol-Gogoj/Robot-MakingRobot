@@ -328,10 +328,11 @@ for (const [what, act] of [
   ok(what + ': nothing more was sent', last() !== MARK);
 }
 
-// == T19: the UV block's parallel M752 ==
-// The M752 sent during the cure is fire-and-forget. If the cure ends first, the lamp-off M42
-// queues behind it and must wait for its own ok, not take the M752's.
-console.log("\nT19 sequencer: the UV block's lamp-off step does not take the parallel M752's ok");
+// == T19: the UV block's M752 ==
+// Since #183 the M752 runs after the lamp-off, as a step of its own (sent during the cure it
+// held the lamp-off back). A console command still unanswered when it goes out is answered
+// first, and that ok must not end the M752 step. tests/uv-index-order.test.mjs covers the rest.
+console.log("\nT19 sequencer: the UV block's M752 follows the lamp-off and waits for its own ok");
 await seqFresh();
 ev('seqSetHomed')(true, 'test');
 el('uvTime').value = '0.05'; el('uvLid').checked = false; el('uvArgon').checked = false; el('uvSpinHome').checked = true;
@@ -340,14 +341,16 @@ await flush();
 ok('lamp on sent', last() === 'M42 P4 S1');
 rx('ok');                                            // <- the lamp-on's own
 for (let i = 0; i < 100 && last() !== 'M42 P4 S0'; i++) await new Promise(r => setTimeout(r, 10));
-ok('M752 sent in parallel, then lamp off after the cure', wire.slice(-2).join(' | ') === 'M752 | M42 P4 S0');
-rx('ok');                                            // <- the M752's
-await flush();
-ok("the M752's ok did not complete the lamp-off step", last() === 'M42 P4 S0' && ev('seqRunning') === true);
+ok('no M752 during the cure: lamp off came next', wire.slice(-2).join(' | ') === 'M42 P4 S1 | M42 P4 S0');
+ev('sendCmd')('M114');                               // a console command, answered after the lamp-off
 rx('ok');                                            // <- the lamp-off's own
 await flush();
-ok("the lamp-off's own ok advanced to the M400 check", last() === 'M400');
-rx('ok');
+ok("the lamp-off's own ok advanced to the M752", last() === 'M752');
+rx('ok');                                            // <- the console M114's
+await flush();
+ok("the M114's ok did not complete the M752 step", last() === 'M752' && ev('seqRunning') === true);
+rx('echo:SPIN OK: INDEX_COMPLETE');
+rx('ok');                                            // <- the M752's own
 await flush();
 ok('the UV block completed', ev('seqRunning') === false && /complete/.test(seqStatus()));
 ok('nothing left owed', ev('okLedger').length === 0);
