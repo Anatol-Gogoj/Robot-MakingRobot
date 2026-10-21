@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<svg xmlns="http://www.w3.org/2000/svg" class="deck" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
 <title>RMR control panel wiring, lower deck</title>
 <style>
 text{font-family:Arial,Helvetica,sans-serif;fill:#000}
@@ -27,7 +27,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 .rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
 .duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
 .dot{stroke:none}
-.ac{stroke-width:.4}.va,.ve{stroke-width:.32}.zp{stroke-width:.34}.zs,.pe{stroke-width:.28}.lv{stroke-width:.3}.zl{stroke-width:.24}.sg{stroke-width:.17}.sgc{stroke-width:.36}.cb{stroke-width:.75}</style>
+svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{stroke-width:0.28}svg.deck .va{stroke-width:0.26}svg.deck .ve{stroke-width:0.26}svg.deck .lv{stroke-width:0.25}svg.deck .zs{stroke-width:0.23}svg.deck .pe{stroke-width:0.23}svg.deck .mo{stroke-width:0.25}svg.deck .zl{stroke-width:0.2}svg.deck .sg{stroke-width:0.14}svg.deck .cb{stroke-width:0.62}svg.deck .pe{stroke-dasharray:1.2 .4 .3 .4}</style>
 <rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
 <rect x="20" y="30" width="228" height="162" fill="#fff" stroke="#000" stroke-width="0.35"/>
 <rect x="20" y="30" width="228" height="9.25" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
@@ -255,45 +255,45 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="va" d="M34.55 82.72 L47.79 82.72 L47.79 73.41 L213.57 73.41 L213.57 30"/>
 <path class="ve" d="M34.55 79.22 L45.79 79.22 L45.79 65.91 L216.07 65.91 L216.07 30"/>
 <path class="ve" d="M34.55 83.22 L48.29 83.22 L48.29 65.41 L213.07 65.41 L213.07 30"/>
-<circle class="dot" cx="214.57" cy="30" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="215.07" cy="30" r="0.3" fill="#000"/>
-<circle class="dot" cx="214.07" cy="30" r="0.3" fill="#EE7733"/>
-<circle class="dot" cx="215.57" cy="30" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="114.3" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="115.3" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="113.8" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="115.8" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="113.3" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="116.3" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="112.8" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="116.8" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="112.3" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="117.3" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="111.8" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="117.8" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="111.3" r="0.3" fill="#000"/>
-<circle class="dot" cx="157.74" cy="118.3" r="0.3" fill="#000"/>
-<circle class="dot" cx="179.44" cy="101.99" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="179.44" cy="101.49" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="179.44" cy="102.49" r="0.3" fill="#0077BB"/>
-<circle class="dot" cx="179.44" cy="100.99" r="0.3" fill="#000"/>
-<circle class="dot" cx="179.44" cy="102.99" r="0.3" fill="#000"/>
-<circle class="dot" cx="179.44" cy="100.49" r="0.3" fill="#000"/>
-<circle class="dot" cx="179.44" cy="103.49" r="0.3" fill="#EE7733"/>
-<circle class="dot" cx="179.44" cy="99.99" r="0.3" fill="#000"/>
-<circle class="dot" cx="179.44" cy="103.99" r="0.3" fill="#009988"/>
-<circle class="dot" cx="34.55" cy="81.22" r="0.3" fill="#0077BB"/>
-<circle class="dot" cx="34.55" cy="80.72" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="81.72" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="80.22" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="82.22" r="0.3" fill="#000"/>
-<circle class="dot" cx="34.55" cy="79.72" r="0.3" fill="#33BBEE"/>
-<circle class="dot" cx="34.55" cy="82.72" r="0.3" fill="#0077BB"/>
-<circle class="dot" cx="213.57" cy="30" r="0.3" fill="#0077BB"/>
-<circle class="dot" cx="34.55" cy="79.22" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="216.07" cy="30" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="83.22" r="0.3" fill="#EE3377"/>
-<circle class="dot" cx="213.07" cy="30" r="0.3" fill="#EE3377"/>
+<circle class="dot" cx="214.57" cy="30" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="215.07" cy="30" r="0.17" fill="#000"/>
+<circle class="dot" cx="214.07" cy="30" r="0.17" fill="#EE7733"/>
+<circle class="dot" cx="215.57" cy="30" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="114.3" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="115.3" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="113.8" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="115.8" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="113.3" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="116.3" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="112.8" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="157.74" cy="116.8" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="112.3" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="117.3" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="111.8" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="117.8" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="111.3" r="0.17" fill="#000"/>
+<circle class="dot" cx="157.74" cy="118.3" r="0.17" fill="#000"/>
+<circle class="dot" cx="179.44" cy="101.99" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="179.44" cy="101.49" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="179.44" cy="102.49" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="179.44" cy="100.99" r="0.17" fill="#000"/>
+<circle class="dot" cx="179.44" cy="102.99" r="0.17" fill="#000"/>
+<circle class="dot" cx="179.44" cy="100.49" r="0.17" fill="#000"/>
+<circle class="dot" cx="179.44" cy="103.49" r="0.17" fill="#EE7733"/>
+<circle class="dot" cx="179.44" cy="99.99" r="0.17" fill="#000"/>
+<circle class="dot" cx="179.44" cy="103.99" r="0.17" fill="#009988"/>
+<circle class="dot" cx="34.55" cy="81.22" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="34.55" cy="80.72" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="34.55" cy="81.72" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="34.55" cy="80.22" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="34.55" cy="82.22" r="0.17" fill="#000"/>
+<circle class="dot" cx="34.55" cy="79.72" r="0.17" fill="#33BBEE"/>
+<circle class="dot" cx="34.55" cy="82.72" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="213.57" cy="30" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="34.55" cy="79.22" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="216.07" cy="30" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="34.55" cy="83.22" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="213.07" cy="30" r="0.17" fill="#EE3377"/>
 <rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
 <rect x="202.62" y="29.1" width="24.66" height="0.9" fill="#000" stroke="none"/>
 <rect x="248" y="149.23" width="0.9" height="11.1" fill="#000" stroke="none"/>
@@ -312,7 +312,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect class="duct" x="256" y="45.6" width="5" height="1.8"/>
 <rect class="rail" x="303" y="45.8" width="5" height="1.4"/>
 <rect x="256" y="47.9" width="5" height="1.8" rx=".9" fill="none" stroke="#EE7733" stroke-width=".35"/>
-<circle class="dot" cx="305.5" cy="48.85" r="0.3" fill="#000"/>
+<circle class="dot" cx="305.5" cy="48.85" r="0.17" fill="#000"/>
 <rect x="256" y="50.6" width="5" height="0.9" fill="#000" stroke="none"/>
 <rect class="bx" x="303" y="50.2" width="5" height="1.8"/>
 <path class="ve" d="M256.4 60.65 L259.4 60.65"/>

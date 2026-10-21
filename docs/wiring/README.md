@@ -44,6 +44,15 @@ Legal landscape with no margins, or use headless Edge with `--print-to-pdf` on a
 `@page` size is `14in 8.5in`; sheet 2's PDF holds its four SVGs, one per page. Print through Edge: PyMuPDF does not
 apply the SVGs' style sheet, and its wires come out as black fills.
 
+Wire widths: sheet 1 and the line work of sheets 3 to 5 use `Css` (0.22 to 0.85 mm). Sheets 2A and 2B lay their wires
+0.5 mm apart on a track, so they draw them thinner (`DeckWire`, 0.14 to 0.33 mm, 0.62 for a motor cable), which keeps
+two neighbors on adjacent tracks at least `DeckGap` (0.15 mm) of white at 100 %; `DeckWidthCheck()` refuses a table that
+does not. Where the router puts a stub or a cable end off the track grid, two wires can still lie closer than that, and
+no stroke width fixes it. Sheet 2's four SVGs share one page when the PDF is made, and an inline `<style>` applies to the
+whole page, so a rule for one sheet must be scoped: 2A and 2B carry `class="deck"` on their `<svg>`, and their widths are
+written `svg.deck .ac{...}`, which outranks the plain `.ac{...}` of whichever sheet comes last. An unscoped override
+printed at sheet 1's widths, which closed up the wires.
+
 ## 3D block model
 
 `CAD/Control Box/ControlBoxBlocks.FCStd`, with a `.step` export beside it, is the box in 3D as blocks: the
