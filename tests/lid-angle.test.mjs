@@ -95,8 +95,9 @@ ok('raw override textbox still allows the full 0-180 servo range',
   const r = await drive('runUvBlock', cmd => (cmd === 'M42 P4 S1' ? 'echo:UV inhibited: lid open (interlock)' : null));
   ok('UV block fails with the interlock message when the firmware refuses UV-on',
      r.done && r.err && /lid interlock refused UV/.test(r.err.message), r.err && r.err.message);
-  ok('after the refusal: nothing else is sent (no UV-off, no reopen) and the lid stays closed',
-     JSON.stringify(r.cmds) === JSON.stringify(['M400', `M280 P1 S${LID_CLOSED} T${LID_MS}`, 'M42 P4 S1']), r.cmds);
+  // The lamp-off still goes out: an ON was sent, so its OFF follows whatever the answer was (#186).
+  ok('after the refusal: only the lamp-off is sent (no reopen) and the lid stays closed',
+     JSON.stringify(r.cmds) === JSON.stringify(['M400', `M280 P1 S${LID_CLOSED} T${LID_MS}`, 'M42 P4 S1', 'M42 P4 S0']), r.cmds);
 }
 
 // 5: since #191 the Spin Coater block and Start Spin close the lid before a spin above 120 RPM,

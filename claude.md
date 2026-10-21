@@ -338,11 +338,11 @@ A recipe-style runner that breaks the workflow into five collapsible `<details>`
 - **Homing gate:** Syringe, UV and Stamp are **locked until the machine has done a full home** (a bare `G28`, which also homes the syringe, or a `G28` naming all six axes). Homing and Spin Coater are never gated. Locked blocks show a "🔒 home first" badge, their Run (and jog helper) buttons are disabled, and a banner with a **Home all axes** button sits under the toolbar. Run All refuses to start when a gated block is enabled unless the machine is homed or the run begins with the Homing block set to "All axes". The flag is browser-side: it is set when the sequencer's own `G28` gets its `ok`, or when the firmware prints back `RMR:HOMED_ALL` — the UI appends `M118 RMR:HOMED_ALL` to every *manual* bare `G28` (Home All buttons, console), and Marlin executes the M118 only after the G28 finishes, so every client on the Pi bridge unlocks together (the example `home_all` physical button sends the same two lines). It is cleared on connect/disconnect, `M112`, `M999`, `M18`/`M84`, a firmware restart (`start` banner), a physical E-stop event, and the firmware's `MOTOR POWER LOST` and `Move refused: re-home` lines. Partial homing (`G28 X Z`) never unlocks. There is deliberately no "mark as homed" override.
 - **Fault handling:** a `MOTOR POWER LOST` / `Move refused: re-home` / `UV inhibited: lid open` / `UV cut: lid opened` / `Error:` line from the firmware fails the running sequence immediately (`seqFault`) instead of sitting out the 90 s ok-timeout, and so does a cleared `ok` ledger while a step is in flight (#180). Since #182 a board reset or a lost link fails the run even with no step in flight, during a UV cure, a dwell or a Run Log hold: the firmware's `start`, the bridge reporting the port closed or a write failed or dropped, a disconnect, `Resend:` and a ledger overflow (the `runFault` argument of `okLedgerLost`). `seqSleep` wakes on the fault within 100 ms and a Run Log hold within 500 ms (`RunLogAbort`). With no run going none of these faults anything, and a connect never does. The fault names its cause and claims no relay state the UI cannot know: after a `start` it says the #131 firmware turns the relays off at boot, and after a lost link that a lamp or valve the run switched on may still be on, since a lamp-off may not reach the board then. A step in flight gets the cause followed by "the `ok` of the step in flight is lost". The UV block's `finally` still turns the lamp off and closes the argon solenoid where the link allows, and the Run Log records the cure as cut short (`uv.off` with `aborted`).
 
-- **Engine:** async command chain built on a wait-for-`ok` promise (`seqCmd`/`seqAwaitOk`/`seqOnOk`). One command in flight at a time; blocking G-code (`G28`, `M750`, `M280` with SERVO_DELAY) naturally serializes because Marlin withholds `ok` until done. **Each step waits for its own `ok`** (#180, both pages): `seqCmd` arms the wait, then sends the command with that wait as its `okLedger` entry's `onOk` (`sendCmd(cmd, { tracked: true, onOk })`), as the Program Runner does since #48. An `ok` earned by anything else goes to its own entry and never advances the sequence: an earlier console command, another bridge client, a physical button, the auto-report poll, a stopped run's last step, or one of the sequencer's own fire-and-forget sends (Stop's `M410`, `syrRelative`'s recovery `G90`, and the lamp-off / argon-close `M42`s in the UV block's `finally`), which still wait for nothing. Earlier unanswered commands are answered first, so a step's wait, and its timeout (90 s, 240 s for `G28`, computed for `M750`), covers them too; `seqBegin` logs how many there are. When the ledger is cleared (`okLedgerLost`, the list under the Program Runner bullet), a step in flight fails the run at once (`seqOkLost` → `seqFault`, "the `ok` of the step in flight is lost") instead of at its timeout; with no step in flight (a cure, a dwell, a Run Log hold) the run carries on, unless the board reset or the link is gone (#182, see **Fault handling** above). Browser-side timed waits (`seqSleep`) are used for UV cure and stamp dwells, and are abortable. Auto-report (M114) is paused during a run. `M400` is emitted before servo commands / dwells that depend on physical move completion (`ok` on a `G1` only means "queued", not "arrived").
-- **Homing block:** "All axes" → `G28` (240 s ok-timeout — a full six-axis home takes a while) then `M118 RMR:HOMED_ALL`; otherwise ticked axes → `G28 X Z …` (does not unlock the gate). Optional "Spincoater index" runs `M752` afterwards.
+- **Engine:** async command chain built on a wait-for-`ok` promise (`seqCmd`/`seqAwaitOk`/`seqOnOk`). One command in flight at a time; blocking G-code (`G28`, `M750`, `M280` with SERVO_DELAY) naturally serializes because Marlin withholds `ok` until done. **Each step waits for its own `ok`** (#180, both pages): `seqCmd` arms the wait, then sends the command with that wait as its `okLedger` entry's `onOk` (`sendCmd(cmd, { tracked: true, onOk })`), as the Program Runner does since #48. An `ok` earned by anything else goes to its own entry and never advances the sequence: an earlier console command, another bridge client, a physical button, the auto-report poll, a stopped run's last step, or one of the sequencer's own fire-and-forget sends (Stop's `M410`, `syrRelative`'s recovery `G90`, and the lamp-off / argon-close `M42`s in the UV block's `finally`), which still wait for nothing. Earlier unanswered commands are answered first, so a step's wait, and its timeout (90 s, 240 s for `G28`, computed for `M750`), covers them too; `seqBegin` logs how many there are. When the ledger is cleared (`okLedgerLost`, the list under the Program Runner bullet), a step in flight fails the run at once (`seqOkLost` → `seqFault`, "the `ok` of the step in flight is lost") instead of at its timeout; with no step in flight (a cure, a dwell, a Run Log hold) the run carries on, unless the board reset or the link is gone (#182, see **Fault handling** above). Browser-side timed waits (`seqSleep`) are used for UV cure and stamp dwells, and are abortable. Auto-report (M114) is paused during a run and restored when it ends, but only while connected and with no poll already running (#188); a connect also restores it while the Auto box is still ticked, except mid-run. `M400` is emitted before servo commands / dwells that depend on physical move completion (`ok` on a `G1` only means "queued", not "arrived").
+- **Homing block:** "All axes" → `G28` (240 s ok-timeout — a full six-axis home takes a while) then `M118 RMR:HOMED_ALL`; otherwise ticked axes → `G28 X Z …` (does not unlock the gate). Optional "Spincoater index" (`homeSpin`; only the Controller has it) runs `M752` afterwards, through the same step as the UV block's (`seqIndexHome()`, #187): it waits for its own `ok` within the shared `SPIN_INDEX_TIMEOUT_MS` bound (150 s; it was 40 s until #187, below the ~130 s worst case of the first `M752` after a reset) and passes only on `OK: INDEX_COMPLETE`, so `ERR: INDEX_HOME_FAILED`, a failed ODrive boot or no marker at all fails the run. The index search runs with the lid open, by design: every `G28`, partial or bare, opens the lid to 30° first (`G28.cpp`), the block does not close it, and the open lid lets the operator see whether the chuck is aligned (owner's decision, #187). The console says so before the `M752`.
 - **Syringe block** (identical in `RMR_Controller.html` and `RMR_Touch.html`): vertical sliders set Syringe-Height (B, 0–295 mm, 0 = up/home, Lower/Raise) and the plunger (C, 0–125 mm, 0 = fully open, absolute jog); the dispense/pullback amounts (mL, via a hand-measured mm-per-mL calibration) are sent as **relative C moves** — never `G92` on the homed C axis, so the soft endstops keep applying. **The Dispense and Purge sequences move the gantry to mid-X (`G1 X385`) before B lowers, so the syringe descends clear of the end fixtures.** Run does the full cycle: `G90` → `G1 B<height>` → `M400` → `G91` → `G1 C<mm>` (+C = dispense) → `M400` → optional `G1 C-<pullback mm>` → `M400` → `G90` → `G1 B0` → `M400`. The old `G92 E0` / `G1 E<mm>` form is silently ignored by the firmware (gotcha #1). **Retuned 2026-09-14 for the 150 mL catheter-tip syringe** (`DISPENSE_150ML.md`): the cycle is now `M114` (fresh plunger position for the stroke guard, see **Guards**) → `G90` → `G1 B<height>` → `M400` → `G91` → `G1 C<dose mm> F<dose feed>` → `M400` → **dwell** (browser-side, default 2 s — stored pressure bleeds off *before* the retract) → `G1 C-<retract mm> F<retract feed>` → `M400` → `G90` → `G1 B0` → `M400`. New fields: dwell, retract feed, barrel ID (→ **Calibrate from ID**: mm per mL = 4000/(π·ID²)), barrel stroke, max dose, max retract (a sanity cap on the pullback, default **2 mm** since 2026-09-17 — the original 0.05 mm "air ingestion" rule left the tip dripping between doses; 0 = no cap), purge volume/feed, idle limit, purge-on-run. **Guards** (`syrGuard`) refuse a dose: retract > max retract and dose > max dose with nothing sent; the stroke check (stroke > 0) then sends `M114` through `seqCmd` (its `ok` consumed) and compares the firmware's **fresh** C position + dose against the stroke — the readout alone was stale (auto-report is off by default and paused during a run, so repeated primes were checked against the `C0.00` printed by the last `G28`, with only the firmware's silent clamp at `K_MAX_POS` = 125 mm, 5 mm past the barrel, behind it) — and it refuses outright if the reply carries no C field. **Lid guard (#191, `docs/adr/0017`):** dispense, purge (Run All's purge-on-run too) and the Lower helper refuse with nothing sent, ahead of the stroke check's `M114`, while the lid was last commanded closed (`syrLidBlock`: above the larger of `uvLidOpen` and 30 deg, or at `uvLidClose` and past it), and say to open it with the Lid button once the chuck has stopped; an unknown lid state does not block, prime never moves B and is not refused, and the block never moves the lid itself. Every relative-mode section (`G91` … `G90`) runs inside `syrRelative()`, whose `finally` fires a fire-and-forget `G90` when a Stop, `seqFault` or the ok-timeout ends the run mid-section, so the next console or Program Runner `G1` is not silently relative (both 2026-09-15). **Purge** (`runSyringePurge`, button or before the first dose of a Run All when ticked) pushes the purge volume into a waste cup with the same dwell / retract. A dose after more than the idle limit only warns (`syrIdleCheck`, journaled by the Run Log). Feeds accept decimals (`fmtFeed`); the firmware never steps C slower than 120 steps/s (`MINIMAL_STEP_RATE`) = 4.5 mm/min, so a 1 mm/min retract runs at ~4.5 mm/min. There is no lateral shear or wiper: the syringe is fixed over the chuck (only B and C move). The fast B "snap lift" after the retract (`G1 B-4 F3000`) was removed on 2026-09-17 — it did nothing for the strand on the bench — so the raise to B0 at the positioning feed is the only lift. **The page defaults are the 150 mL syringe** (0.7958 mm/mL from the 40 mm barrel, 5 mL at 15.9 mm/min, 0.0227 mL retract at 1 mm/min, 120 mm stroke, 4.18 mm max dose, 2 mm max retract). **Initial purge +** (`runSyringePrime`, increment `syrPrimeVol`, default 0.5 mL) pushes the plunger by the increment at the purge feed with the tip where it is — no dwell / retract, stroke guard only — for priming a fresh barrel. All five sequencer cards are `open` by default.
 - **Spin Coater block:** RPM / spin time / rise / sink → `M750 S… D… A… C… H…` (live preview shown); named **presets** saved to `localStorage` (`rmr.spinPresets`) with Save/Load/Delete. **Lid (#191, `docs/adr/0017`):** above `SPIN_LID_RPM` (120; an `M750` with no number after `S` counts as the 5000 RPM default) the block sends `M400` and `M280 P1 S<uvLidClose> T<ms>` before the `M750`, and reopens to `uvLidOpen` only after its own `M750` printed `OK: CYCLE_COMPLETE` or `ERR: CYCLE_COMPLETE_NO_HOME` (`spinLidRx`). `M750.cpp` prints either only after its ramp-down has read `|RPM| <= 6`, as its last line; `STATE:STOPPED` is no proof, since the `M410` abort path prints it right after `setVelocity(0)`. On every other ending (a Stop, a fault, a timeout, no marker, `OK: ABORTED`, `RAMP_TIMEOUT`, `RAMP_STALL`, `MEASURE_LINK_LOST`, `DECEL_LINK_LOST`, `DECEL_STALL`, a failed boot) the lid stays closed and the console says why, and the block fails, so a Run All stops there and the UV block cannot reopen the lid after its cure. At or below 120 RPM the block is unchanged and still passes on the bare `ok` (gotcha 25). Each page tracks the last lid angle commanded on the port from any path (`lidTrackTx`: its own writes on Web Serial, the bridge's TX echo otherwise; every `G28` but `G28 O` sets 30 deg, from `G28.cpp`), and a connect, a disconnect or the firmware's `start` makes it unknown.
-- **UV block:** cure time + relay pin → optional lid close (`M280 P1`), `M42 P<pin> S1`, browser-timed cure, `M42 P<pin> S0` (fired even on abort/fault), optional lid reopen. **Argon purge (optional):** with the checkbox on, the argon solenoid (`M42 P<argon pin>`, default 42) opens **lead** seconds before UV-on and closes **lag** seconds after UV-off; both may be negative (open after UV-on / close before UV-off). All four events run on one clock (UV-on = 0) sorted chronologically, the timeline is previewed live in the block, and an argon window that would close before it opens is rejected before anything is sent. The lid (if managed) closes before the first event and reopens after the last. **Spincoater index (optional, `uvSpinHome`; only the Controller has the checkbox):** `M752` runs **after** the last UV / argon event (lamp off, argon closed) and before the lid reopens, so the lid is still closed while it turns the chuck (gotcha #26). It is a step that waits for its own `ok`, with a 150 s timeout: the worst case summed from the bounded waits in `spincoater.cpp`, a first-use `boot()` after a reset included, is about 130 s. The block passes only on `OK: INDEX_COMPLETE`; `ERR: INDEX_HOME_FAILED`, a failed ODrive boot or no marker at all fails it and leaves the lid closed. Until #183 the `M752` went out fire-and-forget at UV-on, and since `M752` holds Marlin's serial input until it returns (`M410` does not interrupt it), the lamp-off, the argon-close and a Stop's lamp-off all waited behind it. A Stop or fault during the cure now skips the `M752`; a Stop during the `M752` leaves the lid closed while the index search runs to its end on the machine. The progress **canvas** shows the whole step (argon / UV / argon segments) with the UV-elapsed readout and a phase label; **click/tap the bar** to cycle its style — classic bar → wave → hungry snake (easter egg, saved as `rmr.uvSkin`, static under `prefers-reduced-motion`).
+- **UV block:** cure time + relay pin → optional lid close (`M280 P1`), `M42 P<pin> S1`, browser-timed cure, `M42 P<pin> S0` (fired even on abort/fault), optional lid reopen. **The block's `finally` turns a relay off once its ON was sent, not once the ON was answered** (#186): `uvMayBeOn` / `arMayBeOpen` are set before the `M42 ... S1` goes out, so a Stop, a fault or the step timeout that lands between the write and its `ok` (a few ms on Web Serial, a network round trip on the Pi bridge, the whole 90 s when the `ok` never comes) still gets its `S0`, and so does a lamp-on the lid interlock refused. An `S0` to a relay that never turned on is harmless. They clear only on the OFF's own `ok`, so a Stop between the OFF's write and its `ok` sends it again. The Run Log's `uv.on` still comes from the lamp-on's own `ok` (`uvIsOn`), and the `finally` records `uv.off` with `aborted` only after a `uv.on`: the module's `uv.off` handler applies to the open layer, so one without a `uv.on` would rewrite that layer's last finished cure or journal "UV off without a recorded UV on". The UV block's lamp-on and argon-open are the only relay ONs the sequencer sends; the manual relay buttons and the Program Runner send theirs without this rule. **Argon purge (optional):** with the checkbox on, the argon solenoid (`M42 P<argon pin>`, default 42) opens **lead** seconds before UV-on and closes **lag** seconds after UV-off; both may be negative (open after UV-on / close before UV-off). All four events run on one clock (UV-on = 0) sorted chronologically, the timeline is previewed live in the block, and an argon window that would close before it opens is rejected before anything is sent. The lid (if managed) closes before the first event and reopens after the last. **Spincoater index (optional, `uvSpinHome`; only the Controller has the checkbox):** `M752` runs **after** the last UV / argon event (lamp off, argon closed) and before the lid reopens, so the lid is still closed while it turns the chuck (gotcha #26). It is a step that waits for its own `ok`, with a 150 s timeout: the worst case summed from the bounded waits in `spincoater.cpp`, a first-use `boot()` after a reset included, is about 130 s. The block passes only on `OK: INDEX_COMPLETE`; `ERR: INDEX_HOME_FAILED`, a failed ODrive boot or no marker at all fails it and leaves the lid closed. Until #183 the `M752` went out fire-and-forget at UV-on, and since `M752` holds Marlin's serial input until it returns (`M410` does not interrupt it), the lamp-off, the argon-close and a Stop's lamp-off all waited behind it. A Stop or fault during the cure now skips the `M752`; a Stop during the `M752` leaves the lid closed while the index search runs to its end on the machine. The progress **canvas** shows the whole step (argon / UV / argon segments) with the UV-elapsed readout and a phase label; **click/tap the bar** to cycle its style — classic bar → wave → hungry snake (easter egg, saved as `rmr.uvSkin`, static under `prefers-reduced-motion`).
 - **Stamp block:** full pick→transit→press→dispose cycle (defaults from `DemoProgram.gcode`, exposed under "Advanced positions & feeds"). Tunables: stack height (relative A advance per cycle), grab→move delay, press hold time, and press force (final Z press depth — deeper = more force). Feeder side selectable Left / Right / Alternating (alternating flips each cycle; "next pick" indicator shows which side is next). The feeder is the I axis (letter A) and homes to MAX, so the advance is a relative `G1 A-<stack>` — an `A+` is clamped at the max soft endstop and never moves; it is sent once per pick, or once per L+R pair when alternating, because one shared carriage lifts both stacks (`stampAltPick`). The gripper opens only after an `M400` with the arm over the pick (gotcha #10). `stampGuard` refuses the run before anything is sent unless the post-press lift Z is above (numerically less than) both the approach Z and the press Z — `numv()` ignores the input's `max`, so a typo such as 175 for 75 would otherwise drive the filter deeper at the fast feed. Both UIs also carry a **Filter feeder jog** in the Stamp block (`feederJog`): Advance sends a relative `G1 A-<mm>` (stack rises toward the gripper), Retract `G1 A<mm>`; locked until homed and refused while a sequence runs — for registering the stack height by hand before a run (Controller since PR #105, Touch since #118). Both UIs are identical here (`tests/stamp-block.test.mjs`).
 
 ### Run Log tab (DEA per-layer manufacturing log) — added 2026-09-14
@@ -650,29 +650,32 @@ Contexts in use: `closed-loop entry timeout`, `full calibration timeout`, `close
 | `_homePos` | `spincoater.cpp:37` | Absolute ODrive encoder position in **turns** at which the operator's 0° is defined |
 | `_datumSet` | `spincoater.cpp:43` | True once a *meaningful* reference exists. While false, `_homePos` is its 0.0f initial value or a stale leftover and `getHomePos()` must not be trusted |
 
-Both are file-scope statics in RAM (gotcha #19). Accessors: `getHomePos()` (`:864`), `isDatumValid()` (`:866`), `getDegreesFromHome()` (`:854` — **defined but never called anywhere in the firmware**; grep-verified dead code).
+Both are file-scope statics in RAM (gotcha #19). Accessors: `getHomePos()` (`:964`), `isDatumValid()` (`:966`), `getDegreesFromHome()` (`:954` — **defined but never called anywhere in the firmware**; grep-verified dead code).
 
-**Every write site — exhaustive, 5 sites (grep-verified):**
+**Every write site — exhaustive, 6 sites (grep-verified):**
 
 | Line | Write | Guard |
 |---|---|---|
-| `:253` | `_homePos = initPos` | inside `boot()`, only when `feedbackStable()` succeeded |
-| `:258` | `_datumSet = bootHomed` | same branch; `bootHomed` is true only if the boot index search entered state 6 **and** returned to IDLE within 30 s (`:187-200`) |
-| `:269` | `_datumSet = false` | `boot()`, when `feedbackStable()` failed. **`_homePos` is NOT cleared on this path** |
-| `:776-777` | `_homePos = fallback_pos; _datumSet = true` | `doIndexHome()` settle-timeout fallback, only when `!_datumSet` **and** a stable read succeeded **and** `fabs(vel) <= 0.05`. Unreachable: the settle is refused without a valid datum (gotcha 20) |
-| `:833-834` | `_homePos = pos; _datumSet = true` | `doSetHome()` (M751), after `feedbackStable()` and the velocity gate |
+| `:321` | `_homePos = initPos` | inside `boot()`, only when `feedbackStable()` succeeded |
+| `:327` | `_datumSet = bootHomed && bootSettled` | same branch; `bootHomed` is true only if the boot index search entered state 6, returned to IDLE within 30 s, and `procedure_result` read 0 or was unreadable (`:191-231`); `bootSettled` is true only if the closed-loop arm was confirmed and the settle converged (`:240-308`) |
+| `:340` | `_datumSet = false` | `boot()`, when `feedbackStable()` failed. **`_homePos` is NOT cleared on this path** |
+| `:770` | `_homePos -= whole_turns` | `doIndexHome()` datum normalization (gotcha 20): drops whole turns only, so the angle is unchanged and `_datumSet` is not touched. Reached only after the valid-datum check at `:735` |
+| `:876-877` | `_homePos = fallback_pos; _datumSet = true` | `doIndexHome()` settle-timeout fallback, only when `!_datumSet` **and** a stable read succeeded **and** `fabs(vel) <= 0.05`. Unreachable: the settle is refused without a valid datum (gotcha 20) |
+| `:933-934` | `_homePos = pos; _datumSet = true` | `doSetHome()` (M751), after `feedbackStable()` and the velocity gate |
 
-**ESTABLISHES a datum:** M751 on a stationary axis with a stable read; `boot()` when the boot index search completed (emits `WARN: datum established at the index mark on boot...`); `M750 H1`'s fallback `doSetHome()` **only if index homing failed and no datum existed**.
+**ESTABLISHES a datum:** M751 on a stationary axis with a stable read; `boot()` when the boot index search completed and the boot settle then converged (emits `WARN: datum established at the index mark on boot...`); `M750 H1`'s fallback `doSetHome()` **only if index homing failed and no datum existed**.
 
-**PRESERVES an existing datum (never moves it):** `doIndexHome()` normal operation — the routine moves the *rotor* to `_homePos`, never `_homePos` to the rotor; `doIndexHome()` settle-timeout when `_datumSet` is true; all eight early failure exits of `doIndexHome()`; M750's H1 fallback block, which snapshots `getHomePos()` before and after and reports one of three outcomes, calling `doSetHome()` only in the `!isDatumValid()` branch (`M750.cpp:396-402`).
+**PRESERVES an existing datum (never moves it):** `doIndexHome()` normal operation — the routine moves the *rotor* to `_homePos`, never `_homePos` to the rotor; `doIndexHome()` settle-timeout when `_datumSet` is true; all eight early failure exits of `doIndexHome()`; M750's H1 fallback block, which snapshots `getHomePos()` before and after and reports one of three outcomes, calling `doSetHome()` only in the `!isDatumValid()` branch (`M750.cpp:412-439`).
 
 **REFUSES to datum:** M751 on a moving axis; the `doIndexHome()` fallback on a moving axis; either, on an unstable/unreadable position; and `doIndexHome()` refuses the *settle move itself* when no valid datum exists.
 
-**Known weaknesses in `boot()` (flagged, not fixed):**
-- `boot()` still has a **single-sample arm check** (`:218-220`: `safe_delay(100); if (getState() == CLOSED_LOOP) {...}` with no `else`). If the arm is slow or refused, the boot settle-to-index is **silently skipped with no message** and boot still reports `OK: READY`. This is the exact defect fixed at `:695-708` for `doIndexHome()`.
-- `boot()` **does not check `procedure_result`** after its index search. A boot search that ran and *failed* still yields `_datumSet = true` and the WARN text "datum established at the index mark on boot".
-- **The boot settle timeout is silent.** If the 8 s loop at `:227` expires, nothing is emitted. `_homePos` is then taken at wherever the rotor actually is (`:253`) while the WARN asserts it is "at the index mark". **Do not document the boot datum as being at the index mark — it is at wherever the boot settle got to.**
-- Issue #45 is untouched: M750/M751/M752 each call `boot()` on first use, which runs an index search, and an immediately following M752 runs a second one.
+**`boot()` failure handling since #69, and what is still open:**
+- **Arm.** The boot settle's arm is a bounded 2 s poll of `getState()` (`:257-263`). A refused arm prints `ERR: Could not arm for boot settle -- no datum established`, runs `reportFault("closed-loop arm refused before boot settle")` and `forceIdle()`, and leaves `bootSettled` false (`:265-269`). `doIndexHome()` has the same shape at `:795-808`.
+- **`procedure_result`.** It is read once the boot search is back in IDLE (`:215`). `0` sets `bootHomed`. Unreadable (`-1`) prints `WARN: procedure_result unreadable -- boot index search UNVERIFIED` and still sets it, because unverified is not failed (`:219-225`, `docs/adr/0003`). A positive value, a search that ran and failed, prints `ERR: Boot index search failed, procedure_result=<n>`, runs `reportFault()` and `forceIdle()`, and leaves `bootHomed` false (`:226-231`).
+- **Settle timeout.** If the 8 s loop (`:288`) does not converge, `boot()` prints `ERR: Boot settle did not converge in 8s -- no datum established` (`:305-306`) and `bootSettled` stays false.
+- **Outcome.** `_datumSet = bootHomed && bootSettled` (`:327`). A completed search with no settle ends in `WARN: boot settle did not reach the index mark -- no valid datum, ...` (`:333`); no completed search ends in `WARN: boot index search did not complete -- no valid datum, ...` (`:335`). Either way `boot()` still prints `OK: READY` and sets `_ready` (`:344-345`), so READY does not mean a datum exists.
+- **Where the boot datum sits.** It is set only after the rotor converged to within 0.003 turns (1.08°) of `roundf(p0)` and below 0.05 rev/s, where `p0` is a `feedbackStable()` read taken after the arm (`0.0` if that read fails, `:281`). `_homePos` is then a fresh read taken after the axis returned to IDLE (`:320-321`), so it can differ from that target by the tolerance plus any drift. The target is the index mark only while the ODrive's `index_offset` is `0.0`, which `ODRIVE_CONFIG.md` records for 2026-08-13 and `boot()` never reads (`M754` does). Do not document the boot datum as exactly the index mark.
+- **Open, issue #45.** M750/M751/M752 each call `boot()` on first use, which runs a full index search and settle, and an M752 right after it runs a second search in `doIndexHome()`.
 
 #### Spin Cycle Phases (Marlin)
 
@@ -680,47 +683,47 @@ Every `STATE:` token M750 and the spincoater layer can emit, in rough order of a
 
 | STATE token | Emitted by | Meaning / exit condition |
 |---|---|---|
-| `BOOTING` | `M750.cpp:174`, `M751_M752.cpp:26,42` | About to run the deferred `boot()` (first use only) |
-| `WAITING_ODRIVE` | `spincoater.cpp:134` | Probing `r vbus_voltage`, 15 s budget |
-| `INDEX_SEARCH_BOOT` | `spincoater.cpp:161` | Boot-time index search requested |
-| `INDEX_SEARCH_ACTIVE` | `spincoater.cpp:177`, `:588` | Axis confirmed in state 6 |
-| `INDEX_SETTLE_BOOT` | `spincoater.cpp:208` | Boot trap-traj move to `t 0 0.0` (the index mark), 8 s watchdog |
-| `CONNECTING` | `M750.cpp:199` | Polling `getState()`, 5 s budget |
-| `ODRIVE_FOUND` | `M750.cpp:211` | A non-UNDEFINED state was read |
-| `CALIBRATING` | `M750.cpp:222` | `ensureClosedLoop()` running (50 attempts / 90 s wall clock) |
-| `FULL_CALIBRATION` | `spincoater.cpp:522` | Full motor+encoder calibration, ≤60 s, max 2 attempts |
-| `CLOSED_LOOP` | `M750.cpp:227` | Armed |
-| `RAMP_UP` | `M750.cpp:230` | Exits at `rpm × 0.98`; hard timeout `max(3×rise_s, 10 s)` |
-| `RAMP_TIMEOUT` | `M750.cpp:255` | **FAILURE** — never reached 98% within the hard timeout |
-| `RAMP_STALL` | `M750.cpp:267` | **FAILURE** — <50 RPM gain in 3 s while above 100 RPM |
-| `MEASURING` | `M750.cpp:279` | Welford sampling at 100 ms for D seconds |
-| `MEASURE_LINK_LOST` | `M750.cpp:99` | **FAILURE** — no successful `feedback()` for 3 s |
-| `RAMP_DOWN` | `M750.cpp:287` | Exits at `|RPM| <= 6.0`; stop re-issued every 1000 ms |
-| `DECEL_LINK_LOST` | `M750.cpp:328` | **FAILURE** — no successful `feedback()` for 3 s. Rotor may still be spinning |
-| `DECEL_STALL` | `M750.cpp:346` | **FAILURE** — no 0.5 RPM of progress within `max(3×sink_s, 10 s)`. Disarms → freewheel |
-| `SETTLING` | `M750.cpp:359` | 1 s active telemetry dwell |
-| `STOPPED` | `M750.cpp:368` | Ramp-down complete |
-| `HOMING` | `spincoater.cpp:554` | `doIndexHome()` entered |
-| `ENTERING_IDLE` | `spincoater.cpp:569` | Axis was not IDLE; `forceIdle(3000)` running |
-| `HOME_SETTLE` | `spincoater.cpp:681` | **The chuck is moving** — trap-traj back to `_homePos`, 8 s watchdog |
+| `BOOTING` | `M750.cpp:194`, `M751_M752.cpp:26,42` | About to run the deferred `boot()` (first use only) |
+| `WAITING_ODRIVE` | `spincoater.cpp:138` | Probing `r vbus_voltage`, 15 s budget |
+| `INDEX_SEARCH_BOOT` | `spincoater.cpp:165` | Boot-time index search requested |
+| `INDEX_SEARCH_ACTIVE` | `spincoater.cpp:181`, `:659` | Axis confirmed in state 6 |
+| `INDEX_SETTLE_BOOT` | `spincoater.cpp:242` | Boot trap-traj move to the nearest whole turn (`roundf` of the current position, `0.0` if the stable read fails) after a bounded 2 s arm poll, 8 s watchdog |
+| `CONNECTING` | `M750.cpp:219` | Polling `getState()`, 5 s budget |
+| `ODRIVE_FOUND` | `M750.cpp:231` | A non-UNDEFINED state was read |
+| `CALIBRATING` | `M750.cpp:242` | `ensureClosedLoop()` running (50 attempts / 90 s wall clock) |
+| `FULL_CALIBRATION` | `spincoater.cpp:593` | Full motor+encoder calibration, ≤60 s, max 2 attempts |
+| `CLOSED_LOOP` | `M750.cpp:247` | Armed |
+| `RAMP_UP` | `M750.cpp:250` | Exits at `rpm × 0.98`; hard timeout `max(3×rise_s, 10 s)` |
+| `RAMP_TIMEOUT` | `M750.cpp:284` | **FAILURE** — never reached 98% within the hard timeout |
+| `RAMP_STALL` | `M750.cpp:296` | **FAILURE** — <50 RPM gain in 3 s while above 100 RPM |
+| `MEASURING` | `M750.cpp:308` | Welford sampling at 100 ms for D seconds |
+| `MEASURE_LINK_LOST` | `M750.cpp:107` | **FAILURE** — no successful `feedback()` for 3 s |
+| `RAMP_DOWN` | `M750.cpp:324` | Exits at `|RPM| <= 6.0`; stop re-issued every 1000 ms |
+| `DECEL_LINK_LOST` | `M750.cpp:365` | **FAILURE** — no successful `feedback()` for 3 s. Rotor may still be spinning |
+| `DECEL_STALL` | `M750.cpp:383` | **FAILURE** — no 0.5 RPM of progress within `max(3×sink_s, 10 s)`. Disarms → freewheel |
+| `SETTLING` | `M750.cpp:396` | 1 s active telemetry dwell |
+| `STOPPED` | `M750.cpp:405` | Ramp-down complete |
+| `HOMING` | `spincoater.cpp:625` | `doIndexHome()` entered |
+| `ENTERING_IDLE` | `spincoater.cpp:640` | Axis was not IDLE; `forceIdle(3000)` running |
+| `HOME_SETTLE` | `spincoater.cpp:781` | **The chuck is moving** — trap-traj back to `_homePos`, 8 s watchdog |
 
-Removed by this stack and no longer emitted anywhere: `STATE:INDEX_SETTLE` (renamed `HOME_SETTLE`) and `STATE:INDEX_FOUND_INSTANT` (deleted in `092baf8` — it used to report a refused index search as success). Both are still dead keys in both UIs' `stateMap`.
+Removed by this stack and no longer emitted anywhere: `STATE:INDEX_SETTLE` (renamed `HOME_SETTLE`) and `STATE:INDEX_FOUND_INSTANT` (deleted in `092baf8` — it used to report a refused index search as success). Both keys were dropped from both UIs' `stateMap` in #178 (2026-10-20); `INDEX_SETTLE_BOOT` is still mapped.
 
 #### Serial Protocol Reference (authoritative)
 
-Every line the Marlin spincoater layer emits is wrapped as `echo:SPIN <PREFIX>`. This is the contract both UIs parse — grep-verified against `spincoater.cpp`, `M750.cpp`, `M751_M752.cpp`, `M753.cpp` at the stack tip.
+Every line the Marlin spincoater layer emits is wrapped as `echo:SPIN <PREFIX>`. This is the contract both UIs parse — line numbers re-grepped against `spincoater.cpp`, `M750.cpp`, `M751_M752.cpp`, `M753.cpp` at main `5647e2d` (2026-10-21).
 
-**Prefixes:** `STATE:` phase transitions · `OK:` success · `ERR:` failure · `WARN:` non-fatal but registration-relevant (new in this stack; **parsed by neither UI**) · `DATA:` key=value results · `TELEM:` live telemetry · `DIAG:` M753 only.
+**Prefixes:** `STATE:` phase transitions · `OK:` success · `ERR:` failure · `WARN:` non-fatal but registration-relevant (new in this stack; both UIs show each one in a warning row under the phase bar and never let it change the phase, and the Touch UI also toasts it, gotcha #17) · `DATA:` key=value results · `TELEM:` live telemetry · `DIAG:` M753 only.
 
 **`OK:` lines**
 
 | Line | Emitted by | Meaning |
 |---|---|---|
-| `OK: READY` | `spincoater.cpp:273` | `boot()` completed. Note: reached even if the boot settle was skipped or timed out |
-| `OK: Cycle — RPM=… DUR=…s RISE=…s SINK=…s HOME=ON/OFF` | `M750.cpp:186-190` | Parameter echo, not a result |
-| `OK: HOME_SET` | `spincoater.cpp:846` | **Terminal, M751 success** |
-| `OK: INDEX_COMPLETE` | `spincoater.cpp:800` | **Terminal, M752 success** — rotor reached the datum |
-| `OK: CYCLE_COMPLETE` | `M750.cpp:413` | **Terminal, M750 success** |
+| `OK: READY` | `spincoater.cpp:344` | `boot()` completed. Reached even when no datum was set (the boot index search, the settle or the position read failed): read the `ERR:` and `WARN:` lines before it |
+| `OK: Cycle — RPM=… DUR=…s RISE=…s SINK=…s HOME=ON/OFF` | `M750.cpp:206-210` | Parameter echo, not a result |
+| `OK: HOME_SET` | `spincoater.cpp:946` | **Terminal, M751 success** |
+| `OK: INDEX_COMPLETE` | `spincoater.cpp:900` | **Terminal, M752 success** — rotor reached the datum |
+| `OK: CYCLE_COMPLETE` | `M750.cpp:450` | **Terminal, M750 success** |
 
 **`ERR:` lines — terminal markers first**
 
@@ -728,84 +731,87 @@ Every line the Marlin spincoater layer emits is wrapped as `echo:SPIN <PREFIX>`.
 |---|---|---|
 | `ERR: HOME_SET_FAILED` | `M751_M752.cpp:36` | **Terminal** — M751 failed |
 | `ERR: INDEX_HOME_FAILED` | `M751_M752.cpp:55` | **Terminal** — M752 failed (any of nine exits) |
-| `ERR: INDEX_INCOMPLETE -- datum not reached` | `spincoater.cpp:801` | Settle-timeout exit only; always followed by `INDEX_HOME_FAILED` |
-| `ERR: CYCLE_COMPLETE_NO_HOME — rotor parked off datum, angular registration unverified` | `M750.cpp:411` | **Terminal** — cycle ran, H1 home failed |
+| `ERR: INDEX_INCOMPLETE -- datum not reached` | `spincoater.cpp:901` | Settle-timeout exit only; always followed by `INDEX_HOME_FAILED` |
+| `ERR: CYCLE_COMPLETE_NO_HOME — rotor parked off datum, angular registration unverified` | `M750.cpp:448` | **Terminal** — cycle ran, H1 home failed |
 
 **`ERR:` lines — diagnostic**
 
 | Line | Emitted by |
 |---|---|
-| `ERR: All values must be > 0` | `M750.cpp:168` |
-| `ERR: ODrive boot failed — check wiring and power` | `M750.cpp:176` |
+| `ERR: All values must be > 0` | `M750.cpp:186` |
+| `ERR: ODrive boot failed — check wiring and power` | `M750.cpp:196` |
 | `ERR: ODrive boot failed` | `M751_M752.cpp:28,44` |
-| `ERR: ODrive not detected (15s timeout)` | `spincoater.cpp:154` |
-| `ERR: Could not start index search` | `spincoater.cpp:202` |
-| `ERR: Index search timeout (30s)` | `spincoater.cpp:195` (boot), `:624` (M752) |
-| `ERR: ODrive not responding (5s)` | `M750.cpp:205` |
-| `ERR: ODrive not responding` | `spincoater.cpp:561` |
-| `ERR: Could not enter closed loop (50 attempts)` | `spincoater.cpp:495` |
-| `ERR: Closed-loop entry timeout (90s)` | `spincoater.cpp:500` |
-| `ERR: Axis will not arm after 2 full calibrations` | `spincoater.cpp:516` |
-| `ERR: Full calibration timeout (60s)` | `spincoater.cpp:534` |
-| `ERR: Failed to enter closed-loop` | `M750.cpp:224` |
-| `ERR: Ramp-up timeout — reached <n> of <n> RPM` | `M750.cpp:252-254` |
-| `ERR: RPM stalled at <n> — target <n> unreachable` | `M750.cpp:263-266` |
-| `ERR: No ODrive telemetry for 3s during measure -- link lost` | `M750.cpp:98` |
-| `ERR: No telemetry samples during measure -- statistics unavailable` | `M750.cpp:141` |
-| `ERR: Measure phase aborted -- stopping spin` | `M750.cpp:281` |
-| `ERR: Ramp-down aborted, no ODrive telemetry for 3s -- last seen <n> RPM; rotor may still be spinning` | `M750.cpp:325-327` |
-| `ERR: Ramp-down stalled at <n> RPM -- not decelerating` | `M750.cpp:343-345` |
-| `ERR: Could not confirm ODrive IDLE -- axis may still be executing` | `spincoater.cpp:467` |
-| `ERR: Could not enter IDLE before index search` | `spincoater.cpp:571` |
-| `ERR: Index search never started, state=<n>` | `spincoater.cpp:610-611` |
-| `ERR: Index search failed, procedure_result=<n>` | `spincoater.cpp:638-639` |
-| `ERR: No stable position read before settle -- refusing to move` | `spincoater.cpp:661` |
-| `ERR: No valid home datum -- refusing settle. Run M751 (Set Home).` | `doIndexHome()`, before the settle |
-| `ERR: Could not enter closed loop -- return to datum skipped` | `spincoater.cpp:704` |
-| `ERR: Could not read ODrive position after settle failure` | `spincoater.cpp:768` |
-| `ERR: Refusing to establish datum, axis still moving at <n> RPM` | `spincoater.cpp:771-773` |
-| `ERR: Could not obtain a stable ODrive position -- home NOT set` | `spincoater.cpp:819` |
-| `ERR: Refusing to set home, axis moving at <n> RPM` | `spincoater.cpp:827-829` |
-| `ERR: Fallback home failed — manual intervention required` | `M750.cpp:401` |
-| `ERR: fault @ <context>` | `spincoater.cpp:440-441` |
+| `ERR: ODrive not detected (15s timeout)` | `spincoater.cpp:158` |
+| `ERR: Could not start index search` | `spincoater.cpp:234` |
+| `ERR: Index search timeout (30s)` | `spincoater.cpp:202` (boot), `:695` (M752) |
+| `ERR: Boot index search failed, procedure_result=<n>` | `spincoater.cpp:227` |
+| `ERR: Could not arm for boot settle -- no datum established` | `spincoater.cpp:266` |
+| `ERR: Boot settle did not converge in 8s -- no datum established` | `spincoater.cpp:306` |
+| `ERR: ODrive not responding (5s)` | `M750.cpp:225` |
+| `ERR: ODrive not responding` | `spincoater.cpp:632` |
+| `ERR: Could not enter closed loop (50 attempts)` | `spincoater.cpp:566` |
+| `ERR: Closed-loop entry timeout (90s)` | `spincoater.cpp:571` |
+| `ERR: Axis will not arm after 2 full calibrations` | `spincoater.cpp:587` |
+| `ERR: Full calibration timeout (60s)` | `spincoater.cpp:605` |
+| `ERR: Failed to enter closed-loop` | `M750.cpp:244` |
+| `ERR: Ramp-up timeout — reached <n> of <n> RPM` | `M750.cpp:281-283` |
+| `ERR: RPM stalled at <n> — target <n> unreachable` | `M750.cpp:292-295` |
+| `ERR: No ODrive telemetry for 3s during measure -- link lost` | `M750.cpp:106` |
+| `ERR: No telemetry samples during measure -- statistics unavailable` | `M750.cpp:159` |
+| `ERR: Measure phase aborted -- stopping spin` | `M750.cpp:318` |
+| `ERR: Ramp-down aborted, no ODrive telemetry for 3s -- last seen <n> RPM; rotor may still be spinning` | `M750.cpp:362-364` |
+| `ERR: Ramp-down stalled at <n> RPM -- not decelerating` | `M750.cpp:380-382` |
+| `ERR: Could not confirm ODrive IDLE -- axis may still be executing` | `spincoater.cpp:538` |
+| `ERR: Could not enter IDLE before index search` | `spincoater.cpp:642` |
+| `ERR: Index search never started, state=<n>` | `spincoater.cpp:681-682` |
+| `ERR: Index search failed, procedure_result=<n>` | `spincoater.cpp:709-710` |
+| `ERR: No stable position read before settle -- refusing to move` | `spincoater.cpp:727` |
+| `ERR: No valid home datum -- refusing settle. Run M751 (Set Home).` | `spincoater.cpp:736` |
+| `ERR: Could not enter closed loop -- return to datum skipped` | `spincoater.cpp:804` |
+| `ERR: Could not read ODrive position after settle failure` | `spincoater.cpp:868` |
+| `ERR: Refusing to establish datum, axis still moving at <n> RPM` | `spincoater.cpp:871-873` |
+| `ERR: Could not obtain a stable ODrive position -- home NOT set` | `spincoater.cpp:919` |
+| `ERR: Refusing to set home, axis moving at <n> RPM` | `spincoater.cpp:927-929` |
+| `ERR: Fallback home failed — manual intervention required` | `M750.cpp:438` |
+| `ERR: fault @ <context>` | `spincoater.cpp:511-512` |
 
 **`WARN:` lines: 14 in total, all new in this stack; both UIs show them in the spincoater panel's warning row (gotcha #17)**
 
 | Line | Emitted by | Meaning |
 |---|---|---|
 | `WARN: procedure_result unreadable -- boot index search UNVERIFIED` | `spincoater.cpp:223` | Boot index search returned to IDLE but `getProcedureResult()` returned -1: unverified, **not** failed, so boot carries on as if it completed (`docs/adr/0003`) |
-| `WARN: datum established at the index mark on boot -- re-run M751 if layer registration matters` | `spincoater.cpp:262` | Boot search completed; datum is valid but is not the operator's zero |
-| `WARN: boot settle did not reach the index mark -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:333` | Boot search completed, but the boot settle was refused an arm or did not converge in 8 s; `_datumSet` is false |
-| `WARN: boot index search did not complete -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:264` | `_datumSet` is false |
-| `WARN: could not read a consistent initial position -- no datum, run M751 before relying on angles` | `spincoater.cpp:270` | Stable read failed; `_homePos` retains a stale value behind an invalid flag |
-| `WARN: Could not read axis0.procedure_result -- index result unverified` | `spincoater.cpp:645` | `getProcedureResult()` returned -1 → unverified, **not** failed |
-| `WARN: Settle failed — datum PRESERVED at <n> turns; rotor stopped <n> deg away` | `spincoater.cpp:757-761` | Operator datum intact |
-| `WARN: Settle failed — datum PRESERVED (rotor position unreadable)` | `spincoater.cpp:764` | Operator datum intact |
-| `WARN: Settle failed and no datum existed — establishing one at pos=<n>` | `spincoater.cpp:778-779` | First datum adopted. Unreachable since the settle is refused without a datum (gotcha 20) |
-| `WARN: run M751 to set your intended zero` | `spincoater.cpp:780` | Follows the line above; unreachable likewise |
-| `WARN: Index homing failed; a first datum was established at <n> turns — run M751 to set your intended zero` | `M750.cpp:384-386` | H1 path, datum changed |
-| `WARN: Index homing failed — datum PRESERVED at <n> turns (not re-datuming)` | `M750.cpp:392-394` | H1 path, datum intact |
-| `WARN: Index homing failed and no datum set — attempting fallback set-home` | `M750.cpp:397` | H1 path, about to call `doSetHome()` |
-| `WARN: Fallback home set OK` | `M750.cpp:399` | H1 fallback succeeded |
+| `WARN: datum established at the index mark on boot -- re-run M751 if layer registration matters` | `spincoater.cpp:331` | Boot search completed and the settle converged; datum is valid but is not the operator's zero |
+| `WARN: boot settle did not reach the index mark -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:333` | Boot search completed, but the boot settle was refused an arm or did not converge in 8 s (each has its own `ERR:` line); `_datumSet` is false |
+| `WARN: boot index search did not complete -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:335` | Boot index search did not start, timed out or reported a failed `procedure_result` (each has its own `ERR:` line); `_datumSet` is false |
+| `WARN: could not read a consistent initial position -- no datum, run M751 before relying on angles` | `spincoater.cpp:341` | Stable read failed; `_homePos` retains a stale value behind an invalid flag |
+| `WARN: Could not read axis0.procedure_result -- index result unverified` | `spincoater.cpp:716` | `getProcedureResult()` returned -1 → unverified, **not** failed |
+| `WARN: Settle failed — datum PRESERVED at <n> turns; rotor stopped <n> deg away` | `spincoater.cpp:857-861` | Operator datum intact |
+| `WARN: Settle failed — datum PRESERVED (rotor position unreadable)` | `spincoater.cpp:864` | Operator datum intact |
+| `WARN: Settle failed and no datum existed — establishing one at pos=<n>` | `spincoater.cpp:878-879` | First datum adopted. Unreachable since the settle is refused without a datum (gotcha 20) |
+| `WARN: run M751 to set your intended zero` | `spincoater.cpp:880` | Follows the line above; unreachable likewise |
+| `WARN: Index homing failed; a first datum was established at <n> turns — run M751 to set your intended zero` | `M750.cpp:421-423` | H1 path, datum changed |
+| `WARN: Index homing failed — datum PRESERVED at <n> turns (not re-datuming)` | `M750.cpp:429-431` | H1 path, datum intact |
+| `WARN: Index homing failed and no datum set — attempting fallback set-home` | `M750.cpp:434` | H1 path, about to call `doSetHome()` |
+| `WARN: Fallback home set OK` | `M750.cpp:436` | H1 fallback succeeded |
 
 **`DATA:` keys**
 
 | Key | Emitted by | Units / meaning | UI card |
 |---|---|---|---|
-| `Vbus` | `spincoater.cpp:144` (strict-parsed), `M750.cpp:216` (**unvalidated**) | Volts | Bus voltage |
-| `BootSettleErr` | `spincoater.cpp:232` | degrees | — |
-| `InitialPos` | `spincoater.cpp:259` | turns | Home position (same as `HomePos`) |
-| `Samples` | `M750.cpp:149`, `:142` | count | Samples |
-| `MeanRPM` | `M750.cpp:150` | RPM | Mean |
-| `StdDevRPM` | `M750.cpp:151` | RPM (population σ) | Std dev |
-| `MinRPM` / `MaxRPM` / `Range` | `M750.cpp:152-154` | RPM | Min / Max / Range |
-| `accel` / `decel` | `M750.cpp:191-192` | rev/s² — one line, two keys | — |
-| `HomePos` | `spincoater.cpp:836` | turns | Home position (angle within one turn) |
-| `HomeSettleErr` | `spincoater.cpp:726` | degrees | — |
-| `procedure_result` / `active_errors` / `disarm_reason` | `spincoater.cpp:447-455` | raw ODrive strings, or `<no reply>` | — |
+| `Vbus` | `spincoater.cpp:148` (strict-parsed at `:147`), `M750.cpp:236` (**unvalidated**) | Volts | Bus voltage |
+| `BootSettleErr` | `spincoater.cpp:294` | degrees | — |
+| `InitialPos` | `spincoater.cpp:328` | turns | Home position (same as `HomePos`) |
+| `Samples` | `M750.cpp:167`, `:160` | count | Samples |
+| `MeanRPM` | `M750.cpp:168` | RPM | Mean |
+| `StdDevRPM` | `M750.cpp:169` | RPM (population σ) | Std dev |
+| `MinRPM` / `MaxRPM` / `Range` | `M750.cpp:170-172` | RPM | Min / Max / Range |
+| `accel` / `decel` | `M750.cpp:211-212` | rev/s² — one line, two keys | — |
+| `HomePos` | `spincoater.cpp:936` | turns | Home position (angle within one turn) |
+| `HomeSettleErr` | `spincoater.cpp:826` | degrees | — |
+| `procedure_result` / `active_errors` / `disarm_reason` | `spincoater.cpp:518-526` | raw ODrive strings, or `<no reply>` | — |
 
 **Irregularities a UI author must know:**
-- `echo:SPIN DATA: HomeSettle timeout (8s)` (`spincoater.cpp:736`) is `DATA:`-prefixed but has **no `key=value`**, so it does not match the UIs' `/DATA:\s*(\w+)=(.*)/` regex. It is semantically an error, not data.
+- `echo:SPIN DATA: HomeSettle timeout (8s)` (`spincoater.cpp:836`) is `DATA:`-prefixed but has **no `key=value`**, so it does not match the UIs' `/DATA:\s*(\w+)=(.*)/` regex. It is semantically an error, not data.
 - `DATA: accel=… decel=…` is a single line carrying two keys; the regex captures only the first.
 - On a dead link the M750 Vbus line degenerates to `echo:SPIN DATA: Vbus=V`, which both UIs render as the literal string `NaN`.
 - `DegFromHome` is a **key the firmware never emits**. Both UIs used to key their Home card on it; since 2026-10-20 (issue #47) the card is driven by `DATA: HomePos=` (M751) and `DATA: InitialPos=` (boot), both the datum in absolute multi-turn turns, and shows the angle within one turn, `((x % 1) + 1) % 1 * 360`. The firmware prints a float to 2 decimals (`serial_base.h:181,198`), so the card is good to ±1.8°, and its unit says so. `STATE:BOOTING` blanks the card: boot() runs only while no boot has succeeded since the last reset, and the datum does not survive a reset (gotcha 19).
@@ -823,13 +829,13 @@ Rate-limited to 200 ms during RAMP_UP / RAMP_DOWN / SETTLING (`M750.cpp:34,51`),
 
 Nothing in the subsystem can hang forever at the stack tip — that was the point of PR #57.
 
-`spincoater.cpp`: stale-flush dwell 50 ms (`:130`) · boot Vbus probe **15000 ms** (`:137`) · boot index search enters state 6 **5000 ms** (`:172`) · boot index search completes **30000 ms** (`:194`) · boot encoder settle 300 ms (`:205`) · boot arm dwell 100 ms then a **single sample** (`:218`) · boot trap-traj settle **8000 ms** (`:227`) · post-IDLE dwell 100 ms (`:244`) · `readRaw()` reply **500 ms** (`:294`) · `feedback()` reply **200 ms** (`:329`) · `feedbackStable()` **3 attempts** ≈1.35 s worst case (`:371-389`) · `clearErrors()` drain 50 ms (`:422`) · `forceIdle()` **3000 ms** default (`:461`, `spincoater.h:121`) · `ensureClosedLoop()` **50 attempts** (`:494`) and **90000 ms** wall clock (`:499`) · full-calibration cap **2 calibrations** (`:515`) · full-calibration completion **60000 ms** (`:533`) · `doIndexHome()` liveness **5000 ms** (`:560`) · enter IDLE **3000 ms** (`:570`) · index search enters state 6 **3000 ms + extraWindow** (`:583`) · index search completes **30000 ms** (`:623`) · encoder settle 300 ms (`:648`) · closed-loop arm **2000 ms** (`:697`) · trap-traj settle **8000 ms** (`:720`), success window `<0.003` turns and `<0.05` rev/s (`:724`).
+`spincoater.cpp`: stale-flush dwell 50 ms (`:134`) · boot Vbus probe **15000 ms** (`:141`) · boot index search enters state 6 **5000 ms** (`:176`) · boot index search completes **30000 ms** (`:195`) · boot encoder settle 300 ms (`:237`) · boot closed-loop arm **2000 ms** bounded poll (`:259`) · boot trap-traj settle **8000 ms** (`:288`) · post-IDLE dwell 100 ms (`:312`) · `readRaw()` reply **500 ms** (`:365`) · `feedback()` reply **200 ms** (`:400`) · `feedbackStable()` **3 attempts** ≈1.35 s worst case (`:442-461`) · `clearErrors()` drain 50 ms (`:493`) · `forceIdle()` **3000 ms** default (`:529`, `spincoater.h:121`) · `ensureClosedLoop()` **50 attempts** (`:565`) and **90000 ms** wall clock (`:570`) · full-calibration cap **2 calibrations** (`:586`) · full-calibration completion **60000 ms** (`:604`) · `doIndexHome()` liveness **5000 ms** (`:631`) · enter IDLE **3000 ms** (`:641`) · index search enters state 6 **3000 ms + extraWindow** (`:654`) · index search completes **30000 ms** (`:694`) · encoder settle 300 ms (`:719`) · closed-loop arm **2000 ms** (`:797`) · trap-traj settle **8000 ms** (`:820`), success window `<0.003` turns and `<0.05` rev/s (`:824`).
 
-`M750.cpp`: telemetry rate limit 200 ms (`:34`) · measure sample interval 100 ms (`:79`) · **measure telemetry liveness 3000 ms** (`:97`) · CONNECTING **5000 ms** (`:204`) · ramp-up hard timeout `rise_s × 3000`, **floor 10000 ms** (`:243-244`) · ramp-up stall window **3000 ms** with <50 RPM gain, gated on `>100` RPM (`:261-262`) · ramp-down no-progress timeout `sink_s × 3000`, **floor 10000 ms** (`:305-306`) · ramp-down exit threshold `|RPM| <= 6.0` (`:313`) · stop re-issue every **1000 ms** (`:318`) · **ramp-down telemetry liveness 3000 ms** (`:324`) · progress increment 0.5 RPM (`:338`) · SETTLING dwell 1000 ms (`:362`).
+`M750.cpp`: telemetry rate limit 200 ms (`:34`) · measure sample interval 100 ms (`:84`) · **measure telemetry liveness 3000 ms** (`:105`) · CONNECTING **5000 ms** (`:224`) · ramp-up hard timeout `rise_s × 3000`, **floor 10000 ms** (`:263-264`) · ramp-up stall window **3000 ms** with <50 RPM gain, gated on `>100` RPM (`:290-291`) · ramp-down no-progress timeout `sink_s × 3000`, **floor 10000 ms** (`:342-343`) · ramp-down exit threshold `|RPM| <= 6.0` (`:350`) · stop re-issue every **1000 ms** (`:355`) · **ramp-down telemetry liveness 3000 ms** (`:361`) · progress increment 0.5 RPM (`:375`) · SETTLING dwell 1000 ms (`:399`).
 
 `M753.cpp`: diagnostic byte collection **2000 ms** (`:49`) — unchanged.
 
-**Worst-case blocking time for one M750** is roughly boot (15 + 30 + 8 s) + closed-loop 90 s + ramp-up `max(10 s, 3×rise)` + measure `D` s + ramp-down `max(10 s, 3×sink)` + settle 1 s + index home (5+3+3+30+2+8 s). All bounded.
+**Worst-case blocking time for one M750** is roughly boot (15 + 5 + 30 + 2 + 8 s) + closed-loop 90 s + ramp-up `max(10 s, 3×rise)` + measure `D` s + ramp-down `max(10 s, 3×sink)` + settle 1 s + index home (5+3+3+30+2+8 s). All bounded.
 
 #### Implementation Files
 - `Marlin/src/gcode/control/M750.cpp` — spin cycle handler
@@ -842,19 +848,19 @@ Nothing in the subsystem can hang forever at the stack tip — that was the poin
 #### Feature Flag
 `#define SPINCOATER` in Configuration_adv.h. All spincoater code is conditional — removing this define removes all spincoater functionality from the build. Note that `EMERGENCY_PARSER` is a **separate** define and does not disappear with it.
 
-#### ODrive Boot Sequence (`spincoater.cpp:124-276`)
+#### ODrive Boot Sequence (`spincoater.cpp:128-347`)
 
 `boot()` runs on the first M750/M751/M752 call. **M753 does not boot** — it calls `Spincoater::init()` only.
 
-0. **`init()`** — `Serial2.begin(115200)` if not already open, then a stale-buffer flush: send a bare newline, `flush()`, `safe_delay(50)`, drain everything waiting (`:128-131`).
-1. **`STATE:WAITING_ODRIVE`** — probe `r vbus_voltage` in a 15 s loop. The reply is **strict-parsed and must be > 1.0 V** (`:143`); a garbled reply no longer counts as "found". Success emits `DATA: Vbus=<raw>V`. Failure → `ERR: ODrive not detected (15s timeout)`, `boot()` returns **false** and the calling M-code aborts.
+0. **`init()`** — `Serial2.begin(115200)` if not already open, then a stale-buffer flush: send a bare newline, `flush()`, `safe_delay(50)`, drain everything waiting (`:132-135`).
+1. **`STATE:WAITING_ODRIVE`** — probe `r vbus_voltage` in a 15 s loop. The reply is **strict-parsed and must be > 1.0 V** (`:147`); a garbled reply no longer counts as "found". Success emits `DATA: Vbus=<raw>V`. Failure → `ERR: ODrive not detected (15s timeout)`, `boot()` returns **false** and the calling M-code aborts.
 2. **`STATE:INDEX_SEARCH_BOOT`** — `clearErrors()`, force IDLE, request `ENCODER_INDEX_SEARCH`. Poll ≤5 s for state 6, re-requesting after 1 s. On entry: `STATE:INDEX_SEARCH_ACTIVE`. (AMT102 is incremental and loses position on power cycle.)
-3. Wait for return to IDLE, ≤30 s. `bootHomed` is true only if both step 2 and step 3 succeeded. **`procedure_result` is NOT checked here** — see the known weaknesses above.
+3. Wait for return to IDLE, ≤30 s; a timeout prints `ERR: Index search timeout (30s)` and forces IDLE. Then read `procedure_result` (`:215`): `0` sets `bootHomed`; unreadable prints `WARN: procedure_result unreadable -- boot index search UNVERIFIED` and sets it too; a positive value prints `ERR: Boot index search failed, procedure_result=<n>`, runs `reportFault()` and `forceIdle()`, and leaves it false. `bootHomed` is true only if steps 2 and 3 both succeeded and the result was not a reported failure.
 4. `safe_delay(300)` encoder settle.
-5. **`STATE:INDEX_SETTLE_BOOT`** — switch to POSITION/TRAP_TRAJ at `vel_limit 0.25` rev/s, arm closed loop, and command `t 0 0.0` (the index mark). 8 s watchdog; success emits `DATA: BootSettleErr=<deg> deg`. **Both the arm check and the timeout are silent on failure.**
+5. **`STATE:INDEX_SETTLE_BOOT`**, only if `bootHomed`: switch to POSITION/TRAP_TRAJ at `vel_limit 0.25` rev/s and request closed loop. The arm is a bounded 2 s poll; a refusal prints `ERR: Could not arm for boot settle -- no datum established`, runs `reportFault()` and `forceIdle()`, and skips the move. Otherwise `feedbackStable()` gives the starting position, the target is its nearest whole turn `roundf(p0)` (`0.0` if that read fails), and `t 0 <target>` is commanded under an 8 s watchdog. Convergence (within 0.003 turns, below 0.05 rev/s) sets `bootSettled` and emits `DATA: BootSettleErr=<deg> deg`; a timeout prints `ERR: Boot settle did not converge in 8s -- no datum established`.
 6. Return to IDLE, restore VELOCITY/VEL_RAMP control mode.
-7. `feedbackStable()` for the initial position → `DATA: InitialPos=`, then `_homePos = initPos` and `_datumSet = bootHomed`, plus one of three mutually exclusive `WARN:` lines (`:262`, `:264`, `:270`).
-8. **`OK: READY`**, `_ready = true`.
+7. `feedbackStable()` for the initial position. On success: `DATA: InitialPos=`, `_homePos = initPos`, `_datumSet = bootHomed && bootSettled`, and exactly one of three `WARN:` lines: `datum established` (`:331`), `boot settle did not reach the index mark` (`:333`) or `boot index search did not complete` (`:335`). On failure: `_datumSet = false`, `_homePos` untouched, and `WARN: could not read a consistent initial position` (`:341`). That makes one of four mutually exclusive `WARN:` lines; the `procedure_result unreadable` WARN from step 3 (`:223`) is independent of them.
+8. **`OK: READY`**, `_ready = true` (`:344-345`), on every path past the Vbus probe, including when no datum was set.
 
 **The ODrive *probe* is deferred; Serial2 itself is not.** `MarlinCore.cpp:1308` runs `Spincoater::startupSafetyDisarm()` during Marlin `setup()` — positioned **before** `SETUP_RUN(hal.init_board())` (`:1311`) — which calls `emergencyStop()` → `init()` → `Serial2.begin()` and transmits two `w axis0.requested_state 1` lines. **Pin 16 is therefore driven on every Mega power-on or reset**, including the DTR reset a browser triggers on connect. Issue #40.
 
@@ -874,7 +880,7 @@ With `EMERGENCY_PARSER` enabled there is **no queued M112 handler at all** — `
 
 Both UIs carry functionally equivalent — not byte-identical — spincoater parsing. The consolidation (#106, 2026-09-14) cherry-picked #84's verdict-by-message-class commit into both: `spinMsg.startsWith('ERR:')` and `('OK:')` are now separate branches with an `errMap` (`RMR_Controller.html` ~`:1884`, `RMR_Touch.html` ~`:1775`), so a failure token can no longer be claimed by a success test, and **any** `ERR:` line sets the error phase (the Touch UI also toasts it). What is still open is tracked in issue #47 (UI) and #48 (Program Runner). Status per defect:
 
-| # | Defect | Status 2026-10-14 |
+| # | Defect | Status 2026-10-20 |
 |---|---|---|
 | A | `HOME_SETTLE` has no `stateMap` key | **Fixed**: mapped to "Settling to datum..."; `STATE:` keys now match by longest key, so no shorter token can claim it |
 | B | `ERR: HOME_SET_FAILED` contains `HOME_SET` | **Fixed** — renders as error phase "Could not set home datum" |
