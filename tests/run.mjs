@@ -44,6 +44,7 @@ const checks = [
   { issue: '#183', name: 'UV index after the cure: both pages', script: 'uv-index-order.test.mjs',   args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '#186', name: 'UV relay off after a sent ON: both pages', script: 'uv-relay-flags.test.mjs', args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '#188', name: 'seq end poll guard: both pages', script: 'seq-end-poll.test.mjs',         args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
+  { issue: '#187', name: 'homing index search: Controller', script: 'homing-index.test.mjs',         args: [CONTROLLER], needs: [CONTROLLER] },
 ];
 
 const verbose = process.argv.includes('-v');
