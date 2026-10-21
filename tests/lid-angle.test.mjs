@@ -2,8 +2,9 @@
 // (commit 76239bd set the sequencer default). Every lid-close path a UI offers has to agree,
 // or a manual Close button parks the lid short of the spincoater while the UV block closes it
 // properly: the Manual-tab slider + Close preset (Controller), the Lid CLOSE FAB and the
-// long-press servo sheet (Touch), the UV block's default, and the built-in presets that
-// rewrite the sequencer fields. The raw override stays 0-180 in both.
+// long-press servo sheet (Touch), the UV block's default, the built-in presets that
+// rewrite the sequencer fields, and since #191 the Spin Coater block and Start Spin, which close
+// the lid before a spin above 120 RPM. The raw override stays 0-180 in both.
 //
 // The last check documents today's failure mode: the firmware's lid interlock refuses
 // M42 P4 S1 with the lid open, and the UV block must surface that instead of counting a cure.
@@ -96,6 +97,24 @@ ok('raw override textbox still allows the full 0-180 servo range',
      r.done && r.err && /lid interlock refused UV/.test(r.err.message), r.err && r.err.message);
   ok('after the refusal: nothing else is sent (no UV-off, no reopen) and the lid stays closed',
      JSON.stringify(r.cmds) === JSON.stringify(['M400', `M280 P1 S${LID_CLOSED} T${LID_MS}`, 'M42 P4 S1']), r.cmds);
+}
+
+// 5: since #191 the Spin Coater block and Start Spin close the lid before a spin above 120 RPM,
+// to the angle the UV block uses and from the same field, so a retuned closed angle moves both.
+{
+  el('seqSpinRPM').value = '5000';
+  const r = await drive('runSpinBlock', cmd => (/^M750\b/.test(cmd) ? 'echo:SPIN OK: CYCLE_COMPLETE' : null));
+  ok(`Spin Coater block: M400 · close to ${LID_CLOSED} (T ramp) · M750 · reopen to ${LID_OPEN}`,
+     r.done && !r.err && r.cmds.length === 4 && r.cmds[0] === 'M400' && r.cmds[1] === `M280 P1 S${LID_CLOSED} T${LID_MS}` &&
+     /^M750 S5000\b/.test(r.cmds[2]) && r.cmds[3] === `M280 P1 S${LID_OPEN} T${LID_MS}`, r.err ? r.err.message : r.cmds);
+  el('uvLidClose').value = '112';
+  const r2 = await drive('runSpinBlock', cmd => (/^M750\b/.test(cmd) ? 'echo:SPIN OK: CYCLE_COMPLETE' : null));
+  el('uvLidClose').value = String(LID_CLOSED);
+  ok('Spin Coater block reads the closed angle from the UV block\'s field', r2.cmds[1] === `M280 P1 S112 T${LID_MS}`, r2.cmds);
+  el('spinRPM').value = '5000';
+  const r3 = await drive('spinStart');
+  ok(`Start Spin: M400 · close to ${LID_CLOSED} (T ramp) · M750, and no reopen`,
+     r3.cmds.length === 3 && r3.cmds[0] === 'M400' && r3.cmds[1] === `M280 P1 S${LID_CLOSED} T${LID_MS}` && /^M750 S5000\b/.test(r3.cmds[2]), r3.cmds);
 }
 
 console.log(fails ? `\n${fails} FAILED` : '\nall passed');

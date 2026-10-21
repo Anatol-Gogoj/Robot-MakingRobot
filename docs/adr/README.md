@@ -24,6 +24,7 @@ ID | title | status | scope
 0014 | The control box is drawn and bought for the parts actually ordered: a 12-way FB1, aluminum DIN rail, and the ground bars, PE blocks and copper power wire bought | Proposed (issue #158) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 1 to 3, the lower left panel DXF, `bom_frame.csv`
 0015 | The box is held to the gantry by four spare cast brackets on its lower posts, and it comes out by lifting 38 mm and sliding forward under a raised middle member | Proposed (issue #158) | `tools/draw_wiring.py`, `tools/build_box_model.py`, `docs/wiring` sheets 4 and 5, the lower front and back panel DXFs, `bom_frame.csv`
 0016 | The Pi sits at the operator panel on a 5 V PSU in the box, and the Mega runs on the Pi's USB | Accepted (issue #164) | `tools/draw_wiring.py` sheets 1, 2A and 2B
+0017 | The lid is closed before the spin coater spins above 120 RPM, and homing and index searches may run with it open | Accepted (owner rule, issue #191) | both UIs: the Spin Coater block, Start Spin, the Syringe block, lid tracking
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an

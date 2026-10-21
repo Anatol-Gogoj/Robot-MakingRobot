@@ -1645,7 +1645,7 @@ function handleWSMessage(data) {
   if (s.length && s[0] === '{') {
     let m = null; try { m = JSON.parse(s); } catch (e) { m = null; }
     if (m && m._rmr) {
-      if (m._rmr === 'tx') { okLedgerEcho(m.cmd, m.source); logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : '')); homedTrackTx(m.cmd); }   // the write reached the port: it is owed an 'ok' (#48)
+      if (m._rmr === 'tx') { okLedgerEcho(m.cmd, m.source); logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : '')); homedTrackTx(m.cmd); lidTrackTx(m.cmd); }   // the write reached the port: it is owed an 'ok' (#48), and records the lid angle it commanded (#191)
       else if (m._rmr === 'status') {   // the Mega resets on open: nothing outstanding is answered. A close also fails a running sequence (#182); an open follows a close, or greets a new connection.
         logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : ''));
         okLedgerLost('bridge: serial ' + m.serial, m.serial !== 'open', m.serial === 'open' ? null : 'the bridge lost the serial port during the run: ' + SEQ_RELAYS_UNKNOWN);
@@ -1681,6 +1681,7 @@ async function disconnect() {
 function setConnected(state) {
   isConnected = state;
   seqSetHomed(false, state ? 'new connection — homing state unknown' : 'disconnected');
+  lidLastDeg = null;   // the lid angle is unknown until the next M280 P1 or G28 (#191)
   // Nothing outstanding on the old connection is answered on this one (#48). A disconnect also fails a running sequence (#182); a connect faults nothing.
   wsOwnPending = []; okLedgerLost(state ? 'new connection' : 'disconnected', true, state ? null : 'disconnected during the run: ' + SEQ_RELAYS_UNKNOWN);
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
@@ -1735,6 +1736,7 @@ function processLine(line) {
     const spinMsg = line.substring(10);
     spinWarnTrack(spinMsg);   // WARN: row + toast; never touches the verdict
     uvIndexRx(spinMsg);       // the verdict of the UV block's M752, if one is running
+    spinLidRx(spinMsg);       // whether the Spin Coater block's M750 showed the chuck stopped (#191)
     if (spinMsg.startsWith('TELEM:')) {
       const rpmM = spinMsg.match(/RPM=([-\d.]+)/), degM = spinMsg.match(/DEG=([-\d.]+)/);
       if (rpmM) spinUpdateGaugeRPM(parseFloat(rpmM[1]));
@@ -1988,6 +1990,7 @@ async function sendCmd(cmd, opts) {
       await writer.write(new TextEncoder().encode(cmd + '\n'));
       unsent = null;
       logTx(cmd);
+      lidTrackTx(cmd);   // on the bridge the TX echo does this (handleWSMessage)
     }
     if (isHome) setHomingState(cmd);
     homedTrackTx(cmd);
@@ -2302,11 +2305,21 @@ let spinTargetRPM = 5000, spinTelemStaleTimer = null, spinDialAngle = 0;
     ticks.appendChild(line);
   }
 })();
-function spinStart() {
+async function spinStart() {
+  if (!isConnected) { logErr('Not connected'); return; }
   const rpm=document.getElementById('spinRPM').value, dur=document.getElementById('spinDUR').value;
   const rise=document.getElementById('spinRISE').value, sink=document.getElementById('spinSINK').value;
+  const cmd = 'M750 S'+rpm+' D'+dur+' A'+rise+' C'+sink+' H'+(document.getElementById('spinHOME').checked?1:0);
+  // Above SPIN_LID_RPM the lid closes first (#191), and the M750 goes out only on the lid move's own 'ok',
+  // which Marlin sends once the T ramp has finished. Start Spin never reopens the lid: open it with the Lid button once the chuck has stopped.
+  if (spinCmdRpm(cmd) > SPIN_LID_RPM) {
+    const lid = lidAngles();
+    logInfo('Spin: closing the lid first (' + spinCmdRpm(cmd) + ' RPM is above ' + SPIN_LID_RPM + '); Start Spin does not reopen it');
+    sendCmd('M400');
+    await new Promise(resolve => sendCmd('M280 P1 S' + lid.closed + ' T' + lid.ms, { onOk: resolve }));
+  }
   spinTargetRPM = parseInt(rpm);
-  sendCmd('M750 S'+rpm+' D'+dur+' A'+rise+' C'+sink+' H'+(document.getElementById('spinHOME').checked?1:0));
+  sendCmd(cmd);
 }
 function spinSetHome() { sendCmd('M751'); }
 function spinIndexHome() { sendCmd('M752'); }
@@ -2572,7 +2585,7 @@ function homedTrackTx(cmd) {
 // 'Unknown command' echo or a plain M118 do not clear a relay highlight.
 function homedTrackRx(line) {
   if (line.indexOf(HOME_MARKER) >= 0) { seqSetHomed(true, 'full G28 confirmed by the firmware'); return; }
-  if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); relaysOffByFirmware(); return; }
+  if (line === 'start') { seqSetHomed(false, 'firmware (re)started'); relaysOffByFirmware(); lidLastDeg = null; return; }   // lid angle unknown again (#191)
   if (/MOTOR POWER LOST/.test(line)) {
     seqSetHomed(false, 'motor power lost'); seqFault('MOTOR POWER LOST — the firmware halted motion; re-home (G28)');
     if (/^echo:MOTOR POWER LOST/.test(line)) relaysOffByFirmware();
@@ -2756,6 +2769,8 @@ async function runSyringeBlock() {
   const eFeed = numv('syrFeed', 300);
   const rFeed = numv('syrRetractFeed', eFeed) || eFeed;
   const dwell = numv('syrDwell', 2);
+  const lidMsg = syrLidBlock('Dispense');   // B lowers over the chuck: not into a closed lid (#191)
+  if (lidMsg) throw new Error(lidMsg);
   await syrGuard(dispMm, pullMm, false);   // dose / retract caps (nothing sent), then the stroke check against a fresh M114 position
   syrIdleCheck();
   await seqCmd('G90');
@@ -2852,6 +2867,8 @@ async function runSyringePurge(auto) {
   const pos = numv('syrPos', 0), posFeed = Math.round(numv('syrPosFeed', 1500));
   const pFeed = numv('syrPurgeFeed', 60) || 60, rFeed = numv('syrRetractFeed', numv('syrFeed', 300)) || 300;
   const dwell = numv('syrDwell', 2);
+  const lidMsg = syrLidBlock('Purge');   // B lowers over the chuck: not into a closed lid (#191)
+  if (lidMsg) throw new Error(lidMsg);
   await syrGuard(mm, pullMm, true);
   seqSetStatus('Syringe — purging ' + vol + ' mL…');
   await seqCmd('G90');
@@ -2874,13 +2891,16 @@ function syrPurgeNow() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
   if (!seqHomeGate('Purge')) return;
+  const lidMsg = syrLidBlock('Purge');   // refused before the confirm, not after it
+  if (lidMsg) { logErr(lidMsg); showToast('Open the lid first', 'warn'); return; }
   if (!confirm('Purge ' + numv('syrPurgeVol', 0) + ' mL now? It dispenses onto whatever is under the tip — put a waste cup there first.')) return;
   seqBegin(); seqSetStatus('Purging…'); logInfo('Syringe: purge started');
   runSyringePurge(false).then(() => { seqEnd('<b>Purge</b> complete.'); logInfo('Syringe: purge complete'); },
                               e => { seqEnd(seqAbort ? 'Stopped.' : ('Error: ' + e.message)); if (!seqAbort) logErr('Purge failed — ' + e.message); });
 }
 // Initial purge (prime): push the plunger by a set increment at the purge feed with the tip where it is —
-// press repeatedly until material reaches the tip. No dwell or retract.
+// press repeatedly until material reaches the tip. No dwell or retract. It never moves B, so the
+// lid guard (syrLidBlock) does not apply.
 async function runSyringePrime() {
   const calMm = numv('calMm', 100), calMl = numv('calMl', 1) || 1, mmPerMl = calMm / calMl;
   const vol = numv('syrPrimeVol', 0);
@@ -2914,16 +2934,95 @@ function syrCalFromBarrel() {
   syrCalc();
   logInfo('Syringe: calibration from a ' + id + ' mm barrel — ' + mmPerMl.toFixed(4) + ' mm of plunger per mL (' + (Math.PI * id * id / 4 / 1600 * 1000).toFixed(3) + ' µL per microstep at 1600 steps/mm)');
 }
+// == Lid rule (#191, docs/adr/0017) ==
+// Owner rule, 2026-10-21: the lid is closed before the spin coater spins above about 120 RPM. Homing and index
+// searches may run with the lid open, so the operator can check the chuck alignment. The Spin Coater block and
+// Start Spin close the lid before such an M750, the block reopens it only once the firmware has shown the chuck
+// stopped, and the Syringe block refuses to lower B into a lid last commanded closed.
+const SPIN_LID_RPM = 120;
+const SPIN_DEFAULT_RPM = 5000;   // an M750 without S spins at SPINCOATER_DEFAULT_RPM (Configuration_adv.h)
+// G28.cpp moves the lid to 30 deg before any axis on every G28, bare or partial; only a G28 O with nothing to
+// home returns before that. The lid OPEN button uses 30 deg too (servoConfig).
+const LID_HOME_DEG = 30;
+// The last lid angle commanded on the port, from any path: this page's writes on Web Serial, the bridge's TX
+// echo otherwise. null = unknown, after a connect, a disconnect or a firmware restart, until the next M280 P1
+// or G28. Unknown does not block (ADR 0017), though the lid may still be closed: servo_init() does not move it at boot.
+let lidLastDeg = null;
+// The lid angles the sequencer uses: the UV block's fields, which the presets also set.
+function lidAngles() {
+  return { closed: Math.round(numv('uvLidClose', 115)), open: Math.round(numv('uvLidOpen', 30)),
+           ms: parseInt(localStorage.getItem('rmr.lidMoveMs') || '800', 10) };
+}
+// Record the lid angle a write commands. A bridge button may write several lines at once.
+function lidTrackTx(cmd) {
+  String(cmd || '').split(/[\r\n]/).forEach(raw => {
+    const u = raw.replace(/;.*$/, '').trim().toUpperCase();
+    if (/^M280(?!\d)/.test(u)) {   // Marlin also takes M280P1S115, with no spaces
+      const p = u.slice(4).match(/P(\d+)/), s = u.slice(4).match(/S(-?\d+)/);
+      if (p && +p[1] === 1 && s && +s[1] >= 0) lidLastDeg = +s[1];   // a negative S detaches the servo (M280.cpp)
+    } else if (/^G28(?!\d)/.test(u) && !/O/.test(u.slice(3))) lidLastDeg = LID_HOME_DEG;
+  });
+}
+// The widest angle that still counts as open: the larger of the sequencer's open angle and LID_HOME_DEG.
+// Anything past it is at least partly over the chuck.
+function lidOpenMax() { return Math.max(lidAngles().open, LID_HOME_DEG); }
+// 'unknown', 'open' or 'closed'. The closed angle itself always counts as closed, even if the open field is set past it.
+function lidState() {
+  if (lidLastDeg === null) return 'unknown';
+  return (lidLastDeg > lidOpenMax() || lidLastDeg >= lidAngles().closed) ? 'closed' : 'open';
+}
+// Why a Syringe path that lowers B must not run now, or null. Nothing has been sent.
+function syrLidBlock(what) {
+  if (lidState() !== 'closed') return null;
+  return what + ' refused: the lid was last commanded closed (' + lidLastDeg + ' deg; open is ' + lidOpenMax() + ' deg or less), and the syringe would lower into it. Open it with the Lid button once the chuck has stopped.';
+}
+// The RPM an M750 asks for: its S, or the firmware default when S is missing or has no number.
+function spinCmdRpm(cmd) {
+  const m = String(cmd).replace(/;.*$/, '').toUpperCase().replace(/^\s*M750/, '').match(/S(-?\d+)/);
+  return m ? parseInt(m[1], 10) : SPIN_DEFAULT_RPM;
+}
+// M750 prints OK: CYCLE_COMPLETE or ERR: CYCLE_COMPLETE_NO_HOME only after its ramp-down has read |RPM| <= 6
+// and settled for 1 s (M750.cpp), and each is the last line it prints; the index search that H1 runs between the
+// ramp-down and the marker is allowed with the lid open. STATE:STOPPED proves nothing: on the M410 abort path it follows
+// setVelocity(0) at once, with the chuck still turning. '' while the Spin Coater block's M750 runs, 'complete'
+// or 'no home' once one of the two markers came, null otherwise.
+let spinLidVerdict = null;
+function spinLidRx(spinMsg) {
+  if (spinLidVerdict === null) return;
+  if (/^OK:\s*CYCLE_COMPLETE\b/.test(spinMsg))               spinLidVerdict = 'complete';
+  else if (/^ERR:\s*CYCLE_COMPLETE_NO_HOME\b/.test(spinMsg)) spinLidVerdict = 'no home';
+  else spinLidVerdict = '';   // a later line is this block's M750 starting after an earlier command's marker
+}
 async function runSpinBlock() {
   const rpm = Math.round(numv('seqSpinRPM', 5000)), dur = numv('seqSpinDur', 30), rise = numv('seqSpinRise', 5), sink = numv('seqSpinSink', 1);
   const home = document.getElementById('seqSpinHome').checked ? 1 : 0;
+  const cmd = 'M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home;
+  const lid = spinCmdRpm(cmd) > SPIN_LID_RPM ? lidAngles() : null;
+  if (lid) {
+    seqSetStatus('Spin Coater — closing the lid (' + rpm + ' RPM is above ' + SPIN_LID_RPM + ')…');
+    await seqCmd('M400');
+    await seqCmd('M280 P1 S' + lid.closed + ' T' + lid.ms);   // the T ramp blocks until the lid is there
+  }
   spinTargetRPM = rpm;
   // M750 runs the entire spin cycle before replying 'ok', so allow the full
   // duration (+ ramp + margin) before the ok-timeout would trip.
   const spinTimeout = (dur + rise + sink + 90) * 1000;
   rlEvent('spin.start', { rpm, dur, rise, sink, home });   // opens the capture window for the DATA:/OK:/ERR: lines
-  try { await seqCmd('M750 S' + rpm + ' D' + dur + ' A' + rise + ' C' + sink + ' H' + home, true, spinTimeout); }
-  finally { rlEvent('spin.done', { aborted: seqAbort, fault: seqFaultReason }); }
+  spinLidVerdict = '';
+  let verdict;
+  try { await seqCmd(cmd, true, spinTimeout); verdict = spinLidVerdict; }
+  catch (e) {
+    if (lid) logInfo('Spin: the lid stays closed. The spin ended (' + (seqAbort ? 'Stop' : e.message) + ') before the firmware showed the chuck stopped; open it with the Lid button once the chuck has stopped.');
+    throw e;
+  }
+  finally { spinLidVerdict = null; rlEvent('spin.done', { aborted: seqAbort, fault: seqFaultReason }); }
+  if (!lid) return;
+  // Judged by the marker, not by the 'ok' (gotcha 25). Throwing ends a Run All here, so a later block (the UV
+  // block reopens the lid after its cure) cannot open it either.
+  if (verdict !== 'complete' && verdict !== 'no home')
+    throw new Error('M750 ended without OK: CYCLE_COMPLETE or ERR: CYCLE_COMPLETE_NO_HOME, so nothing shows the chuck stopped. The lid stays closed; open it with the Lid button once the chuck has stopped.');
+  if (verdict === 'no home') logInfo('Spin: ERR: CYCLE_COMPLETE_NO_HOME. The ramp-down stopped the chuck before the index search, so the lid reopens; the chuck is not at its datum.');
+  await seqCmd('M280 P1 S' + lid.open + ' T' + lid.ms);   // reopen
 }
 // ─── Block: UV lid & light (+ optional argon purge) ───
 // One clock, UV-on = 0 s:  argon opens at −lead · UV on at 0 · UV off at T · argon closes at T+lag.
@@ -3363,6 +3462,8 @@ function syrLower() {
   if (!isConnected) { logErr('Not connected'); return; }
   if (seqRunning) { logErr('Sequencer is busy'); return; }
   if (!seqHomeGate('Syringe height move')) return;
+  const lidMsg = syrLidBlock('Lower');   // B lowers over the chuck: not into a closed lid (#191)
+  if (lidMsg) { logErr(lidMsg); showToast('Open the lid first', 'warn'); return; }
   const pos = numv('syrPos', 0), feed = Math.round(numv('syrPosFeed', 1500));
   sendCmd('G90');
   sendCmd('G1 B' + pos.toFixed(3) + ' F' + feed);   // lower to the dispense height
