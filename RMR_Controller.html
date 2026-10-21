@@ -1727,7 +1727,9 @@ function handleWSMessage(data) {
       } else if (m._rmr === 'status') {
         logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : '') + (m.error ? ' — ' + m.error : ''));
         // The port (re)opened or closed: the Mega resets on open, so nothing outstanding is answered.
-        okLedgerLost('bridge: serial ' + m.serial, m.serial !== 'open');
+        // A close also fails a running sequence (#182); an open follows a close, or greets a new connection.
+        okLedgerLost('bridge: serial ' + m.serial, m.serial !== 'open',
+          m.serial === 'open' ? null : 'the bridge lost the serial port during the run: ' + SEQ_RELAYS_UNKNOWN);
       } else if (m._rmr === 'button') {
         logInfo('Physical button: ' + m.name + ' → ' + m.cmd);
       } else if (m._rmr === 'estop') {
@@ -1737,7 +1739,8 @@ function handleWSMessage(data) {
         logErr('Bridge: ' + m.msg);
         // The bridge echoes a write even when it failed, then says so here: that command is
         // never answered, and with the port down nothing else outstanding is either.
-        if (/^serial (write failed|not open)/.test(String(m.msg))) okLedgerLost('bridge: ' + m.msg, true);
+        if (/^serial (write failed|not open)/.test(String(m.msg)))
+          okLedgerLost('bridge: ' + m.msg, true, 'the bridge could not write to the board during the run (' + m.msg + '): ' + SEQ_RELAYS_UNKNOWN);
       }
       return;
     }
@@ -1764,9 +1767,11 @@ async function disconnect() {
 function setConnected(state) {
   isConnected = state;
   seqSetHomed(false, state ? 'new connection — homing state unknown' : 'disconnected');
-  // Nothing outstanding on the old connection will be answered on this one (#48).
+  // Nothing outstanding on the old connection will be answered on this one (#48). A disconnect
+  // also fails a running sequence (#182); a connect faults nothing.
   wsOwnPending = [];
-  okLedgerLost(state ? 'new connection' : 'disconnected', true);
+  okLedgerLost(state ? 'new connection' : 'disconnected', true,
+    state ? null : 'disconnected during the run: ' + SEQ_RELAYS_UNKNOWN);
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   const btn = document.getElementById('connectBtn');
   btn.textContent = state ? 'Disconnect' : (transportMode() === 'ws' ? 'Connect (bridge)' : 'Connect');
@@ -2006,6 +2011,9 @@ function processLine(line) {
 let okLedger = [];
 const OK_LEDGER_MAX = 64;   // a desync guard, not a queue depth: Marlin holds BUFSIZE 4 commands plus a 128-byte RX ring (32 of the shortest, a 4-byte G90 line)
 let wsOwnPending = [];      // bridge mode: this page's sends whose echo has not come back yet, oldest first
+// A run that loses the link may not get its lamp-off or valve-close through, and nothing reports
+// the relays, so its fault says what may be true rather than what the UI cannot know (#182).
+const SEQ_RELAYS_UNKNOWN = 'a UV lamp or valve the run switched on may still be on';
 
 // Does this line earn an 'ok'? Marlin answers every line it queues, unknown commands included,
 // and with EMERGENCY_PARSER also M108 and M410: they still reach the queue, and gcode.cpp
@@ -2030,7 +2038,7 @@ function okLedgerAdd(cmd, onOk) {
     // More unanswered than Marlin can hold: answers went missing (bytes its RX ring dropped
     // during a blocking command, or a halted board), so no 'ok' can be attributed any more.
     logErr('ok ledger overflow: ' + okLedger.length + ' commands unanswered, the serial sequence is lost');
-    okLedgerLost('ok ledger overflow');
+    okLedgerLost('ok ledger overflow', false, 'ok ledger overflow during the run: the serial sequence is lost');
   }
   return added;
 }
@@ -2052,11 +2060,15 @@ function okLedgerEcho(cmd, source) {
 // 'start': the board rebooted. kill(): it halted and answers nothing again. MOTOR POWER LOST:
 // it cleared its command queue unanswered (motor_power.cpp, queue.clear()). 'Resend:': M999
 // flushed the RX ring (queue.cpp flush_and_request_resend), losing whatever waited in it.
+// 'start' and 'Resend:' also fail a running sequence (#182). kill() and MOTOR POWER LOST need
+// no run fault here: homedTrackRx, which processLine calls first, has already faulted it.
 function okLedgerRx(line) {
-  if (line === 'start') okLedgerLost('firmware restarted');
+  if (line === 'start') okLedgerLost('firmware restarted', false,
+    'firmware restarted during the run: the board reset (the #131 firmware turns the UV lamp and valve relays off at boot)');
   else if (/^Error:Printer halted\. kill\(\) called!/.test(line)) okLedgerLost('firmware halted (kill)', true);
   else if (/^echo:MOTOR POWER LOST/.test(line)) okLedgerLost('motor power lost, the firmware cleared its command queue');
-  else if (/^Resend:/.test(line)) okLedgerLost('the firmware flushed its receive buffer (M999)');
+  else if (/^Resend:/.test(line)) okLedgerLost('the firmware flushed its receive buffer (M999)', false,
+    'the firmware flushed its receive buffer during the run (Resend:): a command sent in that window may not have run');
 }
 
 function okLedgerReset(why) {
@@ -2067,9 +2079,12 @@ function okLedgerReset(why) {
 // Clear the ledger, fail the sequencer step in flight, and halt a running program: their
 // 'ok's can no longer be told apart.
 // pollOff: the board answers nothing now, so the auto-report poll the run suspended stays off.
-function okLedgerLost(why, pollOff) {
+// runFault: the board reset or the link is gone, so a running sequence fails with this reason
+// even with no step in flight (a UV cure, a dwell, a Run Log hold; #182). Left out on a connect,
+// and where the caller has faulted the run already (E-STOP, kill(), MOTOR POWER LOST).
+function okLedgerLost(why, pollOff, runFault) {
   okLedgerReset(why);
-  seqOkLost(why);
+  seqOkLost(why, runFault);
   if (!progRunning) return;
   if (pollOff) progAutoReportWasOn = false;
   logErr('Program halted: ' + why);
@@ -2688,10 +2703,14 @@ function seqOnOk(waiter) {
 }
 
 // The ok ledger was cleared (okLedgerLost): the step in flight will never get its 'ok' attributed,
-// so fail the run now instead of at the step's timeout. With no step in flight, nothing changes.
-function seqOkLost(why) {
-  if (!seqWaiter) return;
-  const reason = 'the "ok" of the step in flight is lost (' + why + ')';
+// so fail the run now instead of at the step's timeout. With no step in flight the run carries on,
+// unless runFault says the board reset or the link is gone (#182): then it fails too, and a
+// browser-timed wait wakes on the fault (seqSleep within 100 ms, a Run Log hold within 500 ms).
+// seqFault does nothing while no sequence runs, so a connect or an idle 'start' faults nothing.
+function seqOkLost(why, runFault) {
+  if (!seqWaiter) { if (runFault) seqFault(runFault); return; }
+  const reason = runFault ? runFault + '; the "ok" of the step in flight is lost'
+                          : 'the "ok" of the step in flight is lost (' + why + ')';
   seqFault(reason);   // rejects the wait of a running sequence
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error(reason)); }
 }
