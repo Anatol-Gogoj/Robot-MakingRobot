@@ -7,3 +7,4 @@ Rejected: A new purpose-built GUI: splits the serial contract across more pages 
 Consequences: `RMR_SegmentRunner.html` (#85, #88) is the one exception that exists: a standalone segment runner built in August for #62, never run against this firmware, sharing no code with the two pages. It is not a third machine UI, and its recipes do not reach the two pages.
 Consequences: Easier: one place to change a recipe; presets carry the whole process. Harder: both pages must stay in step (the Run Log module is synced by `tools/sync_runlog.py`; the rest is patched by hand in each file).
 Revisit if: the UIs are rebuilt on a shared code base.
+2026-10-20: `RMR_SegmentRunner.html` archived to `archive/e-axis-programs/` (#173).
