@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<title>RMR operator panel</title>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}
+path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
+.ac{stroke:#CC3311;stroke-width:.6}
+.va{stroke:#0077BB;stroke-width:.5}
+.ve{stroke:#EE3377;stroke-width:.5}
+.zp{stroke:#000;stroke-width:.55}
+.zs{stroke:#33BBEE;stroke-width:.5}
+.pe{stroke:#009988;stroke-width:.45;stroke-dasharray:2.4 .7 .5 .7}
+.lv{stroke:#EE7733;stroke-width:.42}
+.sg{stroke:#000;stroke-width:.22}
+.zl{stroke:#000;stroke-width:.3}
+.cb{stroke:#000;stroke-width:.85}
+.sgc{stroke:#000;stroke-width:.5}
+.mo{stroke:#000;stroke-width:.3}
+.un{stroke-dasharray:1.1 .8}
+.mech{stroke:#000;stroke-width:.2;stroke-dasharray:.8 .6}
+.sym{stroke:#000;stroke-width:.32;fill:none}
+.symf{stroke:#000;stroke-width:.32;fill:#fff}
+.bx{fill:#fff;stroke:#000;stroke-width:.3}
+.bxl{fill:#fff;stroke:#000;stroke-width:.22}
+.frame{fill:none;stroke:#000;stroke-width:.4}
+.zone{fill:none;stroke:#888;stroke-width:.2;stroke-dasharray:1.5 1}
+.rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
+.duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
+.dot{stroke:none}
+</style>
+<rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
+<rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
+<defs>
+<linearGradient id="opHousing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4E4E4"/><stop offset="1" stop-color="#B8B8B8"/></linearGradient>
+<linearGradient id="opBezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3A3A"/><stop offset="1" stop-color="#161616"/></linearGradient>
+<radialGradient id="opRed" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#EE7766"/><stop offset=".55" stop-color="#CC3311"/><stop offset="1" stop-color="#7A1E0A"/></radialGradient>
+<radialGradient id="opBlue" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#88BBEE"/><stop offset=".6" stop-color="#4477AA"/><stop offset="1" stop-color="#22446A"/></radialGradient>
+<radialGradient id="opGreen" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#CCEEBB"/><stop offset=".55" stop-color="#228833"/><stop offset="1" stop-color="#11441A"/></radialGradient>
+<radialGradient id="opGrey" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#DDDDDD"/><stop offset=".6" stop-color="#777777"/><stop offset="1" stop-color="#333333"/></radialGradient>
+<radialGradient id="opRing" cx=".5" cy=".5" r=".5"><stop offset=".7" stop-color="#F2F2F2"/><stop offset="1" stop-color="#8C8C8C"/></radialGradient>
+</defs>
+<rect x="248.67" y="27" width="85.33" height="146.67" rx="5.33" fill="url(#opHousing)" stroke="none" stroke-width="0" fill-opacity=".35"/>
+<rect x="14" y="27" width="320" height="146.67" rx="5.33" fill="none" stroke="#000" stroke-width="0.35" stroke-dasharray="1.6 1"/>
+<rect x="14" y="27" width="240" height="146.67" rx="5.33" fill="url(#opHousing)" stroke="#000" stroke-width="0.4"/>
+<rect x="24" y="43.67" width="171.33" height="113.33" rx="2.67" fill="url(#opBezel)" stroke="#000" stroke-width="0.3"/>
+<rect x="35.67" y="53.67" width="148" height="83.33" rx="0" fill="#1E1E24" stroke="#000" stroke-width="0.2"/>
+<rect x="35.67" y="53.67" width="148" height="8.67" rx="0" fill="#2B2B33" stroke="none" stroke-width="0"/>
+<rect x="153" y="55.67" width="28" height="5" rx="1.33" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="36.2" y="63.33" width="20.08" height="6" rx="1" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="57.34" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="78.49" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="99.63" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="120.77" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="141.91" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="163.06" y="63.33" width="20.08" height="6" rx="1" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="69.67" y="77.67" width="14.67" height="14.67" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="69.67" y="111" width="14.67" height="14.67" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="53" y="94.33" width="14.67" height="14.67" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="86.33" y="94.33" width="14.67" height="14.67" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="69.67" y="94.33" width="14.67" height="14.67" rx="2" fill="#228833" stroke="none" stroke-width="0"/>
+<rect x="125.67" y="79" width="20" height="17.33" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="125.67" y="99.67" width="20" height="17.33" rx="2" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="150.33" y="79" width="29.33" height="10.67" rx="1.33" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="150.33" y="93" width="29.33" height="10.67" rx="1.33" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="150.33" y="107" width="29.33" height="10.67" rx="1.33" fill="#33333C" stroke="none" stroke-width="0"/>
+<circle cx="224.67" cy="61.67" r="20.67" fill="#EEDD88" stroke="#000" stroke-width="0.3"/>
+<circle cx="224.67" cy="61.67" r="11.33" fill="url(#opRing)" stroke="#000" stroke-width="0.2"/>
+<circle cx="224.67" cy="61.67" r="14" fill="url(#opRed)" stroke="#000" stroke-width="0.35"/>
+<rect x="208" y="84.33" width="33.33" height="9.33" rx="1" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="224.67" cy="109.67" r="10" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="224.67" cy="109.67" r="7.33" fill="url(#opBlue)" stroke="#000" stroke-width="0.3"/>
+<rect x="208" y="121.67" width="33.33" height="9.33" rx="1" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="224.67" cy="145.67" r="10" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="224.67" cy="145.67" r="7.67" fill="url(#opGreen)" stroke="#000" stroke-width="0.3"/>
+<rect x="222.67" y="139" width="4" height="13.33" rx="1.67" fill="#1C3A20" stroke="none" stroke-width="0" transform="rotate(45 224.67 145.67)"/>
+<rect x="208" y="157" width="33.33" height="9.33" rx="1" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<rect x="286" y="49.67" width="16" height="16" rx="2" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M294 53 L298 61 L290 61 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="286" y="95" width="16" height="16" rx="2" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M294 107.67 L290 99.67 L298 99.67 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="263.33" y="72.33" width="16" height="16" rx="2" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M266.67 80.33 L274.67 76.33 L274.67 84.33 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="308.67" y="72.33" width="16" height="16" rx="2" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M321.33 80.33 L313.33 84.33 L313.33 76.33 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<circle cx="294" cy="80.33" r="11.33" fill="url(#opRing)" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<circle cx="294" cy="80.33" r="9.33" fill="#228833" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<rect class="bx" x="256" y="186" width="92" height="21.5"/>
+<text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: operator panel</text>
+<text x="8" y="15.4" font-size="2.1">Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what each control wires to. The dashed outline is the panel as it may grow.</text>
+<text x="50.33" y="59.33" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">RMR Touch</text>
+<text x="167" y="59.13" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Connected</text>
+<text x="122.33" y="59.33" font-size="1.2" style="fill:#BBCCEE" text-anchor="middle">X 385.00  Y 120.00  Z 10.00</text>
+<text x="46.24" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Jog</text>
+<text x="67.38" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Recipe</text>
+<text x="88.52" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Log</text>
+<text x="109.67" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Spin</text>
+<text x="130.81" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Console</text>
+<text x="151.95" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Program</text>
+<text x="173.1" y="67.4" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Advanced</text>
+<text x="77" y="86.67" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y+</text>
+<text x="77" y="120" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y-</text>
+<text x="60.33" y="103.33" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X-</text>
+<text x="93.67" y="103.33" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X+</text>
+<text x="77" y="101.33" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">HOME</text>
+<text x="77" y="102.9" font-size="1.06" style="fill:#FFFFFF" text-anchor="middle">ALL</text>
+<text x="135.67" y="89.33" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z up</text>
+<text x="135.67" y="110" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z down</text>
+<text x="165" y="85.67" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Step  1 mm</text>
+<text x="165" y="99.67" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Feed  3000 mm/min</text>
+<text x="165" y="113.67" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">A  B  C axes</text>
+<text x="109.67" y="163" font-size="1.5" style="fill:#000" text-anchor="middle">10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)</text>
+<text x="224.67" y="58.33" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">EMERGENCY</text>
+<text x="224.67" y="66" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">STOP</text>
+<text x="224.67" y="88.33" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S2  E-STOP</text>
+<text x="224.67" y="90.15" font-size="1.23" style="fill:#000" text-anchor="middle">push to stop, twist to release</text>
+<text x="224.67" y="125.67" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S3  RESET</text>
+<text x="224.67" y="127.48" font-size="1.23" style="fill:#000" text-anchor="middle">starts the motors after an E-stop</text>
+<text x="211.33" y="140.33" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">0</text>
+<text x="238" y="140.33" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">I</text>
+<text x="224.67" y="161" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S1  POWER, H1 lamp</text>
+<text x="224.67" y="162.81" font-size="1.23" style="fill:#000" text-anchor="middle">on: K1 in, lamp lit</text>
+<text x="294" y="81.33" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">SELECT</text>
+<text x="294" y="39" font-size="1.8" style="fill:#555555" text-anchor="middle" font-weight="bold">FUTURE</text>
+<text x="294" y="120.33" font-size="1.4" style="fill:#555555" text-anchor="middle" font-weight="bold">arrow keys and select</text>
+<text x="259.33" y="128.33" font-size="1.35" style="fill:#555555">To use the screen without touching it (gloves,</text>
+<text x="259.33" y="130.33" font-size="1.35" style="fill:#555555">dirty hands). Not designed: how the keys reach</text>
+<text x="259.33" y="132.33" font-size="1.35" style="fill:#555555">the Pi (a USB keypad sends arrows and Enter with</text>
+<text x="259.33" y="134.33" font-size="1.35" style="fill:#555555">no new wiring; GPIO keys need new code, since</text>
+<text x="259.33" y="136.33" font-size="1.35" style="fill:#555555">rmr_bridge.py's buttons only send G-code), and</text>
+<text x="259.33" y="138.33" font-size="1.35" style="fill:#555555">how the Touch UI moves between its controls.</text>
+<text x="14" y="182" font-size="2.1" font-weight="bold">Behind the panel</text>
+<text x="14" y="185.4" font-size="1.3" style="fill:#555555">control</text>
+<text x="44" y="185.4" font-size="1.3" style="fill:#555555">contact</text>
+<text x="72" y="185.4" font-size="1.3" style="fill:#555555">lands on</text>
+<text x="132" y="185.4" font-size="1.3" style="fill:#555555">cable (by)</text>
+<text x="14" y="188.2" font-size="1.3" font-weight="bold">S1 power knob</text>
+<text x="44" y="188.2" font-size="1.3">NO, 110 V</text>
+<text x="72" y="188.2" font-size="1.3">X1 1 in, X1 2 out</text>
+<text x="132" y="188.2" font-size="1.3">110 V door cable (M20 gland)</text>
+<text x="14" y="190.35" font-size="1.3" font-weight="bold">H1 lamp, in S1</text>
+<text x="44" y="190.35" font-size="1.3">110 V</text>
+<text x="72" y="190.35" font-size="1.3">X1 2 and X1 3 (N)</text>
+<text x="132" y="190.35" font-size="1.3">110 V door cable</text>
+<text x="14" y="192.5" font-size="1.3" font-weight="bold">panel PE</text>
+<text x="44" y="192.5" font-size="1.3"></text>
+<text x="72" y="192.5" font-size="1.3">PE 3</text>
+<text x="132" y="192.5" font-size="1.3">110 V door cable</text>
+<text x="14" y="194.65" font-size="1.3" font-weight="bold">S2 E-stop</text>
+<text x="44" y="194.65" font-size="1.3">NC1</text>
+<text x="72" y="194.65" font-size="1.3">X2 1 (+24 V), X2 2 (node X)</text>
+<text x="132" y="194.65" font-size="1.3">E-stop loop (LL, slot 3)</text>
+<text x="14" y="196.8" font-size="1.3" font-weight="bold">S2 E-stop</text>
+<text x="44" y="196.8" font-size="1.3">NC2</text>
+<text x="72" y="196.8" font-size="1.3">Pi GPIO 20 and GND, 1 k to 3V3</text>
+<text x="132" y="196.8" font-size="1.3">at the panel</text>
+<text x="14" y="198.95" font-size="1.3" font-weight="bold">S3 Reset</text>
+<text x="44" y="198.95" font-size="1.3">NO</text>
+<text x="72" y="198.95" font-size="1.3">X2 2 (node X) to X2 3 (node Y)</text>
+<text x="132" y="198.95" font-size="1.3">E-stop loop (LL, slot 3)</text>
+<text x="14" y="201.1" font-size="1.3" font-weight="bold">touch screen</text>
+<text x="44" y="201.1" font-size="1.3">HDMI, USB</text>
+<text x="72" y="201.1" font-size="1.3">Pi 5</text>
+<text x="132" y="201.1" font-size="1.3">at the panel</text>
+<text x="14" y="203.25" font-size="1.3" font-weight="bold">Pi 5</text>
+<text x="44" y="203.25" font-size="1.3">5 V in</text>
+<text x="72" y="203.25" font-size="1.3">5 V PSU (F1-2)</text>
+<text x="132" y="203.25" font-size="1.3">5 V feed (LL)</text>
+<text x="14" y="205.4" font-size="1.3" font-weight="bold">Pi 5</text>
+<text x="44" y="205.4" font-size="1.3">USB</text>
+<text x="72" y="205.4" font-size="1.3">Mega</text>
+<text x="132" y="205.4" font-size="1.3">USB cable (UF)</text>
+<text x="14" y="207.55" font-size="1.3" font-weight="bold">Pi 5</text>
+<text x="44" y="207.55" font-size="1.3">GPIO 5, 6, 13, 26</text>
+<text x="72" y="207.55" font-size="1.3">tower SSRs (GND to their inputs -)</text>
+<text x="132" y="207.55" font-size="1.3">tower inputs (UF)</text>
+<text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: operator panel</text>
+<text x="258" y="194.4" font-size="2">Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).</text>
+<text x="258" y="199.9" font-size="2">Status: concept; housing and sizes not designed yet.</text>
+<text x="258" y="202.65" font-size="2">Circuits: sheet 1. Terminals: sheet 2C.</text>
+</svg>

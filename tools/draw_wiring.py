@@ -2,7 +2,8 @@
 
 Sheet 1: wiring schematic (every circuit on one page).
 Sheets 2A and 2B: the same circuits on the lower and upper decks of the box, every part where sheet 3
-puts it and every wire routed through the ducts and channels from terminal to terminal.
+puts it and every wire routed through the ducts and channels from terminal to terminal. Sheet 2C: what
+each name means, and the terminal plan read from the same wire lists. Sheet 2D: the operator panel.
 Sheet 3: packing study, two decks in a 2020 frame.
 Sheet 4: the frame and its two deck plates; the plates, and the side and top panels on their nest
 sheets, are also written as DXF for laser cutting.
@@ -996,6 +997,7 @@ class DeckWiring:
         self.Lanes, self.Ends, self.Parts, self.Wires, self.Exits = {}, {}, {}, [], {}
         self.Dots, self.Drawn = [], []
         self.Mains = ()            # lanes inside the 110 VAC compartment
+        self.Labels = {}           # terminal block: (slice labels, bridges), for sheet 2C
 
     # ---- geometry
     def AddLane(self, name, box, axis):
@@ -1063,6 +1065,7 @@ class DeckWiring:
         (into laneA) and KEY.nb on the y1 face (into laneB); bridges join slices (i, j)."""
         sh = self.Sh
         x0, y0, x1, y1 = self.Part(key, box)
+        self.Labels[key] = (labels, list(bridges))
         n = len(labels)
         w = (x1 - x0) / n
         for i, lab in enumerate(labels):
@@ -1897,6 +1900,457 @@ def BuildDeckWiring(deck):
         "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
+    ])
+    return sh
+
+
+# ---- sheet 2C: names and terminals
+
+# What each name on sheets 1, 2A and 2B means and where it sits, then the terminal plan: what lands on
+# every terminal block and bus, read from the same wire lists that draw sheets 2A and 2B (LowerWiring(),
+# UpperWiring(), SlotWires()), so the plan cannot drift from the drawings. Only the field side of a
+# terminal (what the cable meets outside the box) is written here by hand, in FieldUse.
+
+NameParts = [
+    ("Lower deck: 110 VAC and 24 V power", [
+        ("Q0", "switch on the IEC inlet: isolates the mains", "back wall"),
+        ("X0", "mains in: L, L, N, N, PE from the inlet", "110 V rail"),
+        ("F0", "fuse holder, 1 A T: feeds the K1 rung", "110 V rail"),
+        ("K1", "110 VAC contactor HC1-63: mains to the 24 V PSU, coil by S1", "110 V rail"),
+        ("X1", "door 110 V: out to S1 and H1 on the panel", "110 V rail"),
+        ("PE", "4 ground blocks: inlet PE, PSU FG, door plate, lower bar", "110 V rail"),
+        ("PSU", "24 V 1200 W supply, lying flat, fan to the right wall", "110 VAC area"),
+        ("FB1", "12-way fuse module: +24 V always on", "fuse rail"),
+        ("FB2", "12-way fuse module: +24 V cut by the E-stop (behind K2)", "fuse rail"),
+        ("K2", "24 V contactor BMC7-25U: 1-2 and 3-4 in series feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 "
+               "that motor power is on", "24 V rail"),
+        ("star S", "the 0 V star at the PSU's -V; the only 0 V to PE bond", "24 V rail"),
+        ("0V-P 1, 2", "0 V power buses, linked: drivers, ODrive, K2 coil, loads", "24 V rail"),
+        ("servo PSU", "6 V DC-DC for the gripper and lid servos", "beside 24 V rail"),
+        ("5 V PSU", "feeds the Pi at the operator panel", "24 V row, back"),
+        ("ground bar", "lower PE bar on the base plate's PE stud", "behind servo PSU"),
+    ]),
+    ("Upper deck: drives, logic, field terminals", [
+        ("X2", "E-stop latch: the door cable from S2 and S3", "field rail"),
+        ("X4", "endstops: a signal and a common for each axis", "field rail"),
+        ("X5", "servos: 6 V, 0 V and signal for the gripper and lid", "field rail"),
+        ("X6", "lid (UV array, switch S5) and the argon valve", "field rail"),
+        ("X7", "status tower: red, amber, green, buzzer, common", "field rail"),
+        ("X8", "spare (was the screen supply and the home button)", "field rail"),
+        ("Mega", "Arduino Mega 2560 on a screw shield; runs on the Pi's USB", "logic rail"),
+        ("0V-S", "signal 0 V bus, 9 linked: driver COMs, Mega GND, endstops", "logic rail"),
+        ("0V-S2", "second 0V-S group: SSR input returns, S5 return", "logic rail"),
+        ("SSR-UV", "DC solid-state relay: Mega pin 4 switches the UV array", "SSR rail"),
+        ("SSR-valve", "DC solid-state relay: Mega pin 42 switches the argon valve", "SSR rail"),
+        ("tower R A G", "DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber, green lamps", "SSR rail"),
+        ("buzzer", "DC SSR: Pi GPIO 26 switches the tower's buzzer", "SSR rail"),
+        ("X ... C", "TB6600 drivers: X, Y1, Y2 (follows Y), Z, A (filter feed), B (syringe height), "
+                    "C (syringe)", "drivers rail"),
+        ("shield clamp", "grips the motor cables' shields, bonded to PE", "past the drivers"),
+        ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
+    ]),
+    ("Outside the box (sheet 1)", [
+        ("S1, H1", "panel knob that switches K1 on; H1 its lamp, lit while K1 is in", "operator panel"),
+        ("S2", "E-stop mushroom: NC1 drops K2, NC2 tells the Pi (GPIO 20)", "operator panel"),
+        ("S3", "Reset push button (NO): pulls K2 in after an E-stop", "operator panel"),
+        ("S4", "lid switch in series with the UV array: closed = lid shut", "lid"),
+        ("S5", "lid switch to Mega pin 39 (UV_LID_INTERLOCK, off for now)", "lid"),
+        ("D1", "1N4007 across the argon valve's coil, band to +", "at the valve"),
+        ("Pi", "Raspberry Pi 5 with the touch screen, runs rmr_bridge.py", "operator panel"),
+        ("ODrive", "ODrive S1 spin coater drive; J11 is its UART", "spin coater base"),
+        ("X, Y (nodes)", "E-stop latch nodes: X after NC1, Y after S3 (sheet 1, rung B)", ""),
+    ]),
+]
+
+NameEntries = [
+    ("UL", "upper left grommet: field cables X4, X5, X6"),
+    ("ULM", "upper left grommet 2: 6 motor cables, gantry PE"),
+    ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
+    ("UR", "upper right grommet: X7 tower, 1 motor cable"),
+    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, door cable"),
+    ("inlet", "IEC inlet with switch Q0, back panel"),
+    ("gland", "M20 gland, back panel: door 110 V cable"),
+    ("slot 1", "upper plate: driver +V and 0 V"),
+    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link"),
+    ("slot 3", "upper plate: E-stop latch, pin 43, door cable"),
+]
+
+NameAbbrev = [
+    ("PE", "protective earth"), ("FG", "the PSU's frame ground (earth) terminal"),
+    ("NC, NO", "normally closed, normally open contact"), ("SSR", "solid-state relay"),
+    ("COM", "common"), ("PUL, DIR, ENA", "a TB6600's step, direction, enable inputs"),
+    ("F1-n, F2-n", "fuse n of FB1, of FB2"), ("0V-P, 0V-S", "0 V power, 0 V signal"),
+    ("GPIO", "a Pi input/output pin (BCM numbers)"), ("J11", "the ODrive's isolated UART connector"),
+    ("RX2, TX2", "the Mega's Serial2 pins (17, 16)"), ("USLKG 5", "DIN ground terminal block"),
+    ("UK 2.5 B", "DIN feed-through terminal block"), ("TS35", "35 mm top-hat DIN rail"),
+    ("SJOOW", "oil-resistant portable cord, 300 V"), ("AWG", "American wire gauge"),
+]
+
+# The field side of each terminal: what the cable meets outside the box, by (block, terminal).
+FieldUse = {}
+for _i, (_ax, _pin) in enumerate(EndstopPins):
+    FieldUse[("X4", _i + 1)] = "endstop %s signal" % _ax
+    FieldUse[("X4", _i + 7)] = "endstop %s common" % _ax
+FieldUse.update({
+    ("X5", 1): "gripper servo +6 V", ("X5", 2): "lid servo +6 V", ("X5", 3): "gripper servo 0 V",
+    ("X5", 4): "lid servo 0 V", ("X5", 5): "gripper servo signal", ("X5", 6): "lid servo signal",
+    ("X6", 1): "S4, then the UV array +", ("X6", 2): "UV array -", ("X6", 3): "lid switch S5",
+    ("X6", 4): "S5's other side", ("X6", 5): "argon valve + (D1 across)", ("X6", 6): "argon valve -",
+    ("X7", 1): "tower red", ("X7", 2): "tower amber", ("X7", 3): "tower green", ("X7", 4): "tower buzzer",
+    ("X7", 5): "tower common",
+    ("X2", 1): "+24 V to S2 NC1", ("X2", 2): "NC1 out, S3 in (node X)", ("X2", 4): "S3 out (node Y)",
+    ("X2", 6): "spare: NC2 is wired at the panel", ("X2", 7): "spare",
+    ("X0", 1): "L from the inlet", ("X0", 3): "N from the inlet", ("X0", 5): "PE from the inlet",
+    ("X1", 1): "to S1", ("X1", 2): "from S1: K1 coil, H1", ("X1", 3): "N to H1",
+    ("PE", 3): "door plate PE", ("0V-S", 8): "ODrive J11 GND", ("0V-P 2", "OD"): "ODrive DC-",
+})
+
+
+def NameEnd(name):
+    """A wire end as the terminal plan writes it."""
+    if name in ("S1", "S2", "S3"):
+        return "slot " + name[1]
+    if name == "LL":
+        return "LL"
+    if name == "ULM":
+        return "ULM"
+    if "#" in name:
+        return name.split("#")[0]
+    if "." not in name:
+        return "shield clamp" if name.startswith("clamp") else name
+    key, term = name.split(".", 1)
+    if key == "MEGA":
+        return "Mega " + ({"GND": "GND", "USB": "USB"}.get(term) or
+                          (term[1:] + " signals" if term.startswith("g") else term))
+    if key == "PSU":
+        return "PSU " + {"V+a": "+V", "V+b": "+V", "V-a": "-V", "V-b": "-V"}.get(term, term)
+    if key in DriveAxes:
+        return "driver %s %s" % (key, term)
+    if key in ("FB1", "FB2"):
+        return "%s %s" % (key, term) if term == "IN" else "F%s-%s" % (key[2], term)
+    for bus, text in (("0V-S2", "0V-S2"), ("0V-S", "0V-S"), ("0V-P 2", "0V-P 2"), ("0V-P", "0V-P 1"),
+                      ("Star S", "star S"), ("bar", "ground bar"), ("clamp", "shield clamp")):
+        if key == bus:
+            return text
+    if key in SsrNames:
+        return "%s %s" % (key, term.replace("OUT", "out ").replace("IN", "in ").replace("+", "+").strip())
+    if key[0] == "X" or key == "PE":
+        return "%s %s" % (key, term.rstrip("ab"))
+    return "%s %s" % (key, term)
+
+
+def TerminalPlan(d):
+    """{(part, terminal): [(where the other end goes, by)]} for one deck; by is the slot or the
+    grommet a wire passes, or ''. A wire to a slot is followed to its end on the other deck."""
+    slotUp = dict(((s, b), a) for s, _, a, b, _ in SlotWires())
+    slotLo = dict(((s, a), b) for s, _, a, b, _ in SlotWires())
+    out = {}
+    for w in d.Wires:
+        for here, there in ((w["a"], w["b"]), (w["b"], w["a"])):
+            if here not in d.Ends or d.Ends[here][0] != "t" or "#" in here:
+                continue
+            key, term = here.split(".", 1)
+            if there in ("S1", "S2", "S3"):
+                s = int(there[1])
+                far = slotUp.get((s, here)) if d.Deck == "upper" else slotLo.get((s, here))
+                text, by = (NameEnd(far) if far != "LL" else "door cable, LL"), "slot %d" % s
+            elif "#" in there or there in ("LL", "ULM"):
+                text, by = None, NameEnd(there)
+            else:
+                text, by = NameEnd(there), ""
+            out.setdefault((key, term), []).append((text, by))
+    return out
+
+
+def Wrap(s, width):
+    return textwrap.wrap(s, width) or [""]
+
+
+def BuildNomenclature():
+    """Sheet 2C: names, the terminal plan, fuses, cable entries and abbreviations."""
+    sh = Sheet("RMR control panel names and terminals")
+    DrawFrame(sh, "RMR control panel: names and terminals",
+              "Sheet 2C: what each name on sheets 1, 2A and 2B is and where it sits, and what lands on every "
+              "terminal. The terminal plan is read from the wire lists that draw sheets 2A and 2B.")
+    lead, size = 2.4, 1.8
+    perChar = 0.53 * size              # average width of a character of Arial at this size, mm
+    cols = [8.0, 95.0, 182.0, 268.0]       # four columns, each 84 mm wide
+
+    class Cursor:
+        col, y = 0, 22.0
+
+    def Need(n):
+        bottom = 207.0 if Cursor.col < 2 else 183.0       # columns 3 and 4 stop above the title block
+        if Cursor.y + n * lead > bottom:
+            Cursor.col += 1
+            Cursor.y = 22.0
+            if Cursor.col >= len(cols):
+                raise ValueError("sheet 2C: the names run off the page")
+
+    def Break():
+        Cursor.col += 1
+        Cursor.y = 22.0
+
+    def Head(text, keep=0):
+        """A heading, kept in one column with the keep rows that follow it."""
+        Need(2 + keep)
+        Cursor.y += 1.2 if Cursor.y > 22.0 else 0.0
+        sh.Text(cols[Cursor.col], Cursor.y, text, size=2.3, weight="bold")
+        Cursor.y += lead + 0.6
+
+    def Row(cells, bold0=True, fill=None):
+        """cells: [(dx, text, width)] in the current column, dx and width in mm; wraps each cell."""
+        wrapped = [(dx, Wrap(t, max(4, int(wd / perChar)))) for dx, t, wd in cells]
+        k = max(len(lines) for _, lines in wrapped)
+        Need(k)
+        x0 = cols[Cursor.col]
+        for j, (dx, lines) in enumerate(wrapped):
+            for i, s2 in enumerate(lines):
+                TextFill(sh, x0 + dx, Cursor.y + i * lead, s2, size, fill or "#000",
+                         weight="bold" if (j == 0 and bold0) else "normal")
+        Cursor.y += k * lead
+
+    for title, rows in NameParts:
+        Head(title)
+        for name, what, where in rows:
+            Row([(0.0, name, 17.0), (18.0, what, 46.0), (65.0, where, 19.0)])
+    lo, up = DeckSheet("lower")[1], DeckSheet("upper")[1]
+    plans = {"lower": TerminalPlan(lo), "upper": TerminalPlan(up)}
+    Head("Terminal plan", keep=12)
+    Row([(0.0, "No.", 5.0), (5.0, "label", 7.0), (12.5, "in the box (by)", 38.0), (52.0, "field side (by)", 32.0)],
+        fill="#555")
+    blocks = [("upper", "X2"), ("upper", "X4"), ("upper", "X5"), ("upper", "X6"), ("upper", "X7"), ("upper", "X8"),
+              ("upper", "0V-S"), ("upper", "0V-S2"), ("lower", "X0"), ("lower", "X1"), ("lower", "PE")]
+    for deck, key in blocks:
+        d = lo if deck == "lower" else up
+        labels, bridges = d.Labels[key]
+        Head("%s  (%s deck)" % (key, deck), keep=len(labels) + 2)
+        for n, lab in enumerate(labels, 1):
+            first = [i + 1 for i, j in bridges if i + 1 < n <= j + 1]
+            inside, field, by = [], FieldUse.get((key, n), ""), set()
+            for side in ("a", "b"):
+                for text, via in plans[deck].get((key, "%d%s" % (n, side)), []):
+                    if text is None:
+                        by.add(via)
+                    else:
+                        inside.append(text + (" (%s)" % via if via else ""))
+            if by:
+                field = (field + " " if field else "") + "(%s)" % ", ".join(sorted(by))
+            if not inside and first:
+                inside = ["bridged to %d" % first[0]]
+            Row([(0.0, str(n), 5.0), (5.0, lab, 7.0), (12.5, "; ".join(inside) or "-", 38.0),
+                 (52.0, field or "-", 32.0)])
+    Head("Buses on the lower deck")
+    for key, title in (("Star S", "star S"), ("0V-P", "0V-P 1"), ("0V-P 2", "0V-P 2")):
+        ends = []
+        for (k, term), lst in sorted(plans["lower"].items()):
+            if k == key:
+                ends += [t + (" (%s)" % v if v else "") if t else "%s (%s)" % (FieldUse.get((k, term), "out"), v)
+                         for t, v in lst]
+        Row([(0.0, title, 11.0), (12.5, "; ".join(ends), 71.0)])
+    Head("Fuses")
+    for fb in ("FB1", "FB2"):
+        uses = ["%s-%d %s%s" % ("F" + fb[2], i + 1, FuseUse[fb][i], (" (%s A)" % FuseAmps[fb][i]) if FuseAmps[fb][i] else "")
+                for i in range(12)]
+        Row([(0.0, fb, 6.0), (7.0, ", ".join(uses), 77.0)])
+    Row([(0.0, "F0", 6.0), (7.0, "1 A T, 5 x 20 mm: the K1 rung (S1, K1 coil, H1)", 77.0)])
+    Break()
+    Head("Cable entries and slots")
+    for name, what in NameEntries:
+        Row([(0.0, name, 9.0), (10.0, what, 74.0)])
+    Head("Abbreviations")
+    for name, what in NameAbbrev:
+        Row([(0.0, name, 18.0), (19.0, what, 65.0)])
+    TitleBlock(sh, 256, 186, 92, 21.5, [
+        "RMR control panel: names and terminals",
+        "Sheet 2C (2A, 2B: the decks; 2D: the panel). Legal 14 x 8.5 in, 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
+        "Status: design, not yet built or tested.",
+        "Circuits: sheet 1. Positions: sheet 3. Wiring: sheets 2A, 2B.",
+    ])
+    return sh
+
+
+# ---- sheet 2D: the operator panel
+
+# A render of the operator panel as it might look, seen from the front: the 10 in touch screen with the
+# Pi behind it, S1 (the power knob, its H1 lamp inside), S2 (the E-stop) and S3 (Reset), as ordered on
+# 2026-09-14: a 22 mm latching rotary selector with a green 110 V lamp, a 2NC red mushroom, and a blue
+# momentary button. The screen shows the Touch UI's Jog tab. Sizes are assumed (OpPanel): the screen is
+# a generic 10.1 in HDMI module and the housing is not designed yet. A faint extension of the housing,
+# inside a dashed outline round the whole future panel, holds a pad of arrow keys and a select key to
+# drive the screen without touching it; nothing about it is designed (OpNav).
+OpScale = 1.5                                      # real mm per paper mm
+OpPanel = (360.0, 220.0)                           # housing front, assumed
+OpScreen = (15.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
+OpActive = (17.5, 15.0, 222.0, 125.0)              # active area inside the module: dx, dy, width, height
+OpNav = (34.0, 24.0, 28.0)                         # future pad: key pitch, arrow key side, select key diameter
+OpWiring = [
+    ("S1 power knob", "NO, 110 V", "X1 1 in, X1 2 out", "110 V door cable (M20 gland)"),
+    ("H1 lamp, in S1", "110 V", "X1 2 and X1 3 (N)", "110 V door cable"),
+    ("panel PE", "", "PE 3", "110 V door cable"),
+    ("S2 E-stop", "NC1", "X2 1 (+24 V), X2 2 (node X)", "E-stop loop (LL, slot 3)"),
+    ("S2 E-stop", "NC2", "Pi GPIO 20 and GND, 1 k to 3V3", "at the panel"),
+    ("S3 Reset", "NO", "X2 2 (node X) to X2 3 (node Y)", "E-stop loop (LL, slot 3)"),
+    ("touch screen", "HDMI, USB", "Pi 5", "at the panel"),
+    ("Pi 5", "5 V in", "5 V PSU (F1-2)", "5 V feed (LL)"),
+    ("Pi 5", "USB", "Mega", "USB cable (UF)"),
+    ("Pi 5", "GPIO 5, 6, 13, 26", "tower SSRs (GND to their inputs -)", "tower inputs (UF)"),
+]
+OpDefs = """<defs>
+<linearGradient id="opHousing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4E4E4"/><stop offset="1" stop-color="#B8B8B8"/></linearGradient>
+<linearGradient id="opBezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3A3A"/><stop offset="1" stop-color="#161616"/></linearGradient>
+<radialGradient id="opRed" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#EE7766"/><stop offset=".55" stop-color="#CC3311"/><stop offset="1" stop-color="#7A1E0A"/></radialGradient>
+<radialGradient id="opBlue" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#88BBEE"/><stop offset=".6" stop-color="#4477AA"/><stop offset="1" stop-color="#22446A"/></radialGradient>
+<radialGradient id="opGreen" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#CCEEBB"/><stop offset=".55" stop-color="#228833"/><stop offset="1" stop-color="#11441A"/></radialGradient>
+<radialGradient id="opGrey" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#DDDDDD"/><stop offset=".6" stop-color="#777777"/><stop offset="1" stop-color="#333333"/></radialGradient>
+<radialGradient id="opRing" cx=".5" cy=".5" r=".5"><stop offset=".7" stop-color="#F2F2F2"/><stop offset="1" stop-color="#8C8C8C"/></radialGradient>
+</defs>"""
+
+
+def TextFill(sh, x, y, s, size, fill, anchor="start", weight="normal"):
+    """Text in a colour: an inline style, because the sheet's style sheet (text{fill:#000}) overrides a
+    fill attribute, so Sheet.Text's fill= draws black."""
+    attrs = 'x="%s" y="%s" font-size="%s" style="fill:%s"' % (Fmt(x), Fmt(y), Fmt(size), fill)
+    if anchor != "start":
+        attrs += ' text-anchor="%s"' % anchor
+    if weight != "normal":
+        attrs += ' font-weight="%s"' % weight
+    sh.TextParts.append("<text %s>%s</text>" % (attrs, Esc(s)))
+
+
+def BuildOperatorPanel():
+    """Sheet 2D: the operator panel rendered from the front, its wiring, and the future arrow pad."""
+    sh = Sheet("RMR operator panel")
+    DrawFrame(sh, "RMR control panel: operator panel",
+              "Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what "
+              "each control wires to. The dashed outline is the panel as it may grow.")
+    sh.Add(OpDefs)
+    X0, Y0, S = 14.0, 27.0, OpScale
+
+    def P(x, y):
+        return X0 + x / S, Y0 + y / S
+
+    def Rect(x, y, w, h, fill, stroke="#000", sw=0.3, rx=0.0, extra=""):
+        px, py = P(x, y)
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="%s" stroke="%s" stroke-width="%s"%s/>'
+               % (Fmt(px), Fmt(py), Fmt(w / S), Fmt(h / S), Fmt(rx / S), fill, stroke, Fmt(sw), extra))
+
+    def Disc(x, y, d, fill, stroke="#000", sw=0.25, extra=""):
+        px, py = P(x, y)
+        sh.Add('<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="%s"%s/>'
+               % (Fmt(px), Fmt(py), Fmt(d / 2 / S), fill, stroke, Fmt(sw), extra))
+
+    def Label(x, y, lines, size=1.6, fill="#000", bold0=True):
+        px, py = P(x, y)
+        for i, s2 in enumerate(lines):
+            TextFill(sh, px, py + i * size * 1.25, s2, size if i == 0 else size * 0.85, fill, anchor="middle",
+                     weight="bold" if (i == 0 and bold0) else "normal")
+
+    def Plate(x, y, w, lines):
+        Rect(x - w / 2, y, w, 9.5 + 4.5 * (len(lines) - 1), "#FFFFFF", sw=0.2, rx=1.5)
+        Label(x, y + 6.0, lines, size=1.45)
+
+    W, H = OpPanel
+    # housing, screen module, active area
+    # the panel as it may grow: a faint extension joined to the housing's right edge, and a dashed
+    # outline round both. Drawn first, so the housing's own outline stays on top where they meet
+    pitch, key, sel = OpNav
+    ext = 2 * pitch + key + 28.0
+    Rect(W - 8.0, 0, ext + 8.0, H, "url(#opHousing)", stroke="none", sw=0, rx=8.0, extra=' fill-opacity=".35"')
+    Rect(0, 0, W + ext, H, "none", sw=0.35, rx=8.0, extra=' stroke-dasharray="1.6 1"')
+    Rect(0, 0, W, H, "url(#opHousing)", sw=0.4, rx=8.0)
+    sx, sy, sw_, sh_ = OpScreen
+    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=4.0)
+    ax, ay, aw, ah = sx + OpActive[0], sy + OpActive[1], OpActive[2], OpActive[3]
+    Rect(ax, ay, aw, ah, "#1E1E24", stroke="#000", sw=0.2)
+    # the Touch UI's Jog tab, roughly as it draws in its tol-dark theme
+    Rect(ax, ay, aw, 13.0, "#2B2B33", stroke="none", sw=0)
+    Label(ax + 22.0, ay + 8.5, ["RMR Touch"], size=1.7, fill="#FFFFFF")
+    Rect(ax + aw - 46.0, ay + 3.0, 42.0, 7.5, "#4477AA", stroke="none", sw=0, rx=2.0)
+    Label(ax + aw - 25.0, ay + 8.2, ["Connected"], size=1.3, fill="#FFFFFF")
+    Label(ax + aw - 92.0, ay + 8.5, ["X 385.00  Y 120.00  Z 10.00"], size=1.2, fill="#BBCCEE", bold0=False)
+    tabs = ["Jog", "Recipe", "Log", "Spin", "Console", "Program", "Advanced"]
+    tw = aw / len(tabs)
+    for i, t in enumerate(tabs):
+        Rect(ax + i * tw + 0.8, ay + 14.5, tw - 1.6, 9.0, "#4477AA" if i == 0 else "#33333C", stroke="none", sw=0, rx=1.5)
+        Label(ax + (i + 0.5) * tw, ay + 20.6, [t], size=1.25, fill="#FFFFFF", bold0=i == 0)
+    cx, cy, b = ax + 62.0, ay + 72.0, 22.0
+    for dx, dy, arrow in ((0, -1, "Y+"), (0, 1, "Y-"), (-1, 0, "X-"), (1, 0, "X+")):
+        Rect(cx + dx * (b + 3.0) - b / 2, cy + dy * (b + 3.0) - b / 2, b, b, "#4477AA", stroke="none", sw=0, rx=3.0)
+        Label(cx + dx * (b + 3.0), cy + dy * (b + 3.0) + 2.5, [arrow], size=1.7, fill="#FFFFFF")
+    Rect(cx - b / 2, cy - b / 2, b, b, "#228833", stroke="none", sw=0, rx=3.0)
+    Label(cx, cy - 0.5, ["HOME", "ALL"], size=1.25, fill="#FFFFFF")
+    zx = ax + 135.0
+    for i, t in enumerate(("Z up", "Z down")):
+        Rect(zx, ay + 38.0 + i * 31.0, 30.0, 26.0, "#4477AA", stroke="none", sw=0, rx=3.0)
+        Label(zx + 15.0, ay + 53.5 + i * 31.0, [t], size=1.4, fill="#FFFFFF")
+    for i, t in enumerate(("Step  1 mm", "Feed  3000 mm/min", "A  B  C axes")):
+        Rect(ax + 172.0, ay + 38.0 + i * 21.0, 44.0, 16.0, "#33333C", stroke="none", sw=0, rx=2.0)
+        Label(ax + 194.0, ay + 48.0 + i * 21.0, [t], size=1.2, fill="#DDDDDD", bold0=False)
+    Label(sx + sw_ / 2, sy + sh_ + 9.0, ["10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)"], size=1.5,
+          bold0=False)
+
+    # the controls column: E-stop on its yellow plate, Reset, the power knob with its lamp
+    kx = 316.0
+    Disc(kx, 52.0, 62.0, "#EEDD88", sw=0.3)
+    Disc(kx, 52.0, 34.0, "url(#opRing)", sw=0.2)
+    Disc(kx, 52.0, 42.0, "url(#opRed)", sw=0.35)
+    Label(kx, 47.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
+    Label(kx, 58.5, ["STOP"], size=1.15, fill="#FFFFFF")
+    Plate(kx, 86.0, 50.0, ["S2  E-STOP", "push to stop, twist to release"])
+    Disc(kx, 124.0, 30.0, "url(#opRing)", sw=0.25)
+    Disc(kx, 124.0, 22.0, "url(#opBlue)", sw=0.3)
+    Plate(kx, 142.0, 50.0, ["S3  RESET", "starts the motors after an E-stop"])
+    Disc(kx, 178.0, 30.0, "url(#opRing)", sw=0.25)
+    Disc(kx, 178.0, 23.0, "url(#opGreen)", sw=0.3)
+    Rect(kx - 3.0, 168.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
+         % tuple(Fmt(v) for v in P(kx, 178.0)))
+    Label(kx - 20.0, 170.0, ["0"], size=1.4)
+    Label(kx + 20.0, 170.0, ["I"], size=1.4)
+    Plate(kx, 195.0, 50.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
+
+    # the future arrow pad, in the extension drawn first above: four arrow keys round a select key,
+    # to move between the screen's controls and press one without touching the screen
+    cx, cy = W + ext / 2, 80.0
+    ghost = ' fill-opacity=".4" stroke-dasharray="1 .7"'
+    for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0)):
+        kx_, ky_ = cx + dx * pitch, cy + dy * pitch
+        Rect(kx_ - key / 2, ky_ - key / 2, key, key, "#777777", sw=0.25, rx=3.0, extra=ghost)
+        tip, base, half = 7.0, -5.0, 6.0          # the arrow: tip along (dx, dy), base across it
+        pts = [(kx_ + dx * tip, ky_ + dy * tip), (kx_ + dx * base - dy * half, ky_ + dy * base + dx * half),
+               (kx_ + dx * base + dy * half, ky_ + dy * base - dx * half)]
+        d = "M" + " L".join("%s %s" % tuple(Fmt(v) for v in P(x, y)) for x, y in pts) + " Z"
+        sh.Add('<path d="%s" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>' % d)
+    Disc(cx, cy, sel + 6.0, "url(#opRing)", sw=0.25, extra=ghost)
+    Disc(cx, cy, sel, "#228833", sw=0.25, extra=ghost)
+    Label(cx, cy + 1.5, ["SELECT"], size=1.3, fill="#FFFFFF")
+    Label(cx, 18.0, ["FUTURE"], size=1.8, fill="#555555")
+    Label(cx, cy + pitch + key / 2 + 14.0, ["arrow keys and select"], size=1.4, fill="#555555")
+    px, py = P(W + 8.0, cy + pitch + key / 2 + 26.0)
+    for i, s2 in enumerate(["To use the screen without touching it (gloves,",
+                            "dirty hands). Not designed: how the keys reach",
+                            "the Pi (a USB keypad sends arrows and Enter with",
+                            "no new wiring; GPIO keys need new code, since",
+                            "rmr_bridge.py's buttons only send G-code), and",
+                            "how the Touch UI moves between its controls."]):
+        TextFill(sh, px, py + i * 2.0, s2, 1.35, "#555555")
+
+    # what each control wires to
+    tx, ty = 14.0, 182.0
+    sh.Text(tx, ty, "Behind the panel", size=2.1, weight="bold")
+    cols = (0.0, 30.0, 58.0, 118.0)
+    for j, h in enumerate(("control", "contact", "lands on", "cable (by)")):
+        TextFill(sh, tx + cols[j], ty + 3.4, h, 1.3, "#555555")
+    for i, row in enumerate(OpWiring):
+        for j, s2 in enumerate(row):
+            sh.Text(tx + cols[j], ty + 6.2 + i * 2.15, s2, size=1.3, weight="bold" if j == 0 else "normal")
+    TitleBlock(sh, 256, 186, 92, 21.5, [
+        "RMR control panel: operator panel",
+        "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
+        "Status: concept; housing and sizes not designed yet.",
+        "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
     return sh
 
@@ -5007,6 +5461,8 @@ def Main():
     sheets = [("wiring_schematic_legal.svg", BuildSchematic()),
               ("wiring_din_rails_lower_legal.svg", BuildDeckWiring("lower")),
               ("wiring_din_rails_upper_legal.svg", BuildDeckWiring("upper")),
+              ("wiring_din_rails_names_legal.svg", BuildNomenclature()),
+              ("wiring_din_rails_panel_legal.svg", BuildOperatorPanel()),
               ("packing_study_legal.svg", BuildPacking()),
               ("frame_plates_legal.svg", BuildFrame()),
               ("gantry_mount_legal.svg", BuildGantry())]
