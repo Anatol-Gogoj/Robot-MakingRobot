@@ -232,6 +232,126 @@ await flush();
 ok('M114 once nothing is unanswered', last() === 'M114');
 ev('okLedgerReset')();
 
+// == Process Sequencer (issue #180) ==
+// seqCmd() waits for its own step's 'ok' through the ledger, as the Program Runner does. The
+// checks drive the real Homing block (G28, then the M118 marker) and the real UV block.
+if (ev('typeof showToast') === 'function') ev('showToast = () => {}');
+el('homeAll').checked = true;
+el('homeSpin').checked = false;   // Controller only: no M752 after the home
+const seqStatus = () => String(el('seqStatus').innerHTML);
+const seqHome = () => { ev('seqRunBlock')('homing'); return flush(); };
+const MARK = 'M118 RMR:HOMED_ALL';
+// Each case starts idle with nothing owed, so a failure on an unfixed page stays in its own case.
+const seqFresh = async () => { if (ev('seqRunning')) { ev('seqStop')(); await flush(); } ev('okLedgerReset')(); };
+
+// == T15: Web Serial: an earlier command's ok does not advance a step ==
+console.log('\nT15 sequencer, Web Serial: only a step\'s own ok advances it');
+await seqFresh();
+ev('sendCmd')('G4 S2');                              // a console command, still unanswered
+await flush();
+await seqHome();
+ok('the Homing block sent G28', last() === 'G28' && ev('seqRunning') === true);
+rx('ok');                                            // <- the G4's
+await flush();
+ok("the console G4's ok did not advance the sequence", last() === 'G28' && ev('seqRunning') === true);
+rx('ok');                                            // <- G28's own
+await flush();
+ok("G28's own ok advanced it to the marker", last() === MARK);
+ev('sendCmd')('M114');                               // console traffic sent while the marker is in flight
+await flush();
+rx('ok');                                            // <- the marker's own (it was sent first)
+await flush();
+ok("the marker's own ok completed the block", ev('seqRunning') === false && /complete/.test(seqStatus()));
+rx('ok');                                            // <- the M114's, after the run
+await flush();
+ok('nothing left owed', ev('okLedger').length === 0);
+
+// == T16: Pi bridge: another client's and a button's oks do not advance a step ==
+console.log("\nT16 sequencer, bridge: other clients' and buttons' oks do not advance it");
+ev('useWS = true');
+ev(`ws = { readyState: 1, send: c => { globalThis.__wire.push(String(c)); } }`);
+await seqFresh();
+ev('wsOwnPending = []');
+await seqHome();
+ok('G28 sent to the bridge', last() === 'G28');
+bridge({ _rmr: 'tx', cmd: 'M114', source: 'ws' });                     // another client's poll, written first
+bridge({ _rmr: 'tx', cmd: 'G28', source: 'ws' });                      // this page's step
+bridge({ _rmr: 'tx', cmd: 'G28\nM118 RMR:HOMED_ALL', source: 'button:home_all' });   // a button after it
+rx('ok');                                                              // <- the other client's M114
+await flush();
+ok("another client's ok did not advance the sequence", last() === 'G28' && ev('seqRunning') === true);
+rx('ok');                                                              // <- this page's G28
+await flush();
+ok("the step's own ok advanced it", last() === MARK);
+bridge({ _rmr: 'tx', cmd: MARK, source: 'ws' });                       // the marker's echo, behind the button's two lines
+rx('ok'); rx('ok');                                                    // <- the button's G28 and M118
+await flush();
+ok("the button's two oks did not complete the block", ev('seqRunning') === true);
+rx('ok');                                                              // <- the marker's own
+await flush();
+ok("the marker's own ok completed the block", ev('seqRunning') === false && /complete/.test(seqStatus()));
+ev('useWS = false');
+ev('wsOwnPending = []');
+
+// == T17: a stopped run's late ok does not advance the next run ==
+console.log("\nT17 sequencer: a stopped run's late ok does not advance the next run");
+await seqFresh();
+await seqHome();
+ev('seqStop')();                                     // G28 still running on the machine
+await flush();
+ok('Stop ended the run and sent M410', ev('seqRunning') === false && last() === 'M410');
+await seqHome();
+ok('the next run sent its G28', last() === 'G28' && ev('seqRunning') === true);
+rx('ok'); rx('ok');                                  // <- the stopped G28's and the M410's
+await flush();
+ok("the old run's oks did not advance the new one", last() === 'G28' && ev('seqRunning') === true);
+rx('ok');                                            // <- the new G28's own
+await flush();
+ok("the new step's own ok advanced it", last() === MARK);
+rx('ok');
+await flush();
+ok('the new run completed', ev('seqRunning') === false);
+
+// == T18: a cleared ledger fails the step in flight at once ==
+console.log('\nT18 sequencer: a cleared ledger fails the step in flight, not at its timeout');
+for (const [what, act] of [
+  ["a firmware 'start'", () => rx('start')],
+  ['the bridge losing the port', () => bridge({ _rmr: 'status', serial: 'closed', port: '/dev/rmr-mega' })],
+  ['a disconnect', () => { ev('setConnected')(false); ev('isConnected = true'); }],
+  ['a ledger overflow', () => { for (let i = 0; i < ev('OK_LEDGER_MAX') + 2; i++) ev('sendCmd')('M114'); }],
+]) {
+  await seqFresh();
+  await seqHome();
+  act();
+  await flush();
+  ok(what + ': the run failed at once, naming the lost ok', ev('seqRunning') === false && /Error: .*ok.*lost/.test(seqStatus()));
+  ok(what + ': nothing more was sent', last() !== MARK);
+}
+
+// == T19: the UV block's parallel M752 ==
+// The M752 sent during the cure is fire-and-forget. If the cure ends first, the lamp-off M42
+// queues behind it and must wait for its own ok, not take the M752's.
+console.log("\nT19 sequencer: the UV block's lamp-off step does not take the parallel M752's ok");
+await seqFresh();
+ev('seqSetHomed')(true, 'test');
+el('uvTime').value = '0.05'; el('uvLid').checked = false; el('uvArgon').checked = false; el('uvSpinHome').checked = true;
+ev('seqRunBlock')('uv');
+await flush();
+ok('lamp on sent', last() === 'M42 P4 S1');
+rx('ok');                                            // <- the lamp-on's own
+for (let i = 0; i < 100 && last() !== 'M42 P4 S0'; i++) await new Promise(r => setTimeout(r, 10));
+ok('M752 sent in parallel, then lamp off after the cure', wire.slice(-2).join(' | ') === 'M752 | M42 P4 S0');
+rx('ok');                                            // <- the M752's
+await flush();
+ok("the M752's ok did not complete the lamp-off step", last() === 'M42 P4 S0' && ev('seqRunning') === true);
+rx('ok');                                            // <- the lamp-off's own
+await flush();
+ok("the lamp-off's own ok advanced to the M400 check", last() === 'M400');
+rx('ok');
+await flush();
+ok('the UV block completed', ev('seqRunning') === false && /complete/.test(seqStatus()));
+ok('nothing left owed', ev('okLedger').length === 0);
+
 if (ev('autoReportInterval')) clearInterval(ev('autoReportInterval'));
 console.log(fails ? `\n${fails} FAILED` : '\nall passed');
 process.exit(fails ? 1 : 0);
