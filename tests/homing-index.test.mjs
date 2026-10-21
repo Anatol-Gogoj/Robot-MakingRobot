@@ -105,7 +105,7 @@ el('homeSpin').checked = true;
   ok('it is the shared bound, SPIN_INDEX_TIMEOUT_MS', w && bound() !== undefined && w.ms === bound(), [w, bound()]);
   ok('the block completed', ev('seqRunning') === false && /Homing<\/b> complete/.test(status()), status());
   const lid = log.find(l => /M752/.test(l.m) && /lid open/.test(l.m));
-  ok('a console line before the M752 says the chuck turns with the lid open', lid && lid.at === cmds.indexOf('M752'), log);
+  ok('a console line before the M752 says it runs with the lid open', lid && lid.at === cmds.indexOf('M752'), log);
   ok('the pass is logged from the marker', log.some(l => /^Homing: spincoater at its datum \(OK: INDEX_COMPLETE\)/.test(l.m)), log);
   ok('no verdict watch left armed', watch() === null, watch());
 }
@@ -141,7 +141,7 @@ el('homeSpin').checked = false;
   const cmds = await runHoming({});
   ok('order: G28, M118 RMR:HOMED_ALL; no M752', JSON.stringify(cmds) === JSON.stringify(HOME), cmds);
   ok('the block completed', ev('seqRunning') === false && /Homing<\/b> complete/.test(status()), status());
-  ok('no lid-open notice', !log.some(l => /lid open/.test(l.m)), log);
+  ok('no lid-open line', !log.some(l => /lid open/.test(l.m)), log);
 }
 
 // == 5: the step is still bounded ==

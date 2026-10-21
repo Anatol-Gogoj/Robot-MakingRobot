@@ -3111,12 +3111,12 @@ async function runHomingBlock() {
   }
   // Bury the spincoater's one-time ODrive boot + encoder index into homing, so the
   // first spin (M750) doesn't stall on it. M752 boots + indexes and sets the ready flag.
-  // Every G28, partial or bare, opens the lid to 30 deg first (G28.cpp), and nothing here closes
-  // it, so this M752 turns the chuck with the lid open (#187).
+  // Every G28, partial or bare, opens the lid to 30 deg first (G28.cpp), and this M752 runs with
+  // it open on purpose: the operator can see whether the chuck is aligned (owner, #187).
   const hs = document.getElementById('homeSpin');
   if (hs && hs.checked) {
     seqSetStatus('Homing — indexing the spincoater (ODrive)…');
-    logInfo('Homing: spincoater index search (M752); the chuck turns with the lid open (G28 opened it to 30°)');
+    logInfo('Homing: spincoater index search (M752) with the lid open (intended: lets the operator check the chuck alignment)');
     await seqIndexHome('Homing', '');
   }
 }
