@@ -45,6 +45,7 @@ const checks = [
   { issue: '#186', name: 'UV relay off after a sent ON: both pages', script: 'uv-relay-flags.test.mjs', args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '#188', name: 'seq end poll guard: both pages', script: 'seq-end-poll.test.mjs',         args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '#187', name: 'homing index search: Controller', script: 'homing-index.test.mjs',         args: [CONTROLLER], needs: [CONTROLLER] },
+  { issue: '#191', name: 'lid closed above 120 RPM: both pages', script: 'lid-spin-rule.test.mjs',   args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
