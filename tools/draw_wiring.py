@@ -102,6 +102,7 @@ class Sheet:
         self.Parts = []
         self.TextParts = []   # drawn last, so a haloed label sits on top of every wire
         self.CssExtra = ""
+        self.SvgClass = ""    # class of the <svg>, the scope of CssExtra's rules (see DeckCss)
 
     def Add(self, s):
         self.Parts.append(s)
@@ -156,11 +157,12 @@ class Sheet:
 
     def Svg(self):
         body = "\n".join(self.Parts + self.TextParts)
+        cls = ' class="%s"' % self.SvgClass if self.SvgClass else ""
         return ('<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" '
+                '<svg xmlns="http://www.w3.org/2000/svg"%s width="14in" height="8.5in" '
                 'viewBox="0 0 %s %s">\n<title>%s</title>\n<style>%s</style>\n'
                 '<rect x="0" y="0" width="%s" height="%s" fill="#fff"/>\n%s\n</svg>\n'
-                % (Fmt(PageW), Fmt(PageH), Esc(self.Title), Css + self.CssExtra, Fmt(PageW), Fmt(PageH),
+                % (cls, Fmt(PageW), Fmt(PageH), Esc(self.Title), Css + self.CssExtra, Fmt(PageW), Fmt(PageH),
                    body))
 
 
@@ -931,6 +933,8 @@ def BuildSchematic():
 WirePitch = 0.5                    # paper mm between two tracks of a lane
 WireMargin = 0.45                  # paper mm from a lane's edge to its first track
 WireGap = 0.8                      # paper mm between two runs on one track
+DeckGap = 0.15                     # paper mm of white two parallel wires on adjacent tracks must keep
+DeckDotR = (WirePitch - DeckGap) / 2   # a wire-end dot: two on adjacent tracks keep DeckGap apart
 TurnCost = 25.0                    # paper mm a turn costs when a path is chosen
 DeckPaper = (20.0, 30.0, 228.0, 162.0)   # the plan's paper box: x, y, width, height
 
@@ -1295,7 +1299,7 @@ class DeckWiring:
                 sh.Wire(clean, w["cls"], ' stroke-dasharray="1.1 .8"' if w["dash"] else "")
                 self.Drawn.append((clean, w["cls"], w))
         for (x, y), cls in self.Dots:
-            sh.Dot(x, y, cls, r=0.3)
+            sh.Dot(x, y, cls, r=DeckDotR)
 
 
 # ---- what is on each deck
@@ -1607,9 +1611,33 @@ def UpperWiring(d):
 
 # ---- the page
 
-WireCss = (".ac{stroke-width:.4}.va,.ve{stroke-width:.32}.zp{stroke-width:.34}"
-           ".zs,.pe{stroke-width:.28}.lv{stroke-width:.3}.zl{stroke-width:.24}"
-           ".sg{stroke-width:.17}.sgc{stroke-width:.36}.cb{stroke-width:.75}")
+# Stroke widths of the wire classes on sheets 2A and 2B, paper mm (sheet 1 and the line work of sheets 3 to 5
+# keep the wider ones in Css). Tracks lie WirePitch apart, so two parallel wires keep a white gap of WirePitch
+# less the mean of their widths. A gap under DeckGap, under two dots of a 300 dpi printer, closes up on paper.
+# ac, the widest, is therefore at most WirePitch - DeckGap = 0.35; 0.33 also holds the 0.15 at the 0.48 that
+# two grommet ends can come to. Every class is the width it had on these sheets (ac 0.4, sgc 0.36, zp 0.34,
+# va and ve 0.32, lv 0.3, zs and pe 0.28, zl 0.24, sg 0.17, cb 0.75) times 0.825, so mains, 0 V, 24 V, signals
+# and PE still differ in weight as well as in color. cb is a cable of two or three tracks.
+DeckWire = {"ac": 0.33, "sgc": 0.30, "zp": 0.28, "va": 0.26, "ve": 0.26, "lv": 0.25, "zs": 0.23, "pe": 0.23,
+            "mo": 0.25, "zl": 0.20, "sg": 0.14, "cb": 0.62}
+DeckPeDash = "1.2 .4 .3 .4"        # Css's PE dash (2.4 .7 .5 .7) scaled by 0.23 / 0.45, its gaps kept at 0.4
+# Sheet 2's four SVGs sit inline on one page when the PDF is made, and an inline <style> applies to the whole
+# page, so the last sheet's Css would win over an override of equal specificity. The rules below are scoped
+# to svg.deck, which only 2A and 2B carry, and outrank the plain classes whatever the order.
+DeckCss = ("".join("svg.deck .%s{stroke-width:%s}" % (c, Fmt(w)) for c, w in DeckWire.items())
+           + "svg.deck .pe{stroke-dasharray:%s}" % DeckPeDash)
+
+
+def DeckWidthCheck():
+    """Raise unless two single tracks, and a two-track cable beside a single track, keep DeckGap apart."""
+    for a, wa in DeckWire.items():
+        for b, wb in DeckWire.items():
+            if "cb" not in (a, b) and WirePitch - (wa + wb) / 2 < DeckGap - 1e-9:
+                raise ValueError("wire classes %s and %s on adjacent tracks keep %.3f mm, under %.2f"
+                                 % (a, b, WirePitch - (wa + wb) / 2, DeckGap))
+        if a != "cb" and 1.5 * WirePitch - (DeckWire["cb"] + wa) / 2 < DeckGap - 1e-9:
+            raise ValueError("a cable beside a %s wire keeps %.3f mm, under %.2f"
+                             % (a, 1.5 * WirePitch - (DeckWire["cb"] + wa) / 2, DeckGap))
 
 
 def DeckFrame(d):
@@ -1724,7 +1752,7 @@ def WireLegend(sh, x, y, w):
     sh.Add('<rect x="%s" y="%s" width="5" height="1.8" rx=".9" fill="none" stroke="%s" stroke-width=".35"/>'
            % (Fmt(x), Fmt(cy - 1.4), TolOrange))
     sh.Text(x + 6.0, cy, "cable slot (dashed: overhead)", size=1.3)
-    sh.Dot(x + col + 2.5, cy - 0.45, "zp", r=0.3)
+    sh.Dot(x + col + 2.5, cy - 0.45, "zp", r=DeckDotR)
     sh.Text(x + col + 6.0, cy, "wire ends in a slot", size=1.3)
     cy += 2.3
     sh.FillRect(x, cy - 1.0, 5.0, 0.9, "#000")
@@ -1755,11 +1783,13 @@ def DeckSheet(deck):
     """Sheet 2A or 2B. Routes the deck, widens every lane its wires overflow, and routes again until
     every wire has a track inside its lane."""
     bands = {}
+    DeckWidthCheck()
     for _ in range(12):
         bx = [(lo, hi, k) for ax, lo, hi, k in bands.values() if ax == "x"]
         by = [(lo, hi, k) for ax, lo, hi, k in bands.values() if ax == "y"]
         sh = Sheet("RMR control panel wiring, %s deck" % deck)
-        sh.CssExtra = WireCss
+        sh.CssExtra = DeckCss
+        sh.SvgClass = "deck"
         d = DeckWiring(sh, deck, DeckMap(bx, by))
         DeckFrame(d)
         (LowerWiring if deck == "lower" else UpperWiring)(d)
