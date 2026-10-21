@@ -1683,6 +1683,8 @@ function setConnected(state) {
   seqSetHomed(false, state ? 'new connection — homing state unknown' : 'disconnected');
   // Nothing outstanding on the old connection is answered on this one (#48). A disconnect also fails a running sequence (#182); a connect faults nothing.
   wsOwnPending = []; okLedgerLost(state ? 'new connection' : 'disconnected', true, state ? null : 'disconnected during the run: ' + SEQ_RELAYS_UNKNOWN);
+  // A connect brings the auto-report poll back while the Auto box is still ticked: a disconnect cleared it, or a run it failed left it off (#188). Not mid-run, whose end restores it, and never on top of a running one.
+  if (state && !autoReportInterval && !seqRunning && !progRunning && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   document.getElementById('connLabel').textContent = state ? 'Connected' : 'Disconnected';
   document.getElementById('connLabel').className = 'conn-label' + (state ? ' connected' : '');
@@ -2640,7 +2642,8 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
   seqApplyHomeLock();   // re-lock the gated blocks' buttons if the machine is not homed
-  if (seqAutoReportWasOn && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
+  // The poll the run paused comes back only while connected, and never on top of one already running (#188); setConnected(true) restores it after a reconnect.
+  if (seqAutoReportWasOn && isConnected && !autoReportInterval && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
   if (statusHtml) seqSetStatus(statusHtml);
 }
 function seqStop() {
