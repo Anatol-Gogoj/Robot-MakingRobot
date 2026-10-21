@@ -3,7 +3,7 @@
 Sheet 1: wiring schematic (every circuit on one page).
 Sheets 2A and 2B: the same circuits on the lower and upper decks of the box, every part where sheet 3
 puts it and every wire routed through the ducts and channels from terminal to terminal. Sheet 2C: what
-each name means, and the terminal plan read from the same wire lists.
+each name means, and the terminal plan read from the same wire lists. Sheet 2D: the operator panel.
 Sheet 3: packing study, two decks in a 2020 frame.
 Sheet 4: the frame and its two deck plates; the plates, and the side and top panels on their nest
 sheets, are also written as DXF for laser cutting.
@@ -2106,8 +2106,8 @@ def BuildNomenclature():
         x0 = cols[Cursor.col]
         for j, (dx, lines) in enumerate(wrapped):
             for i, s2 in enumerate(lines):
-                sh.Text(x0 + dx, Cursor.y + i * lead, s2, size=size, weight="bold" if (j == 0 and bold0) else "normal",
-                        fill=fill)
+                TextFill(sh, x0 + dx, Cursor.y + i * lead, s2, size, fill or "#000",
+                         weight="bold" if (j == 0 and bold0) else "normal")
         Cursor.y += k * lead
 
     for title, rows in NameParts:
@@ -2163,10 +2163,184 @@ def BuildNomenclature():
         Row([(0.0, name, 18.0), (19.0, what, 65.0)])
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: names and terminals",
-        "Sheet 2C (2A, 2B: the decks). Legal 14 x 8.5 in, landscape, 100 %.",
+        "Sheet 2C (2A, 2B: the decks; 2D: the panel). Legal 14 x 8.5 in, 100 %.",
         "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Wiring: sheets 2A, 2B.",
+    ])
+    return sh
+
+
+# ---- sheet 2D: the operator panel
+
+# A render of the operator panel as it might look, seen from the front: the 10 in touch screen with the
+# Pi behind it, S1 (the power knob, its H1 lamp inside), S2 (the E-stop) and S3 (Reset), as ordered on
+# 2026-09-14: a 22 mm latching rotary selector with a green 110 V lamp, a 2NC red mushroom, and a blue
+# momentary button. The screen shows the Touch UI's Jog tab. Sizes are assumed (OpPanel): the screen is
+# a generic 10.1 in HDMI module and the housing is not designed yet. Beside it, dashed and faint, a
+# future button bank: rmr_bridge.py already maps physical buttons to G-code (pi-panel/rmr_io.example.json),
+# but none is wired or bought.
+OpScale = 1.5                                      # real mm per paper mm
+OpPanel = (360.0, 220.0)                           # housing front, assumed
+OpScreen = (15.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
+OpActive = (17.5, 15.0, 222.0, 125.0)              # active area inside the module: dx, dy, width, height
+OpFuture = [("HOME ALL", "22", "G28, then M118 RMR:HOMED_ALL", "#228833"),
+            ("UV OFF", "23", "M42 P4 S0", "#555555"),
+            ("VALVE SHUT", "24", "M42 P42 S0", "#555555")]
+OpWiring = [
+    ("S1 power knob", "NO, 110 V", "X1 1 in, X1 2 out", "110 V door cable (M20 gland)"),
+    ("H1 lamp, in S1", "110 V", "X1 2 and X1 3 (N)", "110 V door cable"),
+    ("panel PE", "", "PE 3", "110 V door cable"),
+    ("S2 E-stop", "NC1", "X2 1 (+24 V), X2 2 (node X)", "E-stop loop (LL, slot 3)"),
+    ("S2 E-stop", "NC2", "Pi GPIO 20 and GND, 1 k to 3V3", "at the panel"),
+    ("S3 Reset", "NO", "X2 2 (node X) to X2 3 (node Y)", "E-stop loop (LL, slot 3)"),
+    ("touch screen", "HDMI, USB", "Pi 5", "at the panel"),
+    ("Pi 5", "5 V in", "5 V PSU (F1-2)", "5 V feed (LL)"),
+    ("Pi 5", "USB", "Mega", "USB cable (UF)"),
+    ("Pi 5", "GPIO 5, 6, 13, 26", "tower SSRs (GND to their inputs -)", "tower inputs (UF)"),
+]
+OpDefs = """<defs>
+<linearGradient id="opHousing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4E4E4"/><stop offset="1" stop-color="#B8B8B8"/></linearGradient>
+<linearGradient id="opBezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3A3A"/><stop offset="1" stop-color="#161616"/></linearGradient>
+<radialGradient id="opRed" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#EE7766"/><stop offset=".55" stop-color="#CC3311"/><stop offset="1" stop-color="#7A1E0A"/></radialGradient>
+<radialGradient id="opBlue" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#88BBEE"/><stop offset=".6" stop-color="#4477AA"/><stop offset="1" stop-color="#22446A"/></radialGradient>
+<radialGradient id="opGreen" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#CCEEBB"/><stop offset=".55" stop-color="#228833"/><stop offset="1" stop-color="#11441A"/></radialGradient>
+<radialGradient id="opGrey" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#DDDDDD"/><stop offset=".6" stop-color="#777777"/><stop offset="1" stop-color="#333333"/></radialGradient>
+<radialGradient id="opRing" cx=".5" cy=".5" r=".5"><stop offset=".7" stop-color="#F2F2F2"/><stop offset="1" stop-color="#8C8C8C"/></radialGradient>
+</defs>"""
+
+
+def TextFill(sh, x, y, s, size, fill, anchor="start", weight="normal"):
+    """Text in a colour: an inline style, because the sheet's style sheet (text{fill:#000}) overrides a
+    fill attribute, so Sheet.Text's fill= draws black."""
+    attrs = 'x="%s" y="%s" font-size="%s" style="fill:%s"' % (Fmt(x), Fmt(y), Fmt(size), fill)
+    if anchor != "start":
+        attrs += ' text-anchor="%s"' % anchor
+    if weight != "normal":
+        attrs += ' font-weight="%s"' % weight
+    sh.TextParts.append("<text %s>%s</text>" % (attrs, Esc(s)))
+
+
+def BuildOperatorPanel():
+    """Sheet 2D: the operator panel rendered from the front, its wiring, and the future button bank."""
+    sh = Sheet("RMR operator panel")
+    DrawFrame(sh, "RMR control panel: operator panel",
+              "Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what "
+              "each control wires to. The dashed bank beside it is a future feature.")
+    sh.Add(OpDefs)
+    X0, Y0, S = 14.0, 27.0, OpScale
+
+    def P(x, y):
+        return X0 + x / S, Y0 + y / S
+
+    def Rect(x, y, w, h, fill, stroke="#000", sw=0.3, rx=0.0, extra=""):
+        px, py = P(x, y)
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="%s" stroke="%s" stroke-width="%s"%s/>'
+               % (Fmt(px), Fmt(py), Fmt(w / S), Fmt(h / S), Fmt(rx / S), fill, stroke, Fmt(sw), extra))
+
+    def Disc(x, y, d, fill, stroke="#000", sw=0.25, extra=""):
+        px, py = P(x, y)
+        sh.Add('<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="%s"%s/>'
+               % (Fmt(px), Fmt(py), Fmt(d / 2 / S), fill, stroke, Fmt(sw), extra))
+
+    def Label(x, y, lines, size=1.6, fill="#000", bold0=True):
+        px, py = P(x, y)
+        for i, s2 in enumerate(lines):
+            TextFill(sh, px, py + i * size * 1.25, s2, size if i == 0 else size * 0.85, fill, anchor="middle",
+                     weight="bold" if (i == 0 and bold0) else "normal")
+
+    def Plate(x, y, w, lines):
+        Rect(x - w / 2, y, w, 9.5 + 4.5 * (len(lines) - 1), "#FFFFFF", sw=0.2, rx=1.5)
+        Label(x, y + 6.0, lines, size=1.45)
+
+    W, H = OpPanel
+    # housing, screen module, active area
+    Rect(0, 0, W, H, "url(#opHousing)", sw=0.4, rx=8.0)
+    sx, sy, sw_, sh_ = OpScreen
+    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=4.0)
+    ax, ay, aw, ah = sx + OpActive[0], sy + OpActive[1], OpActive[2], OpActive[3]
+    Rect(ax, ay, aw, ah, "#1E1E24", stroke="#000", sw=0.2)
+    # the Touch UI's Jog tab, roughly as it draws in its tol-dark theme
+    Rect(ax, ay, aw, 13.0, "#2B2B33", stroke="none", sw=0)
+    Label(ax + 22.0, ay + 8.5, ["RMR Touch"], size=1.7, fill="#FFFFFF")
+    Rect(ax + aw - 46.0, ay + 3.0, 42.0, 7.5, "#4477AA", stroke="none", sw=0, rx=2.0)
+    Label(ax + aw - 25.0, ay + 8.2, ["Connected"], size=1.3, fill="#FFFFFF")
+    Label(ax + aw - 92.0, ay + 8.5, ["X 385.00  Y 120.00  Z 10.00"], size=1.2, fill="#BBCCEE", bold0=False)
+    tabs = ["Jog", "Recipe", "Log", "Spin", "Console", "Program", "Advanced"]
+    tw = aw / len(tabs)
+    for i, t in enumerate(tabs):
+        Rect(ax + i * tw + 0.8, ay + 14.5, tw - 1.6, 9.0, "#4477AA" if i == 0 else "#33333C", stroke="none", sw=0, rx=1.5)
+        Label(ax + (i + 0.5) * tw, ay + 20.6, [t], size=1.25, fill="#FFFFFF", bold0=i == 0)
+    cx, cy, b = ax + 62.0, ay + 72.0, 22.0
+    for dx, dy, arrow in ((0, -1, "Y+"), (0, 1, "Y-"), (-1, 0, "X-"), (1, 0, "X+")):
+        Rect(cx + dx * (b + 3.0) - b / 2, cy + dy * (b + 3.0) - b / 2, b, b, "#4477AA", stroke="none", sw=0, rx=3.0)
+        Label(cx + dx * (b + 3.0), cy + dy * (b + 3.0) + 2.5, [arrow], size=1.7, fill="#FFFFFF")
+    Rect(cx - b / 2, cy - b / 2, b, b, "#228833", stroke="none", sw=0, rx=3.0)
+    Label(cx, cy - 0.5, ["HOME", "ALL"], size=1.25, fill="#FFFFFF")
+    zx = ax + 135.0
+    for i, t in enumerate(("Z up", "Z down")):
+        Rect(zx, ay + 38.0 + i * 31.0, 30.0, 26.0, "#4477AA", stroke="none", sw=0, rx=3.0)
+        Label(zx + 15.0, ay + 53.5 + i * 31.0, [t], size=1.4, fill="#FFFFFF")
+    for i, t in enumerate(("Step  1 mm", "Feed  3000 mm/min", "A  B  C axes")):
+        Rect(ax + 172.0, ay + 38.0 + i * 21.0, 44.0, 16.0, "#33333C", stroke="none", sw=0, rx=2.0)
+        Label(ax + 194.0, ay + 48.0 + i * 21.0, [t], size=1.2, fill="#DDDDDD", bold0=False)
+    Label(sx + sw_ / 2, sy + sh_ + 9.0, ["10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)"], size=1.5,
+          bold0=False)
+
+    # the controls column: E-stop on its yellow plate, Reset, the power knob with its lamp
+    kx = 316.0
+    Disc(kx, 52.0, 62.0, "#EEDD88", sw=0.3)
+    Disc(kx, 52.0, 34.0, "url(#opRing)", sw=0.2)
+    Disc(kx, 52.0, 42.0, "url(#opRed)", sw=0.35)
+    Label(kx, 47.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
+    Label(kx, 58.5, ["STOP"], size=1.15, fill="#FFFFFF")
+    Plate(kx, 86.0, 50.0, ["S2  E-STOP", "push to stop, twist to release"])
+    Disc(kx, 124.0, 30.0, "url(#opRing)", sw=0.25)
+    Disc(kx, 124.0, 22.0, "url(#opBlue)", sw=0.3)
+    Plate(kx, 142.0, 50.0, ["S3  RESET", "starts the motors after an E-stop"])
+    Disc(kx, 178.0, 30.0, "url(#opRing)", sw=0.25)
+    Disc(kx, 178.0, 23.0, "url(#opGreen)", sw=0.3)
+    Rect(kx - 3.0, 168.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
+         % tuple(Fmt(v) for v in P(kx, 178.0)))
+    Label(kx - 20.0, 170.0, ["0"], size=1.4)
+    Label(kx + 20.0, 170.0, ["I"], size=1.4)
+    Plate(kx, 195.0, 50.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
+
+    # the future button bank, dashed and faint, off to the right of the panel
+    fx, fy, fw, fh = W + 30.0, 20.0, 82.0, 150.0
+    Rect(fx, fy, fw, fh, "url(#opHousing)", stroke="#000", sw=0.35, rx=6.0,
+         extra=' fill-opacity=".35" stroke-dasharray="1.6 1"')
+    for i, (name, pin, cmd, color) in enumerate(OpFuture):
+        y = fy + 28.0 + i * 44.0
+        Disc(fx + fw / 2, y, 30.0, "url(#opRing)", sw=0.25, extra=' fill-opacity=".45" stroke-dasharray="1 .7"')
+        Disc(fx + fw / 2, y, 22.0, color, sw=0.25, extra=' fill-opacity=".4" stroke-dasharray="1 .7"')
+        Label(fx + fw / 2, y + 19.0, [name, "GPIO %s: %s" % (pin, cmd)], size=1.3, fill="#555555")
+    Label(fx + fw / 2, fy - 4.0, ["FUTURE"], size=1.8, fill="#555555")
+    lx, ly = P(W, H / 2)
+    rx_, _ = P(fx, 0)
+    sh.Wire([(lx + 0.6, ly), (rx_ - 0.6, ly)], "mech")
+    px, py = P(fx, fy + fh + 8.0)
+    for i, s2 in enumerate(["A physical alternative to the touch screen, for gloved or",
+                            "dirty hands. rmr_bridge.py already maps buttons to G-code",
+                            "(pi-panel/rmr_io.example.json); none is wired or bought.",
+                            "The red and green 22 mm buttons on hand could serve."]):
+        TextFill(sh, px, py + i * 2.0, s2, 1.35, "#555555")
+
+    # what each control wires to
+    tx, ty = 14.0, 182.0
+    sh.Text(tx, ty, "Behind the panel", size=2.1, weight="bold")
+    cols = (0.0, 30.0, 58.0, 118.0)
+    for j, h in enumerate(("control", "contact", "lands on", "cable (by)")):
+        TextFill(sh, tx + cols[j], ty + 3.4, h, 1.3, "#555555")
+    for i, row in enumerate(OpWiring):
+        for j, s2 in enumerate(row):
+            sh.Text(tx + cols[j], ty + 6.2 + i * 2.15, s2, size=1.3, weight="bold" if j == 0 else "normal")
+    TitleBlock(sh, 256, 186, 92, 21.5, [
+        "RMR control panel: operator panel",
+        "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
+        "Status: concept; housing and sizes not designed yet.",
+        "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
     return sh
 
@@ -5278,6 +5452,7 @@ def Main():
               ("wiring_din_rails_lower_legal.svg", BuildDeckWiring("lower")),
               ("wiring_din_rails_upper_legal.svg", BuildDeckWiring("upper")),
               ("wiring_din_rails_names_legal.svg", BuildNomenclature()),
+              ("wiring_din_rails_panel_legal.svg", BuildOperatorPanel()),
               ("packing_study_legal.svg", BuildPacking()),
               ("frame_plates_legal.svg", BuildFrame()),
               ("gantry_mount_legal.svg", BuildGantry())]
