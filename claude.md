@@ -769,11 +769,13 @@ Every line the Marlin spincoater layer emits is wrapped as `echo:SPIN <PREFIX>`.
 | `ERR: Fallback home failed — manual intervention required` | `M750.cpp:401` |
 | `ERR: fault @ <context>` | `spincoater.cpp:440-441` |
 
-**`WARN:` lines — 12 in total, all new in this stack, none handled by either UI**
+**`WARN:` lines: 14 in total, all new in this stack; both UIs show them in the spincoater panel's warning row (gotcha #17)**
 
 | Line | Emitted by | Meaning |
 |---|---|---|
+| `WARN: procedure_result unreadable -- boot index search UNVERIFIED` | `spincoater.cpp:223` | Boot index search returned to IDLE but `getProcedureResult()` returned -1: unverified, **not** failed, so boot carries on as if it completed (`docs/adr/0003`) |
 | `WARN: datum established at the index mark on boot -- re-run M751 if layer registration matters` | `spincoater.cpp:262` | Boot search completed; datum is valid but is not the operator's zero |
+| `WARN: boot settle did not reach the index mark -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:333` | Boot search completed, but the boot settle was refused an arm or did not converge in 8 s; `_datumSet` is false |
 | `WARN: boot index search did not complete -- no valid datum, run M751 before relying on angles` | `spincoater.cpp:264` | `_datumSet` is false |
 | `WARN: could not read a consistent initial position -- no datum, run M751 before relying on angles` | `spincoater.cpp:270` | Stable read failed; `_homePos` retains a stale value behind an invalid flag |
 | `WARN: Could not read axis0.procedure_result -- index result unverified` | `spincoater.cpp:645` | `getProcedureResult()` returned -1 → unverified, **not** failed |
@@ -883,9 +885,9 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | G | `WARN:` is entirely unhandled | **Fixed** 2026-10-20: each `WARN:` goes to a warning row under the phase bar and never to the phase; the Touch UI also toasts it. The row holds the WARNs of the command whose verdict is on screen: a terminal marker closes the command and the next command's first line clears the row, so the boot WARNs stay up through the M75x that booted. The console line is still plain RX text, and the Run Log journals it while logging is on |
 | H | `ERR:` lines route to `logRx()`, not `logErr()` | **Fixed** 2026-10-20: a spincoater `ERR:` line goes through `logErr()`; `STATE:`, `OK:` and `WARN:` lines stay on `logRx()` |
 | I | Stat cards go stale rather than clearing on an aborted measure | **Fixed** 2026-10-20: `STATE:CONNECTING`, which M750 emits once per cycle after the returns that run no cycle and before the measure, blanks the six RPM cards. Vbus and the Home card are left alone |
-| J | `procedure_result`, `active_errors`, `disarm_reason`, `HomeSettleErr`, `BootSettleErr`, `InitialPos`, `accel` parse but hit no branch | **Open** — console log only; `CFG:` (M754) likewise |
+| J | `procedure_result`, `active_errors`, `disarm_reason`, `HomeSettleErr`, `BootSettleErr`, `accel` parse but hit no branch | **Open** — console log only; `CFG:` (M754) likewise |
 | K | Both Program Runners advance on any bare `ok` | **Fixed 2026-10-20 (#48)**: an `ok` ledger in both pages gives each `ok` to the command that earned it, from any source including other bridge clients and buttons, and the runner advances only on its own line's (see the Program Runner bullet). It is no success check: gotcha #25 still applies. The Process Sequencer still takes the next `ok` of any kind; it keeps one command in flight and pauses auto-report |
-| L | After M112 the firmware never sends another `ok` | **Open** — the Process Sequencer now faults itself on E-STOP (`seqFault`), the Program Runner still stalls silently |
+| L | After M112 the firmware never sends another `ok` | **Fixed** 2026-10-20 (#48, PR #179): the firmware itself still never answers again after `M112`, but neither UI waits for it. The E-STOP button faults a running Process Sequencer (`seqFault`) and halts a running program with "Program halted: emergency stop (M112)" (`okLedgerLost`); an `M112` sent any other way halts it as "Program halted: M112 sent" |
 | M | `STATE:STOPPED` / `OK: ABORTED` (the M410 cooperative abort, new 2026-09-14) are unmapped | **Fixed** 2026-10-20: `OK: ABORTED` has its own warn phase, "Aborted by operator" (the Touch UI also toasts it). It arrives after `STATE:STOPPED`, so it replaces the "Motor stopped" label. The Run Log still uses it to close its spin window |
 
 ## File Inventory
@@ -1003,8 +1005,8 @@ The stack (#38 → #58), #70 and #76 are in `main`. The August bench sessions ve
 - [ ] T5 / run-sheet Task 7.4–7.7 — **held by the owner**, deliberately
 - [x] **#46 answered and closed (2026-10-11).** The 2026-08-13 bench session showed the encoder is index-referenced modulo one turn (**Bench findings**), and PR #71's whole-turn normalization is built on that. `M754` dumps the encoder configuration over Serial2 if it ever needs re-checking
 - [ ] #45 boot performs a second index search and overwrites the datum — unstarted
-- [ ] #47 UI serial contract — **half done**: `ERR:`/`OK:` by message class is merged (from #84). The `STATE:` keys for `HOME_SETTLE` / `MEASURE_LINK_LOST` / `DECEL_LINK_LOST` / `DECEL_STALL` are done too. Still open in both UIs: `WARN:` handling, an `OK: ABORTED` branch (`STATE:STOPPED` reads as a normal stop), and the dead `INDEX_SETTLE` / `INDEX_FOUND_INSTANT` keys
-- [ ] #48 Program Runner wait-for-ok is defeated by auto-report `M114` `ok`s — **open**. PR #83 (the `ok` ledger) was excluded from the consolidation because it rebuilds the connection layer September rebuilt differently; redo on the current files, then #78's M115 identity check, then decide whether #73's reconnect logic adds anything to the September device-lost handling
+- [x] ~~#47 UI serial contract~~: fixed 2026-10-20, PR #178. `ERR:`/`OK:` by message class (from #84), the `STATE:` keys for `HOME_SETTLE` / `MEASURE_LINK_LOST` / `DECEL_LINK_LOST` / `DECEL_STALL`, `WARN:` lines in a warning row, an `OK: ABORTED` phase, stat cards blanked per cycle, the Home card driven by `HomePos`, and the dead `INDEX_SETTLE` / `INDEX_FOUND_INSTANT` keys removed, in both UIs. Still open: DISAGREE row J (the diagnostic `DATA:` keys reach only the console), which no issue tracks now that #47 is closed
+- [x] ~~#48 Program Runner wait-for-ok is defeated by auto-report `M114` `ok`s~~: fixed 2026-10-20 (PR #179): an ok ledger gives each ok to the command that earned it. It was redone on the current files, since PR #83's ledger had been excluded from the consolidation for rebuilding the connection layer September rebuilt differently. Still open: #78's M115 identity check, then a decision on whether #73's reconnect logic adds anything to the September device-lost handling
 - [x] **Reset (M999)** button in both UIs: the owner decided on 2026-10-11 to remove it, since it cannot recover from M112 (gotcha #6). The removal is #133
 - [x] `DispenseCureDemo1.gcode` stays deleted (owner decision 2026-10-11). It went in #106 because of its stale active-LOW UV polarity; `4ef31d7` has the last copy
 - [ ] #54 datum is RAM-only, lost on every reset — no EEPROM persistence (gotcha #19)
