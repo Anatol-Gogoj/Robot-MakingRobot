@@ -34,6 +34,13 @@ TolRed = "#CC3311"
 TolMagenta = "#EE3377"
 TolGrey = "#BBBBBB"
 
+# Text in the family of a vibrant line whose own color is too light to read on white (WCAG 2.1 contrast on
+# #fff: TolTeal 3.55, TolMagenta 3.91, TolCyan 2.21). Each is the nearest Tol color from the bright or
+# muted scheme that reaches 4.5:1.
+TolMutedGreen = "#117733"    # 5.66:1, the label of the PE line (TolTeal)
+TolBrightPurple = "#AA3377"  # 6.09:1, the label of the FB2 line (TolMagenta)
+TolBrightBlue = "#4477AA"    # 4.70:1, the label of the 0V-S bus (TolCyan)
+
 Css = """
 text{font-family:Arial,Helvetica,sans-serif;fill:#000}
 path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
@@ -118,6 +125,9 @@ class Sheet:
     def Text(self, x, y, s, size=2.0, anchor="start", weight="normal", rot=0, fill=None,
              italic=False, mono=False, halo=False):
         attrs = 'x="%s" y="%s" font-size="%s"' % (Fmt(x), Fmt(y), Fmt(size))
+        if fill:
+            # an inline style: the sheet's text{fill:#000} outranks a fill attribute
+            attrs += ' style="fill:%s"' % fill
         if halo:
             attrs += ' stroke="#fff" stroke-width="%s" paint-order="stroke"' % Fmt(size * 0.45)
         if anchor != "start":
@@ -128,8 +138,6 @@ class Sheet:
             attrs += ' font-style="italic"'
         if mono:
             attrs += ' font-family="Consolas,\'Courier New\',monospace"'
-        if fill:
-            attrs += ' fill="%s"' % fill
         if rot:
             attrs += ' transform="rotate(%s %s %s)"' % (Fmt(rot), Fmt(x), Fmt(y))
         self.TextParts.append("<text %s>%s</text>" % (attrs, Esc(s)))
@@ -467,7 +475,7 @@ def BuildSchematic():
     sh.Text(210, peY + 6.6, "(driver end)", size=1.6, anchor="middle")
     sh.Text(229, peY + 4.5, "operator", size=1.6, anchor="middle")
     sh.Text(229, peY + 6.6, "plate", size=1.6, anchor="middle")
-    sh.Text(122, peY - 1.0, "PE bar", size=1.8, weight="bold", fill=TolTeal)
+    sh.Text(122, peY - 1.0, "PE bar", size=1.8, weight="bold", fill=TolMutedGreen)
 
     # ------------------------------------------------ rungs A and B
     sh.Text(8, 50.2, "Control rungs", size=2.4, weight="bold")
@@ -537,13 +545,13 @@ def BuildSchematic():
     sh.Wire([(10, fb2Y), (346, fb2Y)], "ve")
     sh.Dot(vpx, fb2Y, "ve")
     sh.Text(114, fb2Y - 1.2, "FB2  12-way  +24 V cut by the E-stop (K2)", size=2.0, weight="bold",
-            fill=TolMagenta, halo=True)
+            fill=TolBrightPurple, halo=True)
     sh.Wire([(10, zpY), (246, zpY)], "zp")
     sh.Dot(110.5, zpY)
     sh.Text(246.5, zpY + 0.6, "0V-P", size=1.7, weight="bold")
     zsY = 140.0
     sh.Wire([(8, zsY), (346, zsY)], "zs")
-    sh.Text(281, zsY - 1.0, "0V-S signal bus", size=1.8, fill="#1a6f8f", weight="bold", halo=True,
+    sh.Text(281, zsY - 1.0, "0V-S signal bus", size=1.8, fill=TolBrightBlue, weight="bold", halo=True,
             anchor="end")
 
     drivers = [(12, "X", "F2-1", "Gantry X"), (40, "Y1", "F2-2", "Gantry Y"),
@@ -724,7 +732,7 @@ def BuildSchematic():
     # ------------------------------------------------ band 3: Mega bottom edge
     zs2 = 198.0
     sh.Wire([(8, zsY), (8, zs2), (128, zs2)], "zs")
-    sh.Text(10, zs2 + 2.6, "0V-S (same bus as above, joined at the left)", size=1.5, fill="#1a6f8f")
+    sh.Text(10, zs2 + 2.6, "0V-S (same bus as above, joined at the left)", size=1.5, fill=TolBrightBlue)
     where = {"X": "min", "Y": "min", "Z": "min", "A": "MAX end", "B": "min", "C": "open end"}
     ends = [(16 + 12 * i, pn, ax, where[ax]) for i, (ax, pn) in enumerate(EndstopPins)]
     sh.Text(10, 165.2, "Endstops: NO, COM to 0V-S", size=1.6, weight="bold", halo=True)
@@ -1641,7 +1649,7 @@ def DeckFrame(d):
                % (Fmt(x0), Fmt(y0), Fmt(x1 - x0), Fmt(y1 - y0), Fmt(r), TolOrange,
                   ' stroke-dasharray="1 .6"' if d.Deck == "lower" else ""))
         lx, ly = (x1 + 0.8, y0 + 1.6) if i != 2 else (x0 + 0.4, y1 + 1.8)
-        sh.Text(lx, ly, "slot %d" % (i + 1), size=1.2, weight="bold", fill="#a0450f", halo=True)
+        sh.Text(lx, ly, "slot %d" % (i + 1), size=1.2, weight="bold", fill=TolRed, halo=True)
     px, py = PeStud["base" if d.Deck == "lower" else "upper"]
     sh.Circle(M.X(px), M.Y(py), 0.9, "symf")
     sh.Text(M.X(px) + 1.2, M.Y(py) - 0.9, "PE stud", size=1.0, halo=True)
@@ -2106,8 +2114,8 @@ def BuildNomenclature():
         x0 = cols[Cursor.col]
         for j, (dx, lines) in enumerate(wrapped):
             for i, s2 in enumerate(lines):
-                TextFill(sh, x0 + dx, Cursor.y + i * lead, s2, size, fill or "#000",
-                         weight="bold" if (j == 0 and bold0) else "normal")
+                sh.Text(x0 + dx, Cursor.y + i * lead, s2, size=size, fill=fill or "#000",
+                        weight="bold" if (j == 0 and bold0) else "normal")
         Cursor.y += k * lead
 
     for title, rows in NameParts:
@@ -2208,17 +2216,6 @@ OpDefs = """<defs>
 </defs>"""
 
 
-def TextFill(sh, x, y, s, size, fill, anchor="start", weight="normal"):
-    """Text in a colour: an inline style, because the sheet's style sheet (text{fill:#000}) overrides a
-    fill attribute, so Sheet.Text's fill= draws black."""
-    attrs = 'x="%s" y="%s" font-size="%s" style="fill:%s"' % (Fmt(x), Fmt(y), Fmt(size), fill)
-    if anchor != "start":
-        attrs += ' text-anchor="%s"' % anchor
-    if weight != "normal":
-        attrs += ' font-weight="%s"' % weight
-    sh.TextParts.append("<text %s>%s</text>" % (attrs, Esc(s)))
-
-
 def BuildOperatorPanel():
     """Sheet 2D: the operator panel rendered from the front, its wiring, and the future arrow pad."""
     sh = Sheet("RMR operator panel")
@@ -2244,8 +2241,8 @@ def BuildOperatorPanel():
     def Label(x, y, lines, size=1.6, fill="#000", bold0=True):
         px, py = P(x, y)
         for i, s2 in enumerate(lines):
-            TextFill(sh, px, py + i * size * 1.25, s2, size if i == 0 else size * 0.85, fill, anchor="middle",
-                     weight="bold" if (i == 0 and bold0) else "normal")
+            sh.Text(px, py + i * size * 1.25, s2, size=size if i == 0 else size * 0.85, fill=fill, anchor="middle",
+                    weight="bold" if (i == 0 and bold0) else "normal")
 
     def Plate(x, y, w, lines):
         Rect(x - w / 2, y, w, 9.5 + 4.5 * (len(lines) - 1), "#FFFFFF", sw=0.2, rx=1.5)
@@ -2334,14 +2331,14 @@ def BuildOperatorPanel():
                             "no new wiring; GPIO keys need new code, since",
                             "rmr_bridge.py's buttons only send G-code), and",
                             "how the Touch UI moves between its controls."]):
-        TextFill(sh, px, py + i * 2.0, s2, 1.35, "#555555")
+        sh.Text(px, py + i * 2.0, s2, size=1.35, fill="#555555")
 
     # what each control wires to
     tx, ty = 14.0, 182.0
     sh.Text(tx, ty, "Behind the panel", size=2.1, weight="bold")
     cols = (0.0, 30.0, 58.0, 118.0)
     for j, h in enumerate(("control", "contact", "lands on", "cable (by)")):
-        TextFill(sh, tx + cols[j], ty + 3.4, h, 1.3, "#555555")
+        sh.Text(tx + cols[j], ty + 3.4, h, size=1.3, fill="#555555")
     for i, row in enumerate(OpWiring):
         for j, s2 in enumerate(row):
             sh.Text(tx + cols[j], ty + 6.2 + i * 2.15, s2, size=1.3, weight="bold" if j == 0 else "normal")
@@ -4625,7 +4622,9 @@ def BuildFrame():
     de.DimV(20, top, 26, Mm(UpPlateT), off=2.0)
     sh.Text(de.X(22), de.Y(20 + UpPlateT / 2) + 0.42, "plate", size=1.1, anchor="middle")
     sh.Text(de.X(14.6), de.Y(top + 1.1) + 0.45, "%s socket head" % scr, size=1.2)
-    sh.Text(de.X(10), de.Y(20 - SlotLip - 1.75) + 0.4, "T-nut", size=1.0, anchor="middle", fill="#fff")
+    # the screw (#BBBBBB) is drawn over the middle of the nut, so this label sits on the screw: black
+    # (10.9:1), where white would be 1.9:1
+    sh.Text(de.X(10), de.Y(20 - SlotLip - 1.75) + 0.4, "T-nut", size=1.0, anchor="middle")
     sh.Text(de.X(13), de.Y(3.6), "2020, simplified", size=1.1, anchor="middle", halo=True)
     sh.Lines(de.X(0), de.Y(-1) + 5.6, [
         "Euro 2020, 6 mm slot. Depth %s, lip %s, bore %s:" % (Mm(SlotDepth), Mm(SlotLip), Mm(BoreD)),

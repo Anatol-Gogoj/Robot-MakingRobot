@@ -1521,7 +1521,6 @@ let stepSize = 10, readBuffer = '';
 let autoReportInterval = null, cmdHistory = [], historyIdx = -1;
 let currentTabIndex = 0;
 const tabNames = ['jog','recipe','log','spin','console','prog','config'];   // same order as the .tab-btn buttons (switchTab matches by index)
-let lastG28Pending = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT = 3;
 
@@ -1646,11 +1645,15 @@ function handleWSMessage(data) {
   if (s.length && s[0] === '{') {
     let m = null; try { m = JSON.parse(s); } catch (e) { m = null; }
     if (m && m._rmr) {
-      if (m._rmr === 'tx') { logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : '')); homedTrackTx(m.cmd); }
-      else if (m._rmr === 'status') { logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : '')); }
+      if (m._rmr === 'tx') { okLedgerEcho(m.cmd, m.source); logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : '')); homedTrackTx(m.cmd); }   // the write reached the port: it is owed an 'ok' (#48)
+      else if (m._rmr === 'status') { logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : '')); okLedgerLost('bridge: serial ' + m.serial, m.serial !== 'open'); }   // the Mega resets on open: nothing outstanding is answered
       else if (m._rmr === 'button') { logInfo('Physical button: ' + m.name + ' → ' + m.cmd); }
       else if (m._rmr === 'estop') { if (m.pressed) { logErr('*** PHYSICAL E-STOP PRESSED ***'); showToast('PHYSICAL E-STOP', 'error'); seqSetHomed(false, 'physical E-stop'); seqFault('physical E-stop pressed'); } else logInfo('Physical E-stop released'); }
-      else if (m._rmr === 'error') { logErr('Bridge: ' + m.msg); }
+      else if (m._rmr === 'error') {
+        logErr('Bridge: ' + m.msg);
+        // The bridge echoes a write even when it failed, then says so here: that command is never answered, and with the port down nothing else outstanding is either.
+        if (/^serial (write failed|not open)/.test(String(m.msg))) okLedgerLost('bridge: ' + m.msg, true);
+      }
       return;
     }
   }
@@ -1675,6 +1678,7 @@ async function disconnect() {
 function setConnected(state) {
   isConnected = state;
   seqSetHomed(false, state ? 'new connection — homing state unknown' : 'disconnected');
+  wsOwnPending = []; okLedgerLost(state ? 'new connection' : 'disconnected', true);   // nothing outstanding on the old connection is answered on this one (#48)
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   document.getElementById('connLabel').textContent = state ? 'Connected' : 'Disconnected';
   document.getElementById('connLabel').className = 'conn-label' + (state ? ' connected' : '');
@@ -1722,6 +1726,7 @@ function processLine(line) {
   const verbose = document.getElementById('verboseMode').checked;
   homedTrackRx(line);
   rlRx(line);   // Run Log observes every line (spin DATA:/OK:/ERR:, 'start', MOTOR POWER LOST)
+  okLedgerRx(line);
   if (line.startsWith('echo:SPIN ')) {
     const spinMsg = line.substring(10);
     spinWarnTrack(spinMsg);   // WARN: row + toast; never touches the verdict
@@ -1849,9 +1854,8 @@ function processLine(line) {
   if (line.match(/echo:\s*M203/)) parseM503(line, 'M203');
   if (line.match(/echo:\s*M201/)) parseM503(line, 'M201');
   if (line==='ok' || (line.startsWith('ok') && line.length<5)) {
-    progOnOk();
+    okLedgerOk();   // to the command that earned it: a program line's or a G28's own 'ok' only (#48)
     seqOnOk();
-    if (lastG28Pending) { clearHomingState(); lastG28Pending = false; }
     if (!verbose) return;
   }
   if (!verbose) { if (line.match(/^T:\d/) || line.startsWith('echo:busy')) return; }
@@ -1881,27 +1885,105 @@ function parseM503(line, type) {
   }
 }
 
+// == ok attribution (issue #48) ==
+// Marlin answers every command it queues with one 'ok', in the order the commands arrived (gcode.cpp
+// process_parsed_command -> queue.ok_to_send), so the oldest unanswered command owns the next 'ok'.
+// okLedger lists the commands still owed one, oldest first, whoever sent them. Web Serial: this page is
+// the only sender, and sendCmd() adds each command just before its bytes are written. Pi bridge: the
+// bridge echoes every write, for every client and physical button, and queues the echo under its serial
+// lock before the bytes leave (rmr_bridge.py write_serial), so entries are added from that echo, in the
+// order the Mega got the bytes, and this page's own sends are matched to their echoes (wsOwnPending).
+// An entry's onOk runs on that command's own 'ok': the Program Runner advances on it, and a G28 clears the
+// homing indicator on it. The Process Sequencer still takes the next 'ok' of any kind (seqOnOk); it keeps
+// one command in flight and pauses the auto-report poll. An 'ok' with an empty ledger is ignored: a missed
+// advance stalls a program where the operator can see it, a spurious one moves the machine.
+let okLedger = [], wsOwnPending = [];   // wsOwnPending: bridge mode, this page's sends whose echo has not come back yet
+const OK_LEDGER_MAX = 64;   // a desync guard, not a queue depth: Marlin holds BUFSIZE 4 commands plus a 128-byte RX ring (32 of the shortest, a 4-byte G90 line)
+
+// Does this line earn an 'ok'? Marlin answers every line it queues, unknown commands included, and with
+// EMERGENCY_PARSER also M108 and M410: they still reach the queue, and gcode.cpp dispatches them to a bare
+// break. A line that is empty once its ';' comment is stripped is dropped unanswered (queue.cpp
+// get_serial_commands / process_line_done). M112 gets no entry: kill() may run before its queued copy is
+// answered, and an M112 clears the ledger anyway.
+function earnsOk(line) { const s = String(line).replace(/;.*$/, ''); return s.length > 0 && !/^\s*M112\b/i.test(s); }
+// Record the commands one write carries and return their entries. A bridge button may write several lines
+// at once (rmr_bridge.py writes cmd + '\n' as it is): every line that earns an 'ok' gets an entry, and onOk
+// goes on the last one.
+function okLedgerAdd(cmd, onOk) {
+  const lines = String(cmd).split(/[\r\n]/);
+  if (lines.some(l => /^\s*M112\b/i.test(l.replace(/;.*$/, '')))) okLedgerLost('M112 sent', true);
+  const added = lines.filter(earnsOk).map(l => ({ cmd: l.trim(), onOk: null }));
+  if (added.length) added[added.length - 1].onOk = onOk || null;
+  okLedger.push(...added);
+  if (okLedger.length > OK_LEDGER_MAX) {
+    // More unanswered than Marlin can hold: answers went missing (bytes its RX ring dropped during a
+    // blocking command, or a halted board), so no 'ok' can be attributed any more.
+    logErr('ok ledger overflow: ' + okLedger.length + ' commands unanswered, the serial sequence is lost');
+    okLedgerLost('ok ledger overflow');
+  }
+  return added;
+}
+function okLedgerOk() { const e = okLedger.shift(); if (e && e.onOk) e.onOk(); }   // an 'ok' belongs to the oldest unanswered command
+// Bridge mode: the echo of a write the bridge made. A write it could not make is followed by an
+// {_rmr:'error'} message, which clears the ledger (handleWSMessage).
+function okLedgerEcho(cmd, source) {
+  const own = (source === 'ws' && wsOwnPending.length && wsOwnPending[0].cmd === cmd) ? wsOwnPending.shift() : null;
+  okLedgerAdd(cmd, own && own.onOk);
+}
+// Firmware lines after which nothing outstanding will be answered, or the order is lost. 'start': the board
+// rebooted. kill(): it halted and answers nothing again. MOTOR POWER LOST: it cleared its command queue
+// unanswered (motor_power.cpp, queue.clear()). 'Resend:': M999 flushed the RX ring (queue.cpp
+// flush_and_request_resend), losing whatever waited in it.
+function okLedgerRx(line) {
+  if (line === 'start') okLedgerLost('firmware restarted');
+  else if (/^Error:Printer halted\. kill\(\) called!/.test(line)) okLedgerLost('firmware halted (kill)', true);
+  else if (/^echo:MOTOR POWER LOST/.test(line)) okLedgerLost('motor power lost, the firmware cleared its command queue');
+  else if (/^Resend:/.test(line)) okLedgerLost('the firmware flushed its receive buffer (M999)');
+}
+function okLedgerReset(why) {
+  if (okLedger.length && why) logInfo('ok ledger cleared (' + why + '): ' + okLedger.length + ' unanswered');
+  okLedger = [];
+}
+// Clear the ledger and halt a running program, whose line's 'ok' can no longer be told apart.
+// pollOff: the board answers nothing now, so the auto-report poll the run suspended stays off.
+function okLedgerLost(why, pollOff) {
+  okLedgerReset(why);
+  ['jogColXY','jogColZ','jogColAux'].forEach(id => document.getElementById(id).classList.remove('homing'));   // no G28 'ok' is coming to clear the indicator
+  if (!progRunning) return;
+  if (pollOff) progAutoReportWasOn = false;
+  logErr('Program halted: ' + why); progStop();
+}
+
 // ─── Send Commands ───
 // opts.tracked: the caller waits for this command's 'ok' itself (sequencer / program
 // runner), so no extra command may be appended behind it.
+// opts.onOk: run on this command's own 'ok' (okLedger), not on whichever 'ok' comes next.
 async function sendCmd(cmd, opts) {
   if (!isConnected) { logErr('Not connected'); return; }
-  const tracked = !!(opts && opts.tracked);
+  const tracked = !!(opts && opts.tracked), isHome = !!cmd.match(/^G28/i), progOk = (opts && opts.onOk) || null;
+  const onOk = isHome ? () => { clearHomingState(); if (progOk) progOk(); } : progOk;   // the homing indicator clears on this G28's own 'ok'
+  let unsent = null;   // ledger entries whose bytes are not out yet
   try {
     if (useWS) {
       if (!ws || ws.readyState !== WebSocket.OPEN) { logErr('Bridge not connected'); return; }
       ws.send(cmd);   // TX logged via the bridge's echo, so all clients + buttons stay in sync
+      if (String(cmd).trim()) wsOwnPending.push({ cmd: String(cmd).trim(), onOk });   // its ledger entry comes from that echo (okLedgerEcho)
     } else {
       if (!writer) { logErr('Not connected'); return; }
+      unsent = okLedgerAdd(cmd, onOk);   // before the write, so the ledger's order is the order the bytes leave in
       await writer.write(new TextEncoder().encode(cmd + '\n'));
+      unsent = null;
       logTx(cmd);
     }
-    if (cmd.match(/^G28/i)) { setHomingState(cmd); lastG28Pending = true; }
+    if (isHome) setHomingState(cmd);
     homedTrackTx(cmd);
     // A manual full home (bare G28) is followed by a marker that Marlin prints back only
     // AFTER the G28 has finished; that line unlocks the sequencer here and on every client.
     if (!tracked && isFullHomeCmd(cmd)) await sendCmd('M118 ' + HOME_MARKER, { tracked: true });
-  } catch (e) { logErr('Send error: ' + e.message); }
+  } catch (e) {
+    if (unsent) okLedger = okLedger.filter(x => !unsent.includes(x));   // a failed write sent nothing, so no 'ok' is coming for it
+    logErr('Send error: ' + e.message);
+  }
 }
 function sendManual() {
   const input = document.getElementById('cmdInput'), cmd = input.value.trim();
@@ -2042,13 +2124,20 @@ function servoSheetPreset(type) {
 function servoSheetSendOverride() { if (activeServoSheet !== null) { const v = document.getElementById('servoSheetOverride').value; if (v !== '') sendCmd('M280 P' + activeServoSheet + ' S' + v); } }
 
 // ─── Emergency / Reset ───
-function emergencyStop() { rlEvent('estop', {}); seqFault('emergency stop (M112)'); sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 firmware halted: disconnect & reconnect to recover (spincoater auto-disarms on reboot). M999 cannot recover from M112. <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
+function emergencyStop() { rlEvent('estop', {}); seqFault('emergency stop (M112)'); okLedgerLost('emergency stop (M112)', true); sendCmd('M112'); buzz(100); logErr('>>> EMERGENCY STOP \u2014 firmware halted: disconnect & reconnect to recover (spincoater auto-disarms on reboot). M999 cannot recover from M112. <<<'); showToast('EMERGENCY STOP ACTIVATED', 'error'); }
 
 // ─── Auto Report ───
+// The poll sends M114 only while no command is unanswered (okLedger). During a blocking command Marlin
+// reads no serial input (idle() does not), so polls would pile up in its 128-byte RX ring, which drops the
+// overflow silently, and their answers would be stale. A Program Runner run suspends the poll and restores
+// it when the run ends (#48).
 function toggleAutoReport() {
-  if (document.getElementById('autoReport').checked) { autoReportInterval = setInterval(() => sendCmd('M114'), 1000); }
-  else { if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; } }
+  if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  if (!document.getElementById('autoReport').checked) { progAutoReportWasOn = false; return; }
+  if (progRunning) { progAutoReportWasOn = true; return; }   // held until the program ends
+  autoReportInterval = setInterval(autoReportTick, 1000);
 }
+function autoReportTick() { if (!okLedger.length) sendCmd('M114'); }
 
 // ─── Settings Apply ───
 function applySteps() {
@@ -2095,6 +2184,8 @@ document.getElementById('cmdInput').addEventListener('keydown', e => {
 
 // ─── Program Runner ───
 let progLines = [], progIndex = 0, progRunning = false, progPaused = false, progWaitingOk = false, progStartTime = 0;
+let progOkToken = null, progAutoReportWasOn = false;   // the line this run waits on (only its own 'ok' carries it); the poll ran when the run started
+let progNextTimer = null;   // no-wait mode: the pending send of the next line
 function progParseLines() { progLines = document.getElementById('progTextarea').value.split('\n').map(l => l.replace(/;.*$/, '').trim()); document.getElementById('progLineTotal').textContent = progLines.filter(l => l.length > 0).length; }
 function progBuildDisplay() {
   const d = document.getElementById('progDisplay'); d.innerHTML = '';
@@ -2111,45 +2202,65 @@ function progUpdateDisplay() {
   if (done > 0 && progRunning) { const rem = ((Date.now()-progStartTime)/1000/done)*(total-done); document.getElementById('progETA').textContent = 'ETA: ' + Math.floor(rem/60) + 'm ' + Math.floor(rem%60) + 's'; }
 }
 function progRun() {
-  if (progPaused) { progPaused = false; document.getElementById('progPauseBtn').textContent = 'Pause'; document.getElementById('progStatus').textContent = 'Running...'; progSendNext(); return; }
+  if (progPaused) { progResume(); return; }
   progParseLines(); progBuildDisplay(); progIndex = 0; progRunning = true; progPaused = false; progWaitingOk = false; progStartTime = Date.now();
+  progAutoReportWasOn = !!autoReportInterval; if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }   // poll suspended for the run (#48), restored at its end
   document.getElementById('progRunBtn').disabled = true; document.getElementById('progPauseBtn').disabled = false; document.getElementById('progStopBtn').disabled = false;
   document.getElementById('progTextarea').style.display = 'none'; document.getElementById('progDisplay').style.display = 'block';
   document.getElementById('progStatus').textContent = 'Running...'; document.getElementById('progProgressBar').style.width = '0%'; document.getElementById('progETA').textContent = '';
-  logInfo('Program started (' + progLines.filter(l=>l.length>0).length + ' cmds)'); progSendNext();
+  logInfo('Program started (' + progLines.filter(l=>l.length>0).length + ' cmds)');
+  if (okLedger.length) logInfo('Program: ' + okLedger.length + ' earlier command(s) still unanswered; line 1 runs after them');
+  progSendNext();
 }
-function progPause() { if (!progRunning) return; progPaused = !progPaused; document.getElementById('progPauseBtn').textContent = progPaused ? 'Resume' : 'Pause'; document.getElementById('progStatus').textContent = progPaused ? 'Paused L' + progIndex : 'Running...'; }
+function progPause() { if (!progRunning) return; if (progPaused) { progResume(); return; } progPaused = true; document.getElementById('progPauseBtn').textContent = 'Resume'; document.getElementById('progStatus').textContent = 'Paused L' + progIndex; }
+// The paused line may still be running: then its own 'ok' sends the next line (progOnOk), and sending here
+// would put a second line in flight. Otherwise it finished during the pause.
+function progResume() { progPaused = false; document.getElementById('progPauseBtn').textContent = 'Pause'; document.getElementById('progStatus').textContent = 'Running...'; if (!progWaitingOk && !progNextTimer) progSendNext(); }   // a pending no-wait send carries on by itself
+function progAutoReportRestore() {
+  if (progAutoReportWasOn && isConnected && !autoReportInterval && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
+  progAutoReportWasOn = false;
+}
 function progStop() {
-  progRunning = false; progPaused = false; progWaitingOk = false;
+  progRunning = false; progPaused = false; progWaitingOk = false; progOkToken = null; progAutoReportRestore();
+  if (progNextTimer) { clearTimeout(progNextTimer); progNextTimer = null; }
   document.getElementById('progRunBtn').disabled = false; document.getElementById('progPauseBtn').disabled = true; document.getElementById('progPauseBtn').textContent = 'Pause'; document.getElementById('progStopBtn').disabled = true;
   document.getElementById('progTextarea').style.display = ''; document.getElementById('progDisplay').style.display = 'none';
   document.getElementById('progStatus').textContent = 'Stopped'; document.getElementById('progETA').textContent = '';
   logInfo('Program stopped at line ' + progIndex);
 }
 function progComplete() {
-  progRunning = false; progPaused = false; progWaitingOk = false;
+  progRunning = false; progPaused = false; progWaitingOk = false; progOkToken = null; progAutoReportRestore();
   document.getElementById('progRunBtn').disabled = false; document.getElementById('progPauseBtn').disabled = true; document.getElementById('progStopBtn').disabled = true;
   document.getElementById('progTextarea').style.display = ''; document.getElementById('progDisplay').style.display = 'none';
   document.getElementById('progStatus').textContent = 'Complete'; document.getElementById('progProgressBar').style.width = '100%'; document.getElementById('progETA').textContent = '';
   logInfo('Program complete'); showToast('Program complete', 'success');
 }
 function progSendNext() {
+  progNextTimer = null;
   if (!progRunning || progPaused) return;
   while (progIndex < progLines.length && progLines[progIndex].length === 0) progIndex++;
   if (progIndex >= progLines.length) { progComplete(); return; }
   const cmd = progLines[progIndex], cmdCount = progLines.slice(0, progIndex+1).filter(l=>l.length>0).length;
   document.getElementById('progLineNum').textContent = cmdCount;
   document.getElementById('progCurrentCmd').textContent = cmd;
-  sendCmd(cmd, { tracked: true }); progIndex++; progUpdateDisplay();
-  if (document.getElementById('progWaitOk').checked) { progWaitingOk = true; progHomePending = isFullHomeCmd(cmd); } else { setTimeout(progSendNext, 50); }
+  const waitOk = document.getElementById('progWaitOk').checked;
+  if (waitOk) {
+    // progOnOk runs on this line's own 'ok'. The token ties that 'ok' to this line of this run, so a
+    // stopped run's late 'ok' cannot advance the next run.
+    const token = {}; progOkToken = token; progWaitingOk = true; progHomePending = isFullHomeCmd(cmd);
+    sendCmd(cmd, { tracked: true, onOk: () => progOnOk(token) });
+  } else sendCmd(cmd, { tracked: true });
+  progIndex++; progUpdateDisplay();
+  if (!waitOk) progNextTimer = setTimeout(progSendNext, 50);
 }
+// A program line's own 'ok' (okLedger gives it to no one else). While paused the line still finishes: it is
+// noted here, and Resume sends the next one.
 let progHomePending = false;
-function progOnOk() {
-  if (progWaitingOk && progRunning && !progPaused) {
-    progWaitingOk = false;
-    if (progHomePending) { progHomePending = false; seqSetHomed(true, 'program G28 complete'); }
-    progSendNext();
-  }
+function progOnOk(token) {
+  if (!progRunning || !progWaitingOk || token !== progOkToken) return;
+  progWaitingOk = false;
+  if (progHomePending) { progHomePending = false; seqSetHomed(true, 'program G28 complete'); }
+  if (!progPaused) progSendNext();
 }
 function progLoadFile(event) {
   const file = event.target.files[0]; if (!file) return;
@@ -2490,7 +2601,7 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
   seqApplyHomeLock();   // re-lock the gated blocks' buttons if the machine is not homed
-  if (seqAutoReportWasOn && document.getElementById('autoReport').checked) autoReportInterval = setInterval(() => sendCmd('M114'), 1000);
+  if (seqAutoReportWasOn && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
   if (statusHtml) seqSetStatus(statusHtml);
 }
 function seqStop() {

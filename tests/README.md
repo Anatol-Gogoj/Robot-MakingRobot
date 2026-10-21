@@ -1,8 +1,8 @@
 # UI checks
 
-Behavioral checks for the three browser UIs (`RMR_Controller.html`, `RMR_Touch.html` and
-`RMR_SegmentRunner.html`). They exist because PR bodies in this repo make quantitative claims,
-such as "13 of 17 checks fail before this change", and a claim nobody can re-run is not evidence.
+Behavioral checks for the two browser UIs (`RMR_Controller.html` and `RMR_Touch.html`). They
+exist because PR bodies in this repo make quantitative claims, such as "13 of 17 checks fail
+before this change", and a claim nobody can re-run is not evidence.
 
 ```bash
 node tests/run.mjs        # all checks against the HTML files in the repo root
@@ -49,17 +49,13 @@ to feed a line in. That is all of it: no browser, no headless Chrome, no mock fr
 
 ## Expected result on `main`
 
-**`node tests/run.mjs` on `main` reports 20 passed, 3 failed, 0 skipped** (measured 2026-10-14).
-The three failures are the open issue #48 and are expected:
+**`node tests/run.mjs` on `main` reports 20 passed, 0 failed, 0 skipped** (measured 2026-10-20,
+with #48 fixed and the Segment Runner checks archived by #173). Any failure, or a change in
+that count, is a regression.
 
-- `ok attribution: Controller` and `ok attribution: Touch`: a foreign `ok` (for example from the
-  auto-report `M114`) advances the Program Runner. The Touch run also ends in
-  `ReferenceError: okLedgerReset`, because the check targets the `ok` ledger API of PR #83,
-  which was not merged.
-- `homing indicator: Touch`: a foreign `ok` clears the homing indicator.
-
-These checks assert the fixed behavior, so until #48 is redone they are its reproductions. Any
-other failure, or a change in that count, is a regression.
+Until #48 was fixed, `ok attribution: Controller`, `ok attribution: Touch` and
+`homing indicator: Touch` failed on `main` as its reproductions: a foreign `ok` (for example from
+the auto-report `M114`) advanced the Program Runner and cleared the Touch homing indicator.
 
 A check whose target file is not on the branch is **skipped**. A section covering a feature the
 branch predates is skipped too. The August branches `fix/47-ui-error-markers` and
@@ -70,8 +66,8 @@ counts no longer describe anything that would merge.
 
 | file | issue | asserts |
 |---|---|---|
-| `ok-attribution.test.mjs` | #48 | Only a program line's own `ok` advances the Program Runner. Covers foreign traffic mid-program, pause/resume in both orderings, a write that throws, ledger overflow halting the run, and E-stop clearing the ledger. |
-| `homing-indicator.test.mjs` | #48 | `RMR_Touch`'s homing indicator clears on `G28`'s own `ok`, not on whichever arrives first. |
+| `ok-attribution.test.mjs` | #48 | Only a program line's own `ok` advances the Program Runner. Covers foreign traffic mid-program, pause/resume in both orderings, a write that throws, ledger overflow halting the run, and E-stop clearing the ledger. Also the Pi bridge (entries from the TX echo, another client's poll and a two-line button counted, a dropped write or a closed port halting the run), the firmware lines that clear the ledger (`start`, `kill() called`, `MOTOR POWER LOST`, `Resend:`), which lines earn an entry (not a comment-only line, not `M112`), a stopped run's late `ok`, Resume on the Pause button, and the auto-report poll waiting for an empty ledger. |
+| `homing-indicator.test.mjs` | #48 | `RMR_Touch`'s homing indicator clears on `G28`'s own `ok`, not on whichever arrives first, and a firmware restart drops it without a "Homing complete" toast. |
 | `runlog.test.mjs` | none | The Run Log module in either UI: the real Syringe block records the dispense at its `M400`; spin statistics are captured only between `spin.start` and `spin.done` (a `Samples=0` measure leaves the cell blank); UV on/off/aborted; hand-pressed electrodes alternate P/N and close the layer; an edited cell survives a later automatic value; Hold / Break pause between commands, and a Stop during a hold rejects with `RunLogAbort`; turning logging off and on notes the gap; CSV and XLSX exports; localStorage persistence. |
 | `runlog-sync.test.mjs` | none | The shared `RMR-RUNLOG` block is identical in both pages (line endings aside, so a CRLF checkout passes), and each page carries its glue (containers, host object, every hook, and the Touch `tabNames` order). |
 | `syringe-dose.test.mjs` | none | The retuned Syringe block: exact command order (`M114` position query, lower, dose, `M400`, dwell, retract at its own feed, raise; the B snap lift is gone); the dose and retract guards refusing with nothing sent (max retract defaults to 2 mm, and a 0.5 mL drip-stopping pullback passes); the stroke guard checking the fresh `M114` position rather than the readout, and refusing when the reply has no C; the purge and prime routines; `G90` still sent when a Stop or fault lands inside the relative-mode section (a Stop sends `M410` then `G90` in both UIs); barrel calibration from the bore; and the Run Log's preset-to-sequencer apply path. |
@@ -80,8 +76,6 @@ counts no longer describe anything that would merge.
 | `uv-refusal-feedback.test.mjs` | none | When the firmware's UV lid interlock refuses a UV-on (`UV inhibited: lid open`) or cuts the lamp mid-cure (`UV cut: lid opened`), both UIs raise an error toast, log a console line, show the UV pair as OFF, and set the sequencer's refusal flag. |
 | `relay-off-by-firmware.test.mjs` | #141 | The relay pairs drop to OFF, with nothing sent, on the firmware's own lines for the events on which the #131 firmware turns the UV lamp and valve relays off by itself: `start`, `echo:MOTOR POWER LOST` and `kill() called`. `kill() called` still fails a running sequence. A sent `M112` alone (E-STOP, console, or the bridge's echo of a dropped write) changes nothing until the `kill() called` line arrives. A pair last driven on a pin other than 4 or 42 keeps its highlight. Unknown-command echoes of the words, ordinary traffic, `Motor power restored`, a refused move, other `Error:` lines, `M999` / `M18` / `M84`, and the bridge's E-stop sense on its own leave an ON highlight alone. |
 | `spin-markers.test.mjs` | #47 | `OK:` and `ERR:` are read by message class. `STATE:HOME_SETTLE` does not latch "Home datum set"; `ERR: HOME_SET_FAILED` does not read as success; `ERR: CYCLE_COMPLETE_NO_HOME` is not green; an unmapped `ERR:` still shows as an error. Marker text is taken verbatim from the firmware sources. |
-| `segment-runner.test.mjs` | #62 | Load-time validation, parameter substitution and bounds, layer expansion, execution and pausing, `ERR:` failing a segment, the four guards, preview, session split/merge, the plan-rebuild guards, and recipes: save/load/delete, export/import round trip, clamping a saved value against tightened bounds, the modified flag, and the provenance block each run writes to the log. |
-| `layercycle-equivalence.test.mjs` | #62 | At default parameters and one layer, `LayerCycle.segments.gcode` sends the same executable lines, in the same order, as `LayerCycle.gcode`. This is what makes the annotated copy trustworthy. |
 | `syntax-check.mjs` | none | Every `<script>` block parses. It is cheap, and it catches the edit that broke a 1700-line file. |
 
 ## What they do not cover

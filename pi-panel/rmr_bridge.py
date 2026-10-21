@@ -114,6 +114,11 @@ def write_serial(cmd: str, source: str = "ws"):
     data = (cmd + "\n").encode("utf-8", "replace")
     wrote = False
     with serial_lock:
+        # Echo every write to ALL clients so each UI (and each button press) is visible everywhere.
+        # Queued before the bytes leave, so every client sees the echo before any reply to it: the
+        # UIs attribute each 'ok' to the oldest echoed command (issue #48). A failed write is
+        # reported right after it, below.
+        schedule_broadcast(json.dumps({"_rmr": "tx", "cmd": cmd, "source": source}))
         try:
             if ser is not None and ser.is_open:
                 ser.write(data)
@@ -122,8 +127,6 @@ def write_serial(cmd: str, source: str = "ws"):
             schedule_broadcast(json.dumps({"_rmr": "error", "msg": "serial write failed: %s" % e}))
     with io_lock:
         _last_tx_ts = time.monotonic()  # any command counts as activity (tower → amber)
-    # Echo every write to ALL clients so each UI (and each button press) is visible everywhere.
-    schedule_broadcast(json.dumps({"_rmr": "tx", "cmd": cmd, "source": source}))
     if not wrote:
         schedule_broadcast(json.dumps({"_rmr": "error", "msg": "serial not open; dropped: %s" % cmd}))
 
