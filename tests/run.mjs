@@ -40,6 +40,7 @@ const checks = [
   { issue: '—',   name: 'UV refusal feedback: Touch',    script: 'uv-refusal-feedback.test.mjs',     args: [TOUCH],      needs: [TOUCH] },
   { issue: '#141', name: 'relays off by firmware: Controller', script: 'relay-off-by-firmware.test.mjs', args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '#141', name: 'relays off by firmware: Touch', script: 'relay-off-by-firmware.test.mjs',  args: [TOUCH],      needs: [TOUCH] },
+  { issue: '#182', name: 'seq fault on reset: both pages', script: 'seq-fault-on-reset.test.mjs',    args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
