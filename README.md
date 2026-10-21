@@ -40,11 +40,7 @@ Robot-MakingRobot/
 ├── SpincoaterStage.ino           # Original Arduino IDE spincoater sketch (reference only)
 ├── RMR_Controller.html           # Web controller (click-optimized, for debugging and tuning)
 ├── RMR_Touch.html                # Touchscreen web UI (for operation)
-├── RMR_SegmentRunner.html        # Standalone segment runner + named recipes (E-axis dispense, port before use)
-├── fullcode.gcode                # Production DEA layer program (dispense step still E-axis, port before use)
-├── LayerCycle.gcode              # Spin-coating layer cycle (E-axis dispense, port before use)
-├── LayerCycle.segments.gcode     # LayerCycle with segment markers + parameters for the Segment Runner
-├── SpinCoatUVCure.gcode          # April 2026 Copilot protocol, never run (E-axis)
+├── archive/e-axis-programs/      # Retired E-axis syringe programs and segment runner (reference only, see its README)
 ├── DemoProgram.gcode             # Demo pick-and-place cycle
 ├── tests/                        # Node checks for the browser pages (see tests/README.md)
 ├── tools/
@@ -349,8 +345,8 @@ ramp-up and a 1-second ramp-down.
 M750 is blocking: Marlin processes no further commands until the cycle completes, except
 `M112`/`M108`/`M410`, which `EMERGENCY_PARSER` dispatches straight from the serial RX path.
 Anything else sent during the cycle waits in the 128-byte serial buffer, and bytes past that
-are dropped silently. Use M750 inside G-code programs to sequence spin coating after gantry
-positioning (see `fullcode.gcode`).
+are dropped silently. To sequence spin coating after gantry positioning, use the Process
+Sequencer in `RMR_Controller.html` or `RMR_Touch.html`; its Spin Coater block sends `M750`.
 
 Watch the serial log, not the phase indicator. Success and failure are distinguished only by
 the terminal line:
@@ -428,7 +424,7 @@ Override with `?transport=serial|ws` or `?ws=ws://host:port`. The Controller als
 ## Important Gotchas
 
 1. **Axis naming:** G-code uses `A`, `B` and `C` for the Filter Feed, Syringe Height and Syringe axes (not `I`/`J`/`K`). This applies to all commands: `G1`, `M201`, `M203`, `G28` and the rest.
-2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0 to 125 mm). `G92 E0` / `G1 E…` are silently ignored with no error, so any program still using them dispenses nothing. `fullcode.gcode`, `LayerCycle*.gcode`, `SpinCoatUVCure.gcode` and `RMR_SegmentRunner.html` still do.
+2. **The syringe is the C axis, not an extruder:** `EXTRUDERS 0`; the plunger is Marlin's K axis with G-code letter `C` (`+C` = dispense, `C0` = fully open, homed, soft-endstop 0 to 125 mm). `G92 E0` / `G1 E…` are silently ignored with no error, so any program still using them dispenses nothing. The retired programs in `archive/e-axis-programs/` still do.
 3. **Filter Feed homes to MAX:** unlike every other axis, which homes to MIN, the Filter Feed (A axis) homes to its far-end endstop (I_MAX, pin 15). Advancing the stack is therefore a move toward MIN (`G1 A-…`).
 4. **Servo deactivation:** servos go limp 2 seconds after positioning. If the gripper needs to hold force actively, `DEACTIVATE_SERVOS_AFTER_MOVE` must be disabled (requires a rebuild) or an external servo controller used.
 5. **E-Stop recovery:** `M112` fully kills the firmware and **cannot** be recovered with `M999`. Reset the board (disconnect and reconnect USB, or power-cycle). On reboot the firmware automatically disarms the spincoater. `M999` only recovers from the softer "stopped" state. `EMERGENCY_PARSER` is enabled, so `M112`/`M108`/`M410` act immediately from the serial RX path instead of queueing behind a blocking M750. Side effect: `M0`/`M1` are now compiled in and **pause until an `M108` arrives**, where they previously returned "Unknown command". Any production G-code containing `M0`/`M1` will stall. **This side effect has not been bench-checked.**

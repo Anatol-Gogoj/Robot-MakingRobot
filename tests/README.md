@@ -1,8 +1,8 @@
 # UI checks
 
-Behavioral checks for the three browser UIs (`RMR_Controller.html`, `RMR_Touch.html` and
-`RMR_SegmentRunner.html`). They exist because PR bodies in this repo make quantitative claims,
-such as "13 of 17 checks fail before this change", and a claim nobody can re-run is not evidence.
+Behavioral checks for the two browser UIs (`RMR_Controller.html` and `RMR_Touch.html`). They
+exist because PR bodies in this repo make quantitative claims, such as "13 of 17 checks fail
+before this change", and a claim nobody can re-run is not evidence.
 
 ```bash
 node tests/run.mjs        # all checks against the HTML files in the repo root
@@ -49,8 +49,9 @@ to feed a line in. That is all of it: no browser, no headless Chrome, no mock fr
 
 ## Expected result on `main`
 
-**`node tests/run.mjs` on `main` reports 23 passed, 0 failed, 0 skipped** (measured 2026-10-20,
-with #48 fixed). Any failure, or a change in that count, is a regression.
+**`node tests/run.mjs` on `main` reports 20 passed, 0 failed, 0 skipped** (measured 2026-10-20,
+with #48 fixed and the Segment Runner checks archived by #173). Any failure, or a change in
+that count, is a regression.
 
 Until #48 was fixed, `ok attribution: Controller`, `ok attribution: Touch` and
 `homing indicator: Touch` failed on `main` as its reproductions: a foreign `ok` (for example from
@@ -75,8 +76,6 @@ counts no longer describe anything that would merge.
 | `uv-refusal-feedback.test.mjs` | none | When the firmware's UV lid interlock refuses a UV-on (`UV inhibited: lid open`) or cuts the lamp mid-cure (`UV cut: lid opened`), both UIs raise an error toast, log a console line, show the UV pair as OFF, and set the sequencer's refusal flag. |
 | `relay-off-by-firmware.test.mjs` | #141 | The relay pairs drop to OFF, with nothing sent, on the firmware's own lines for the events on which the #131 firmware turns the UV lamp and valve relays off by itself: `start`, `echo:MOTOR POWER LOST` and `kill() called`. `kill() called` still fails a running sequence. A sent `M112` alone (E-STOP, console, or the bridge's echo of a dropped write) changes nothing until the `kill() called` line arrives. A pair last driven on a pin other than 4 or 42 keeps its highlight. Unknown-command echoes of the words, ordinary traffic, `Motor power restored`, a refused move, other `Error:` lines, `M999` / `M18` / `M84`, and the bridge's E-stop sense on its own leave an ON highlight alone. |
 | `spin-markers.test.mjs` | #47 | `OK:` and `ERR:` are read by message class. `STATE:HOME_SETTLE` does not latch "Home datum set"; `ERR: HOME_SET_FAILED` does not read as success; `ERR: CYCLE_COMPLETE_NO_HOME` is not green; an unmapped `ERR:` still shows as an error. Marker text is taken verbatim from the firmware sources. |
-| `segment-runner.test.mjs` | #62 | Load-time validation, parameter substitution and bounds, layer expansion, execution and pausing, `ERR:` failing a segment, the four guards, preview, session split/merge, the plan-rebuild guards, and recipes: save/load/delete, export/import round trip, clamping a saved value against tightened bounds, the modified flag, and the provenance block each run writes to the log. |
-| `layercycle-equivalence.test.mjs` | #62 | At default parameters and one layer, `LayerCycle.segments.gcode` sends the same executable lines, in the same order, as `LayerCycle.gcode`. This is what makes the annotated copy trustworthy. |
 | `syntax-check.mjs` | none | Every `<script>` block parses. It is cheap, and it catches the edit that broke a 1700-line file. |
 
 ## What they do not cover

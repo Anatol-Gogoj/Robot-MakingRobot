@@ -2,8 +2,7 @@
 //
 //   node tests/run.mjs
 //
-// A check whose target file is not on this branch is skipped, not failed:
-// RMR_SegmentRunner.html only exists once #85 is merged.
+// A check whose target file is not on this branch is skipped, not failed.
 //
 // Running this on `main` is EXPECTED to report failures. The checks assert the
 // fixed behaviour, so on an unfixed branch they are the reproductions. See
@@ -19,21 +18,15 @@ const f = name => join(root, name);
 
 const CONTROLLER = f('RMR_Controller.html');
 const TOUCH = f('RMR_Touch.html');
-const RUNNER = f('RMR_SegmentRunner.html');
-const PLAIN = f('LayerCycle.gcode');
-const ANNOTATED = f('LayerCycle.segments.gcode');
 
 const checks = [
   { issue: '—',   name: 'syntax: RMR_Controller.html',  script: 'syntax-check.mjs',                 args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '—',   name: 'syntax: RMR_Touch.html',       script: 'syntax-check.mjs',                 args: [TOUCH],      needs: [TOUCH] },
-  { issue: '—',   name: 'syntax: RMR_SegmentRunner',    script: 'syntax-check.mjs',                 args: [RUNNER],     needs: [RUNNER] },
   { issue: '#48', name: 'ok attribution: Controller',   script: 'ok-attribution.test.mjs',          args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '#48', name: 'ok attribution: Touch',        script: 'ok-attribution.test.mjs',          args: [TOUCH],      needs: [TOUCH] },
   { issue: '#48', name: 'homing indicator: Touch',      script: 'homing-indicator.test.mjs',        args: [TOUCH],      needs: [TOUCH] },
   { issue: '#47', name: 'spin markers: Controller',     script: 'spin-markers.test.mjs',            args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '#47', name: 'spin markers: Touch',          script: 'spin-markers.test.mjs',            args: [TOUCH],      needs: [TOUCH] },
-  { issue: '#62', name: 'segment runner',               script: 'segment-runner.test.mjs',          args: [RUNNER],     needs: [RUNNER] },
-  { issue: '#62', name: 'LayerCycle equivalence',       script: 'layercycle-equivalence.test.mjs',  args: [RUNNER, PLAIN, ANNOTATED], needs: [RUNNER, PLAIN, ANNOTATED] },
   { issue: '—',   name: 'run log: Controller',          script: 'runlog.test.mjs',                  args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '—',   name: 'run log: Touch',               script: 'runlog.test.mjs',                  args: [TOUCH],      needs: [TOUCH] },
   { issue: '—',   name: 'run log: shared block in sync', script: 'runlog-sync.test.mjs',             args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },

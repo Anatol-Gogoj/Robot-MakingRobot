@@ -429,7 +429,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="260" y="96.69" font-size="1.15" text-anchor="middle" font-weight="bold">F0</text>
 <text x="268.14" y="96.69" font-size="1.15" text-anchor="middle" font-weight="bold">X0</text>
 <text x="282.07" y="84.07" font-size="1.1" text-anchor="middle" transform="rotate(-90 282.07 84.07)">door 110 V</text>
-<text x="252.36" y="81.29" font-size="1.3" text-anchor="middle" font-weight="bold" fill="#CC3311">110 VAC compartment, no wall</text>
+<text x="252.36" y="81.29" font-size="1.3" style="fill:#CC3311" text-anchor="middle" font-weight="bold">110 VAC compartment, no wall</text>
 <text x="282.07" y="96.79" font-size="1.2" text-anchor="middle" transform="rotate(-90 282.07 96.79)">mains in</text>
 <text x="171.86" y="116.83" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PSU vent (dashed)</text>
 <text x="253.86" y="28.26" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="end">ODrive, Pi, E-stop</text>
