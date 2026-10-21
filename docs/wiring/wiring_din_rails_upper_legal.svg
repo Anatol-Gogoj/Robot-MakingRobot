@@ -567,104 +567,104 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="ve" d="M256.4 110.75 L259.4 110.75"/>
 <path class="ve" d="M256.4 112.3 L259.4 112.3"/>
 <rect class="bx" x="256" y="186" width="92" height="21.5"/>
-<text x="161.36" y="109.67" font-size="1.2" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold" fill="#a0450f">slot 1</text>
-<text x="195.79" y="99.19" font-size="1.2" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold" fill="#a0450f">slot 2</text>
-<text x="31.79" y="85.37" font-size="1.2" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold" fill="#a0450f">slot 3</text>
+<text x="161.36" y="109.67" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 1</text>
+<text x="195.79" y="99.19" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 2</text>
+<text x="31.79" y="85.37" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 3</text>
 <text x="233.35" y="167.74" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PE stud</text>
 <text x="21" y="28.8" font-size="1.4" stroke="#fff" stroke-width="0.63" paint-order="stroke" font-weight="bold">LEFT WALL</text>
 <text x="21" y="194.6" font-size="1.4" stroke="#fff" stroke-width="0.63" paint-order="stroke" font-weight="bold">RIGHT WALL</text>
 <text x="18.8" y="111" font-size="1.4" text-anchor="middle" font-weight="bold" transform="rotate(-90 18.8 111)">FRONT</text>
 <text x="250.4" y="111" font-size="1.4" text-anchor="middle" font-weight="bold" transform="rotate(-90 250.4 111)">BACK</text>
 <text x="47.79" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">1</text>
-<text x="47.79" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="47.79" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="50.86" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">2</text>
-<text x="50.86" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="50.86" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="53.93" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">2b</text>
-<text x="53.93" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="53.93" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="57.01" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">3</text>
-<text x="57.01" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="57.01" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="60.08" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">3b</text>
-<text x="60.08" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="60.08" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="63.15" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">4</text>
-<text x="63.15" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">6</text>
+<text x="63.15" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">6</text>
 <text x="66.22" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">5</text>
-<text x="66.22" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">7</text>
+<text x="66.22" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">7</text>
 <text x="57.01" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X2</text>
 <text x="57.01" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">E-stop</text>
 <text x="70.28" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">3</text>
-<text x="70.28" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="70.28" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="73.35" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">14</text>
-<text x="73.35" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="73.35" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="76.42" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">40</text>
-<text x="76.42" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="76.42" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="79.5" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">15</text>
-<text x="79.5" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="79.5" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="82.57" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">23</text>
-<text x="82.57" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="82.57" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="85.64" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">A9</text>
-<text x="85.64" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">6</text>
+<text x="85.64" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">6</text>
 <text x="88.71" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="88.71" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">7</text>
+<text x="88.71" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">7</text>
 <text x="91.78" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="91.78" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">8</text>
+<text x="91.78" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">8</text>
 <text x="94.85" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="94.85" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">9</text>
+<text x="94.85" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">9</text>
 <text x="97.92" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="97.92" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">10</text>
+<text x="97.92" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">10</text>
 <text x="101" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="101" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">11</text>
+<text x="101" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">11</text>
 <text x="104.07" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="104.07" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">12</text>
+<text x="104.07" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">12</text>
 <text x="87.17" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X4</text>
 <text x="87.17" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">endstops</text>
 <text x="108.13" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">6V</text>
-<text x="108.13" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="108.13" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="111.2" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">6V</text>
-<text x="111.2" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="111.2" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="114.27" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">0V</text>
-<text x="114.27" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="114.27" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="117.34" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">0V</text>
-<text x="117.34" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="117.34" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="120.41" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">P0</text>
-<text x="120.41" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="120.41" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="123.49" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">P1</text>
-<text x="123.49" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">6</text>
+<text x="123.49" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">6</text>
 <text x="115.81" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X5</text>
 <text x="115.81" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">servos</text>
 <text x="127.91" y="50.67" font-size="1" text-anchor="middle" font-weight="bold" transform="rotate(-90 127.91 50.67)">UV+</text>
-<text x="127.55" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="127.55" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="130.98" y="50.67" font-size="1" text-anchor="middle" font-weight="bold" transform="rotate(-90 130.98 50.67)">UV-</text>
-<text x="130.62" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="130.62" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="133.69" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">S5</text>
-<text x="133.69" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="133.69" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="137.12" y="50.67" font-size="1" text-anchor="middle" font-weight="bold" transform="rotate(-90 137.12 50.67)">S5c</text>
-<text x="136.76" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="136.76" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="139.83" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">V+</text>
-<text x="139.83" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="139.83" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="142.91" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">V-</text>
-<text x="142.91" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">6</text>
+<text x="142.91" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">6</text>
 <text x="135.23" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X6</text>
 <text x="135.23" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">lid, valve</text>
 <text x="147.13" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">R</text>
-<text x="147.13" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="147.13" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="150.52" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">A</text>
-<text x="150.52" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="150.52" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="153.91" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">G</text>
-<text x="153.91" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="153.91" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="157.31" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">Bz</text>
-<text x="157.31" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="157.31" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="160.7" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="160.7" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="160.7" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="153.91" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X7</text>
 <text x="153.91" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">tower</text>
 <text x="164.92" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">-</text>
-<text x="164.92" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="164.92" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="168" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">-</text>
-<text x="168" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="168" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="171.07" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">-</text>
-<text x="171.07" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="171.07" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="174.14" y="51.02" font-size="1" text-anchor="middle" font-weight="bold">-</text>
-<text x="174.14" y="42.85" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="174.14" y="42.85" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="169.53" y="57.23" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X8</text>
 <text x="169.53" y="45.31" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">spare</text>
 <text x="65.82" y="82.38" font-size="1.6" text-anchor="middle" font-weight="bold">Arduino Mega 2560</text>
@@ -695,32 +695,32 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="76.25" y="96.62" font-size="0.95" transform="rotate(-90 76.25 96.62)">C: 13 19 20</text>
 <text x="42.2" y="85.79" font-size="1">USB</text>
 <text x="97.83" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">X</text>
-<text x="97.83" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="97.83" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="100.9" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">Y1</text>
-<text x="100.9" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="100.9" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="103.97" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">Y2</text>
-<text x="103.97" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="103.97" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="107.04" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">Z</text>
-<text x="107.04" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="107.04" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="110.11" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">A</text>
-<text x="110.11" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">5</text>
+<text x="110.11" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
 <text x="113.18" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">B</text>
-<text x="113.18" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">6</text>
+<text x="113.18" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">6</text>
 <text x="116.25" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">C</text>
-<text x="116.25" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">7</text>
+<text x="116.25" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">7</text>
 <text x="119.32" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">J</text>
-<text x="119.32" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">8</text>
+<text x="119.32" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">8</text>
 <text x="122.4" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">lk</text>
-<text x="122.4" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">9</text>
+<text x="122.4" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">9</text>
 <text x="110.11" y="91.99" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">0V-S</text>
 <text x="126.46" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">1</text>
-<text x="126.46" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">1</text>
+<text x="126.46" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
 <text x="129.53" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">2</text>
-<text x="129.53" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">2</text>
+<text x="129.53" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="132.6" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">3</text>
-<text x="132.6" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">3</text>
+<text x="132.6" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
 <text x="135.67" y="85.79" font-size="1" text-anchor="middle" font-weight="bold">lk</text>
-<text x="135.67" y="77.61" font-size="0.8" text-anchor="middle" fill="#555">4</text>
+<text x="135.67" y="77.61" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
 <text x="131.07" y="91.99" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">0V-S2</text>
 <text x="175.19" y="77.33" font-size="1.05" text-anchor="middle" font-weight="bold">SSR-UV</text>
 <text x="153.47" y="76.46" font-size="0.8">+</text>
