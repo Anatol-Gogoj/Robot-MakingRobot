@@ -12,3 +12,6 @@ DemoProgram.txt
 
 # Slicer print files (3MF); the SLDPRT and STEP are the sources
 *.3mf
+
+# Mesh exports for printing (STL); the SLDPRT and STEP are the sources
+*.[sS][tT][lL]
