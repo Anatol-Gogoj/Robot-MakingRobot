@@ -1973,10 +1973,10 @@ function processLine(line) {
   }
 
   // Detect 'ok' for program runner + sequencer sequencing. okLedgerOk() gives it to the
-  // command that earned it, so only a program line's own 'ok' advances the Program Runner.
+  // command that earned it, so only a program line's own 'ok' advances the Program Runner,
+  // and only a sequencer step's own 'ok' advances the Process Sequencer (#180).
   if (line === 'ok' || (line.startsWith('ok') && line.length < 5)) {
     okLedgerOk();
-    seqOnOk();
     if (!verbose) return;
   }
 
@@ -1999,10 +1999,10 @@ function processLine(line) {
 // (rmr_bridge.py write_serial), so entries are added from that echo, in the order the Mega
 // got the bytes, and this page's own sends are matched to their echoes in order (wsOwnPending).
 //
-// An entry's onOk runs on that command's own 'ok': the Program Runner advances on it. The
-// Process Sequencer still takes the next 'ok' of any kind (seqOnOk); it keeps one command in
-// flight and pauses the auto-report poll. An 'ok' with an empty ledger is ignored: a missed
-// advance stalls a program where the operator can see it, a spurious one moves the machine.
+// An entry's onOk runs on that command's own 'ok': the Program Runner and the Process
+// Sequencer (seqCmd -> seqOnOk, #180) advance on it, so neither moves on an 'ok' that another
+// client, the poll or a fire-and-forget send earned. An 'ok' with an empty ledger is ignored:
+// a missed advance stalls a program where the operator can see it, a spurious one moves the machine.
 let okLedger = [];
 const OK_LEDGER_MAX = 64;   // a desync guard, not a queue depth: Marlin holds BUFSIZE 4 commands plus a 128-byte RX ring (32 of the shortest, a 4-byte G90 line)
 let wsOwnPending = [];      // bridge mode: this page's sends whose echo has not come back yet, oldest first
@@ -2064,10 +2064,12 @@ function okLedgerReset(why) {
   okLedger = [];
 }
 
-// Clear the ledger and halt a running program, whose line's 'ok' can no longer be told apart.
+// Clear the ledger, fail the sequencer step in flight, and halt a running program: their
+// 'ok's can no longer be told apart.
 // pollOff: the board answers nothing now, so the auto-report poll the run suspended stays off.
 function okLedgerLost(why, pollOff) {
   okLedgerReset(why);
+  seqOkLost(why);
   if (!progRunning) return;
   if (pollOff) progAutoReportWasOn = false;
   logErr('Program halted: ' + why);
@@ -2675,12 +2677,23 @@ function switchTab(name) {
 // ═══════════════ Process Sequencer ═══════════════
 let seqRunning = false;
 let seqAbort = false;
-let seqWaiter = null;            // {resolve, reject} armed while awaiting an 'ok'
+let seqWaiter = null;            // {resolve, reject} armed while awaiting a step's own 'ok'
 let seqAutoReportWasOn = false;
 
-// Called from processLine() whenever Marlin sends 'ok'
-function seqOnOk() {
-  if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.resolve(); }
+// A step's own 'ok' (okLedger gives it to no one else, #180): resolves that step's wait if it is
+// still the armed one. A step that was stopped, faulted or timed out still gets its 'ok' later;
+// by then another step's wait (or none) is armed, so it does nothing.
+function seqOnOk(waiter) {
+  if (seqWaiter && seqWaiter === waiter) { seqWaiter = null; waiter.resolve(); }
+}
+
+// The ok ledger was cleared (okLedgerLost): the step in flight will never get its 'ok' attributed,
+// so fail the run now instead of at the step's timeout. With no step in flight, nothing changes.
+function seqOkLost(why) {
+  if (!seqWaiter) return;
+  const reason = 'the "ok" of the step in flight is lost (' + why + ')';
+  seqFault(reason);   // rejects the wait of a running sequence
+  if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error(reason)); }
 }
 
 // Wait for the command's 'ok'. Times out (so a stuck step never hangs the
@@ -2721,13 +2734,22 @@ function seqSleep(ms, onTick) {
   });
 }
 
-// Send one command; optionally wait for its 'ok' before resolving
+// Send one command; optionally wait for its own 'ok' before resolving. The wait is armed before
+// the send (seqAwaitOk sets seqWaiter synchronously), so a ledger cleared while sending (an
+// overflow) fails it at once, and the command carries that wait as its ledger entry's onOk.
+// Every earlier unanswered command is answered first, so the wait covers them too.
 async function seqCmd(cmd, waitOk = true, timeoutMs = 90000) {
   if (seqFaultReason) throw new Error(seqFaultReason);
   if (seqAbort) throw new Error('aborted');
   if (!isConnected) throw new Error('not connected');
-  sendCmd(cmd, { tracked: true });
-  if (waitOk) await seqAwaitOk(timeoutMs, cmd);
+  if (waitOk) {
+    const wait = seqAwaitOk(timeoutMs, cmd);
+    const waiter = seqWaiter;
+    sendCmd(cmd, { tracked: true, onOk: () => seqOnOk(waiter) });
+    await wait;
+  } else {
+    sendCmd(cmd, { tracked: true });
+  }
   if (seqFaultReason) throw new Error(seqFaultReason);
   if (seqAbort) throw new Error('aborted');
 }
@@ -2927,9 +2949,11 @@ function seqBegin() {
   document.getElementById('seqRunAllBtn').disabled = true;
   document.getElementById('seqStopBtn').disabled = false;
   document.querySelectorAll('.seq-run-btn').forEach(b => b.disabled = true);
-  // Pause auto position report so stray M114 'ok's don't advance the sequence
+  // Pause the auto position report for the run; seqEnd restores it. (A poll's 'ok' can no
+  // longer advance a step: each step waits for its own, #180.)
   seqAutoReportWasOn = !!autoReportInterval;
   if (autoReportInterval) { clearInterval(autoReportInterval); autoReportInterval = null; }
+  if (okLedger.length) logInfo('Sequencer: ' + okLedger.length + ' earlier command(s) still unanswered; the first step completes after them');
 }
 
 function seqEnd(statusHtml) {
@@ -3116,7 +3140,8 @@ function fmtFeed(f) { return String(Math.round((+f || 0) * 100) / 100); }
 // Relative-mode bracket for the plunger moves: G91, the moves, G90 — and G90 again from a finally when the
 // section did not get there. A Stop (seqStop rejects the waiter), a seqFault or the ok-timeout used to leave
 // the firmware in G91, so the next console or Program Runner G1 moved relative. seqCmd() throws once the run
-// is aborted, so the recovery G90 is a fire-and-forget sendCmd(); its 'ok' lands after seqEnd(), unarmed.
+// is aborted, so the recovery G90 is a fire-and-forget sendCmd(); its 'ok' goes to its own ledger entry, which
+// nothing waits on, so it cannot advance a later run's step (#180).
 async function syrRelative(fn) {
   let absolute = false;
   try {
@@ -3365,6 +3390,8 @@ async function runUvBlock() {
         rlEvent('uv.on', { pin: p.pin, setS: p.t, argon: p.arOn, lid: manageLid });
         // Optionally index-home the spincoater DURING the cure (parallel, fire-and-forget);
         // confirmed finished below so the platter sits at its datum before the block ends.
+        // Its 'ok' goes to its own ledger entry (#180): a later step's wait includes the rest
+        // of the M752, and never ends on the M752's 'ok' in place of its own.
         if (uvHomeSpin) { sendCmd('M752'); logInfo('Spincoater: index-homing during the cure (parallel).'); }
       }
       if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; rlEvent('uv.off', {}); }
@@ -3377,7 +3404,7 @@ async function runUvBlock() {
     if (arIsOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; }
   }
   if (uvHomeSpin && !seqAbort) {
-    // M752 blocks Marlin, so awaiting any command here waits for it — instant if already done.
+    // M752 blocks Marlin and is answered first, so this M400's own 'ok' comes after it (at once if the M752 is already done).
     seqSetStatus('UV — confirming the spincoater reached its datum…');
     await seqCmd('M400', true, 40000);
   }
