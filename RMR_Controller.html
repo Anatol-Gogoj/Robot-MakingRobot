@@ -1772,6 +1772,10 @@ function setConnected(state) {
   wsOwnPending = [];
   okLedgerLost(state ? 'new connection' : 'disconnected', true,
     state ? null : 'disconnected during the run: ' + SEQ_RELAYS_UNKNOWN);
+  // A connect brings the auto-report poll back while the Auto box is still ticked: a disconnect cleared it, or a run
+  // it failed left it off (#188). Not mid-run, whose end restores it, and never on top of a running one.
+  if (state && !autoReportInterval && !seqRunning && !progRunning && document.getElementById('autoReport').checked)
+    autoReportInterval = setInterval(autoReportTick, 1000);
   document.getElementById('statusDot').className = 'status-dot' + (state ? ' connected' : '');
   const btn = document.getElementById('connectBtn');
   btn.textContent = state ? 'Disconnect' : (transportMode() === 'ws' ? 'Connect (bridge)' : 'Connect');
@@ -2985,7 +2989,9 @@ function seqEnd(statusHtml) {
   document.querySelectorAll('details.seq-block').forEach(b => b.classList.remove('running'));
   SEQ_BLOCKS.forEach(b => restoreBadge(b.id));
   seqApplyHomeLock();   // re-lock the gated blocks' buttons if the machine is not homed
-  if (seqAutoReportWasOn && document.getElementById('autoReport').checked) {
+  // The poll the run paused comes back only while connected, and never on top of one that is
+  // already running (progAutoReportRestore's guard, #188). setConnected(true) restores it after a reconnect.
+  if (seqAutoReportWasOn && isConnected && !autoReportInterval && document.getElementById('autoReport').checked) {
     autoReportInterval = setInterval(autoReportTick, 1000);
   }
   if (statusHtml) seqSetStatus(statusHtml);
@@ -3441,7 +3447,12 @@ async function runUvBlock() {
   if (p.arOn) events.push({ at: p.closeAt, name: 'argon-close' });
   events.sort((a, b) => a.at - b.at);
 
-  let uvIsOn = false, arIsOpen = false;
+  // uvIsOn / arIsOpen: the ON's own 'ok' has come (the progress bar; uvIsOn also means the Run
+  // Log has this cure's uv.on). uvMayBeOn / arMayBeOpen: an ON was sent and no OFF has been
+  // answered since, so the relay may be energized. They are set BEFORE the send (#186): a Stop, a
+  // fault or the step timeout can land between the write and its 'ok', and the finally must still
+  // turn the relay off. An S0 to a relay that never turned on is harmless.
+  let uvIsOn = false, arIsOpen = false, uvMayBeOn = false, arMayBeOpen = false;
   if (manageLid) {
     await seqCmd('M400');
     await seqCmd('M280 P1 S' + lidClose + ' T' + lidMs);   // close lid (T ramp is blocking)
@@ -3454,23 +3465,29 @@ async function runUvBlock() {
     for (const ev of events) {
       const waitMs = (ev.at - nowS()) * 1000;
       if (waitMs > 0) await seqSleep(waitMs, draw);                    // abortable, fault-aware
-      if (ev.name === 'argon-open')  { await seqCmd('M42 P' + p.arPin + ' S1'); arIsOpen = true;  logInfo('UV: argon solenoid OPEN'); }
-      if (ev.name === 'argon-close') { await seqCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; logInfo('UV: argon solenoid CLOSED'); }
+      if (ev.name === 'argon-open')  { arMayBeOpen = true; await seqCmd('M42 P' + p.arPin + ' S1'); arIsOpen = true;  logInfo('UV: argon solenoid OPEN'); }
+      if (ev.name === 'argon-close') { await seqCmd('M42 P' + p.arPin + ' S0'); arIsOpen = arMayBeOpen = false; logInfo('UV: argon solenoid CLOSED'); }
       if (ev.name === 'uv-on') {
+        uvMayBeOn = true;
         await seqCmd('M42 P' + p.pin + ' S1');
         if (uvInterlockMsg) throw new Error(uvInterlockMsg);          // firmware refused: lid not closed
         uvIsOn = true;
         rlEvent('uv.on', { pin: p.pin, setS: p.t, argon: p.arOn, lid: manageLid });
       }
-      if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = false; rlEvent('uv.off', {}); }
+      if (ev.name === 'uv-off') { await seqCmd('M42 P' + p.pin + ' S0'); uvIsOn = uvMayBeOn = false; rlEvent('uv.off', {}); }
       draw();
     }
     uvProgressRender(p, p.tEnd, false, false, 'done');
   } finally {
     // Safe state no matter how we got here (Stop / fault / error): lamp OFF, argon CLOSED.
     // Nothing this block sent is still blocking the Mega here (the M752 comes later), so these go out at once.
-    if (uvIsOn)   { sendCmd('M42 P' + p.pin + ' S0');   uvIsOn = false; rlEvent('uv.off', { aborted: true }); }
-    if (arIsOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = false; }
+    // The Run Log gets uv.off only for a uv.on it has: its uv.off handler would otherwise rewrite
+    // the open layer's last finished cure, or journal a "UV off without a recorded UV on".
+    if (uvMayBeOn) {
+      sendCmd('M42 P' + p.pin + ' S0'); uvMayBeOn = false;
+      if (uvIsOn) { uvIsOn = false; rlEvent('uv.off', { aborted: true }); }
+    }
+    if (arMayBeOpen) { sendCmd('M42 P' + p.arPin + ' S0'); arIsOpen = arMayBeOpen = false; }
   }
   // Reached only after a full cure: a Stop or fault above skips the M752 and leaves the lid alone.
   if (uvHomeSpin && !seqAbort) await uvIndexHome(manageLid);   // lamp off, argon closed, lid still closed
