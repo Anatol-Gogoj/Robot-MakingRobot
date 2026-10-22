@@ -16,7 +16,7 @@ import sys
 
 
 # ---------------------------------------------------------------- frame and stack (mm)
-BoxD, BoxW, BoxH = 457.0, 330.0, 279.4
+BoxD, BoxW, BoxH = 457.0, 342.9, 279.4   # 13.5 in wide since 2026-10-21 (ADR-0018, issue #202)
 Frame, PlateT, Rail, Clip = 20.0, 1.5875, 7.5, 10.0
 Inner = (Frame, BoxD - Frame, Frame, BoxW - Frame)     # usable x0, x1, y0, y1 on either deck
 Edge = 3                                                # part to ring clearance
@@ -28,7 +28,7 @@ PsuGap = 3.0                                            # PSU top to the plate a
 # 5 mm of rail past each end. The driver block carries its 1 x 1 1/2 in motor duct on one side.
 Blocks = {
     "R110": (154.5, 82.0, 72.5, "mains", True),    # X0, F0, K1, X1, PE blocks on the 110 V rail
-    "PSU": (215.0, 50.0, 132.5, "mains", True),    # 24 V 1200 W standing on its hole face
+    "PSU": (240.0, 65.0, 143.5, "mains", True),    # 24 V 1200 W standing on a 240 x 65 face
     "R24": (122.1, 85.1, 75.6, "dc", True),        # K2, Star S, two 0V-P bars
     "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
     "PS6": (63.0, 58.0, 40.5, "dc", True),         # servo PSU
@@ -39,7 +39,8 @@ Blocks = {
     "FIELD": (284.0, 42.5, 42.0, "log", True),     # field terminal rail
     "SHIELD": (124.0, 22.0, 40.0, "drv", True),    # motor shield clamp bar (assumed)
 }
-PsuFlat = (215.0, 115.0, 50.0 + Rail + Clip)        # the PSU lying on a 215 x 115 face
+PsuFlat = (240.0, 126.0, 65.0 + Rail + Clip)        # the PSU lying on its 240 x 126 face; measured
+                                                    # 240 x 126 x 65 (2026-10-21, issue #202)
 
 # ---------------------------------------------------------------- cable exits (x, y, deck)
 # Grommets chosen by the owner (sheet 4): upper left, front, right; lower left; mains at the back.
@@ -300,11 +301,11 @@ def Main():
     runs = [("current (hand)", Score("A", Current)),
             ("A*: stacked, PSU standing, solver", Solve("A")),
             ("B: stacked, PSU flat, solver", Solve("B")),
-            ("C: one deck in 457 x 330", Solve("C", seconds=30))]
-    # C does not fit the footprint: find the shortest deck depth that holds everything at 330 wide
+            ("C: one deck in %g x %g" % (BoxD, BoxW), Solve("C", seconds=30))]
+    # C does not fit the footprint: find the shortest deck depth that holds everything at BoxW wide
     for d in (520, 560, 600, 640):
         r = Solve("C", deckD=d, seconds=30)
-        runs.append(("C: one deck, %d x 330" % d, r))
+        runs.append(("C: one deck, %d x %g" % (d, BoxW), r))
         if r["status"] in ("OPTIMAL", "FEASIBLE"):
             break
     summary = []

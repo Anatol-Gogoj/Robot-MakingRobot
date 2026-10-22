@@ -1801,6 +1801,9 @@ def DeckSheet(deck):
             L = d.Lanes[n]
             need = 2 * WireMargin + (use[n][0] - 1) * WirePitch + 0.25
             have = L.Across[1] - L.Across[0]
+            if have <= 0:
+                raise ValueError("%s deck: the lane %s has no width between its parts, and %d wires need it "
+                                 "(issue #202)" % (deck, n, use[n][0]))
             x0, y0, x1, y1 = L.Real
             band = ("y", y0, y1) if L.Axis == "x" else ("x", x0, x1)
             k = bands[n][3] if n in bands else 1.0
@@ -2384,11 +2387,14 @@ def BuildOperatorPanel():
 
 # ---------------------------------------------------------------- sheets 3 and 4: enclosure
 
-# Envelope from the owner: 18 in deep x 13 in wide x 11 in tall. x = depth (front 0 -> back),
+# Envelope from the owner: 18 in deep x 13.5 in wide x 11 in tall. x = depth (front 0 -> back),
 # y = width (left 0 -> right), z = height (floor 0 -> top). Millimetres.
-# The 18 x 13 in footprint (457.2 x 330.2) was rounded down to whole millimetres for a cut-to-order
-# rail; the rails are now cut in the shop, and 457 also leaves the 18 in sheet edge for the plates.
-BoxD, BoxW, BoxH = 457.0, 330.0, 279.4
+# The 18 in depth (457.2) was rounded down to whole millimetres for a cut-to-order rail; the rails are
+# now cut in the shop, and 457 also leaves the 18 in sheet edge for the plates. The width was 13 in
+# (330) until 2026-10-21: the measured 24 V PSU is 11 mm wider than the assumed one, and across the
+# lower deck at K2 the fuse rail, its duct channel, K2, the lane along K2's top face, MainsGap and the
+# PSU need 301 of the frame's inside width; 13.5 in gives 302.9 (ADR-0018, issue #202).
+BoxD, BoxW, BoxH = 457.0, 342.9, 279.4
 Frame = 20.0                       # 2020 extrusion on every edge
 ZoneFill = {"110": "#FFAABB", "24": "#EEDD88", "drv": "#77AADD", "log": "#99DDFF",
             "fld": "#44BB99", "frame": "#DDDDDD"}   # Paul Tol "light" scheme
@@ -2450,8 +2456,10 @@ PartSize = {
                                                  # #158); not measured, so this assumed size stays
     "Mega": (99.0, 53.0, 35.0, False, "clip"),   # A000067 board, lying along its rail on a DIN carrier
                                                  # with the screw shield; the 35 is assumed
-    "PSU24": (215.0, 115.0, 50.0, False, "clip"),  # 24 V 1200 W lying flat on a 215 x 115 face
-                                                 # (ADR-0010); its size is assumed
+    "PSU24": (240.0, 126.0, 65.0, True, "clip"),  # 24 V 1200 W, measured 240 x 126 x 65 (owner,
+                                                 # 2026-10-21, issue #202), lying flat on its
+                                                 # 240 x 126 face (ADR-0010); fan, holes and
+                                                 # terminal order not measured yet
     "PSU6": (58.0, 63.0, 23.0, True, "clip"),    # servo PSU 63 x 58 x 23, the 63 across its rail
     "PSU5": (76.0, 76.0, 32.0, True, "clip"),    # 5 V PSU 76 x 76 x 32
     "Clamp": (22.0, 124.0, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed
@@ -2493,13 +2501,15 @@ CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
 
 # The lower bay, from the deck to the underside of the upper plate, is the larger of two needs: the
-# tallest lower part plus PartClear, which with the PSU lying flat (ADR-0010) is K2's 78.6; and,
-# when a lower wall has a cable entry, a window between the bottom ring and the mid ring that holds
-# its grommet ring EntryEdge clear of both rails, 66 tall, so a 106 bay. At 78.6 that window is 38.6
-# tall: no 50 mm grommet fits a lower wall, and the flat PSU's 50 mm fan face sits partly behind the
-# rings. ADR-0011 records the change from ADR-0010's 78.6.
+# tallest lower part plus PartClear, which with the measured PSU lying flat (ADR-0010, issue #202) is
+# the PSU's 85.5 (K2's 78.6 while the PSU was taken as 50 tall); and, when a lower wall has a cable
+# entry, a window between the bottom ring and the mid ring that holds its grommet ring EntryEdge clear
+# of both rails, 66 tall, so a 106 bay. At 85.5 that window is 45.5 tall: no 50 mm grommet fits a lower
+# wall, and the flat PSU's 65 mm fan face sits partly behind the rings. ADR-0011 records the change
+# from ADR-0010's 78.6.
 LowerKeys = ("K1", "K2", "FB1", "FB2", "Bar", "Term", "PETerm", "F0", "PSU24", "PSU6", "PSU5")
 LowBayParts = max(MountedH(k) for k in LowerKeys) + PartClear
+LowTallest = {"PSU24": "The 24 V PSU"}.get(max(LowerKeys, key=MountedH), max(LowerKeys, key=MountedH))
 LowBayEntry = (RingOD + 2 * EntryEdge + 2 * Frame
                if any(p.startswith("Lower") for p, _, _, _ in CableEntries) else 0.0)
 LowBay = max(LowBayParts, LowBayEntry)
@@ -2757,7 +2767,10 @@ DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left ed
 FieldRail0 = 40.0                  # front end of the field terminal rail
 LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
 R24Rail0 = 87.0                    # front end of the 24 V rail: K2, Star S, the 0V-P bars
-PsuX0 = 46.5                       # front face of the 24 V PSU
+# The front face of the 24 V PSU, RingClear from the front ring. The study put it at 46.5 for a 215 mm
+# PSU; the measured one is 240 long, and with the 110 V rail at the back ring that leaves 16.5 mm for
+# the mains duct's channel, under the study's 18 (issue #202).
+PsuX0 = Frame + RingClear
 # The mains strip along the right wall: the PSU lies flat with its fan face RingClear from the
 # right ring, toward the vent in the lower right panel; the 110 V rail behind it ends at the back
 # ring, where the inlet is. The 110 VAC compartment is a zone of the lower deck, not a box: it runs
@@ -2781,8 +2794,8 @@ SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V"
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
 # plate's stands outside the 110 VAC compartment, in front of the 5 V PSU; the upper plate's behind the
-# motor cables' back run, clear of the mid ring's back right corner bracket under the plate, which
-# its nut would meet at (425, 300) (OpenScrews, issue #154).
+# motor cables' back run, clear of the mid ring's back right corner bracket under the plate
+# (OpenScrews, issue #154).
 PeStud = {"base": (330.0, 150.0), "upper": (425.0, 280.0)}
 HeadM4, HeadM4H = 7.0, 4.0         # M4 socket head across and tall, as the BoM's M4 x 12 pack lists them
                                    # (7.00, 3.91); ISO 4762 allows 7.22 across knurled, 4.0 tall
@@ -2793,6 +2806,9 @@ Dia = "\u00d8"
 def Mm(v):
     s = "%.1f" % v
     return s[:-2] if s.endswith(".0") else s
+
+
+Envelope = "%s x %s x %s in" % tuple(Mm(v / 25.4) for v in (BoxD, BoxW, BoxH))   # depth x width x height
 
 
 def RingHoles():
@@ -3004,7 +3020,7 @@ LidAccess = 10.0
 VentW, VentPitch, VentInset = 4.0, 8.0, 4.0
 # The cable entries and their grommets are defined with the frame stack, which sizes the lower bay
 # to the lower grommet (GrommetHole, RingOD, CableEntries).
-# The 24 V PSU lies flat with its fan on the 215 x 50 face toward the right wall (ADR-0010), RingClear
+# The 24 V PSU lies flat with its fan on a 240 x 65 face toward the right wall (ADR-0010), RingClear
 # from the right ring, so the vent goes in the lower right side panel, the outer wall of the 110 VAC
 # compartment: full-height slots from the PSU's front face along its length, as many as match the
 # fan's area, pi d^2 / 4. Where along that face the fan sits is still to be read off the PSU.
@@ -4147,7 +4163,8 @@ def PlanLabel(s):
         return [label], 1.1, 0 if s["alongX"] else -90
     fixed = {"TB6600": ([label, "TB6600"], 1.2, 0),
              "Mega": (["Mega 2560", "99 x 53, along its rail", "+ screw shield"], 1.25, 0),
-             "PSU24": (["PSU 24 V 1200 W, lying flat", "215 x 115 x 50 (assumed),",
+             "PSU24": (["PSU 24 V 1200 W, lying flat", "%s x %s x %s (measured),"
+                        % tuple(Mm(v) for v in PartSize["PSU24"][:3]),
                         "%s tall on clip and rail;" % Mm(MountedH("PSU24")), "fan face to the right wall"],
                        1.2, 0),
              "PSU6": (["Servo PSU", "6 V, 58 x 63"], 1.1, 0),
@@ -4161,11 +4178,14 @@ def PlanLabel(s):
 
 def BuildPacking():
     sh = Sheet("RMR control panel packing study")
-    DrawFrame(sh, "RMR control panel: packing study, 18 x 13 x 11 in",
+    DrawFrame(sh, "RMR control panel: packing study, " + Envelope,
               "Two decks in a 2020 frame, both on 1/16 in aluminum plates: lower deck for 110 VAC and "
               "24 V power, upper deck for drives and logic; acrylic walls. Scale 1:3.5 when printed at 100 %.")
     S = 3.5
     F = Frame
+    # the plans' and the elevations' top edges on the page: at 13.5 in wide (ADR-0018) the plans need
+    # 98 mm, so they start higher and the elevations end just inside the frame
+    PlanTop, ElevTop = 22.0, 128.0
     lengths = RunChecks()
     solids = DeckSolids()
     upper = UpperRails()
@@ -4203,9 +4223,9 @@ def BuildPacking():
                     short[key], size=1.0, anchor="start" if back else "end", halo=True)
 
     # ------------------------------------------------ upper deck plan
-    up = View(sh, 10.0, 25.0, BoxD, BoxW, S, down=True)
+    up = View(sh, 10.0, PlanTop, BoxD, BoxW, S, down=True)
     up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size")
-    PlanFrame(up, "upper plate 457 x 330, part of the upper module", upper=True)
+    PlanFrame(up, "upper plate %s x %s, part of the upper module" % (Mm(BoxD), Mm(BoxW)), upper=True)
     Plan(up, "upper")
     mega = [p for p in upper["logic"]["run"] if p[0] == "Mega"][0]
     yc = upper["logic"]["centre"]
@@ -4226,12 +4246,12 @@ def BuildPacking():
                 anchor="middle", halo=True)
     Entries(up, "upper")
     up.DimH(0, BoxD, up.Bottom, "18 in (457 mm)")
-    up.DimV(0, BoxW, BoxD, "13 in (330 mm)")
+    up.DimV(0, BoxW, BoxD, "%s in (%s mm)" % (Mm(BoxW / 25.4), Mm(BoxW)))
 
     # ------------------------------------------------ lower deck plan
-    lo = View(sh, 150.0, 25.0, BoxD, BoxW, S, down=True)
+    lo = View(sh, 150.0, PlanTop, BoxD, BoxW, S, down=True)
     lo.Title("B  Lower deck, upper deck lifted off", "1/16 in aluminum base plate, bonded to PE")
-    PlanFrame(lo, "parts inside the bottom ring, 417 x 290 mm")
+    PlanFrame(lo, "parts inside the bottom ring, %s x %s mm" % (Mm(BoxD - 2 * F), Mm(BoxW - 2 * F)))
     Plan(lo, "lower")
     # the 110 VAC compartment's edge: a line on the deck, no wall (ADR-0013)
     sh.Add('<path d="M%s %s L%s %s L%s %s" fill="none" stroke="%s" stroke-width=".6" '
@@ -4289,7 +4309,7 @@ def BuildPacking():
         return (p[0][2] + p[-1][3]) / 2
 
     lower = LowerRails()
-    fr = View(sh, 10.0, 127.5, BoxW, BoxH, S)
+    fr = View(sh, 10.0, ElevTop, BoxW, BoxH, S)
     fr.Title("C  End view from the front", "front rails left off; heights, DIN rails dark grey")
     SectionFrame(fr, BoxW)
     Elevation(fr, "x")
@@ -4315,7 +4335,7 @@ def BuildPacking():
 
     # Seen from the right wall, projected from plan B above it: the 24 V PSU, the 110 V rail and the
     # motor duct stand nearest and hide the fuse modules, the field terminals and the Mega.
-    sd = View(sh, 150.0, 127.5, BoxD, BoxH, S)
+    sd = View(sh, 150.0, ElevTop, BoxD, BoxH, S)
     sd.Title("D  Side view from the right", "right rails left off; nearer parts hide farther ones")
     SectionFrame(sd, BoxD)
     Elevation(sd, "y")
@@ -4364,17 +4384,18 @@ def BuildPacking():
     if LowBayEntry > LowBayParts:
         bay = ["The lower left grommet sets the lower bay:",
                "its %s mm ring needs a %s mm window between" % (Mm(RingOD), Mm(LowBayEntry - 2 * F)),
-               "the bottom and mid rings. K2 alone would set",
-               "%s, which leaves %s (ADR-0011)." % (Mm(LowBayParts), Mm(LowBayParts - 2 * F))]
+               "the bottom and mid rings. %s alone" % LowTallest,
+               "would set %s, which leaves %s (ADR-0011)." % (Mm(LowBayParts), Mm(LowBayParts - 2 * F))]
     else:
-        bay = ["K2, the tallest lower part, sets the lower", "bay: %s + %s." % (Mm(MountedH("K2")), Mm(PartClear))]
+        bay = ["%s, the tallest lower part," % LowTallest,
+               "sets the lower bay: %s + %s." % (Mm(LowBayParts - PartClear), Mm(PartClear))]
     notes = [
         ("Mounting", [
             "Every part stands on a 7.5 mm DIN rail; parts",
             "without DIN feet add a printed clip, 10 mm.",
             "TB6600s stand on their 96 x 28 base, ears",
             "88 apart across the rail, fins vertical. The",
-            "24 V PSU lies flat on a 215 x 115 face, its",
+            "24 V PSU lies flat on a %s x %s face, its" % (Mm(PartSize["PSU24"][0]), Mm(PartSize["PSU24"][1])),
             "fan face %s mm from the right panel. The Mega" % Mm(BoxW - PsuY1),
             "lies along its rail, USB jack to the front",
             "grommet; the SSR sockets stand across their",
@@ -4407,14 +4428,14 @@ def BuildPacking():
             "leaves beside it by an M20 gland; no wall",
             "around the mains parts (ADR-0013)."]),
         ("Sizes: along x across x high (mm)", [
-            "TB6600 28 x 96 x 68, measured. From the",
-            "listings: K1 HC1-63 36 x 82 x 65; K2 BMC7-25U",
-            "36 x 85 x 68; FB1 and FB2 153 x 48 x 43;",
-            "uxcell bar 20 x 78 x 53; SSR 6.1 x 88 x 71",
-            "(41F-1Z socket); UK 2.5 B 6.2 x 42.5 x 42;",
-            "5 V PSU 76 x 76 x 32; 6 V 63 x 58 x 23; Mega",
-            "99 x 53 (A000067). Assumed (dashed): 24 V PSU",
-            "215 x 115 x 50, F0, end clamps, PE blocks,",
+            "TB6600 28 x 96 x 68 and 24 V PSU 240 x 126",
+            "x 65, measured. From the listings: K1 HC1-63",
+            "36 x 82 x 65; K2 BMC7-25U 36 x 85 x 68; FB1",
+            "and FB2 153 x 48 x 43; uxcell bar 20 x 78 x",
+            "53; SSR 6.1 x 88 x 71 (41F-1Z socket);",
+            "UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x",
+            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067).",
+            "Assumed (dashed): F0, end clamps, PE blocks,",
             "shield clamp, Mega height. Heights add the rail."]),
         ("Layout 3b (ADR-0010)", [
             "From the CP-SAT packing study: %s" % "{:,}".format(wireDrawn),
@@ -4437,8 +4458,8 @@ def BuildPacking():
     TitleBlock(sh, 288, 186, 60, 21.5, [
         "Packing study",
         "Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.",
-        "Layout 3b (ADR-0010), 2026-10-17: the PSU",
-        "flat, every part at its real size.",
+        "Layout 3b (ADR-0010), 2026-10-17; 13.5 in wide",
+        "for the measured PSU (ADR-0018), 2026-10-21.",
         "Frame and plates: sheet 4. Measure dashed sizes.",
     ])
     return sh
@@ -4526,8 +4547,8 @@ def FrameElevation(sh, v, span, fromFront):
 def BuildFrame():
     sh = Sheet("RMR control panel frame and deck plates")
     DrawFrame(sh, "RMR control panel: frame and deck plates",
-              "2020 frame %s x %s x %s mm (inside 18 x 13 x 11 in) in two modules, on two 1/16 in 5052 "
-              % (Mm(BoxD), Mm(BoxW), Mm(BoxH)) +
+              "2020 frame %s x %s x %s mm (inside %s) in two modules, on two 1/16 in 5052 "
+              % (Mm(BoxD), Mm(BoxW), Mm(BoxH), Envelope) +
               "deck plates, with 1/8 in acrylic walls. Views 1:5, detail E 2:1, printed at 100 %. Millimetres.")
     S = 5.0
     F = Frame
@@ -4807,7 +4828,7 @@ def BuildFrame():
     ax = 296.0
     sh.Text(ax, 126.0, "Assembly", size=1.7, weight="bold")
     steps = [
-        ["Caliper a grommet and K2 before cutting:" if LowBayEntry > LowBayParts else
+        ["Caliper a grommet before cutting:" if LowBayEntry > LowBayParts else
          "Measure K2 and the PSU before cutting:",
          "the %s sets the lower posts (%s). Measure"
          % ("lower grommet's ring" if LowBayEntry > LowBayParts else "tallest lower part", Mm(LowPostL)),
@@ -4831,7 +4852,7 @@ def BuildFrame():
     TitleBlock(sh, 288, 186, 60, 21.5, [
         "Frame and deck plates",
         "Sheet 4. Legal, landscape, 100 %.",
-        "Views 1:5, detail E 2:1. Redrawn 2026-10-19.",
+        "Views 1:5, detail E 2:1. Redrawn 2026-10-21.",
         "Two modules. Design, not yet built.",
         "DXFs: both deck plates, panel sheets, template.",
     ])

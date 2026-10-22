@@ -1,13 +1,13 @@
 {
- "about": "Layout 3b, the build target of ADR-0010 (2026-10-17): the solver's case 3 (PSU flat, exits free) with the field rail shifted to x 40-324 and two upper-left grommets, so every cable group has a duct path. Centres in mm (x front 0 to back 457, y left 0 to right 330); rot 1 = the block's long side runs along y. Score with layout_study.Score('B', place) after setting Exits to 'exits' and renaming the SHIELD-UL net to SHIELD-ULM. Rescored 2026-10-18 (issue #158): FB1 is a 12-way, so the fuse rail (RFB) is 60 mm longer and the 5 V PSU (PS5) moved to the 24 V row against the back ring, with the lower left grommet (LL) moved from x 292 to 390 past the fuse rail's end; the 2026-10-17 layout scored 34892. Expected wire: 35929 conductor-mm (hand layout 57478).",
+ "about": "Layout 3b, the build target of ADR-0010 (2026-10-17): the solver's case 3 (PSU flat, exits free) with the field rail shifted to x 40-324 and two upper-left grommets, so every cable group has a duct path. Centres in mm (x front 0 to back 457, y left 0 to right 330); rot 1 = the block's long side runs along y. Score with layout_study.Score('B', place) after setting Exits to 'exits' and renaming the SHIELD-UL net to SHIELD-ULM. Rescored 2026-10-18 (issue #158): FB1 is a 12-way, so the fuse rail (RFB) is 60 mm longer and the 5 V PSU (PS5) moved to the 24 V row against the back ring, with the lower left grommet (LL) moved from x 292 to 390 past the fuse rail's end; the 2026-10-17 layout scored 34892. Rescored 2026-10-21 (issue #202, ADR-0018): the 24 V PSU measures 240 x 126 x 65, not the assumed 215 x 115 x 50, so the box is 13.5 in wide (y 0 to 342.9), the PSU sits against the front ring (x 23), the PSU and R110 centres and the inlet moved 7.4 mm toward the right wall (12.9 wider, less half the PSU's extra 11 mm) and the upper right grommet (UR) 12.9; the 2026-10-18 layout scored 35929 at the 78.6 bay of the 50 mm PSU. Expected wire: 36368 conductor-mm at the study's 85.5 bay (hand layout 57478).",
  "place": {
-  "R110": [356.75, 249.5, 0], "PSU": [154.0, 249.5, 0], "R24": [148.0, 131.5, 0], "RFB": [184.0, 47.25, 0],
+  "R110": [356.75, 256.9, 0], "PSU": [143.0, 256.9, 0], "R24": [148.0, 131.5, 0], "RFB": [184.0, 47.25, 0],
   "PS6": [256.0, 120.5, 1], "PS5": [396.0, 126.8, 0], "FIELD": [182.0, 44.25, 0], "SSR": [311.5, 106.75, 1],
   "LOGIC": [143.75, 110.0, 0], "DRV": [144.0, 216.5, 0], "SHIELD": [294.0, 216.5, 1]
  },
  "exits": {
   "UL": [182.0, 0.0, "upper"], "ULM": [390.0, 0.0, "upper"], "UF": [0.0, 110.0, "upper"],
-  "UR": [292.0, 330.0, "upper"], "LL": [390.0, 0.0, "lower"], "INLET": [457.0, 249.5, "lower"]
+  "UR": [292.0, 342.9, "upper"], "LL": [390.0, 0.0, "lower"], "INLET": [457.0, 256.9, "lower"]
  },
- "expected_wire": 35929
+ "expected_wire": 36368
 }
