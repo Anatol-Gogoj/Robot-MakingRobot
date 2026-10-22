@@ -15,9 +15,9 @@ ID | title | status | scope
 0004 | No write passthrough to the ODrive from G-code | Accepted | M75x commands
 0005 | The two HTML pages are the only UIs, and process parameters live in them | Accepted | `RMR_Controller.html`, `RMR_Touch.html`, G-code programs
 0006 | Over Web Serial the Touch UI reconnects by itself and the Controller does not | Accepted | both UIs, serial transport
-0008 | The control box is a 2020 frame in two modules, not off-the-shelf enclosures | Accepted; materials and sourcing superseded by 0009 | `docs/wiring` sheets 3 and 4, plate DXFs, `bom_frame.csv`
+0008 | The control box is a 2020 frame in two modules, not off-the-shelf enclosures | Accepted; materials and sourcing superseded by 0009, width by 0018 | `docs/wiring` sheets 3 and 4, plate DXFs, `bom_frame.csv`
 0009 | The control box is built from Amazon parts: shop-cut 6 mm-slot 2020, 1/16 in aluminum decks, acrylic walls, every metal part home-run to PE | Accepted; ground bar sourcing superseded by 0014 | `docs/wiring` sheets 3 and 4, `bom_frame.csv`
-0010 | The control box layout lays the 24 V PSU flat and follows the CP-SAT packing study | Accepted, on the PSU mounting flat | `docs/wiring` sheets 3 and 4, plate and panel DXFs
+0010 | The control box layout lays the 24 V PSU flat and follows the CP-SAT packing study | Accepted, on the PSU mounting flat; PSU size and position superseded by 0018 | `docs/wiring` sheets 3 and 4, plate and panel DXFs
 0011 | The lower bay is set by the lower wall's grommet, not by the tallest lower part | Accepted | `tools/draw_wiring.py` frame stack, `docs/wiring` sheets 3 and 4, plate and panel DXFs
 0012 | A bent 5052 wall closes the 110 VAC compartment, and the 110 V door cable leaves through the back panel | Rejected by the owner; see 0013 | `tools/draw_wiring.py`, `docs/wiring` sheets 3 to 5, base plate, back panel and wall DXFs
 0013 | No wall around the 110 VAC parts: the compartment is a zone of the lower deck | Accepted | `tools/draw_wiring.py`, `docs/wiring` sheets 3 and 4, base plate DXF, `bom_frame.csv`
@@ -25,6 +25,7 @@ ID | title | status | scope
 0015 | The box is held to the gantry by four spare cast brackets on its lower posts, and it comes out by lifting 38 mm and sliding forward under a raised middle member | Proposed (issue #158) | `tools/draw_wiring.py`, `tools/build_box_model.py`, `docs/wiring` sheets 4 and 5, the lower front and back panel DXFs, `bom_frame.csv`
 0016 | The Pi sits at the operator panel on a 5 V PSU in the box, and the Mega runs on the Pi's USB | Accepted (issue #164) | `tools/draw_wiring.py` sheets 1, 2A and 2B
 0017 | The lid is closed before the spin coater spins above 120 RPM, and homing and index searches may run with it open | Accepted (owner rule, issue #191) | both UIs: the Spin Coater block, Start Spin, the Syringe block, lid tracking
+0018 | The control box is 13.5 in wide, for the measured 24 V PSU (240 x 126 x 65) | Accepted (owner, issue #202) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 2A, 2B and 3 to 5, plate and panel DXFs, `bom_frame.csv`, `CAD/Control Box`
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an
