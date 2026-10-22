@@ -95,36 +95,36 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M191.72 42.8 L193.32 42.8"/>
 <path class="sg" d="M191.72 35.2 L193.32 35.2"/>
 <path class="sg" d="M191.72 31.2 L193.32 31.2"/>
-<path class="zl" d="M205 117.79 L281 117.79"/>
-<rect x="210" y="97.68" width="66" height="17.52" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
+<path class="zl" d="M205 117.79 L283.58 117.79"/>
+<rect x="210" y="97.68" width="68.58" height="17.52" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
 <circle cx="212" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
 <circle cx="212" cy="99.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<circle cx="274" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<circle cx="274" cy="99.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<rect x="210" y="59.32" width="66" height="38.36" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
+<circle cx="276.58" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="276.58" cy="99.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="210" y="59.32" width="68.58" height="38.36" fill="#EEEEEE" stroke="#000" stroke-width="0.25"/>
 <circle cx="232" cy="78.34" r="5.99" fill="#888888" stroke="#000" stroke-width="0.18"/>
 <circle cx="212" cy="91.36" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
 <circle cx="212" cy="65.32" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<circle cx="274" cy="91.36" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<circle cx="274" cy="65.32" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<circle cx="243" cy="95.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<rect x="210" y="58.69" width="66" height="0.64" fill="#DDDDDD" stroke="#000" stroke-width="0.12"/>
+<circle cx="276.58" cy="91.36" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="276.58" cy="65.32" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<circle cx="244.29" cy="95.68" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="210" y="58.69" width="68.58" height="0.64" fill="#DDDDDD" stroke="#000" stroke-width="0.12"/>
 <rect x="211.13" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
 <rect x="210" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
-<rect x="273.13" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
-<rect x="272" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
-<rect x="205" y="111.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
-<rect x="205" y="44.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
-<rect x="205" y="31.2" width="76" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="275.71" y="57.69" width="1.74" height="1" fill="#BBBBBB" stroke="#000" stroke-width="0.12"/>
+<rect x="274.58" y="115.2" width="4" height="2.59" fill="#555555" stroke="#000" stroke-width="0.12"/>
+<rect x="205" y="111.2" width="78.58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="205" y="44.2" width="78.58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
+<rect x="205" y="31.2" width="78.58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
 <rect x="210.3" y="107.2" width="3.4" height="4" fill="#888888" stroke="#000" stroke-width="0.15"/>
 <circle cx="212" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
 <rect x="211.13" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
-<rect x="272.3" y="107.2" width="3.4" height="4" fill="#888888" stroke="#000" stroke-width="0.15"/>
-<circle cx="274" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
-<rect x="273.13" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
-<path class="sg" d="M282.6 115.2 L282.6 109.2"/>
-<path class="sg" d="M281.7 115.2 L283.5 115.2"/>
-<path class="sg" d="M281.7 109.2 L283.5 109.2"/>
+<rect x="274.88" y="107.2" width="3.4" height="4" fill="#888888" stroke="#000" stroke-width="0.15"/>
+<circle cx="276.58" cy="109.2" r="0.87" fill="#BBBBBB" stroke="#000" stroke-width="0.18"/>
+<rect x="275.71" y="109.5" width="1.74" height="1" fill="#999999" stroke="#000" stroke-width="0.12"/>
+<path class="sg" d="M285.18 115.2 L285.18 109.2"/>
+<path class="sg" d="M284.28 115.2 L286.08 115.2"/>
+<path class="sg" d="M284.28 109.2 L286.08 109.2"/>
 <rect x="319.18" y="76.41" width="29" height="1.59" fill="#555555" stroke="#000" stroke-width="0.1"/>
 <rect x="319.18" y="32" width="20" height="44.41" fill="#BBBBBB" stroke="#000" stroke-width="0.2"/>
 <rect x="339.18" y="56.41" width="9" height="20" fill="#DDDDDD" stroke="#000" stroke-width="0.2"/>
@@ -176,11 +176,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="193.72" y="35.65" font-size="1.1">400</text>
 <text x="193.72" y="31.65" font-size="1.1">420</text>
 <text x="210" y="28.4" font-size="2.2" font-weight="bold">B  Front face, from the front</text>
-<text x="276" y="28.4" font-size="1.4" text-anchor="end">the back brackets and screws match</text>
-<text x="243" y="113.62" font-size="1.2" text-anchor="middle">front lower member (2020), part shown</text>
-<text x="243" y="46.62" font-size="1.2" text-anchor="middle">front middle member (2020), part shown</text>
-<text x="243" y="33.62" font-size="1.2" text-anchor="middle">front top member (2020), part shown</text>
-<text x="283.2" y="112.2" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 283.2 112.2)">30</text>
+<text x="278.58" y="28.4" font-size="1.4" text-anchor="end">the back brackets and screws match</text>
+<text x="244.29" y="113.62" font-size="1.2" text-anchor="middle">front lower member (2020), part shown</text>
+<text x="244.29" y="46.62" font-size="1.2" text-anchor="middle">front middle member (2020), part shown</text>
+<text x="244.29" y="33.62" font-size="1.2" text-anchor="middle">front top member (2020), part shown</text>
+<text x="285.78" y="112.2" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 285.78 112.2)">30</text>
 <text x="210" y="121.79" font-size="1.2">Lower front and back panels: the post screws at z 30 pass the brackets; no bottom ring screw.</text>
 <text x="210" y="123.49" font-size="1.2">Upper panels unchanged. The gantry feet stand under the lower members, 8 in all.</text>
 <text x="289" y="28.4" font-size="2.2" font-weight="bold">C  Front mount bracket, 1:1</text>

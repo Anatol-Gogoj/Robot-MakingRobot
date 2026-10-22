@@ -30,113 +30,113 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 </style>
 <rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
 <rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
-<path d="M16 30 L107.4 30 L107.4 96 L16 96 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
-<rect x="20" y="34" width="83.4" height="58" fill="none" stroke="#000" stroke-width=".18" stroke-dasharray="1 .6"/>
+<path d="M16 30 L107.4 30 L107.4 98.58 L16 98.58 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
+<rect x="20" y="34" width="83.4" height="60.58" fill="none" stroke="#000" stroke-width=".18" stroke-dasharray="1 .6"/>
 <rect x="16" y="30" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
-<rect x="16" y="92" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
+<rect x="16" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <rect x="103.4" y="30" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
-<rect x="103.4" y="92" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
+<rect x="103.4" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <circle cx="18" cy="32" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="18" cy="94" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="18" cy="96.58" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="105.4" cy="32" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="105.4" cy="94" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="105.4" cy="96.58" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="28.34" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="45.02" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="61.7" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="78.38" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="95.06" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="28.34" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="45.02" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="61.7" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="78.38" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="95.06" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="18" cy="43.67" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="18" cy="63" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="18" cy="82.33" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="105.4" cy="43.67" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="105.4" cy="63" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="105.4" cy="82.33" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="28.34" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="45.02" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="61.7" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="78.38" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="95.06" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="18" cy="44.1" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="18" cy="64.29" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="18" cy="84.48" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="105.4" cy="44.1" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="105.4" cy="64.29" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="105.4" cy="84.48" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="82" cy="60" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<path class="sg" d="M16 96.5 L16 97.6"/>
-<path class="sg" d="M18 96.5 L18 97.6"/>
-<path class="sg" d="M28.34 96.5 L28.34 97.6"/>
-<path class="sg" d="M45.02 96.5 L45.02 97.6"/>
-<path class="sg" d="M61.7 96.5 L61.7 97.6"/>
-<path class="sg" d="M78.38 96.5 L78.38 97.6"/>
-<path class="sg" d="M82 96.5 L82 97.6"/>
-<path class="sg" d="M95.06 96.5 L95.06 97.6"/>
-<path class="sg" d="M105.4 96.5 L105.4 97.6"/>
-<path class="sg" d="M107.4 96.5 L107.4 97.6"/>
+<path class="sg" d="M16 99.08 L16 100.18"/>
+<path class="sg" d="M18 99.08 L18 100.18"/>
+<path class="sg" d="M28.34 99.08 L28.34 100.18"/>
+<path class="sg" d="M45.02 99.08 L45.02 100.18"/>
+<path class="sg" d="M61.7 99.08 L61.7 100.18"/>
+<path class="sg" d="M78.38 99.08 L78.38 100.18"/>
+<path class="sg" d="M82 99.08 L82 100.18"/>
+<path class="sg" d="M95.06 99.08 L95.06 100.18"/>
+<path class="sg" d="M105.4 99.08 L105.4 100.18"/>
+<path class="sg" d="M107.4 99.08 L107.4 100.18"/>
 <path class="sg" d="M14.4 30 L15.5 30"/>
 <path class="sg" d="M14.4 32 L15.5 32"/>
-<path class="sg" d="M14.4 43.66 L15.5 43.66"/>
+<path class="sg" d="M14.4 44.1 L15.5 44.1"/>
 <path class="sg" d="M14.4 60 L15.5 60"/>
-<path class="sg" d="M14.4 63 L15.5 63"/>
-<path class="sg" d="M14.4 82.34 L15.5 82.34"/>
-<path class="sg" d="M14.4 94 L15.5 94"/>
-<path class="sg" d="M14.4 96 L15.5 96"/>
-<path class="sg" d="M110 30 L110 96"/>
+<path class="sg" d="M14.4 64.28 L15.5 64.28"/>
+<path class="sg" d="M14.4 84.48 L15.5 84.48"/>
+<path class="sg" d="M14.4 96.58 L15.5 96.58"/>
+<path class="sg" d="M14.4 98.58 L15.5 98.58"/>
+<path class="sg" d="M110 30 L110 98.58"/>
 <path class="sg" d="M109.1 30 L110.9 30"/>
-<path class="sg" d="M109.1 96 L110.9 96"/>
-<path d="M130 30 L221.4 30 L221.4 96 L130 96 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
-<rect x="134" y="34" width="83.4" height="58" fill="none" stroke="#000" stroke-width=".18" stroke-dasharray="1 .6"/>
+<path class="sg" d="M109.1 98.58 L110.9 98.58"/>
+<path d="M130 30 L221.4 30 L221.4 98.58 L130 98.58 Z" style="fill:#EEEEEE" stroke="#000" stroke-width="0.3"/>
+<rect x="134" y="34" width="83.4" height="60.58" fill="none" stroke="#000" stroke-width=".18" stroke-dasharray="1 .6"/>
 <rect x="130" y="30" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
-<rect x="130" y="92" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
+<rect x="130" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <rect x="217.4" y="30" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
-<rect x="217.4" y="92" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
+<rect x="217.4" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <path d="M186.1 62.5 L186.1 64.3 A1.3 1.3 0 0 1 183.5 64.3 L183.5 62.5 A1.3 1.3 0 0 1 186.1 62.5 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M189.3 57.2 L198.7 57.2 A1.3 1.3 0 0 1 198.7 59.8 L189.3 59.8 A1.3 1.3 0 0 1 189.3 57.2 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M137.2 49.3 L137.2 49.9 A1.3 1.3 0 0 1 134.6 49.9 L134.6 49.3 A1.3 1.3 0 0 1 137.2 49.3 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M135.45 31.55 L137.35 31.55 A0.45 0.45 0 0 1 137.35 32.45 L135.45 32.45 A0.45 0.45 0 0 1 135.45 31.55 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
-<path d="M135.45 93.55 L137.35 93.55 A0.45 0.45 0 0 1 137.35 94.45 L135.45 94.45 A0.45 0.45 0 0 1 135.45 93.55 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
+<path d="M135.45 96.13 L137.35 96.13 A0.45 0.45 0 0 1 137.35 97.03 L135.45 97.03 A0.45 0.45 0 0 1 135.45 96.13 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M214.05 31.55 L215.95 31.55 A0.45 0.45 0 0 1 215.95 32.45 L214.05 32.45 A0.45 0.45 0 0 1 214.05 31.55 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
-<path d="M214.05 93.55 L215.95 93.55 A0.45 0.45 0 0 1 215.95 94.45 L214.05 94.45 A0.45 0.45 0 0 1 214.05 93.55 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
+<path d="M214.05 96.13 L215.95 96.13 A0.45 0.45 0 0 1 215.95 97.03 L214.05 97.03 A0.45 0.45 0 0 1 214.05 96.13 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M132.45 35.45 L132.45 37.35 A0.45 0.45 0 0 1 131.55 37.35 L131.55 35.45 A0.45 0.45 0 0 1 132.45 35.45 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M219.85 35.45 L219.85 37.35 A0.45 0.45 0 0 1 218.95 37.35 L218.95 35.45 A0.45 0.45 0 0 1 219.85 35.45 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
-<path d="M132.45 88.65 L132.45 90.55 A0.45 0.45 0 0 1 131.55 90.55 L131.55 88.65 A0.45 0.45 0 0 1 132.45 88.65 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
-<path d="M219.85 88.65 L219.85 90.55 A0.45 0.45 0 0 1 218.95 90.55 L218.95 88.65 A0.45 0.45 0 0 1 219.85 88.65 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
+<path d="M132.45 91.23 L132.45 93.13 A0.45 0.45 0 0 1 131.55 93.13 L131.55 91.23 A0.45 0.45 0 0 1 132.45 91.23 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
+<path d="M219.85 91.23 L219.85 93.13 A0.45 0.45 0 0 1 218.95 93.13 L218.95 91.23 A0.45 0.45 0 0 1 219.85 91.23 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <circle cx="132" cy="32" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="132" cy="94" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="132" cy="96.58" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="219.4" cy="32" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="219.4" cy="94" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="219.4" cy="96.58" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="142.34" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="159.02" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="175.7" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="192.38" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="209.06" cy="32" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="142.34" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="159.02" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="175.7" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="192.38" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="209.06" cy="94" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="132" cy="43.67" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="132" cy="63" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="132" cy="82.33" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="219.4" cy="43.67" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="219.4" cy="63" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<circle cx="219.4" cy="82.33" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="142.34" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="159.02" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="175.7" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="192.38" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="209.06" cy="96.58" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="132" cy="44.1" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="132" cy="64.29" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="132" cy="84.48" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="219.4" cy="44.1" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="219.4" cy="64.29" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
+<circle cx="219.4" cy="84.48" r="0.45" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <circle cx="215" cy="86" r="0.55" fill="#fff" stroke="#000" stroke-width="0.18"/>
-<path class="sg" d="M130 96.5 L130 97.6"/>
-<path class="sg" d="M132 96.5 L132 97.6"/>
-<path class="sg" d="M142.34 96.5 L142.34 97.6"/>
-<path class="sg" d="M159.02 96.5 L159.02 97.6"/>
-<path class="sg" d="M175.7 96.5 L175.7 97.6"/>
-<path class="sg" d="M192.38 96.5 L192.38 97.6"/>
-<path class="sg" d="M209.06 96.5 L209.06 97.6"/>
-<path class="sg" d="M215 96.5 L215 97.6"/>
-<path class="sg" d="M219.4 96.5 L219.4 97.6"/>
-<path class="sg" d="M221.4 96.5 L221.4 97.6"/>
+<path class="sg" d="M130 99.08 L130 100.18"/>
+<path class="sg" d="M132 99.08 L132 100.18"/>
+<path class="sg" d="M142.34 99.08 L142.34 100.18"/>
+<path class="sg" d="M159.02 99.08 L159.02 100.18"/>
+<path class="sg" d="M175.7 99.08 L175.7 100.18"/>
+<path class="sg" d="M192.38 99.08 L192.38 100.18"/>
+<path class="sg" d="M209.06 99.08 L209.06 100.18"/>
+<path class="sg" d="M215 99.08 L215 100.18"/>
+<path class="sg" d="M219.4 99.08 L219.4 100.18"/>
+<path class="sg" d="M221.4 99.08 L221.4 100.18"/>
 <path class="sg" d="M128.4 30 L129.5 30"/>
 <path class="sg" d="M128.4 32 L129.5 32"/>
-<path class="sg" d="M128.4 43.66 L129.5 43.66"/>
-<path class="sg" d="M128.4 63 L129.5 63"/>
-<path class="sg" d="M128.4 82.34 L129.5 82.34"/>
+<path class="sg" d="M128.4 44.1 L129.5 44.1"/>
+<path class="sg" d="M128.4 64.28 L129.5 64.28"/>
+<path class="sg" d="M128.4 84.48 L129.5 84.48"/>
 <path class="sg" d="M128.4 86 L129.5 86"/>
-<path class="sg" d="M128.4 94 L129.5 94"/>
-<path class="sg" d="M128.4 96 L129.5 96"/>
-<path class="sg" d="M224 30 L224 96"/>
+<path class="sg" d="M128.4 96.58 L129.5 96.58"/>
+<path class="sg" d="M128.4 98.58 L129.5 98.58"/>
+<path class="sg" d="M224 30 L224 98.58"/>
 <path class="sg" d="M223.1 30 L224.9 30"/>
-<path class="sg" d="M223.1 96 L224.9 96"/>
+<path class="sg" d="M223.1 98.58 L224.9 98.58"/>
 <rect x="18" y="188.56" width="91.4" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
 <rect x="18" y="171.36" width="4" height="17.2" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
 <rect x="18" y="137" width="4" height="30.04" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
@@ -181,43 +181,43 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sg" d="M18 195.08 L109.4 195.08"/>
 <path class="sg" d="M18 194.18 L18 195.98"/>
 <path class="sg" d="M109.4 194.18 L109.4 195.98"/>
-<rect x="140" y="188.56" width="66" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="140" y="188.56" width="68.58" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
 <rect x="140" y="171.36" width="4" height="17.2" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
 <rect x="140" y="137" width="4" height="30.04" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="202" y="171.36" width="4" height="17.2" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="202" y="137" width="4" height="30.04" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="144" y="184.56" width="58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
-<rect x="140" y="167.36" width="66" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
-<rect x="140" y="167.04" width="66" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
-<rect x="140" y="133" width="66" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="204.58" y="171.36" width="4" height="17.2" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="204.58" y="137" width="4" height="30.04" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="144" y="184.56" width="60.58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="140" y="167.36" width="68.58" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="140" y="167.04" width="68.58" height="0.32" fill="#555555" stroke="#000" stroke-width="0.1"/>
+<rect x="140" y="133" width="68.58" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
 <rect x="140" y="167.36" width="4" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
 <rect x="140" y="133" width="4" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
-<rect x="202" y="167.36" width="4" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
-<rect x="202" y="133" width="4" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
+<rect x="204.58" y="167.36" width="4" height="4" fill="#DDDDDD" stroke="#000" stroke-width="0.25"/>
+<rect x="204.58" y="133" width="4" height="4" fill="#BBCC33" stroke="#000" stroke-width="0.25"/>
 <path d="M144 184.56 L147.6 184.56 L144 180.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
 <path d="M144 171.36 L147.6 171.36 L144 174.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
 <path d="M144 167.04 L147.6 167.04 L144 163.44 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
-<path d="M202 184.56 L198.4 184.56 L202 180.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
-<path d="M202 171.36 L198.4 171.36 L202 174.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
-<path d="M202 167.04 L198.4 167.04 L202 163.44 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
+<path d="M204.58 184.56 L200.98 184.56 L204.58 180.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
+<path d="M204.58 171.36 L200.98 171.36 L204.58 174.96 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
+<path d="M204.58 167.04 L200.98 167.04 L204.58 163.44 Z" style="fill:#888888" stroke="#000" stroke-width="0.2"/>
 <rect x="141.5" y="163.76" width="1" height="10" fill="#444444" stroke="#000" stroke-width="0.1"/>
 <rect x="141.15" y="132" width="1.7" height="1" fill="#fff" stroke="#000" stroke-width="0.2"/>
 <path class="sg" d="M142 133 L142 140" stroke-dasharray="1 .6"/>
 <rect x="140" y="188.88" width="4" height="1.6" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <path class="sg" d="M142 190.48 L142 186.16" stroke-dasharray="1 .6"/>
-<rect x="203.5" y="163.76" width="1" height="10" fill="#444444" stroke="#000" stroke-width="0.1"/>
-<rect x="203.15" y="132" width="1.7" height="1" fill="#fff" stroke="#000" stroke-width="0.2"/>
-<path class="sg" d="M204 133 L204 140" stroke-dasharray="1 .6"/>
-<rect x="202" y="188.88" width="4" height="1.6" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
-<path class="sg" d="M204 190.48 L204 186.16" stroke-dasharray="1 .6"/>
+<rect x="206.08" y="163.76" width="1" height="10" fill="#444444" stroke="#000" stroke-width="0.1"/>
+<rect x="205.73" y="132" width="1.7" height="1" fill="#fff" stroke="#000" stroke-width="0.2"/>
+<path class="sg" d="M206.58 133 L206.58 140" stroke-dasharray="1 .6"/>
+<rect x="204.58" y="188.88" width="4" height="1.6" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
+<path class="sg" d="M206.58 190.48 L206.58 186.16" stroke-dasharray="1 .6"/>
 <path class="sg" d="M137.8 171.66 L136.8 171.66 L136.8 188.58 L137.8 188.58"/>
 <path class="sg" d="M137.8 133.3 L136.8 133.3 L136.8 171.06 L137.8 171.06"/>
-<path class="sg" d="M208.6 188.88 L208.6 133"/>
-<path class="sg" d="M207.7 188.88 L209.5 188.88"/>
-<path class="sg" d="M207.7 133 L209.5 133"/>
-<path class="sg" d="M140 195.08 L206 195.08"/>
+<path class="sg" d="M211.18 188.88 L211.18 133"/>
+<path class="sg" d="M210.28 188.88 L212.08 188.88"/>
+<path class="sg" d="M210.28 133 L212.08 133"/>
+<path class="sg" d="M140 195.08 L208.58 195.08"/>
 <path class="sg" d="M140 194.18 L140 195.98"/>
-<path class="sg" d="M206 194.18 L206 195.98"/>
+<path class="sg" d="M208.58 194.18 L208.58 195.98"/>
 <path d="M240 47 L254 47 L254 50.6 L249 50.6 L249 53 L254.4 59 L265.6 59 L271 53 L271 50.6 L266 50.6 L266 47 L280 47 L280 61 L276.4 61 L276.4 56 L274 56 L268 61.4 L268 72.6 L274 78 L276.4 78 L276.4 73 L280 73 L280 87 L266 87 L266 83.4 L271 83.4 L271 81 L265.6 75 L254.4 75 L249 81 L249 83.4 L254 83.4 L254 87 L240 87 L240 73 L243.6 73 L243.6 78 L246 78 L252 72.6 L252 61.4 L246 56 L243.6 56 L243.6 61 L240 61 Z" style="fill:#DDDDDD" stroke="#000" stroke-width="0.25"/>
 <circle cx="260" cy="67" r="4.2" fill="#fff" stroke="#000" stroke-width="0.18"/>
 <rect x="240" y="43.83" width="52" height="3.17" fill="#999999" stroke="#000" stroke-width="0.25"/>
@@ -259,74 +259,74 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="zl" d="M216 179.7 L291 179.7"/>
 <rect class="bx" x="288" y="186" width="60" height="21.5"/>
 <text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: frame and deck plates</text>
-<text x="8" y="15.4" font-size="2.1">2020 frame 457 x 330 x 279.4 mm (inside 18 x 13 x 11 in) in two modules, on two 1/16 in 5052 deck plates, with 1/8 in acrylic walls. Views 1:5, detail E 2:1, printed at 100 %. Millimetres.</text>
+<text x="8" y="15.4" font-size="2.1">2020 frame 457 x 342.9 x 279.4 mm (inside 18 x 13.5 x 11 in) in two modules, on two 1/16 in 5052 deck plates, with 1/8 in acrylic walls. Views 1:5, detail E 2:1, printed at 100 %. Millimetres.</text>
 <text x="16" y="28.4" font-size="2.2" font-weight="bold">A  Base plate, lower deck</text>
 <text x="107.4" y="28.4" font-size="1.4" text-anchor="end">deck_base_plate.dxf</text>
 <text x="80.8" y="60.45" font-size="1.2" text-anchor="end" font-weight="bold">PE</text>
-<text x="61.7" y="78.5" font-size="1.6" text-anchor="middle" font-weight="bold">5052-H32, 1/16 in: sheared and drilled</text>
-<text x="61.7" y="80.9" font-size="1.3" text-anchor="middle">seen from above, front on the left; the DXF (y up) shows it from below</text>
-<text x="61.7" y="82.7" font-size="1.3" text-anchor="middle">dashed: posts and bottom ring on the plate</text>
-<text x="16.39" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 16.39 97.9)">0</text>
-<text x="18.39" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 18.39 97.9)">10</text>
-<text x="28.73" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 28.73 97.9)">61.7</text>
-<text x="45.4" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 45.4 97.9)">145.1</text>
-<text x="62.09" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 62.09 97.9)">228.5</text>
-<text x="78.77" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 78.77 97.9)">311.9</text>
-<text x="82.39" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 82.39 97.9)">330</text>
-<text x="95.45" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 95.45 97.9)">395.3</text>
-<text x="105.79" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 105.79 97.9)">447</text>
-<text x="107.79" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 107.79 97.9)">457</text>
+<text x="61.7" y="80.43" font-size="1.6" text-anchor="middle" font-weight="bold">5052-H32, 1/16 in: sheared and drilled</text>
+<text x="61.7" y="82.83" font-size="1.3" text-anchor="middle">seen from above, front on the left; the DXF (y up) shows it from below</text>
+<text x="61.7" y="84.63" font-size="1.3" text-anchor="middle">dashed: posts and bottom ring on the plate</text>
+<text x="16.39" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 16.39 100.48)">0</text>
+<text x="18.39" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 18.39 100.48)">10</text>
+<text x="28.73" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 28.73 100.48)">61.7</text>
+<text x="45.4" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 45.4 100.48)">145.1</text>
+<text x="62.09" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 62.09 100.48)">228.5</text>
+<text x="78.77" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 78.77 100.48)">311.9</text>
+<text x="82.39" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 82.39 100.48)">330</text>
+<text x="95.45" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 95.45 100.48)">395.3</text>
+<text x="105.79" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 105.79 100.48)">447</text>
+<text x="107.79" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 107.79 100.48)">457</text>
 <text x="14.1" y="30.39" font-size="1.1" text-anchor="end">0</text>
 <text x="14.1" y="32.38" font-size="1.1" text-anchor="end">10</text>
-<text x="14.1" y="44.04" font-size="1.1" text-anchor="end">68.3</text>
+<text x="14.1" y="44.48" font-size="1.1" text-anchor="end">70.5</text>
 <text x="14.1" y="60.38" font-size="1.1" text-anchor="end">150</text>
-<text x="14.1" y="63.38" font-size="1.1" text-anchor="end">165</text>
-<text x="14.1" y="82.73" font-size="1.1" text-anchor="end">261.7</text>
-<text x="14.1" y="94.39" font-size="1.1" text-anchor="end">320</text>
-<text x="14.1" y="96.39" font-size="1.1" text-anchor="end">330</text>
-<text x="110.6" y="63" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 110.6 63)">330</text>
-<text x="16" y="104.2" font-size="1.3">4 x Ø5.5: M5 into the lower posts, with the feet</text>
-<text x="16" y="106.05" font-size="1.3">16 x Ø4.5: M4 x 6 into the bottom ring T-nuts, from below</text>
-<text x="16" y="107.9" font-size="1.3">Ø5.5 at (330, 150): PE stud, first screw of the lower ground bar</text>
-<text x="16" y="109.75" font-size="1.3">Drill through the acrylic template (sheet B's DXF plus this PE stud).</text>
-<text x="16" y="111.6" font-size="1.3">DIN rail and duct holes from the final layout: M4 x 12, nyloc nut below; the tails end 2.6 mm or more over the floor with the plate's sag (NutFits)</text>
-<text x="16" y="113.45" font-size="1.3">Ground bar screws, both plates: M5, plain nut below, tooth washer under the bar; the bar's foot + 8.5 to + 13.2 long (OpenScrews)</text>
+<text x="14.1" y="64.67" font-size="1.1" text-anchor="end">171.4</text>
+<text x="14.1" y="84.86" font-size="1.1" text-anchor="end">272.4</text>
+<text x="14.1" y="96.97" font-size="1.1" text-anchor="end">332.9</text>
+<text x="14.1" y="98.97" font-size="1.1" text-anchor="end">342.9</text>
+<text x="110.6" y="64.29" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 110.6 64.29)">342.9</text>
+<text x="16" y="106.78" font-size="1.3">4 x Ø5.5: M5 into the lower posts, with the feet</text>
+<text x="16" y="108.63" font-size="1.3">16 x Ø4.5: M4 x 6 into the bottom ring T-nuts, from below</text>
+<text x="16" y="110.48" font-size="1.3">Ø5.5 at (330, 150): PE stud, first screw of the lower ground bar</text>
+<text x="16" y="112.33" font-size="1.3">Drill through the acrylic template (sheet B's DXF plus this PE stud).</text>
+<text x="16" y="114.18" font-size="1.3">DIN rail and duct holes from the final layout: M4 x 12, nyloc nut below; the tails end 2.5 mm or more over the floor with the plate's sag (NutFits)</text>
+<text x="16" y="116.03" font-size="1.3">Ground bar screws, both plates: M5, plain nut below, tooth washer under the bar; the bar's foot + 8.5 to + 13.1 long (OpenScrews)</text>
 <text x="130" y="28.4" font-size="2.2" font-weight="bold">B  Upper plate</text>
 <text x="221.4" y="28.4" font-size="1.4" text-anchor="end">deck_upper_plate.dxf</text>
 <text x="184.8" y="60.6" font-size="1.3" text-anchor="middle" font-weight="bold">1</text>
 <text x="194" y="56.6" font-size="1.3" text-anchor="middle" font-weight="bold">2</text>
 <text x="135.9" y="47.4" font-size="1.3" text-anchor="middle" font-weight="bold">3</text>
 <text x="213.8" y="86.45" font-size="1.2" text-anchor="end" font-weight="bold">PE</text>
-<text x="175.7" y="78.5" font-size="1.6" text-anchor="middle" font-weight="bold">5052-H32, 1/16 in: sheared and drilled</text>
-<text x="175.7" y="80.9" font-size="1.3" text-anchor="middle">seen from above, front on the left; the DXF (y up) shows it from below</text>
-<text x="175.7" y="82.7" font-size="1.3" text-anchor="middle">dashed: upper posts on the plate, mid ring under it</text>
-<text x="130.38" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 130.38 97.9)">0</text>
-<text x="132.38" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 132.38 97.9)">10</text>
-<text x="142.72" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 142.72 97.9)">61.7</text>
-<text x="159.41" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 159.41 97.9)">145.1</text>
-<text x="176.08" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 176.08 97.9)">228.5</text>
-<text x="192.76" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 192.76 97.9)">311.9</text>
-<text x="209.44" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 209.44 97.9)">395.3</text>
-<text x="215.38" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 215.38 97.9)">425</text>
-<text x="219.78" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 219.78 97.9)">447</text>
-<text x="221.78" y="97.9" font-size="1.1" text-anchor="end" transform="rotate(-90 221.78 97.9)">457</text>
+<text x="175.7" y="80.43" font-size="1.6" text-anchor="middle" font-weight="bold">5052-H32, 1/16 in: sheared and drilled</text>
+<text x="175.7" y="82.83" font-size="1.3" text-anchor="middle">seen from above, front on the left; the DXF (y up) shows it from below</text>
+<text x="175.7" y="84.63" font-size="1.3" text-anchor="middle">dashed: upper posts on the plate, mid ring under it</text>
+<text x="130.38" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 130.38 100.48)">0</text>
+<text x="132.38" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 132.38 100.48)">10</text>
+<text x="142.72" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 142.72 100.48)">61.7</text>
+<text x="159.41" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 159.41 100.48)">145.1</text>
+<text x="176.08" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 176.08 100.48)">228.5</text>
+<text x="192.76" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 192.76 100.48)">311.9</text>
+<text x="209.44" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 209.44 100.48)">395.3</text>
+<text x="215.38" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 215.38 100.48)">425</text>
+<text x="219.78" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 219.78 100.48)">447</text>
+<text x="221.78" y="100.48" font-size="1.1" text-anchor="end" transform="rotate(-90 221.78 100.48)">457</text>
 <text x="128.1" y="30.39" font-size="1.1" text-anchor="end">0</text>
 <text x="128.1" y="32.38" font-size="1.1" text-anchor="end">10</text>
-<text x="128.1" y="44.04" font-size="1.1" text-anchor="end">68.3</text>
-<text x="128.1" y="63.38" font-size="1.1" text-anchor="end">165</text>
-<text x="128.1" y="82.73" font-size="1.1" text-anchor="end">261.7</text>
+<text x="128.1" y="44.48" font-size="1.1" text-anchor="end">70.5</text>
+<text x="128.1" y="64.67" font-size="1.1" text-anchor="end">171.4</text>
+<text x="128.1" y="84.86" font-size="1.1" text-anchor="end">272.4</text>
 <text x="128.1" y="86.39" font-size="1.1" text-anchor="end">280</text>
-<text x="128.1" y="94.39" font-size="1.1" text-anchor="end">320</text>
-<text x="128.1" y="96.39" font-size="1.1" text-anchor="end">330</text>
-<text x="224.6" y="63" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 224.6 63)">330</text>
-<text x="130" y="104.2" font-size="1.3">4 x Ø5.5: the locating studs. 16 x Ø4.5: M4 x 6 into the mid ring T-nuts</text>
-<text x="130" y="106.05" font-size="1.3">8 slots 4.5 wide, 25 to 39 from the edges: upper-post bracket screws, M4 x 10. PE stud at (425, 280)</text>
-<text x="130" y="107.9" font-size="1.3">Template: cut this DXF from 1/8 in acrylic; drill, then nibble the slots to it.</text>
-<text x="130" y="109.75" font-size="1.3">DIN rail and duct holes from the final layout: M4 x 12, nyloc below, 15 mm or more from each end</text>
-<text x="130" y="111.6" font-size="1.3">of the run; the tails end 20 mm or more over what stands below (HangGaps)</text>
-<text x="130" y="113.45" font-size="1.3">Shield clamp: M4 into a nyloc, the clamp's base + 8 to + 61.6 long; ground bar screws off the mid ring and its corner brackets (OpenScrews)</text>
-<text x="130" y="115.3" font-size="1.3">Cable slots, round ends, edge trim:  1: x 267.5-280.5, y 156-178;  2: x 290-350, y 136-149;  3: x 23-36, y 90-106</text>
-<text x="130" y="117.15" font-size="1.3">1: driver 24 V feeds, 0V-P returns.  2: SSR feeds and returns, servo 6 V.  3: X2, the E-stop latch, pin 43 sense.  None over the 110 VAC compartment (y 182 up).</text>
+<text x="128.1" y="96.97" font-size="1.1" text-anchor="end">332.9</text>
+<text x="128.1" y="98.97" font-size="1.1" text-anchor="end">342.9</text>
+<text x="224.6" y="64.29" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 224.6 64.29)">342.9</text>
+<text x="130" y="106.78" font-size="1.3">4 x Ø5.5: the locating studs. 16 x Ø4.5: M4 x 6 into the mid ring T-nuts</text>
+<text x="130" y="108.63" font-size="1.3">8 slots 4.5 wide, 25 to 39 from the edges: upper-post bracket screws, M4 x 10. PE stud at (425, 280)</text>
+<text x="130" y="110.48" font-size="1.3">Template: cut this DXF from 1/8 in acrylic; drill, then nibble the slots to it.</text>
+<text x="130" y="112.33" font-size="1.3">DIN rail and duct holes from the final layout: M4 x 12, nyloc below, 15 mm or more from each end</text>
+<text x="130" y="114.18" font-size="1.3">of the run; the tails end 13.1 mm or more over what stands below (HangGaps)</text>
+<text x="130" y="116.03" font-size="1.3">Shield clamp: M4 into a nyloc, the clamp's base + 8 to + 61.6 long; ground bar screws off the mid ring and its corner brackets (OpenScrews)</text>
+<text x="130" y="117.88" font-size="1.3">Cable slots, round ends, edge trim:  1: x 267.5-280.5, y 156-178;  2: x 290-350, y 136-149;  3: x 23-36, y 90-106</text>
+<text x="130" y="119.73" font-size="1.3">1: driver 24 V feeds, 0V-P returns.  2: SSR feeds and returns, servo 6 V.  3: X2, the E-stop latch, pin 43 sense.  None over the 110 VAC compartment (y 183.9 up).</text>
 <text x="18" y="131.4" font-size="2.2" font-weight="bold">C  Frame from the right side</text>
 <text x="109.4" y="131.4" font-size="1.4" text-anchor="end">studs dark, screws dashed</text>
 <text x="63.7" y="187" font-size="1.25" text-anchor="middle">bottom ring 417</text>
@@ -352,19 +352,19 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="112.4" y="133.45" font-size="1.15">279.4</text>
 <text x="63.7" y="194.58" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">457</text>
 <text x="140" y="131.4" font-size="2.2" font-weight="bold">D  Frame from the front</text>
-<text x="173" y="187" font-size="1.25" text-anchor="middle">bottom ring 290</text>
-<text x="173" y="169.81" font-size="1.25" text-anchor="middle">mid ring 290</text>
-<text x="173" y="135.45" font-size="1.25" text-anchor="middle">lid ring 290</text>
+<text x="174.29" y="187" font-size="1.25" text-anchor="middle">bottom ring 302.9</text>
+<text x="174.29" y="169.81" font-size="1.25" text-anchor="middle">mid ring 302.9</text>
+<text x="174.29" y="135.45" font-size="1.25" text-anchor="middle">lid ring 302.9</text>
 <text x="142.45" y="179.96" font-size="1.15" text-anchor="middle" transform="rotate(-90 142.45 179.96)">lower post 86</text>
 <text x="142.45" y="152.02" font-size="1.15" text-anchor="middle" transform="rotate(-90 142.45 152.02)">upper post 150.2</text>
-<text x="204.45" y="179.96" font-size="1.15" text-anchor="middle" transform="rotate(-90 204.45 179.96)">lower post 86</text>
-<text x="204.45" y="152.02" font-size="1.15" text-anchor="middle" transform="rotate(-90 204.45 152.02)">upper post 150.2</text>
+<text x="207.03" y="179.96" font-size="1.15" text-anchor="middle" transform="rotate(-90 207.03 179.96)">lower post 86</text>
+<text x="207.03" y="152.02" font-size="1.15" text-anchor="middle" transform="rotate(-90 207.03 152.02)">upper post 150.2</text>
 <text x="136.2" y="180.12" font-size="1.2" text-anchor="middle" font-weight="bold" transform="rotate(-90 136.2 180.12)">LOWER MODULE</text>
 <text x="136.2" y="152.18" font-size="1.2" text-anchor="middle" font-weight="bold" transform="rotate(-90 136.2 152.18)">UPPER MODULE</text>
-<text x="173" y="179.96" font-size="1.3" text-anchor="middle">lower bay</text>
-<text x="173" y="152.02" font-size="1.3" text-anchor="middle">upper bay</text>
-<text x="209.2" y="160.94" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 209.2 160.94)">279.4 (11 in)</text>
-<text x="173" y="194.58" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">330</text>
+<text x="174.29" y="179.96" font-size="1.3" text-anchor="middle">lower bay</text>
+<text x="174.29" y="152.02" font-size="1.3" text-anchor="middle">upper bay</text>
+<text x="211.78" y="160.94" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle" transform="rotate(-90 211.78 160.94)">279.4 (11 in)</text>
+<text x="174.29" y="194.58" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">342.9</text>
 <text x="240" y="31.4" font-size="2.2" font-weight="bold">E  Plate on a ring rail</text>
 <text x="292" y="31.4" font-size="1.4" text-anchor="end">2:1</text>
 <text x="260" y="88.9" font-size="1.35" stroke="#fff" stroke-width="0.61" paint-order="stroke" text-anchor="middle">6 opening</text>
@@ -420,7 +420,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="300" y="105.2" font-size="1.35">at 0.2 to 10 A (IEC 60204-1 18.2.2).</text>
 <text x="300" y="108" font-size="1.7" font-weight="bold">Stiffness</text>
 <text x="300" y="110.3" font-size="1.35">5 kg on a plate, simply supported on its ring</text>
-<text x="300" y="112.1" font-size="1.35">(Timoshenko Table 8): 0.9 mm for 1/16 in 5052.</text>
+<text x="300" y="112.1" font-size="1.35">(Timoshenko Table 8): 1.0 mm for 1/16 in 5052.</text>
 <text x="216" y="126" font-size="1.7" font-weight="bold">Cut list: 2020, 6 mm slot, from 1000 mm sticks</text>
 <text x="216.7" y="129.05" font-size="1.3" font-weight="bold">Part</text>
 <text x="243.7" y="129.05" font-size="1.3" font-weight="bold">Qty</text>
@@ -440,15 +440,15 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="261.7" y="135.8" font-size="1.3">between the lower posts</text>
 <text x="216.7" y="138.05" font-size="1.3">Ring rail, short</text>
 <text x="243.7" y="138.05" font-size="1.3">6</text>
-<text x="250.7" y="138.05" font-size="1.3">290</text>
+<text x="250.7" y="138.05" font-size="1.3">302.9</text>
 <text x="261.7" y="138.05" font-size="1.3">bottom, mid and lid ring</text>
 <text x="216.7" y="140.3" font-size="1.3">Mid and lid ring, long</text>
 <text x="243.7" y="140.3" font-size="1.3">4</text>
 <text x="250.7" y="140.3" font-size="1.3">457</text>
 <text x="261.7" y="140.3" font-size="1.3">drill Ø5.5 through, 10 from ends</text>
-<text x="216" y="142.9" font-size="1.25">5347 mm in 20 pieces from 6 sticks (kerf 3, one squaring cut each):</text>
+<text x="216" y="142.9" font-size="1.25">5424 mm in 20 pieces from 6 sticks (kerf 3, one squaring cut each):</text>
 <text x="216" y="144.65" font-size="1.25">1: 457 + 457; 2: 457 + 457; 3: 417 + 417 + 150.2;</text>
-<text x="216" y="146.4" font-size="1.25">4: 290 + 290 + 290 + 86; 5: 290 + 290 + 290 + 86; 6: 150.2 + 150.2 + 150.2 + 86 + 86.</text>
+<text x="216" y="146.4" font-size="1.25">4: 302.9 + 302.9 + 302.9; 5: 302.9 + 302.9 + 302.9; 6: 150.2 + 150.2 + 150.2 + 86 + 86 + 86 + 86.</text>
 <text x="216" y="148.15" font-size="1.25">Cut equal parts against one stop: the plates set the squareness.</text>
 <text x="216" y="152.3" font-size="1.7" font-weight="bold">Plates and panels</text>
 <text x="216.7" y="155.1" font-size="1.3" font-weight="bold">Part</text>
@@ -457,11 +457,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="271.7" y="155.1" font-size="1.3" font-weight="bold">Material</text>
 <text x="216.7" y="157.1" font-size="1.3">Base plate</text>
 <text x="241.7" y="157.1" font-size="1.3">aluminum 1</text>
-<text x="255.7" y="157.1" font-size="1.3">457 x 330</text>
+<text x="255.7" y="157.1" font-size="1.3">457 x 342.9</text>
 <text x="271.7" y="157.1" font-size="1.3">5052, 1/16 in</text>
 <text x="216.7" y="159.1" font-size="1.3">Upper plate</text>
 <text x="241.7" y="159.1" font-size="1.3">aluminum 2</text>
-<text x="255.7" y="159.1" font-size="1.3">457 x 330</text>
+<text x="255.7" y="159.1" font-size="1.3">457 x 342.9</text>
 <text x="271.7" y="159.1" font-size="1.3">5052, 1/16 in</text>
 <text x="216.7" y="161.1" font-size="1.3">Lower side, left</text>
 <text x="241.7" y="161.1" font-size="1.3">acrylic 1</text>
@@ -473,11 +473,11 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="271.7" y="163.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="165.1" font-size="1.3">Lower front</text>
 <text x="241.7" y="165.1" font-size="1.3">acrylic 1</text>
-<text x="255.7" y="165.1" font-size="1.3">330 x 87.6</text>
+<text x="255.7" y="165.1" font-size="1.3">342.9 x 87.6</text>
 <text x="271.7" y="165.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="167.1" font-size="1.3">Lower back</text>
 <text x="241.7" y="167.1" font-size="1.3">aluminum 1</text>
-<text x="255.7" y="167.1" font-size="1.3">330 x 87.6</text>
+<text x="255.7" y="167.1" font-size="1.3">342.9 x 87.6</text>
 <text x="271.7" y="167.1" font-size="1.3">5052, 1/16 in</text>
 <text x="216.7" y="169.1" font-size="1.3">Upper side, left</text>
 <text x="241.7" y="169.1" font-size="1.3">acrylic 2</text>
@@ -489,15 +489,15 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="271.7" y="171.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="173.1" font-size="1.3">Upper front</text>
 <text x="241.7" y="173.1" font-size="1.3">acrylic 3</text>
-<text x="255.7" y="173.1" font-size="1.3">330 x 191.8</text>
+<text x="255.7" y="173.1" font-size="1.3">342.9 x 191.8</text>
 <text x="271.7" y="173.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="175.1" font-size="1.3">Upper back</text>
 <text x="241.7" y="175.1" font-size="1.3">acrylic 3</text>
-<text x="255.7" y="175.1" font-size="1.3">330 x 191.8</text>
+<text x="255.7" y="175.1" font-size="1.3">342.9 x 191.8</text>
 <text x="271.7" y="175.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="177.1" font-size="1.3">Top, on the lid ring</text>
 <text x="241.7" y="177.1" font-size="1.3">acrylic 1</text>
-<text x="255.7" y="177.1" font-size="1.3">457 x 330</text>
+<text x="255.7" y="177.1" font-size="1.3">457 x 342.9</text>
 <text x="271.7" y="177.1" font-size="1.3">acrylic, 1/8 in</text>
 <text x="216.7" y="179.1" font-size="1.3">Grommet ring x 5</text>
 <text x="241.7" y="179.1" font-size="1.3">acrylic 2</text>
@@ -517,7 +517,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="216" y="199.85" font-size="1.2">the back panel template until then.</text>
 <text x="296" y="126" font-size="1.7" font-weight="bold">Assembly</text>
 <text x="296" y="128.6" font-size="1.3" font-weight="bold">1</text>
-<text x="298.6" y="128.6" font-size="1.3">Caliper a grommet and K2 before cutting:</text>
+<text x="298.6" y="128.6" font-size="1.3">Caliper a grommet before cutting:</text>
 <text x="298.6" y="130.4" font-size="1.3">the lower grommet's ring sets the lower posts (86). Measure</text>
 <text x="298.6" y="132.2" font-size="1.3">the first stick and a bracket leg, then rerun</text>
 <text x="298.6" y="134" font-size="1.3">ScrewFits().</text>
@@ -546,7 +546,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="298.6" y="168.9" font-size="1.3">the PE link; measure; panels last.</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Frame and deck plates</text>
 <text x="290" y="194.4" font-size="2">Sheet 4. Legal, landscape, 100 %.</text>
-<text x="290" y="197.15" font-size="2">Views 1:5, detail E 2:1. Redrawn 2026-10-19.</text>
+<text x="290" y="197.15" font-size="2">Views 1:5, detail E 2:1. Redrawn 2026-10-21.</text>
 <text x="290" y="199.9" font-size="2">Two modules. Design, not yet built.</text>
 <text x="290" y="202.65" font-size="2">DXFs: both deck plates, panel sheets, template.</text>
 </svg>
