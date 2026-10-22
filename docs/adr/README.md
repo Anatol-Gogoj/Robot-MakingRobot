@@ -26,6 +26,7 @@ ID | title | status | scope
 0016 | The Pi sits at the operator panel on a 5 V PSU in the box, and the Mega runs on the Pi's USB | Accepted (issue #164) | `tools/draw_wiring.py` sheets 1, 2A and 2B
 0017 | The lid is closed before the spin coater spins above 120 RPM, and homing and index searches may run with it open | Accepted (owner rule, issue #191) | both UIs: the Spin Coater block, Start Spin, the Syringe block, lid tracking
 0018 | The control box is 13.5 in wide, for the measured 24 V PSU (240 x 126 x 65) | Accepted (owner, issue #202) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 2A, 2B and 3 to 5, plate and panel DXFs, `bom_frame.csv`, `CAD/Control Box`
+0019 | Lab-grade power wiring now: copper on every power branch and trunk fuses F3 at the PSU, with an NFPA 79 version on record | Accepted (owner, issue #205) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 1, 2A to 2C and 3, `bom_frame.csv`, `CAD/Control Box`
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an

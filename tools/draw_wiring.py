@@ -375,14 +375,18 @@ def BuildSchematic():
     sh.Wire([(psuX0, yPE), (53.5, yPE)], "pe")
     Tag(sh, 53.5, yPE, "PE", "pe", side="left")
 
-    # V+ node and K2 poles
-    vpx = 96.0
-    sh.Wire([(psuX1, yL), (vpx, yL)], "va")
-    sh.Dot(vpx, yL, "va")
-    sh.Text(82, yL - 1.2, "12 AWG", size=1.6)
-    # FB1 bus
+    # V+ node, the trunk fuses F3 (issue #205) and the K2 poles
+    vpx, f3x = 96.0, 81.5
+    sh.Wire([(psuX1, yL), (f3x, yL)], "va")
+    sh.Dot(f3x, yL, "va")
+    FuseH(sh, f3x, vpx, yL, "va")
+    sh.Text((f3x + vpx) / 2, yL + 2.9, "F3-1 25 A", size=1.5, anchor="middle")
+    # FB1 bus, through F3-2
     fb1Y = 19.0
-    sh.Wire([(vpx, yL), (vpx, fb1Y), (238, fb1Y)], "va")
+    sh.Wire([(f3x, yL), (f3x, fb1Y)], "va")
+    FuseH(sh, f3x, vpx + 4.0, fb1Y, "va")
+    sh.Wire([(vpx + 4.0, fb1Y), (238, fb1Y)], "va")
+    sh.Text((f3x + vpx + 4.0) / 2, fb1Y - 1.6, "F3-2 10 A", size=1.5, anchor="middle")
     sh.Text(100, fb1Y - 1.0, "+24 V always on (while K1 is in), 12 AWG to FB1", size=1.7, fill=TolBlue)
     # K2 power poles in series
     sh.Wire([(vpx, yL), (vpx, 29.5)], "va")
@@ -605,7 +609,7 @@ def BuildSchematic():
     FuseV(sh, fx, fb2Y, 90.0, "ve")
     sh.Wire([(fx, 90.0), (fx, dTop)], "ve")
     sh.Text(fx + 1.5, 87.0, "F2-8", size=1.6)
-    sh.Text(fx + 1.5, 89.0, "10 A, 16 AWG", size=1.6)
+    sh.Text(fx + 1.5, 89.0, "10 A, 14 AWG", size=1.6)
     sh.Wire([(ox0 + 7, dTop), (ox0 + 7, zpY)], "zp")
     sh.Dot(ox0 + 7, zpY)
     for ox in (13.0, 16.0, 19.0):
@@ -895,7 +899,7 @@ def BuildSchematic():
     dn = ["Drive and wiring rules",
           "Every driver: PUL-, DIR- and ENA- jumpered at the driver (COM);",
           "one COM wire per driver to 0V-S. Driver top: +V, 0V, A+, A-, B+, B-.",
-          "F2-1 to F2-7: 5 A on 18 AWG. Motor shields to PE at the driver end only.",
+          "F2-1 to F2-8 on 14 AWG copper. Motor shields to PE at the driver end only.",
           "Mega pins are board labels (A0 = D54, A2 = D56, A8 = D62, A9 = D63).",
           "1 k pull-ups on pin 43 and GPIO 20: they read power contacts.",
           "Servo, lid and UV wires cross the hinge: stranded, service loop,",
@@ -906,7 +910,7 @@ def BuildSchematic():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: wiring schematic",
         "Sheet 1. Legal 14 x 8.5 in, landscape. Print at 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-19.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-22.",
         "Status: design, not yet wired or tested on the machine.",
         "Sheets 2A and 2B show the same circuits on the two decks.",
     ])
@@ -1405,6 +1409,9 @@ def LowerWiring(d):
     d.Part("K2", k2, ["K2", "BMC7-25U", "coil 24 V"], size=1.6)
     d.Face("K2", "y0", "duct", ["2", "4", "6", "8", "A2"])
     d.Face("K2", "y1", "top", ["1", "3", "5", "7", "A1"])
+    d.Part("F3", B["F3"], ["F3", "RT18-32", "3-pole"], size=1.4, dashed=True)
+    d.Face("F3", "y0", "duct", ["out1", "out2", "out3"], ["1", "2", "3"])
+    d.Face("F3", "y1", "top", ["in1", "in2", "in3"], ["1", "2", "3"])
     d.Part("Star S", B["Star S"], ["Star S", "uxcell"], size=1.35, rot=-90)
     d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP"], ["", "", ""])
     d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
@@ -1458,8 +1465,10 @@ def LowerWiring(d):
     W("pe", "PE.4a", "bar.1")
     W("pe", "Star S.PE", "bar.2")
     # 24 V, the E-stop contactor, the star and the 0 V buses
-    W("va", "PSU.V+a", "FB1.IN")
-    W("va", "PSU.V+b", "K2.1")
+    W("va", "PSU.V+a", "F3.in2")
+    W("va", "F3.out2", "FB1.IN")
+    W("va", "PSU.V+b", "F3.in1")
+    W("va", "F3.out1", "K2.1")
     W("va", "K2.2", "K2.3")
     W("ve", "K2.4", "FB2.IN")
     W("zp", "PSU.V-a", "Star S.IN")
@@ -1892,8 +1901,10 @@ def WireNotes(deck):
         "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and",
         "the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button",
         "are wired at the panel). The ODrive sits in the spin coater's base.",
-        "Gauges, copper only: mains, the PSU to FB1, K2 and S, K2 to FB2, S to 0V-P: 12 AWG. F2-1 to F2-7:",
-        "18 AWG; F2-8: 16 AWG; the F0 rung: 300 V insulation; everything else: 20 AWG.",
+        "Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to",
+        "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V",
+        "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. Everything else: the 20 AWG on hand,",
+        "copper-clad aluminum (about 3 A), only on fuses of 3 A or less.",
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
         "0 V meets PE only at star S, by its one wire to the lower ground bar.",
         "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
@@ -1901,8 +1912,9 @@ def WireNotes(deck):
     if deck == "lower":
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
-            "terminal finger-safe or covered (ADR-0013). Fuses: F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A,",
-            "F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T. The PSU's terminal order is assumed."]
+            "terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),",
+            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T.",
+            "The PSU's terminal order is assumed."]
     return common + [
         "Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper",
         "right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.",
@@ -1938,7 +1950,7 @@ def BuildDeckWiring(deck):
         "RMR control panel: %s deck wiring" % deck,
         "Sheet 2%s (2%s: %s deck). Legal 14 x 8.5 in, landscape, 100 %%." % (("A", "B", "upper") if lower else
                                                                             ("B", "A", "lower")),
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-10-22.",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
     ])
@@ -1963,6 +1975,8 @@ NameParts = [
         ("PSU", "24 V 1200 W supply, lying flat, fan to the right wall", "110 VAC area"),
         ("FB1", "12-way fuse module: +24 V always on", "fuse rail"),
         ("FB2", "12-way fuse module: +24 V cut by the E-stop (behind K2)", "fuse rail"),
+        ("F3", "3-pole fuse holder RT18-32, 10 x 38 mm: F3-1 25 A from PSU V+ to K2 (FB2), F3-2 10 A "
+               "to FB1, F3-3 spare", "24 V rail"),
         ("K2", "24 V contactor BMC7-25U: 1-2 and 3-4 in series feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 "
                "that motor power is on", "24 V rail"),
         ("star S", "the 0 V star at the PSU's -V; the only 0 V to PE bond", "24 V rail"),
@@ -2020,7 +2034,7 @@ NameAbbrev = [
     ("PE", "protective earth"), ("FG", "the PSU's frame ground (earth) terminal"),
     ("NC, NO", "normally closed, normally open contact"), ("SSR", "solid-state relay"),
     ("COM", "common"), ("PUL, DIR, ENA", "a TB6600's step, direction, enable inputs"),
-    ("F1-n, F2-n", "fuse n of FB1, of FB2"), ("0V-P, 0V-S", "0 V power, 0 V signal"),
+    ("F1-n, F2-n, F3-n", "fuse n of FB1, of FB2, of F3"), ("0V-P, 0V-S", "0 V power, 0 V signal"),
     ("GPIO", "a Pi input/output pin (BCM numbers)"), ("J11", "the ODrive's isolated UART connector"),
     ("RX2, TX2", "the Mega's Serial2 pins (17, 16)"), ("USLKG 5", "DIN ground terminal block"),
     ("UK 2.5 B", "DIN feed-through terminal block"), ("TS35", "35 mm top-hat DIN rail"),
@@ -2195,6 +2209,8 @@ def BuildNomenclature():
                 for i in range(12)]
         Row([(0.0, fb, 6.0), (7.0, ", ".join(uses), 77.0)])
     Row([(0.0, "F0", 6.0), (7.0, "1 A T, 5 x 20 mm: the K1 rung (S1, K1 coil, H1)", 77.0)])
+    Row([(0.0, "F3", 6.0), (7.0, "10 x 38 mm, DC rated: F3-1 25 A, PSU V+ to K2 (FB2); F3-2 10 A, PSU V+ to "
+                               "FB1; F3-3 spare", 77.0)])
     Break()
     Head("Cable entries and slots")
     for name, what in NameEntries:
@@ -2454,6 +2470,10 @@ PartSize = {
     "Stop": (8.0, 42.5, 42.0, False, "incl"),    # end clamp
     "F0": (18.0, 80.0, 60.0, False, "rail"),     # Dinkle DK4-TF(5x20) fuse holder, B0F1DQLG89 (issue
                                                  # #158); not measured, so this assumed size stays
+    "F3": (54.0, 82.0, 66.0, False, "rail"),     # BAOMAIN RT18-32(X) 3-pole fuse holder for 10 x 38 mm
+                                                 # fuses, B08XNZ4DG3 (issue #205): 18 a pole; no
+                                                 # drawing, so depth and height are assumed over the
+                                                 # 77-79 x 60-61 retailers give for one RT18-32 pole
     "Mega": (99.0, 53.0, 35.0, False, "clip"),   # A000067 board, lying along its rail on a DIN carrier
                                                  # with the screw shield; the 35 is assumed
     "PSU24": (240.0, 126.0, 65.0, True, "clip"),  # 24 V 1200 W, measured 240 x 126 x 65 (owner,
@@ -2766,7 +2786,8 @@ DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left ed
 # from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
 FieldRail0 = 40.0                  # front end of the field terminal rail
 LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
-R24Rail0 = 87.0                    # front end of the 24 V rail: K2, Star S, the 0V-P bars
+R24Rail0 = 32.0                    # front end of the 24 V rail: F3, K2, Star S, the 0V-P bars. F3
+                                   # (issue #205) clears cable slot 3 by 1 mm; the study had 87
 # The front face of the 24 V PSU, RingClear from the front ring. The study put it at 46.5 for a 215 mm
 # PSU; the measured one is 240 long, and with the 110 V rail at the back ring that leaves 16.5 mm for
 # the mains duct's channel, under the study's 18 (issue #202).
@@ -3874,7 +3895,8 @@ def UpperRails():
 
 def LowerRails():
     """{rail: DinRun()} on the lower deck, every rail along x: the fuse rail along the left wall,
-    the 24 V rail one channel behind it with the servo PSU one channel past its end, the 5 V PSU in
+    the 24 V rail one channel behind it, F3 at its front end, with the servo PSU one channel past its
+    end, the 5 V PSU in
     the same row against the back ring, past cable slot 2 and the base PE stud (the fuse rail, with FB1
     a 12-way, leaves no room for it at its end: issue #158), and the mains strip along the right wall:
     the 24 V PSU lying flat, then one channel behind it the 110 V rail, X0 at its back end by the
@@ -3884,7 +3906,8 @@ def LowerRails():
                    RailRun(x0 + 5.0, [("FB2", "FB2"), 6.0, ("FB1", "FB1")]), "RFB", ZoneFill["24"])
     yK = y0 + PartSize["FB2"][1] + Chan
     k2 = DinRun(True, yK + PartSize["K2"][1] / 2,
-                RailRun(R24Rail0 + 5.0, [("K2", "K2"), 6.0, ("Bar", "Star S"), 6.0, ("Bar", "0V-P"), 4.0,
+                RailRun(R24Rail0 + 5.0, [("F3", "F3"), 4.0, ("K2", "K2"), 6.0, ("Bar", "Star S"), 6.0,
+                                         ("Bar", "0V-P"), 4.0,
                                          ("Bar", "0V-P")]), "R24", ZoneFill["24"])
     mains = [("PETerm", "PE", PeBarTerms), 4.0, ("Term", "X1", 3), 4.0, ("K1", "K1"), 4.0, ("F0", "F0"), 4.0,
              ("Term", "X0", 5)]
@@ -4436,8 +4459,8 @@ def BuildPacking():
             "53; SSR 6.1 x 88 x 71 (41F-1Z socket);",
             "UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x",
             "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067).",
-            "Assumed (dashed): F0, end clamps, PE blocks,",
-            "shield clamp, Mega height. Heights add the rail."]),
+            "Assumed (dashed): F0, F3, PE blocks, end and",
+            "shield clamps, Mega height. Heights add the rail."]),
         ("Layout 3b (ADR-0010)", [
             "From the CP-SAT packing study: %s" % "{:,}".format(wireDrawn),
             "conductor-mm as drawn (%s at the study's" % "{:,}".format(wireStudy),
@@ -4460,7 +4483,8 @@ def BuildPacking():
         "Packing study",
         "Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.",
         "Layout 3b (ADR-0010), 2026-10-17; 13.5 in wide",
-        "for the measured PSU (ADR-0018), 2026-10-21.",
+        "for the measured PSU (ADR-0018), 2026-10-21;",
+        "F3 on the 24 V rail (issue #205), 2026-10-22.",
         "Frame and plates: sheet 4. Measure dashed sizes.",
     ])
     return sh
@@ -5109,8 +5133,8 @@ GantryFeet = 8                     # the owner's estimate for the gantry (2026-1
 # mains (white is the neutral); red and blue keep the 24 V pair apart from the black line conductor.
 Thhn12 = [("black", "B0G13JNC44", 18.99, "mains L from the inlet through K1 to the PSU"),
           ("white", "B0G13KR5LS", 16.99, "mains N, the same path"),
-          ("red", "B0G13QR6XF", 16.99, "+24 V: PSU V+ to K2 and FB1, K2 to FB2"),
-          ("blue", "B0G13KQKBG", 18.99, "0 V power: PSU V- to Star S, Star S to the 0V-P bars")]
+          ("red", "B0G13QR6XF", 16.99, "+24 V: PSU V+ to F3, F3 to K2 and FB1, K2 to FB2"),
+          ("blue", "B0G13KQKBG", 18.99, "0 V power: PSU V- to Star S, Star S to the 0V-P bars, the 0V-P link")]
 # Copper and aluminum resistivity at 20 C, ohm m: CCA conducts like a copper wire of area A x ratio.
 RhoCu, RhoAl = 1.68e-8, 2.65e-8
 # Cutting the 2020 sticks in house (issue #145): a 10 in miter saw whose maker lists aluminum, a blade
@@ -5120,6 +5144,7 @@ RhoCu, RhoAl = 1.68e-8, 2.65e-8
 # read on ToolDate, as were the M4 packs added with them, the socket head packs that replaced the
 # button heads (issue #149) and the gantry PE wire.
 ToolDate = "2026-10-18"
+WireDate = "2026-10-22"            # prices of the 14 and 18 AWG copper and the F3 lines (issue #205)
 SawRpm, SawMaxKerf = 5000.0, 7 / 64 * 25.4    # C10FCG2: no-load speed; the widest kerf it takes
 BladeMaxRpm, BladeKerf = 6000.0, 0.091 * 25.4  # D10100N: 10 in, 100 TCG teeth, 5/8 in arbor
 SquareErr, SquareL = 0.015, 100.0              # Kinex 4034-12-010, DIN 875/1: 15 um over its 100 mm blade
@@ -5187,6 +5212,7 @@ def BomRows():
             clips[s["key"]] = clips.get(s["key"], 0) + 1
     endDeg, sqDeg = CutToolChecks()
     read = "Price read %s" % ToolDate
+    wread = "Price read %s" % WireDate
     peBlocks = len(dinRails) - 1 + PeBarTerms   # one per rail; the 110 V rail's is one of its PE bar's
     feet = len(PostCentres) + GantryFeet
     bendAl, railI = DinRailBend(EAluminum)
@@ -5359,6 +5385,38 @@ def BomRows():
          "T1AH250V ceramic cartridge fuses, 5 x 20 mm, 5 pcs", 1, "pack of 5", 1, 10.99, "F0 (1 A T)",
          "High breaking capacity (H) on the mains side. The blade fuses on hand are 32 V automotive parts. "
          + read),
+        ("Power wiring", Amz, Buy, "14 AWG stranded THHN, red, 50 ft", "B0G13N5WGX",
+         "YDDECW THHN/THWN-2 14 AWG stranded copper, 600 V, 90 C, UL 83, nylon over PVC, 50 ft, red",
+         "the 14 AWG runs of sheet 2", "50 ft roll", 1, 19.99,
+         "+ of F2-1 to F2-8 (drivers, ODrive), the servo 6 V and the Pi 5 V",
+         "Copper (issue #205): the 20 AWG on hand is copper-clad aluminum and conducts like 22 AWG copper, 3 A "
+         "(NFPA 79 Table 12.5.1), under these 5 and 10 A fuses. If a 2.5 mm2 ferrule does not fit the TB6600 "
+         "and SSR terminals, buy 16 AWG. About 32 ft needed, 42 for the NFPA 79 version (ADR-0019). " + wread),
+        ("Power wiring", Amz, Buy, "14 AWG stranded THHN, blue, 50 ft", "B0FPX7D8BQ",
+         "Kimbluth THHN 14 AWG stranded copper, 600 V, nylon over PVC, 50 ft, blue",
+         "the 14 AWG runs of sheet 2", "50 ft roll", 1, 23.99, "0 V returns of the same runs",
+         "About 28 ft needed, 37 for the NFPA 79 version. " + wread),
+        ("Power wiring", Amz, Buy, "18 AWG UL 1015 hookup wire, 600 V, black, 25 ft", "B0DWT4LT96",
+         "MECCANIXITY UL 1015 18 AWG stranded tinned copper, PVC, 600 V, 105 C, 25 ft, black", 1, "25 ft roll",
+         1, 9.99, "the F0 rung in the box, L side: X0 to F0, F0 to X1 1, X1 2 to K1 A1",
+         "The 20 AWG on hand is automotive wire whose listing rules out 110/220 VAC. " + wread),
+        ("Power wiring", Amz, Buy, "18 AWG UL 1015 hookup wire, 600 V, white, 25 ft", "B0DWT4SMSK",
+         "MECCANIXITY UL 1015 18 AWG stranded tinned copper, PVC, 600 V, 105 C, 25 ft, white", 1, "25 ft roll",
+         1, 9.99, "the F0 rung in the box, N side: X0 to X1 3 and to K1 A2", wread),
+        ("Power wiring", Amz, Buy, "DIN fuse holder 10 x 38 mm, 3-pole", "B08XNZ4DG3",
+         "BAOMAIN RT18-32(X) 3-pole DIN rail fuse holder for 10 x 38 mm fuses, 600 V AC 30 A, UL Recognized "
+         "(E495065), 18 to 8 AWG, copper wire only, blown-fuse LEDs", 1, "each", 1, 10.99,
+         "F3, the trunk fuses on the 24 V rail: F3-1 to K2 (FB2), F3-2 to FB1, F3-3 spare",
+         "The owner's pick, for its reviews (2026-10-22). The 1200 W PSU can drive more than the FB modules' 30 A "
+         "input and 12 AWG's 25 A, so each trunk has its own fuse (NFPA 79 7.2.1.1). AC ratings only: at 24 V "
+         "the DC-rated fuses interrupt, and the LEDs may not light. Not measured: F3 is dashed on sheet 3. "
+         + wread),
+        ("Power wiring", Amz, Buy, "Fuse 10 x 38 mm, 25 A, 1000 V DC, 2-pack", "B0B9M66FCC",
+         "ZOOKOTO 10 x 38 mm 1000 V DC photovoltaic fuses, 25 A, 2 pcs", 1, "pack of 2", 1, 9.99,
+         "F3-1, the FB2 trunk; one spare", "25 A: 12 AWG at 75 C, under the FB module's 30 A input. " + wread),
+        ("Power wiring", Amz, Buy, "Fuse 10 x 38 mm, 10 A, 1000 V DC gPV, 10-pack", "B0B7MX355G",
+         "Heschen HSPV-30 10 x 38 mm gPV fuses, 10 A, 1000 V DC, 33 kA, 10 pcs", 1, "pack of 10", 1, 13.49,
+         "F3-2, the FB1 trunk; spares", "FB1's three loads are fused at 3 A each. " + wread),
         ("Power wiring", Amz, Buy, "Cord 18/4 SJOOW, 300 V, 25 ft", "B0BKPRWN4N",
          "GEARit 18 AWG 4-conductor SJOOW portable cord, 300 V, stranded copper, 25 ft", 1, "25 ft", 1, 24.30,
          "the 110 V door cable: X1 1 to 3 and the plate PE, out through the M20 gland",
@@ -5436,7 +5494,7 @@ def BomRows():
         ("Not in this BoM", "ordered 2026-09-14", NotBought, "Electrical parts", "-",
          "K1 and K2, two 12-way fuse modules (FB1, FB2), two terminal kits with 8 USLKG 2.5 ground blocks, five "
          "uxcell 1-in 9-out blocks (Star S and 0V-P use 3), SSRs, buttons, E-stop, tower with buzzer, 20 AWG "
-         "wire, ferrules and crimper", "", "-", 0, None, "", ""),
+         "copper-clad aluminum wire (below), ferrules and crimper", "", "-", 0, None, "", ""),
         ("Not in this BoM", "on hand", NotBought, "Aluminum DIN rails, 18 in, slotted", "B0BFFSMBC7",
          "International Connector T&G 35 x 7.5 mm slotted aluminum, %d on hand (ordered 2026-09-14)"
          % DinRailsOnHand, len(dinCuts), "each", 0, None,
@@ -5453,6 +5511,11 @@ def BomRows():
          "nothing in the box",
          "Aluminum's resistivity is %.2f times copper's, so 12 AWG CCA conducts like %.1f mm2 of copper, about "
          "14 AWG; the 12 AWG power runs use the copper THHN above" % (RhoAl / RhoCu, ccaMm2)),
+        ("Not in this BoM", "on hand", NotBought, "20 AWG copper-clad aluminum hookup wire", "-",
+         "Iron Forge Cable 20 AWG automotive primary wire, 10 x 100 ft, copper-clad aluminum, PVC, 105 C "
+         "(ordered 2026-09-14)", "", "-", 0, None, "signals, and loads fused at 3 A or less",
+         "It conducts like 22 AWG copper (3 A, NFPA 79 Table 12.5.1) and its listing rules out 110/220 VAC: "
+         "never on F2-1 to F2-8, the servo 6 V or Pi 5 V pairs, the PSU trunks or the F0 rung (issue #205)"),
         ("Not in this BoM", "not chosen", NotBought, "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]
@@ -5500,9 +5563,9 @@ def BomCsv():
           "priced at $146 against $75 for the sticks (+$71)")
     Total("Total, all priced lines", sum(bySrc.values()),
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
-          "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s), McMaster on "
-          "2026-10-15 (the acrylic on 2026-10-18); shipping and tax extra"
-          % (BomDate, ToolDate))
+          "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
+          "wire and fuse lines on %s), McMaster on 2026-10-15 (the acrylic on 2026-10-18); shipping and tax extra"
+          % (BomDate, ToolDate, WireDate))
     return out.getvalue()
 
 
