@@ -123,7 +123,7 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <rect class="symf" x="213.86" y="76.01" width="0.6" height="0.6"/>
 <rect class="symf" x="221.36" y="76.01" width="0.6" height="0.6"/>
 <rect class="symf" x="228.86" y="76.01" width="0.6" height="0.6"/>
-<rect x="31.34" y="125.49" width="120.97" height="56.25" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
+<rect x="31.34" y="125.49" width="120.97" height="56.25" fill="#fff" stroke="#000" stroke-width=".25"/>
 <rect class="symf" x="151.71" y="134.02" width="0.6" height="0.6"/>
 <rect class="symf" x="151.71" y="140.45" width="0.6" height="0.6"/>
 <rect class="symf" x="151.71" y="146.88" width="0.6" height="0.6"/>

@@ -1420,7 +1420,7 @@ def LowerWiring(d):
     d.Part("5 V PSU", B["5 V PSU"], ["5 V PSU", "feeds the Pi", "at the panel"], size=1.5, at=(0.5, 0.6))
     d.Face("5 V PSU", "y0", "duct", ["IN+", "IN-", "OUT+", "OUT-"], ["+24", "0V", "+5V", "0V"])
     d.Part("PSU", B["24 V PSU"], ["24 V PSU 1200 W, lying flat", "terminals toward the mains duct,",
-                                  "fan toward the right wall"], size=1.7, dashed=True)
+                                  "fan toward the right wall"], size=1.7, dashed=not PartSize["PSU24"][3])
     d.Face("PSU", "x1", "mains duct", ["V+a", "V+b", "V-a", "V-b", "FG", "N", "L"],
            ["+V", "+V", "-V", "-V", "FG", "N", "L"])
     d.Part("K1", k1, ["K1", "HC1-63", "coil 110 VAC"], size=1.5)
@@ -4342,7 +4342,8 @@ def BuildPacking():
     mainsDuct = [s["box"] for s in solids if s["kind"] == "duct" and s["mains"]][0]
     clamp = ClampBox()
     Tag(sd, Mid(lower["24 V PSU"]), LoDeck + 42, ["24 V PSU, flat", "fan face this side"])
-    Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 71.6, ["K2 behind"], size=1.0)
+    if MountedH("K2") > MountedH("PSU24"):    # the measured PSU stands taller and hides K2 (issue #202)
+        Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 71.6, ["K2 behind"], size=1.0)
     Tag(sd, (mainsDuct[0] + mainsDuct[2]) / 2, LoDeck + 12.7, ["mains"], size=1.0, rot=-90)
     for label, z in (("PE", 30), ("X1", 30), ("K1", 60), ("F0", 55), ("X0", 30)):
         Tag(sd, Mid(lower["110 V"], label), LoDeck + z, [label])

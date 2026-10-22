@@ -460,7 +460,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="280.57" y="126.4" font-size="1.4" text-anchor="end">right rails left off; nearer parts hide farther ones</text>
 <text x="190.86" y="195.11" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">24 V PSU, flat</text>
 <text x="190.86" y="196.41" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">fan face this side</text>
-<text x="181.44" y="187.27" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle">K2 behind</text>
 <text x="227.85" y="203.75" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="middle" transform="rotate(-90 227.85 203.75)">mains</text>
 <text x="234.83" y="199.19" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">PE</text>
 <text x="242.17" y="199.19" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">X1</text>
