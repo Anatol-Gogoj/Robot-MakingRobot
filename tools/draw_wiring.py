@@ -4,6 +4,7 @@ Sheet 1: wiring schematic (every circuit on one page).
 Sheets 2A and 2B: the same circuits on the lower and upper decks of the box, every part where sheet 3
 puts it and every wire routed through the ducts and channels from terminal to terminal. Sheet 2C: what
 each name means, and the terminal plan read from the same wire lists. Sheet 2D: the operator panel.
+Sheet 2E: the color of every terminal block, from the same wire lists.
 Sheet 3: packing study, two decks in a 2020 frame.
 Sheet 4: the frame and its two deck plates; the plates, and the side and top panels on their nest
 sheets, are also written as DXF for laser cutting.
@@ -2094,6 +2095,12 @@ def NameEnd(name):
     return "%s %s" % (key, term)
 
 
+# The terminal blocks of sheets 2A and 2B, in the order sheets 2C and 2E list them.
+TerminalBlocks = [("upper", "X2"), ("upper", "X4"), ("upper", "X5"), ("upper", "X6"), ("upper", "X7"),
+                  ("upper", "X8"), ("upper", "0V-S"), ("upper", "0V-S2"), ("lower", "X0"), ("lower", "X1"),
+                  ("lower", "PE")]
+
+
 def TerminalPlan(d):
     """{(part, terminal): [(where the other end goes, by)]} for one deck; by is the slot or the
     grommet a wire passes, or ''. A wire to a slot is followed to its end on the other deck."""
@@ -2174,9 +2181,7 @@ def BuildNomenclature():
     Head("Terminal plan", keep=12)
     Row([(0.0, "No.", 5.0), (5.0, "label", 7.0), (12.5, "in the box (by)", 38.0), (52.0, "field side (by)", 32.0)],
         fill="#555")
-    blocks = [("upper", "X2"), ("upper", "X4"), ("upper", "X5"), ("upper", "X6"), ("upper", "X7"), ("upper", "X8"),
-              ("upper", "0V-S"), ("upper", "0V-S2"), ("lower", "X0"), ("lower", "X1"), ("lower", "PE")]
-    for deck, key in blocks:
+    for deck, key in TerminalBlocks:
         d = lo if deck == "lower" else up
         labels, bridges = d.Labels[key]
         Head("%s  (%s deck)" % (key, deck), keep=len(labels) + 2)
@@ -2397,6 +2402,231 @@ def BuildOperatorPanel():
         "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
         "Status: concept; housing and sizes not designed yet.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
+    ])
+    return sh
+
+
+# ---- sheet 2E: terminal block colors
+
+# The terminal blocks come from the two GUETNEU kits of the 2026-09-14 order (B0GYRMR3W9): 60 blocks each
+# in six colors, the split not listed, and no white. The PE blocks are the green-yellow grounding blocks
+# (USLKG 5, BomRows), which bond to their rail. A block takes the color of the wire class that lands on
+# it, so the colors follow the terminal plan. Two exceptions: the mains neutral is grey, for want of white
+# blocks, and the +6 V servo supply is yellow (its wire is red), so that it is never taken for +24 V. The
+# kits' plain green blocks look like PE and do not bond to the rail, so no block is green.
+KitColors = ("red", "yellow", "blue", "black", "green", "grey")
+BlockColorOf = {"ac": "black", "va": "red", "ve": "red", "lv": "yellow", "zp": "blue", "zs": "blue",
+                "zl": "blue", "sg": "grey", "pe": "green-yellow"}
+BlockRole = {"ac": "110 VAC line", "N": "110 VAC neutral", "va": "+24 V always on (FB1)",
+             "ve": "+24 V behind K2 (FB2)", "lv": "+6 V servo, +5 V Pi", "zp": "0 V power (0V-P)",
+             "zs": "0V-S signal 0 V", "zl": "0 V of the servo and Pi supplies", "sg": "signal",
+             "pe": "PE", "": "spare"}
+BlockFill = {"black": "#222222", "grey": TolGrey, "red": TolRed, "blue": TolBlue, "yellow": "#EECC66",
+             "green-yellow": "url(#tbGreenYellow)"}
+BlockDefs = ('<defs><pattern id="tbGreenYellow" width="2" height="2" patternUnits="userSpaceOnUse" '
+             'patternTransform="rotate(45)"><rect width="2" height="2" fill="#228833"/>'
+             '<rect width="1" height="2" fill="#CCBB44"/></pattern></defs>')
+
+
+def TerminalColors(lo, up):
+    """{(deck, block, n): (color, role)} for every terminal of TerminalBlocks, from the classes of the wires
+    that land on it in sheets 2A and 2B. A wire class carries its color across a terminal's two sides and
+    through block bridges; a terminal on the net of a block terminal labelled N is the mains neutral.
+    Raises if a terminal's wires ask for two colors, a class has no block color, or a color is not in the
+    kits."""
+    out = {}
+    for deck, d in (("lower", lo), ("upper", up)):
+        cls, parent = {}, {}
+
+        def Find(e):
+            while parent.get(e, e) != e:
+                e = parent[e]
+            return e
+
+        def Union(a, b):
+            parent[Find(a)] = Find(b)
+
+        def Real(e):
+            return "." in e and "#" not in e     # a terminal, not a slot, grommet or cable end
+        for w in d.Wires:
+            for e in (w["a"], w["b"]):
+                cls.setdefault(e, set()).add(w["cls"])
+            if Real(w["a"]) and Real(w["b"]):
+                Union(w["a"], w["b"])
+        keys = [k for dk, k in TerminalBlocks if dk == deck]
+        for key in keys:
+            labels, bridges = d.Labels[key]
+            for n in range(1, len(labels) + 1):
+                Union("%s.%da" % (key, n), "%s.%db" % (key, n))
+            for i, j in bridges:
+                Union("%s.%da" % (key, i + 1), "%s.%da" % (key, j + 1))
+        neutral = {Find("%s.%da" % (k, n + 1)) for k in keys for n, lab in enumerate(d.Labels[k][0])
+                   if lab == "N"}
+        for key in keys:
+            for n in range(1, len(d.Labels[key][0]) + 1):
+                ends = ("%s.%da" % (key, n), "%s.%db" % (key, n))
+                classes = set().union(*(cls.get(e, set()) for e in ends))
+                missing = classes - set(BlockColorOf)
+                if missing:
+                    raise ValueError("terminal %s %d: no block color for wire class %s"
+                                     % (key, n, ", ".join(sorted(missing))))
+                isN = Find(ends[0]) in neutral and classes == {"ac"}
+                colors = {"grey" if isN else BlockColorOf[c] for c in classes} or {"grey"}
+                if len(colors) > 1:
+                    raise ValueError("terminal %s %d: its wires (%s) ask for blocks of %s"
+                                     % (key, n, ", ".join(sorted(classes)), " and ".join(sorted(colors))))
+                color = colors.pop()
+                if color != "green-yellow" and color not in KitColors or color == "green":
+                    raise ValueError("terminal %s %d: no %s block in the kits" % (key, n, color))
+                role = BlockRole["N"] if isN else ", ".join(BlockRole[c] for c in sorted(classes)) or BlockRole[""]
+                out[(deck, key, n)] = (color, role)
+    return out
+
+
+def PeBlocksNeeded():
+    """Green-yellow grounding blocks: one per DIN rail (the 110 V rail's is one of its PE bar's), the rest
+    of the PE bar, and X0's PE terminal."""
+    return len([s for s in DeckSolids() if s["kind"] == "rail"]) - 1 + PeBarTerms + 1
+
+
+def BlockChip(sh, x, y, color, w=3.0, h=2.2):
+    sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width=".2"/>'
+           % (Fmt(x), Fmt(y), Fmt(w), Fmt(h), BlockFill[color]))
+
+
+def RailStrip(sh, rail, d, deck, colors, x0, y, title):
+    """One DIN rail at 1:1 along its length from x0: its terminal blocks in their colors with the label
+    above and the number below each, end clamps grey, end covers white, other parts dashed."""
+    a0 = rail["a0"]
+    H = 10.0
+    sh.Text(x0, y - 8.6, "%s: %s mm" % (title, Mm(rail["a1"] - a0)), size=2.2, weight="bold")
+    sh.Rect(x0, y + 3.0, rail["a1"] - a0, 4.0, "rail")
+    for key, label, b0, b1 in rail["run"]:
+        x = x0 + b0 - a0
+        if key in ("Term", "PETerm"):
+            w = PartSize[key][0]
+            labels = d.Labels[label][0]
+            for i, lab in enumerate(labels):
+                BlockChip(sh, x + i * w, y, colors[(deck, label, i + 1)][0], w, H)
+                sh.Text(x + (i + 0.5) * w, y - 0.9, lab, size=1.35, anchor="middle")
+                sh.Text(x + (i + 0.5) * w, y + H + 2.3, str(i + 1), size=1.35, anchor="middle", fill="#444444")
+            sh.Wire([(x + 0.3, y - 3.2), (x + 0.3, y - 3.7), (b1 - a0 + x0 - 0.3, y - 3.7),
+                     (b1 - a0 + x0 - 0.3, y - 3.2)], "sym")
+            sh.Text((x + x0 + b1 - a0) / 2, y - 4.6, label, size=2.0, anchor="middle", weight="bold")
+        elif key == "Cover":
+            sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="#fff" stroke="#000" stroke-width=".2"/>'
+                   % (Fmt(x), Fmt(y - 0.6), Fmt(b1 - b0), Fmt(H + 1.2)))
+        elif key == "Stop":
+            sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="#888888" stroke="#000" stroke-width=".2"/>'
+                   % (Fmt(x), Fmt(y + 1.5), Fmt(b1 - b0), Fmt(H - 3.0)))
+        else:
+            sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="#fff" stroke="#000" stroke-width=".2" '
+                   'stroke-dasharray="1 .6"/>' % (Fmt(x), Fmt(y), Fmt(b1 - b0), Fmt(H)))
+            sh.Text(x + (b1 - b0) / 2, y + H / 2 + 0.6, label or key, size=1.6, anchor="middle", fill="#444444")
+
+
+def BlockRanges(colors, deck, key, n):
+    """[(first, last, color, role)]: the terminals of one block in runs of the same color and role."""
+    out = []
+    for i in range(1, n + 1):
+        c, r = colors[(deck, key, i)]
+        if out and out[-1][2:] == (c, r):
+            out[-1] = (out[-1][0], i, c, r)
+        else:
+            out.append((i, i, c, r))
+    return out
+
+
+def BuildTerminalColors():
+    """Sheet 2E: the color of every terminal block, from the terminal plan, each terminal rail at 1:1."""
+    sh = Sheet("RMR control panel terminal block colors")
+    DrawFrame(sh, "RMR control panel: terminal block colors",
+              "Sheet 2E: the color of every terminal block, read from the wire lists that draw sheets 2A and 2B, "
+              "so it follows the terminal plan. Each rail at 1:1 along its length, front of the box at the left.")
+    sh.Add(BlockDefs)
+    lo, up = DeckSheet("lower")[1], DeckSheet("upper")[1]
+    colors = TerminalColors(lo, up)
+    rails = [(UpperRails()["field"], up, "upper", "Field rail, upper deck", 33.0),
+             (UpperRails()["logic"], up, "upper", "Logic rail, upper deck", 63.0),
+             (LowerRails()["110 V"], lo, "lower", "110 V rail, lower deck", 93.0)]
+    for rail, d, deck, title, y in rails:
+        RailStrip(sh, rail, d, deck, colors, 10.0, y, title)
+    sh.Text(300.0, 33.0, "Grey: end clamp", size=1.6)
+    sh.Text(300.0, 36.0, "White: end cover", size=1.6)
+    sh.Text(300.0, 39.0, "Dashed: not a terminal block", size=1.6)
+    sh.Text(300.0, 42.0, "Blocks 6.2 mm wide, printed at 100 %", size=1.6)
+
+    # the rule, left
+    x, y = 8.0, 116.0
+    sh.Text(x, y, "A block takes the color of the wire that lands on it", size=2.2, weight="bold")
+    rule = [("black", "110 VAC line"),
+            ("grey", "110 VAC neutral (the kits have no white), signals and spares"),
+            ("red", "+24 V, always on and behind K2"),
+            ("blue", "every 0 V: 0V-P, 0V-S and the supplies' own (blue wire, white bands)"),
+            ("yellow", "+6 V servo supply: its wire is red, the block says it is not 24 V"),
+            ("green-yellow", "PE: grounding blocks, which bond to their rail")]
+    for i, (c, text) in enumerate(rule):
+        BlockChip(sh, x, y + 2.0 + i * 3.4, c)
+        sh.Text(x + 4.2, y + 3.8 + i * 3.4, text, size=1.7)
+    sh.Lines(x, y + 25.5, ["Never use the kits' plain green blocks: they look like PE and do not",
+                           "bond to the rail. What lands on each terminal: sheet 2C."], size=1.6, lead=2.3)
+
+    # how many of each, left
+    y = 149.0
+    sh.Text(x, y, "Blocks needed", size=2.2, weight="bold")
+    need = {}
+    for c, _ in colors.values():
+        need[c] = need.get(c, 0) + 1
+    perRail = len([s for s in DeckSolids() if s["kind"] == "rail"]) - 1
+    need["green-yellow"] = need.get("green-yellow", 0) + perRail
+    if need["green-yellow"] != PeBlocksNeeded():
+        raise ValueError("sheet 2E counts %d green-yellow blocks, the BoM %d" % (need["green-yellow"],
+                                                                                PeBlocksNeeded()))
+    order = ["grey", "blue", "red", "black", "yellow", "green-yellow"]
+    for i, c in enumerate(o for o in order if o in need):
+        yy = y + 3.6 + i * 2.9
+        BlockChip(sh, x, yy - 1.8, c)
+        sh.Text(x + 4.2, yy, c, size=1.7)
+        sh.Text(x + 34.0, yy, str(need[c]), size=1.7, anchor="end")
+        sh.Text(x + 37.0, yy, ("USLKG 5 or the kits' grounding blocks, %d of them one per other DIN rail"
+                               % perRail) if c == "green-yellow" else "the kits", size=1.5)
+    sh.Lines(x, y + 23.0, [
+        "The two kits hold 120 blocks in six colors; the listing does not give the split (20 of",
+        "each if even). Count them first. If blue runs short, make the 0V-S2 bus grey with a",
+        "0V marker; if grey then runs short, leave X8's spares off the rail until they are needed.",
+        "The per-rail blocks are not placed on sheets 2A, 2B and 3 yet (ADR-0014)."], size=1.5, lead=2.15)
+
+    # block by block, middle
+    tx, ty = 128.0, 116.0
+    sh.Text(tx, ty, "Block by block", size=2.2, weight="bold")
+    cols = [0.0, 13.0, 23.0, 50.0]
+    for j, h in enumerate(["Block", "No.", "Color", "Wire class"]):
+        sh.Text(tx + cols[j], ty + 4.0, h, size=1.5, fill="#555555")
+    sh.Add('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#000" stroke-width=".2"/>'
+           % (Fmt(tx), Fmt(ty + 5.0), Fmt(tx + 122.0), Fmt(ty + 5.0)))
+    yy = ty + 7.6
+    for deck, key in TerminalBlocks:
+        d = lo if deck == "lower" else up
+        for j, (a, b, c, role) in enumerate(BlockRanges(colors, deck, key, len(d.Labels[key][0]))):
+            if j == 0 and yy > ty + 8.0:
+                sh.Add('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#999" stroke-width=".12"/>'
+                       % (Fmt(tx), Fmt(yy - 1.75), Fmt(tx + 122.0), Fmt(yy - 1.75)))
+            if j == 0:
+                sh.Text(tx, yy, key, size=1.6, weight="bold")
+            sh.Text(tx + cols[1], yy, str(a) if a == b else "%d-%d" % (a, b), size=1.6)
+            BlockChip(sh, tx + cols[2], yy - 1.75, c, 2.6, 2.0)
+            sh.Text(tx + cols[2] + 3.4, yy, c, size=1.6)
+            sh.Text(tx + cols[3], yy, role, size=1.6)
+            yy += 2.45
+    if yy > 207.0:
+        raise ValueError("sheet 2E: the block table runs off the page")
+
+    TitleBlock(sh, 256, 186, 92, 21.5, [
+        "RMR control panel: terminal block colors",
+        "Sheet 2E (2A, 2B: the decks; 2C: terminals). Legal 14 x 8.5 in, 100 %.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-22 (issue #207).",
+        "Status: design, not yet built.",
+        "Colors from the wire lists of sheets 2A and 2B.",
     ])
     return sh
 
@@ -5213,7 +5443,7 @@ def BomRows():
     endDeg, sqDeg = CutToolChecks()
     read = "Price read %s" % ToolDate
     wread = "Price read %s" % WireDate
-    peBlocks = len(dinRails) - 1 + PeBarTerms   # one per rail; the 110 V rail's is one of its PE bar's
+    peBlocks = PeBlocksNeeded()
     feet = len(PostCentres) + GantryFeet
     bendAl, railI = DinRailBend(EAluminum)
     ccaMm2 = 3.31 * RhoCu / RhoAl              # 12 AWG CCA as an equivalent copper area
@@ -5371,8 +5601,8 @@ def BomRows():
         ("PE bonding", Amz, Buy, "Ground terminal block USLKG 5, green-yellow, 20", "B07M9LDK8F",
          "Erayco USLKG5N DIN rail ground terminal blocks: 6.2 mm wide, 24 to 10 AWG (0.2 to 4 mm2), 600 V "
          "30 A, 20 pcs", peBlocks, "pack of 20", 1, 21.99,
-         "one per DIN rail (%d), and %d more in the %d-way PE bar on the 110 V rail; each jumper lands bare"
-         % (len(dinRails), PeBarTerms - 1, PeBarTerms),
+         "one per DIN rail (%d), %d more in the %d-way PE bar on the 110 V rail, and X0's PE terminal "
+         "(sheet 2E); each jumper lands bare" % (len(dinRails), PeBarTerms - 1, PeBarTerms),
          "In place of the terminal kits' 8 ground blocks, kept as spares: a 2.5 mm2 block takes 12 AWG (3.31 "
          "mm2) at its limit at best, this one mid-range. The rails are aluminum: meter each block to its rail. "
          + read),
@@ -5577,6 +5807,7 @@ def Main():
               ("wiring_din_rails_upper_legal.svg", BuildDeckWiring("upper")),
               ("wiring_din_rails_names_legal.svg", BuildNomenclature()),
               ("wiring_din_rails_panel_legal.svg", BuildOperatorPanel()),
+              ("wiring_din_rails_colors_legal.svg", BuildTerminalColors()),
               ("packing_study_legal.svg", BuildPacking()),
               ("frame_plates_legal.svg", BuildFrame()),
               ("gantry_mount_legal.svg", BuildGantry())]
