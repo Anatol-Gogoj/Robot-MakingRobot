@@ -2415,6 +2415,14 @@ def BuildOperatorPanel():
 # blocks, and the +6 V servo supply is yellow (its wire is red), so that it is never taken for +24 V. The
 # kits' plain green blocks look like PE and do not bond to the rail, so no block is green.
 KitColors = ("red", "yellow", "blue", "black", "green", "grey")
+KitEach = 20                       # blocks of each color in the two kits: the listing's photos show 10 of
+                                   # each per kit, though it does not state the split (count them)
+# Single-color packs of the same GUETNEU block (6.2 mm pitch, 42.5 long), so the kits' end covers and
+# bridges fit them: sheet 2E needs more blue and grey than the kits hold (issue #209). Prices read on
+# WireDate.
+ColorPacks = {"blue": ("B0CJB9LSHR", 100, 21.99), "grey": ("B0BXKCPVS1", 100, 23.99)}
+BlockUse = {"blue": "every 0 V terminal: 0V-P, 0V-S and the supplies' own (sheet 2E)",
+            "grey": "the mains neutral, signals and spares (sheet 2E)"}
 BlockColorOf = {"ac": "black", "va": "red", "ve": "red", "lv": "yellow", "zp": "blue", "zs": "blue",
                 "zl": "blue", "sg": "grey", "pe": "green-yellow"}
 BlockRole = {"ac": "110 VAC line", "N": "110 VAC neutral", "va": "+24 V always on (FB1)",
@@ -2481,6 +2489,21 @@ def TerminalColors(lo, up):
                 role = BlockRole["N"] if isN else ", ".join(BlockRole[c] for c in sorted(classes)) or BlockRole[""]
                 out[(deck, key, n)] = (color, role)
     return out
+
+
+def BlocksNeeded(colors):
+    """{color: blocks needed}: one per terminal of the plan (TerminalColors()), and for green-yellow one
+    more per DIN rail but the 110 V one, whose PE bar has its own. Raises if the kits and the color packs
+    hold fewer blocks of a color than that."""
+    need = {}
+    for c, _ in colors.values():
+        need[c] = need.get(c, 0) + 1
+    need["green-yellow"] = need.get("green-yellow", 0) + len([s for s in DeckSolids() if s["kind"] == "rail"]) - 1
+    for c, n in need.items():
+        have = KitEach + ColorPacks.get(c, ("", 0, 0.0))[1]
+        if c != "green-yellow" and n > have:
+            raise ValueError("sheet 2E needs %d %s blocks; the kits and packs hold %d" % (n, c, have))
+    return need
 
 
 def PeBlocksNeeded():
@@ -2574,11 +2597,8 @@ def BuildTerminalColors():
     # how many of each, left
     y = 149.0
     sh.Text(x, y, "Blocks needed", size=2.2, weight="bold")
-    need = {}
-    for c, _ in colors.values():
-        need[c] = need.get(c, 0) + 1
+    need = BlocksNeeded(colors)
     perRail = len([s for s in DeckSolids() if s["kind"] == "rail"]) - 1
-    need["green-yellow"] = need.get("green-yellow", 0) + perRail
     if need["green-yellow"] != PeBlocksNeeded():
         raise ValueError("sheet 2E counts %d green-yellow blocks, the BoM %d" % (need["green-yellow"],
                                                                                 PeBlocksNeeded()))
@@ -2589,11 +2609,12 @@ def BuildTerminalColors():
         sh.Text(x + 4.2, yy, c, size=1.7)
         sh.Text(x + 34.0, yy, str(need[c]), size=1.7, anchor="end")
         sh.Text(x + 37.0, yy, ("USLKG 5 or the kits' grounding blocks, %d of them one per other DIN rail"
-                               % perRail) if c == "green-yellow" else "the kits", size=1.5)
+                               % perRail) if c == "green-yellow" else
+                ("the kits and a %d-pack" % ColorPacks[c][1]) if c in ColorPacks else "the kits", size=1.5)
     sh.Lines(x, y + 23.0, [
-        "The two kits hold 120 blocks in six colors; the listing does not give the split (20 of",
-        "each if even). Count them first. If blue runs short, make the 0V-S2 bus grey with a",
-        "0V marker; if grey then runs short, leave X8's spares off the rail until they are needed.",
+        "The two kits hold 120 blocks in six colors; the listing does not give the split, but its",
+        "photos show 10 of each per kit, 20 in all. The blue and grey packs in the BoM (issue #209)",
+        "are the same GUETNEU block and cover those two; count the other colors before wiring.",
         "The per-rail blocks are not placed on sheets 2A, 2B and 3 yet (ADR-0014)."], size=1.5, lead=2.15)
 
     # block by block, middle
@@ -5443,6 +5464,7 @@ def BomRows():
     endDeg, sqDeg = CutToolChecks()
     read = "Price read %s" % ToolDate
     wread = "Price read %s" % WireDate
+    blocks = BlocksNeeded(TerminalColors(DeckSheet("lower")[1], DeckSheet("upper")[1]))
     peBlocks = PeBlocksNeeded()
     feet = len(PostCentres) + GantryFeet
     bendAl, railI = DinRailBend(EAluminum)
@@ -5606,6 +5628,13 @@ def BomRows():
          "In place of the terminal kits' 8 ground blocks, kept as spares: a 2.5 mm2 block takes 12 AWG (3.31 "
          "mm2) at its limit at best, this one mid-range. The rails are aluminum: meter each block to its rail. "
          + read),
+        *[("Terminal blocks", Amz, Buy, "UK2.5B terminal blocks, %s, %d" % (c, n), part,
+           "GUETNEU UK-2.5B DIN rail feed-through terminal blocks, 6.2 mm pitch, 42.5 mm, 32 A, %s, %d pcs"
+           % (c, n), blocks[c], "pack of %d" % n, 1, price, BlockUse[c],
+           "Sheet 2E needs %d %s; the two terminal kits of the 2026-09-14 order hold about %d (their photos show "
+           "10 of each color per kit). The same GUETNEU block as the kits, so their end covers and bridges fit "
+           "(issue #209). Price read %s" % (blocks[c], c, KitEach, WireDate))
+          for c, (part, n, price) in ColorPacks.items()],
         *wire,
         ("Power wiring", Amz, Buy, "DIN fuse holder 5 x 20 mm, 15-pack", "B0F1DQLG89",
          "Dinkle DK4-TF(5x20) DIN rail fuse holder, UL 300 V 16 A, 12 to 24 AWG, 15 pcs", 1, "pack of 15", 1,
@@ -5794,7 +5823,8 @@ def BomCsv():
     Total("Total, all priced lines", sum(bySrc.values()),
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
           "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
-          "wire and fuse lines on %s), McMaster on 2026-10-15 (the acrylic on 2026-10-18); shipping and tax extra"
+          "wire and fuse lines and the issue #209 terminal block packs on %s), McMaster on 2026-10-15 (the "
+          "acrylic on 2026-10-18); shipping and tax extra"
           % (BomDate, ToolDate, WireDate))
     return out.getvalue()
 
