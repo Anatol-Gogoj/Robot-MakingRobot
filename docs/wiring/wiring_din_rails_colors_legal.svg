@@ -337,10 +337,10 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="8" y="149" font-size="2.2" font-weight="bold">Blocks needed</text>
 <text x="12.2" y="152.6" font-size="1.7">grey</text>
 <text x="42" y="152.6" font-size="1.7" text-anchor="end">18</text>
-<text x="45" y="152.6" font-size="1.5">the kits</text>
+<text x="45" y="152.6" font-size="1.5">the kits and a 100-pack</text>
 <text x="12.2" y="155.5" font-size="1.7">blue</text>
 <text x="42" y="155.5" font-size="1.7" text-anchor="end">25</text>
-<text x="45" y="155.5" font-size="1.5">the kits</text>
+<text x="45" y="155.5" font-size="1.5">the kits and a 100-pack</text>
 <text x="12.2" y="158.4" font-size="1.7">red</text>
 <text x="42" y="158.4" font-size="1.7" text-anchor="end">11</text>
 <text x="45" y="158.4" font-size="1.5">the kits</text>
@@ -353,9 +353,9 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="12.2" y="167.1" font-size="1.7">green-yellow</text>
 <text x="42" y="167.1" font-size="1.7" text-anchor="end">14</text>
 <text x="45" y="167.1" font-size="1.5">USLKG 5 or the kits' grounding blocks, 9 of them one per other DIN rail</text>
-<text x="8" y="172" font-size="1.5">The two kits hold 120 blocks in six colors; the listing does not give the split (20 of</text>
-<text x="8" y="174.15" font-size="1.5">each if even). Count them first. If blue runs short, make the 0V-S2 bus grey with a</text>
-<text x="8" y="176.3" font-size="1.5">0V marker; if grey then runs short, leave X8's spares off the rail until they are needed.</text>
+<text x="8" y="172" font-size="1.5">The two kits hold 120 blocks in six colors; the listing does not give the split, but its</text>
+<text x="8" y="174.15" font-size="1.5">photos show 10 of each per kit, 20 in all. The blue and grey packs in the BoM (issue #209)</text>
+<text x="8" y="176.3" font-size="1.5">are the same GUETNEU block and cover those two; count the other colors before wiring.</text>
 <text x="8" y="178.45" font-size="1.5">The per-rail blocks are not placed on sheets 2A, 2B and 3 yet (ADR-0014).</text>
 <text x="128" y="116" font-size="2.2" font-weight="bold">Block by block</text>
 <text x="128" y="120" font-size="1.5" style="fill:#555555">Block</text>
