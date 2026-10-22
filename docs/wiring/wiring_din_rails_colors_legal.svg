@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="14in" height="8.5in" viewBox="0 0 355.6 215.9">
+<title>RMR control panel terminal block colors</title>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}
+path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
+.ac{stroke:#CC3311;stroke-width:.6}
+.va{stroke:#0077BB;stroke-width:.5}
+.ve{stroke:#EE3377;stroke-width:.5}
+.zp{stroke:#000;stroke-width:.55}
+.zs{stroke:#33BBEE;stroke-width:.5}
+.pe{stroke:#009988;stroke-width:.45;stroke-dasharray:2.4 .7 .5 .7}
+.lv{stroke:#EE7733;stroke-width:.42}
+.sg{stroke:#000;stroke-width:.22}
+.zl{stroke:#000;stroke-width:.3}
+.cb{stroke:#000;stroke-width:.85}
+.sgc{stroke:#000;stroke-width:.5}
+.mo{stroke:#000;stroke-width:.3}
+.un{stroke-dasharray:1.1 .8}
+.mech{stroke:#000;stroke-width:.2;stroke-dasharray:.8 .6}
+.sym{stroke:#000;stroke-width:.32;fill:none}
+.symf{stroke:#000;stroke-width:.32;fill:#fff}
+.bx{fill:#fff;stroke:#000;stroke-width:.3}
+.bxl{fill:#fff;stroke:#000;stroke-width:.22}
+.frame{fill:none;stroke:#000;stroke-width:.4}
+.zone{fill:none;stroke:#888;stroke-width:.2;stroke-dasharray:1.5 1}
+.rail{fill:#d9d9d9;stroke:#666;stroke-width:.2}
+.duct{fill:#f3f3f3;stroke:#999;stroke-width:.2}
+.dot{stroke:none}
+</style>
+<rect x="0" y="0" width="355.6" height="215.9" fill="#fff"/>
+<rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
+<defs><pattern id="tbGreenYellow" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="2" fill="#228833"/><rect width="1" height="2" fill="#CCBB44"/></pattern></defs>
+<rect class="rail" x="10" y="36" width="284" height="4"/>
+<rect x="15" y="34.5" width="8" height="7" fill="#888888" stroke="#000" stroke-width=".2"/>
+<rect x="23" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="29.2" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="35.4" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="41.6" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="47.8" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="54" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="60.2" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M23.3 29.8 L23.3 29.3 L66.1 29.3 L66.1 29.8"/>
+<rect x="66.4" y="32.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="68.4" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="74.6" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="80.8" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="87" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="93.2" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="99.4" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="105.6" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="111.8" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="118" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="124.2" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="130.4" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="136.6" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M68.7 29.8 L68.7 29.3 L142.5 29.3 L142.5 29.8"/>
+<rect x="142.8" y="32.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="144.8" y="33" width="6.2" height="10" fill="#EECC66" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="33" width="6.2" height="10" fill="#EECC66" stroke="#000" stroke-width=".2"/>
+<rect x="157.2" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="163.4" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="169.6" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="175.8" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M145.1 29.8 L145.1 29.3 L181.7 29.3 L181.7 29.8"/>
+<rect x="182" y="32.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="184" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="190.2" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="196.4" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="202.6" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="208.8" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="215" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M184.3 29.8 L184.3 29.3 L220.9 29.3 L220.9 29.8"/>
+<rect x="221.2" y="32.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="223.2" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="229.4" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="235.6" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="241.8" y="33" width="6.2" height="10" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="248" y="33" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M223.5 29.8 L223.5 29.3 L253.9 29.3 L253.9 29.8"/>
+<rect x="254.2" y="32.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="256.2" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="262.4" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="268.6" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="274.8" y="33" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M256.5 29.8 L256.5 29.3 L280.7 29.3 L280.7 29.8"/>
+<rect x="281" y="34.5" width="8" height="7" fill="#888888" stroke="#000" stroke-width=".2"/>
+<rect class="rail" x="10" y="66" width="211.6" height="4"/>
+<rect x="15" y="63" width="99" height="10" fill="#fff" stroke="#000" stroke-width=".2" stroke-dasharray="1 .6"/>
+<rect x="118" y="64.5" width="8" height="7" fill="#888888" stroke="#000" stroke-width=".2"/>
+<rect x="126" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="132.2" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="138.4" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="144.6" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="150.8" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="157" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="163.2" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="169.4" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="175.6" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M126.3 59.8 L126.3 59.3 L181.5 59.3 L181.5 59.8"/>
+<rect x="181.8" y="62.4" width="2" height="11.2" fill="#fff" stroke="#000" stroke-width=".2"/>
+<rect x="183.8" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="190" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="196.2" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="202.4" y="63" width="6.2" height="10" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M184.1 59.8 L184.1 59.3 L208.3 59.3 L208.3 59.8"/>
+<rect x="208.6" y="64.5" width="8" height="7" fill="#888888" stroke="#000" stroke-width=".2"/>
+<rect class="rail" x="10" y="96" width="154.5" height="4"/>
+<rect x="15" y="93" width="6.2" height="10" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<rect x="21.2" y="93" width="6.2" height="10" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<rect x="27.4" y="93" width="6.2" height="10" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<rect x="33.6" y="93" width="6.2" height="10" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M15.3 89.8 L15.3 89.3 L39.5 89.3 L39.5 89.8"/>
+<rect x="43.8" y="93" width="6.2" height="10" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="50" y="93" width="6.2" height="10" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="56.2" y="93" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M44.1 89.8 L44.1 89.3 L62.1 89.3 L62.1 89.8"/>
+<rect x="66.4" y="93" width="36.1" height="10" fill="#fff" stroke="#000" stroke-width=".2" stroke-dasharray="1 .6"/>
+<rect x="106.5" y="93" width="18" height="10" fill="#fff" stroke="#000" stroke-width=".2" stroke-dasharray="1 .6"/>
+<rect x="128.5" y="93" width="6.2" height="10" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="134.7" y="93" width="6.2" height="10" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="140.9" y="93" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="147.1" y="93" width="6.2" height="10" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="153.3" y="93" width="6.2" height="10" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<path class="sym" d="M128.8 89.8 L128.8 89.3 L159.2 89.3 L159.2 89.8"/>
+<rect x="8" y="118" width="3" height="2.2" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="121.4" width="3" height="2.2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="124.8" width="3" height="2.2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="128.2" width="3" height="2.2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="131.6" width="3" height="2.2" fill="#EECC66" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="135" width="3" height="2.2" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="150.8" width="3" height="2.2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="153.7" width="3" height="2.2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="156.6" width="3" height="2.2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="159.5" width="3" height="2.2" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="162.4" width="3" height="2.2" fill="#EECC66" stroke="#000" stroke-width=".2"/>
+<rect x="8" y="165.3" width="3" height="2.2" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="121" x2="250" y2="121" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="121.85" width="2.6" height="2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="124.3" width="2.6" height="2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="126.75" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="129.2" x2="250" y2="129.2" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="129.2" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="131.65" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="134.1" x2="250" y2="134.1" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="134.1" width="2.6" height="2" fill="#EECC66" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="136.55" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="139" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="141.45" x2="250" y2="141.45" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="141.45" width="2.6" height="2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="143.9" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="146.35" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="148.8" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="151.25" width="2.6" height="2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="153.7" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="156.15" x2="250" y2="156.15" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="156.15" width="2.6" height="2" fill="#CC3311" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="158.6" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="161.05" x2="250" y2="161.05" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="161.05" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="163.5" x2="250" y2="163.5" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="163.5" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="165.95" x2="250" y2="165.95" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="165.95" width="2.6" height="2" fill="#0077BB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="168.4" x2="250" y2="168.4" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="168.4" width="2.6" height="2" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="170.85" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="173.3" width="2.6" height="2" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="175.75" x2="250" y2="175.75" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="175.75" width="2.6" height="2" fill="#222222" stroke="#000" stroke-width=".2"/>
+<rect x="151" y="178.2" width="2.6" height="2" fill="#BBBBBB" stroke="#000" stroke-width=".2"/>
+<line x1="128" y1="180.65" x2="250" y2="180.65" stroke="#999" stroke-width=".12"/>
+<rect x="151" y="180.65" width="2.6" height="2" fill="url(#tbGreenYellow)" stroke="#000" stroke-width=".2"/>
+<rect class="bx" x="256" y="186" width="92" height="21.5"/>
+<text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: terminal block colors</text>
+<text x="8" y="15.4" font-size="2.1">Sheet 2E: the color of every terminal block, read from the wire lists that draw sheets 2A and 2B, so it follows the terminal plan. Each rail at 1:1 along its length, front of the box at the left.</text>
+<text x="10" y="24.4" font-size="2.2" font-weight="bold">Field rail, upper deck: 284 mm</text>
+<text x="26.1" y="32.1" font-size="1.35" text-anchor="middle">1</text>
+<text x="26.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="32.3" y="32.1" font-size="1.35" text-anchor="middle">2</text>
+<text x="32.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="38.5" y="32.1" font-size="1.35" text-anchor="middle">2b</text>
+<text x="38.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="44.7" y="32.1" font-size="1.35" text-anchor="middle">3</text>
+<text x="44.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="50.9" y="32.1" font-size="1.35" text-anchor="middle">3b</text>
+<text x="50.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="57.1" y="32.1" font-size="1.35" text-anchor="middle">4</text>
+<text x="57.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">6</text>
+<text x="63.3" y="32.1" font-size="1.35" text-anchor="middle">5</text>
+<text x="63.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">7</text>
+<text x="44.7" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X2</text>
+<text x="71.5" y="32.1" font-size="1.35" text-anchor="middle">3</text>
+<text x="71.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="77.7" y="32.1" font-size="1.35" text-anchor="middle">14</text>
+<text x="77.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="83.9" y="32.1" font-size="1.35" text-anchor="middle">40</text>
+<text x="83.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="90.1" y="32.1" font-size="1.35" text-anchor="middle">15</text>
+<text x="90.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="96.3" y="32.1" font-size="1.35" text-anchor="middle">23</text>
+<text x="96.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="102.5" y="32.1" font-size="1.35" text-anchor="middle">A9</text>
+<text x="102.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">6</text>
+<text x="108.7" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="108.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">7</text>
+<text x="114.9" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="114.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">8</text>
+<text x="121.1" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="121.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">9</text>
+<text x="127.3" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="127.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">10</text>
+<text x="133.5" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="133.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">11</text>
+<text x="139.7" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="139.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">12</text>
+<text x="105.6" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X4</text>
+<text x="147.9" y="32.1" font-size="1.35" text-anchor="middle">6V</text>
+<text x="147.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="154.1" y="32.1" font-size="1.35" text-anchor="middle">6V</text>
+<text x="154.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="160.3" y="32.1" font-size="1.35" text-anchor="middle">0V</text>
+<text x="160.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="166.5" y="32.1" font-size="1.35" text-anchor="middle">0V</text>
+<text x="166.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="172.7" y="32.1" font-size="1.35" text-anchor="middle">P0</text>
+<text x="172.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="178.9" y="32.1" font-size="1.35" text-anchor="middle">P1</text>
+<text x="178.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">6</text>
+<text x="163.4" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X5</text>
+<text x="187.1" y="32.1" font-size="1.35" text-anchor="middle">UV+</text>
+<text x="187.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="193.3" y="32.1" font-size="1.35" text-anchor="middle">UV-</text>
+<text x="193.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="199.5" y="32.1" font-size="1.35" text-anchor="middle">S5</text>
+<text x="199.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="205.7" y="32.1" font-size="1.35" text-anchor="middle">S5c</text>
+<text x="205.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="211.9" y="32.1" font-size="1.35" text-anchor="middle">V+</text>
+<text x="211.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="218.1" y="32.1" font-size="1.35" text-anchor="middle">V-</text>
+<text x="218.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">6</text>
+<text x="202.6" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X6</text>
+<text x="226.3" y="32.1" font-size="1.35" text-anchor="middle">R</text>
+<text x="226.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="232.5" y="32.1" font-size="1.35" text-anchor="middle">A</text>
+<text x="232.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="238.7" y="32.1" font-size="1.35" text-anchor="middle">G</text>
+<text x="238.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="244.9" y="32.1" font-size="1.35" text-anchor="middle">Bz</text>
+<text x="244.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="251.1" y="32.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="251.1" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="238.7" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X7</text>
+<text x="259.3" y="32.1" font-size="1.35" text-anchor="middle">-</text>
+<text x="259.3" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="265.5" y="32.1" font-size="1.35" text-anchor="middle">-</text>
+<text x="265.5" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="271.7" y="32.1" font-size="1.35" text-anchor="middle">-</text>
+<text x="271.7" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="277.9" y="32.1" font-size="1.35" text-anchor="middle">-</text>
+<text x="277.9" y="45.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="268.6" y="28.4" font-size="2" text-anchor="middle" font-weight="bold">X8</text>
+<text x="10" y="54.4" font-size="2.2" font-weight="bold">Logic rail, upper deck: 211.6 mm</text>
+<text x="64.5" y="68.6" font-size="1.6" style="fill:#444444" text-anchor="middle">Mega 2560</text>
+<text x="129.1" y="62.1" font-size="1.35" text-anchor="middle">X</text>
+<text x="129.1" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="135.3" y="62.1" font-size="1.35" text-anchor="middle">Y1</text>
+<text x="135.3" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="141.5" y="62.1" font-size="1.35" text-anchor="middle">Y2</text>
+<text x="141.5" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="147.7" y="62.1" font-size="1.35" text-anchor="middle">Z</text>
+<text x="147.7" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="153.9" y="62.1" font-size="1.35" text-anchor="middle">A</text>
+<text x="153.9" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="160.1" y="62.1" font-size="1.35" text-anchor="middle">B</text>
+<text x="160.1" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">6</text>
+<text x="166.3" y="62.1" font-size="1.35" text-anchor="middle">C</text>
+<text x="166.3" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">7</text>
+<text x="172.5" y="62.1" font-size="1.35" text-anchor="middle">J</text>
+<text x="172.5" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">8</text>
+<text x="178.7" y="62.1" font-size="1.35" text-anchor="middle">lk</text>
+<text x="178.7" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">9</text>
+<text x="153.9" y="58.4" font-size="2" text-anchor="middle" font-weight="bold">0V-S</text>
+<text x="186.9" y="62.1" font-size="1.35" text-anchor="middle">1</text>
+<text x="186.9" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="193.1" y="62.1" font-size="1.35" text-anchor="middle">2</text>
+<text x="193.1" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="199.3" y="62.1" font-size="1.35" text-anchor="middle">3</text>
+<text x="199.3" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="205.5" y="62.1" font-size="1.35" text-anchor="middle">lk</text>
+<text x="205.5" y="75.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="196.2" y="58.4" font-size="2" text-anchor="middle" font-weight="bold">0V-S2</text>
+<text x="10" y="84.4" font-size="2.2" font-weight="bold">110 V rail, lower deck: 154.5 mm</text>
+<text x="18.1" y="92.1" font-size="1.35" text-anchor="middle">PE</text>
+<text x="18.1" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="24.3" y="92.1" font-size="1.35" text-anchor="middle">PE</text>
+<text x="24.3" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="30.5" y="92.1" font-size="1.35" text-anchor="middle">PE</text>
+<text x="30.5" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="36.7" y="92.1" font-size="1.35" text-anchor="middle">PE</text>
+<text x="36.7" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="27.4" y="88.4" font-size="2" text-anchor="middle" font-weight="bold">PE</text>
+<text x="46.9" y="92.1" font-size="1.35" text-anchor="middle">1</text>
+<text x="46.9" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="53.1" y="92.1" font-size="1.35" text-anchor="middle">2</text>
+<text x="53.1" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="59.3" y="92.1" font-size="1.35" text-anchor="middle">3</text>
+<text x="59.3" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="53.1" y="88.4" font-size="2" text-anchor="middle" font-weight="bold">X1</text>
+<text x="84.45" y="98.6" font-size="1.6" style="fill:#444444" text-anchor="middle">K1</text>
+<text x="115.5" y="98.6" font-size="1.6" style="fill:#444444" text-anchor="middle">F0</text>
+<text x="131.6" y="92.1" font-size="1.35" text-anchor="middle">L</text>
+<text x="131.6" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">1</text>
+<text x="137.8" y="92.1" font-size="1.35" text-anchor="middle">L</text>
+<text x="137.8" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">2</text>
+<text x="144" y="92.1" font-size="1.35" text-anchor="middle">N</text>
+<text x="144" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">3</text>
+<text x="150.2" y="92.1" font-size="1.35" text-anchor="middle">N</text>
+<text x="150.2" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">4</text>
+<text x="156.4" y="92.1" font-size="1.35" text-anchor="middle">PE</text>
+<text x="156.4" y="105.3" font-size="1.35" style="fill:#444444" text-anchor="middle">5</text>
+<text x="144" y="88.4" font-size="2" text-anchor="middle" font-weight="bold">X0</text>
+<text x="300" y="33" font-size="1.6">Grey: end clamp</text>
+<text x="300" y="36" font-size="1.6">White: end cover</text>
+<text x="300" y="39" font-size="1.6">Dashed: not a terminal block</text>
+<text x="300" y="42" font-size="1.6">Blocks 6.2 mm wide, printed at 100 %</text>
+<text x="8" y="116" font-size="2.2" font-weight="bold">A block takes the color of the wire that lands on it</text>
+<text x="12.2" y="119.8" font-size="1.7">110 VAC line</text>
+<text x="12.2" y="123.2" font-size="1.7">110 VAC neutral (the kits have no white), signals and spares</text>
+<text x="12.2" y="126.6" font-size="1.7">+24 V, always on and behind K2</text>
+<text x="12.2" y="130" font-size="1.7">every 0 V: 0V-P, 0V-S and the supplies' own (blue wire, white bands)</text>
+<text x="12.2" y="133.4" font-size="1.7">+6 V servo supply: its wire is red, the block says it is not 24 V</text>
+<text x="12.2" y="136.8" font-size="1.7">PE: grounding blocks, which bond to their rail</text>
+<text x="8" y="141.5" font-size="1.6">Never use the kits' plain green blocks: they look like PE and do not</text>
+<text x="8" y="143.8" font-size="1.6">bond to the rail. What lands on each terminal: sheet 2C.</text>
+<text x="8" y="149" font-size="2.2" font-weight="bold">Blocks needed</text>
+<text x="12.2" y="152.6" font-size="1.7">grey</text>
+<text x="42" y="152.6" font-size="1.7" text-anchor="end">18</text>
+<text x="45" y="152.6" font-size="1.5">the kits</text>
+<text x="12.2" y="155.5" font-size="1.7">blue</text>
+<text x="42" y="155.5" font-size="1.7" text-anchor="end">25</text>
+<text x="45" y="155.5" font-size="1.5">the kits</text>
+<text x="12.2" y="158.4" font-size="1.7">red</text>
+<text x="42" y="158.4" font-size="1.7" text-anchor="end">11</text>
+<text x="45" y="158.4" font-size="1.5">the kits</text>
+<text x="12.2" y="161.3" font-size="1.7">black</text>
+<text x="42" y="161.3" font-size="1.7" text-anchor="end">4</text>
+<text x="45" y="161.3" font-size="1.5">the kits</text>
+<text x="12.2" y="164.2" font-size="1.7">yellow</text>
+<text x="42" y="164.2" font-size="1.7" text-anchor="end">2</text>
+<text x="45" y="164.2" font-size="1.5">the kits</text>
+<text x="12.2" y="167.1" font-size="1.7">green-yellow</text>
+<text x="42" y="167.1" font-size="1.7" text-anchor="end">14</text>
+<text x="45" y="167.1" font-size="1.5">USLKG 5 or the kits' grounding blocks, 9 of them one per other DIN rail</text>
+<text x="8" y="172" font-size="1.5">The two kits hold 120 blocks in six colors; the listing does not give the split (20 of</text>
+<text x="8" y="174.15" font-size="1.5">each if even). Count them first. If blue runs short, make the 0V-S2 bus grey with a</text>
+<text x="8" y="176.3" font-size="1.5">0V marker; if grey then runs short, leave X8's spares off the rail until they are needed.</text>
+<text x="8" y="178.45" font-size="1.5">The per-rail blocks are not placed on sheets 2A, 2B and 3 yet (ADR-0014).</text>
+<text x="128" y="116" font-size="2.2" font-weight="bold">Block by block</text>
+<text x="128" y="120" font-size="1.5" style="fill:#555555">Block</text>
+<text x="141" y="120" font-size="1.5" style="fill:#555555">No.</text>
+<text x="151" y="120" font-size="1.5" style="fill:#555555">Color</text>
+<text x="178" y="120" font-size="1.5" style="fill:#555555">Wire class</text>
+<text x="128" y="123.6" font-size="1.6" font-weight="bold">X2</text>
+<text x="141" y="123.6" font-size="1.6">1</text>
+<text x="154.4" y="123.6" font-size="1.6">red</text>
+<text x="178" y="123.6" font-size="1.6">+24 V always on (FB1)</text>
+<text x="141" y="126.05" font-size="1.6">2-5</text>
+<text x="154.4" y="126.05" font-size="1.6">red</text>
+<text x="178" y="126.05" font-size="1.6">+24 V behind K2 (FB2)</text>
+<text x="141" y="128.5" font-size="1.6">6-7</text>
+<text x="154.4" y="128.5" font-size="1.6">grey</text>
+<text x="178" y="128.5" font-size="1.6">spare</text>
+<text x="128" y="130.95" font-size="1.6" font-weight="bold">X4</text>
+<text x="141" y="130.95" font-size="1.6">1-6</text>
+<text x="154.4" y="130.95" font-size="1.6">grey</text>
+<text x="178" y="130.95" font-size="1.6">signal</text>
+<text x="141" y="133.4" font-size="1.6">7-12</text>
+<text x="154.4" y="133.4" font-size="1.6">blue</text>
+<text x="178" y="133.4" font-size="1.6">0V-S signal 0 V</text>
+<text x="128" y="135.85" font-size="1.6" font-weight="bold">X5</text>
+<text x="141" y="135.85" font-size="1.6">1-2</text>
+<text x="154.4" y="135.85" font-size="1.6">yellow</text>
+<text x="178" y="135.85" font-size="1.6">+6 V servo, +5 V Pi</text>
+<text x="141" y="138.3" font-size="1.6">3-4</text>
+<text x="154.4" y="138.3" font-size="1.6">blue</text>
+<text x="178" y="138.3" font-size="1.6">0 V of the servo and Pi supplies</text>
+<text x="141" y="140.75" font-size="1.6">5-6</text>
+<text x="154.4" y="140.75" font-size="1.6">grey</text>
+<text x="178" y="140.75" font-size="1.6">signal</text>
+<text x="128" y="143.2" font-size="1.6" font-weight="bold">X6</text>
+<text x="141" y="143.2" font-size="1.6">1</text>
+<text x="154.4" y="143.2" font-size="1.6">red</text>
+<text x="178" y="143.2" font-size="1.6">+24 V behind K2 (FB2)</text>
+<text x="141" y="145.65" font-size="1.6">2</text>
+<text x="154.4" y="145.65" font-size="1.6">blue</text>
+<text x="178" y="145.65" font-size="1.6">0 V power (0V-P)</text>
+<text x="141" y="148.1" font-size="1.6">3</text>
+<text x="154.4" y="148.1" font-size="1.6">grey</text>
+<text x="178" y="148.1" font-size="1.6">signal</text>
+<text x="141" y="150.55" font-size="1.6">4</text>
+<text x="154.4" y="150.55" font-size="1.6">blue</text>
+<text x="178" y="150.55" font-size="1.6">0V-S signal 0 V</text>
+<text x="141" y="153" font-size="1.6">5</text>
+<text x="154.4" y="153" font-size="1.6">red</text>
+<text x="178" y="153" font-size="1.6">+24 V behind K2 (FB2)</text>
+<text x="141" y="155.45" font-size="1.6">6</text>
+<text x="154.4" y="155.45" font-size="1.6">blue</text>
+<text x="178" y="155.45" font-size="1.6">0 V power (0V-P)</text>
+<text x="128" y="157.9" font-size="1.6" font-weight="bold">X7</text>
+<text x="141" y="157.9" font-size="1.6">1-4</text>
+<text x="154.4" y="157.9" font-size="1.6">red</text>
+<text x="178" y="157.9" font-size="1.6">+24 V always on (FB1)</text>
+<text x="141" y="160.35" font-size="1.6">5</text>
+<text x="154.4" y="160.35" font-size="1.6">blue</text>
+<text x="178" y="160.35" font-size="1.6">0 V power (0V-P)</text>
+<text x="128" y="162.8" font-size="1.6" font-weight="bold">X8</text>
+<text x="141" y="162.8" font-size="1.6">1-4</text>
+<text x="154.4" y="162.8" font-size="1.6">grey</text>
+<text x="178" y="162.8" font-size="1.6">spare</text>
+<text x="128" y="165.25" font-size="1.6" font-weight="bold">0V-S</text>
+<text x="141" y="165.25" font-size="1.6">1-9</text>
+<text x="154.4" y="165.25" font-size="1.6">blue</text>
+<text x="178" y="165.25" font-size="1.6">0V-S signal 0 V</text>
+<text x="128" y="167.7" font-size="1.6" font-weight="bold">0V-S2</text>
+<text x="141" y="167.7" font-size="1.6">1-4</text>
+<text x="154.4" y="167.7" font-size="1.6">blue</text>
+<text x="178" y="167.7" font-size="1.6">0V-S signal 0 V</text>
+<text x="128" y="170.15" font-size="1.6" font-weight="bold">X0</text>
+<text x="141" y="170.15" font-size="1.6">1-2</text>
+<text x="154.4" y="170.15" font-size="1.6">black</text>
+<text x="178" y="170.15" font-size="1.6">110 VAC line</text>
+<text x="141" y="172.6" font-size="1.6">3-4</text>
+<text x="154.4" y="172.6" font-size="1.6">grey</text>
+<text x="178" y="172.6" font-size="1.6">110 VAC neutral</text>
+<text x="141" y="175.05" font-size="1.6">5</text>
+<text x="154.4" y="175.05" font-size="1.6">green-yellow</text>
+<text x="178" y="175.05" font-size="1.6">PE</text>
+<text x="128" y="177.5" font-size="1.6" font-weight="bold">X1</text>
+<text x="141" y="177.5" font-size="1.6">1-2</text>
+<text x="154.4" y="177.5" font-size="1.6">black</text>
+<text x="178" y="177.5" font-size="1.6">110 VAC line</text>
+<text x="141" y="179.95" font-size="1.6">3</text>
+<text x="154.4" y="179.95" font-size="1.6">grey</text>
+<text x="178" y="179.95" font-size="1.6">110 VAC neutral</text>
+<text x="128" y="182.4" font-size="1.6" font-weight="bold">PE</text>
+<text x="141" y="182.4" font-size="1.6">1-4</text>
+<text x="154.4" y="182.4" font-size="1.6">green-yellow</text>
+<text x="178" y="182.4" font-size="1.6">PE</text>
+<text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: terminal block colors</text>
+<text x="258" y="194.4" font-size="2">Sheet 2E (2A, 2B: the decks; 2C: terminals). Legal 14 x 8.5 in, 100 %.</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-22 (issue #207).</text>
+<text x="258" y="199.9" font-size="2">Status: design, not yet built.</text>
+<text x="258" y="202.65" font-size="2">Colors from the wire lists of sheets 2A and 2B.</text>
+</svg>
