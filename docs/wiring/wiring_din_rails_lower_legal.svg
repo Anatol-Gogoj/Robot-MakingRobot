@@ -32,272 +32,281 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <rect x="20" y="30" width="228" height="162" fill="#fff" stroke="#000" stroke-width="0.35"/>
 <rect x="20" y="30" width="228" height="8.93" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
 <rect x="20" y="183.07" width="228" height="8.93" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
-<rect x="20" y="38.93" width="9.86" height="144.14" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
-<rect x="238.14" y="38.93" width="9.86" height="144.14" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
-<rect x="20" y="30" width="9.86" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="20" y="183.07" width="9.86" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="238.14" y="30" width="9.86" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect x="238.14" y="183.07" width="9.86" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
-<rect class="rail" x="31.34" y="43.12" width="161.41" height="15.62"/>
-<rect class="rail" x="62.91" y="87.19" width="60.23" height="15.62"/>
-<rect class="rail" x="134.6" y="82.26" width="28.61" height="15.62"/>
-<rect class="rail" x="199.17" y="85.16" width="37.49" height="15.62"/>
-<rect class="rail" x="31.34" y="145.8" width="120.97" height="15.62"/>
-<rect class="rail" x="160.45" y="145.8" width="76.21" height="15.62"/>
-<rect class="duct" x="31.34" y="62.79" width="161.41" height="12.04"/>
-<rect class="duct" x="153.25" y="125.49" width="6.26" height="56.25"/>
-<rect x="154.53" y="106" width="6.41" height="10.87" rx="3.21" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
-<rect x="165.63" y="97.08" width="29.59" height="5.8" rx="2.9" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
-<rect x="31.34" y="76.54" width="6.41" height="7.14" rx="3.21" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
-<circle class="symf" cx="185.36" cy="103.33" r="0.9"/>
-<path class="ac" d="M26.41 183.07 L26.41 121.02 L238.14 121.02" stroke-dasharray="2 1"/>
-<rect x="33.81" y="40.27" width="75.47" height="21.34" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="43.38" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="48.02" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="52.67" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="57.31" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="61.96" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="66.6" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="71.24" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="75.89" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="80.53" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="85.18" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="89.82" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="94.46" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="99.11" y="61.01" width="0.6" height="0.6"/>
-<rect x="112.24" y="40.27" width="78.05" height="21.34" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="122.14" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="126.95" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="131.75" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="136.55" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="141.36" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="146.16" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="150.96" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="155.77" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="160.57" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="165.37" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="170.18" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="174.98" y="61.01" width="0.6" height="0.6"/>
-<rect class="symf" x="179.78" y="61.01" width="0.6" height="0.6"/>
-<rect x="65.38" y="76.01" width="17.81" height="37.99" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="68.28" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="71.13" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="73.98" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="76.83" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="79.68" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="68.28" y="113.4" width="0.6" height="0.6"/>
-<rect class="symf" x="71.13" y="113.4" width="0.6" height="0.6"/>
-<rect class="symf" x="73.98" y="113.4" width="0.6" height="0.6"/>
-<rect class="symf" x="76.83" y="113.4" width="0.6" height="0.6"/>
-<rect class="symf" x="79.68" y="113.4" width="0.6" height="0.6"/>
-<rect x="86.14" y="77.59" width="9.86" height="34.82" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="88.15" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="90.78" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="93.41" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="88.8" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="92.75" y="111.81" width="0.6" height="0.6"/>
-<rect x="98.97" y="77.59" width="9.86" height="34.82" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="100.97" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="103.6" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="106.23" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="100.22" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="101.35" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="102.47" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="103.6" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="104.73" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="105.86" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="106.98" y="111.81" width="0.6" height="0.6"/>
-<rect x="110.81" y="77.59" width="9.86" height="34.82" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="113.47" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="117.41" y="77.59" width="0.6" height="0.6"/>
-<rect class="symf" x="112.81" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="115.44" y="111.81" width="0.6" height="0.6"/>
-<rect class="symf" x="118.07" y="111.81" width="0.6" height="0.6"/>
-<rect x="134.6" y="76.01" width="28.61" height="28.12" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="142.88" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="154.33" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="162.61" y="84.14" width="0.6" height="0.6"/>
-<rect class="symf" x="162.61" y="95.39" width="0.6" height="0.6"/>
-<rect x="199.17" y="76.01" width="37.49" height="33.93" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="206.37" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="213.86" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="221.36" y="76.01" width="0.6" height="0.6"/>
-<rect class="symf" x="228.86" y="76.01" width="0.6" height="0.6"/>
-<rect x="31.34" y="125.49" width="120.97" height="56.25" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="151.71" y="134.02" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="140.45" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="146.88" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="153.31" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="159.74" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="166.17" width="0.6" height="0.6"/>
-<rect class="symf" x="151.71" y="172.59" width="0.6" height="0.6"/>
-<rect x="188.27" y="135.31" width="17.81" height="36.61" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="192.12" y="135.31" width="0.6" height="0.6"/>
-<rect class="symf" x="196.87" y="135.31" width="0.6" height="0.6"/>
-<rect class="symf" x="201.62" y="135.31" width="0.6" height="0.6"/>
-<rect class="symf" x="192.12" y="171.31" width="0.6" height="0.6"/>
-<rect class="symf" x="196.87" y="171.31" width="0.6" height="0.6"/>
-<rect class="symf" x="201.62" y="171.31" width="0.6" height="0.6"/>
-<rect x="208.05" y="135.75" width="8.88" height="35.71" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
-<rect class="symf" x="212.19" y="135.75" width="0.6" height="0.6"/>
-<rect class="symf" x="212.19" y="170.87" width="0.6" height="0.6"/>
-<rect x="162.91" y="144.12" width="12.23" height="18.97" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="164.14" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="164.14" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M165.97 144.12 L165.97 163.1"/>
-<rect class="symf" x="167.2" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="167.2" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M169.03 144.12 L169.03 163.1"/>
-<rect class="symf" x="170.26" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="170.26" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M172.09 144.12 L172.09 163.1"/>
-<rect class="symf" x="173.32" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="173.32" y="162.5" width="0.6" height="0.6"/>
-<rect x="177.12" y="144.12" width="9.17" height="18.97" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="178.35" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="178.35" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M180.18 144.12 L180.18 163.1"/>
-<rect class="symf" x="181.41" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="181.41" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M183.24 144.12 L183.24 163.1"/>
-<rect class="symf" x="184.47" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="184.47" y="162.5" width="0.6" height="0.6"/>
-<rect x="218.9" y="144.12" width="15.29" height="18.97" fill="#fff" stroke="#000" stroke-width=".25"/>
-<rect class="symf" x="220.13" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="220.13" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M221.96 144.12 L221.96 163.1"/>
-<rect class="symf" x="223.19" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="223.19" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M225.01 144.12 L225.01 163.1"/>
-<rect class="symf" x="226.24" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="226.24" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M228.07 144.12 L228.07 163.1"/>
-<rect class="symf" x="229.3" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="229.3" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M231.13 144.12 L231.13 163.1"/>
-<rect class="symf" x="232.36" y="144.12" width="0.6" height="0.6"/>
-<rect class="symf" x="232.36" y="162.5" width="0.6" height="0.6"/>
-<path class="sym" d="M220.43 160.9 L223.49 160.9"/>
-<circle class="dot" cx="220.43" cy="160.9" r="0.28" fill="#000"/>
-<circle class="dot" cx="223.49" cy="160.9" r="0.28" fill="#000"/>
-<path class="sym" d="M226.54 160.9 L229.6 160.9"/>
-<circle class="dot" cx="226.54" cy="160.9" r="0.28" fill="#000"/>
-<circle class="dot" cx="229.6" cy="160.9" r="0.28" fill="#000"/>
-<rect x="182.4" y="101.99" width="5.92" height="11.61" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
-<rect class="symf" x="182.4" y="104.4" width="0.6" height="0.6"/>
-<rect class="symf" x="182.4" y="107.49" width="0.6" height="0.6"/>
-<rect class="symf" x="182.4" y="110.59" width="0.6" height="0.6"/>
-<path class="ac" d="M220.43 144.12 L220.43 133.44 L192.42 133.44 L192.42 135.31"/>
-<path class="ac" d="M226.54 144.12 L226.54 132.94 L197.17 132.94 L197.17 135.31"/>
-<path class="ac" d="M223.49 144.12 L223.49 134.44 L212.49 134.44 L212.49 135.75"/>
-<path class="ac" d="M212.49 171.47 L212.49 172.86 L178.65 172.86 L178.65 163.1"/>
-<path class="ac" d="M181.71 163.1 L181.71 172.36 L201.92 172.36 L201.92 171.91"/>
-<path class="ac" d="M229.6 163.1 L229.6 173.36 L184.77 173.36 L184.77 163.1"/>
-<path class="ac" d="M229.6 144.12 L229.6 133.94 L201.92 133.94 L201.92 135.31"/>
-<path class="ac" d="M192.42 171.91 L192.42 176.86 L156.2 176.86 L156.2 172.89 L152.31 172.89"/>
-<path class="ac" d="M197.17 171.91 L197.17 175.86 L155.7 175.86 L155.7 166.47 L152.31 166.47"/>
-<path class="ac" d="M220.43 163.1 L220.43 175.86 L242.61 175.86 L242.61 150.93 L248 150.93"/>
-<path class="ac" d="M226.54 163.1 L226.54 176.86 L241.61 176.86 L241.61 153.61 L248 153.61"/>
-<path class="pe" d="M232.66 163.1 L232.66 176.36 L242.11 176.36 L242.11 156.29 L248 156.29"/>
-<path class="ac" d="M178.65 144.12 L178.65 129.44 L242.11 129.44 L242.11 128.43 L248 128.43"/>
-<path class="ac" d="M181.71 144.12 L181.71 130.44 L241.61 130.44 L241.61 129.77 L248 129.77"/>
-<path class="ac" d="M184.77 144.12 L184.77 129.94 L242.61 129.94 L242.61 131.11 L248 131.11"/>
-<path class="pe" d="M170.56 144.12 L170.56 130.94 L241.11 130.94 L241.11 132.45 L248 132.45"/>
-<path class="pe" d="M232.66 144.12 L232.66 132.44 L164.44 132.44 L164.44 144.12"/>
-<path class="pe" d="M152.31 160.04 L156.7 160.04 L156.7 176.36 L167.5 176.36 L167.5 163.1"/>
-<path class="pe" d="M173.62 144.12 L173.62 129.94 L155.7 129.94 L155.7 112.08 L172.16 112.08 L172.16 104.7 L182.4 104.7"/>
-<path class="pe" d="M93.05 112.41 L93.05 119.95 L128.59 119.95 L128.59 107.58 L172.66 107.58 L172.66 107.79 L182.4 107.79"/>
-<path class="va" d="M152.31 134.32 L156.2 134.32 L156.2 116.08 L132.09 116.08 L132.09 68.74 L122.44 68.74 L122.44 61.61"/>
-<path class="va" d="M152.31 140.75 L156.7 140.75 L156.7 108.08 L129.09 108.08 L129.09 120.45 L68.58 120.45 L68.58 114"/>
-<path class="va" d="M68.58 76.01 L68.58 74.24 L49.29 74.24 L49.29 117.45 L71.43 117.45 L71.43 114"/>
-<path class="ve" d="M71.43 76.01 L71.43 68.74 L99.41 68.74 L99.41 61.61"/>
-<path class="zp" d="M152.31 147.18 L155.2 147.18 L155.2 116.58 L128.09 116.58 L128.09 114.45 L89.1 114.45 L89.1 112.41"/>
-<path class="zp" d="M88.45 77.59 L88.45 74.24 L101.27 74.24 L101.27 77.59"/>
-<path class="zp" d="M106.53 77.59 L106.53 74.24 L113.77 74.24 L113.77 77.59"/>
-<path class="zp" d="M79.98 76.01 L79.98 73.74 L103.9 73.74 L103.9 77.59"/>
-<path class="va" d="M132.05 61.61 L132.05 67.24 L206.67 67.24 L206.67 76.01"/>
-<path class="zp" d="M214.16 76.01 L214.16 72.74 L91.08 72.74 L91.08 77.59"/>
-<path class="ve" d="M80.83 61.61 L80.83 68.24 L143.18 68.24 L143.18 76.01"/>
-<path class="zp" d="M154.63 76.01 L154.63 73.24 L93.71 73.24 L93.71 77.59"/>
-<path class="ve" d="M76.19 61.61 L76.19 63.24 L214.57 63.24 L214.57 30"/>
-<path class="zp" d="M117.71 77.59 L117.71 71.74 L215.07 71.74 L215.07 30"/>
-<path class="lv" d="M221.66 76.01 L221.66 68.74 L214.07 68.74 L214.07 30"/>
-<path class="zl" d="M229.16 76.01 L229.16 68.24 L215.57 68.24 L215.57 30"/>
-<path class="ve" d="M43.68 61.61 L43.68 66.24 L125.09 66.24 L125.09 112.58 L157.74 112.58"/>
-<path class="ve" d="M48.32 61.61 L48.32 70.74 L132.59 70.74 L132.59 111.58 L157.74 111.58"/>
-<path class="ve" d="M52.97 61.61 L52.97 66.74 L124.59 66.74 L124.59 113.08 L157.74 113.08"/>
-<path class="ve" d="M57.61 61.61 L57.61 70.24 L133.09 70.24 L133.09 111.08 L157.74 111.08"/>
-<path class="ve" d="M62.26 61.61 L62.26 69.74 L124.09 69.74 L124.09 113.58 L157.74 113.58"/>
-<path class="ve" d="M66.9 61.61 L66.9 67.74 L133.59 67.74 L133.59 110.58 L157.74 110.58"/>
-<path class="ve" d="M71.54 61.61 L71.54 69.24 L123.59 69.24 L123.59 114.08 L157.74 114.08"/>
-<path class="zp" d="M100.52 112.41 L100.52 114.95 L129.59 114.95 L129.59 110.08 L157.74 110.08"/>
-<path class="zp" d="M101.65 112.41 L101.65 119.45 L127.59 119.45 L127.59 114.58 L157.74 114.58"/>
-<path class="zp" d="M102.77 112.41 L102.77 115.45 L130.09 115.45 L130.09 109.58 L157.74 109.58"/>
-<path class="zp" d="M103.9 112.41 L103.9 118.95 L127.09 118.95 L127.09 115.08 L157.74 115.08"/>
-<path class="zp" d="M105.03 112.41 L105.03 115.95 L130.59 115.95 L130.59 109.08 L157.74 109.08"/>
-<path class="zp" d="M106.16 112.41 L106.16 118.45 L126.59 118.45 L126.59 115.58 L157.74 115.58"/>
-<path class="zp" d="M107.28 112.41 L107.28 116.45 L131.09 116.45 L131.09 108.58 L157.74 108.58"/>
-<path class="ve" d="M85.48 61.61 L85.48 65.74 L173.66 65.74 L173.66 99.53 L179.44 99.53"/>
-<path class="ve" d="M90.12 61.61 L90.12 71.24 L170.16 71.24 L170.16 100.03 L179.44 100.03"/>
-<path class="va" d="M141.66 61.61 L141.66 68.74 L174.16 68.74 L174.16 99.03 L179.44 99.03"/>
-<path class="zp" d="M113.11 112.41 L113.11 117.95 L126.09 117.95 L126.09 117.08 L171.16 117.08 L171.16 100.53 L179.44 100.53"/>
-<path class="zp" d="M115.74 112.41 L115.74 116.95 L131.59 116.95 L131.59 107.08 L173.16 107.08 L173.16 98.53 L179.44 98.53"/>
-<path class="zp" d="M118.37 112.41 L118.37 117.45 L125.59 117.45 L125.59 117.58 L170.66 117.58 L170.66 101.03 L179.44 101.03"/>
-<path class="lv" d="M163.21 84.44 L172.66 84.44 L172.66 98.03 L179.44 98.03"/>
-<path class="zl" d="M163.21 95.69 L172.16 95.69 L172.16 101.53 L179.44 101.53"/>
-<path class="pe" d="M182.4 110.89 L171.66 110.89 L171.66 97.53 L179.44 97.53"/>
-<path class="va" d="M146.46 61.61 L146.46 65.24 L46.79 65.24 L46.79 79.99 L34.55 79.99"/>
-<path class="ve" d="M74.28 114 L74.28 116.95 L45.29 116.95 L45.29 79.49 L34.55 79.49"/>
-<path class="ve" d="M74.28 76.01 L74.28 73.74 L47.29 73.74 L47.29 80.49 L34.55 80.49"/>
-<path class="ve" d="M79.98 114 L79.98 116.45 L48.79 116.45 L48.79 78.99 L34.55 78.99"/>
-<path class="sg" d="M77.13 114 L77.13 117.95 L44.79 117.95 L44.79 80.99 L34.55 80.99"/>
-<path class="zs" d="M77.13 76.01 L77.13 73.24 L46.29 73.24 L46.29 78.49 L34.55 78.49"/>
-<path class="va" d="M34.55 81.49 L47.79 81.49 L47.79 72.24 L213.57 72.24 L213.57 30"/>
-<path class="ve" d="M34.55 77.99 L45.79 77.99 L45.79 64.74 L216.07 64.74 L216.07 30"/>
-<path class="ve" d="M34.55 81.99 L48.29 81.99 L48.29 64.24 L213.07 64.24 L213.07 30"/>
-<circle class="dot" cx="214.57" cy="30" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="215.07" cy="30" r="0.17" fill="#000"/>
-<circle class="dot" cx="214.07" cy="30" r="0.17" fill="#EE7733"/>
-<circle class="dot" cx="215.57" cy="30" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="112.58" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="111.58" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="113.08" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="111.08" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="113.58" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="110.58" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="114.08" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="157.74" cy="110.08" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="114.58" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="109.58" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="115.08" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="109.08" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="115.58" r="0.17" fill="#000"/>
-<circle class="dot" cx="157.74" cy="108.58" r="0.17" fill="#000"/>
-<circle class="dot" cx="179.44" cy="99.53" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="179.44" cy="100.03" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="179.44" cy="99.03" r="0.17" fill="#0077BB"/>
-<circle class="dot" cx="179.44" cy="100.53" r="0.17" fill="#000"/>
-<circle class="dot" cx="179.44" cy="98.53" r="0.17" fill="#000"/>
-<circle class="dot" cx="179.44" cy="101.03" r="0.17" fill="#000"/>
-<circle class="dot" cx="179.44" cy="98.03" r="0.17" fill="#EE7733"/>
-<circle class="dot" cx="179.44" cy="101.53" r="0.17" fill="#000"/>
-<circle class="dot" cx="179.44" cy="97.53" r="0.17" fill="#009988"/>
-<circle class="dot" cx="34.55" cy="79.99" r="0.17" fill="#0077BB"/>
-<circle class="dot" cx="34.55" cy="79.49" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="80.49" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="78.99" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="80.99" r="0.17" fill="#000"/>
-<circle class="dot" cx="34.55" cy="78.49" r="0.17" fill="#33BBEE"/>
-<circle class="dot" cx="34.55" cy="81.49" r="0.17" fill="#0077BB"/>
-<circle class="dot" cx="213.57" cy="30" r="0.17" fill="#0077BB"/>
-<circle class="dot" cx="34.55" cy="77.99" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="216.07" cy="30" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="34.55" cy="81.99" r="0.17" fill="#EE3377"/>
-<circle class="dot" cx="213.07" cy="30" r="0.17" fill="#EE3377"/>
+<rect x="20" y="38.93" width="9.78" height="144.13" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
+<rect x="238.22" y="38.93" width="9.78" height="144.13" fill="#DDDDDD" stroke="#000" stroke-width="0.15"/>
+<rect x="20" y="30" width="9.78" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="20" y="183.07" width="9.78" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="238.22" y="30" width="9.78" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect x="238.22" y="183.07" width="9.78" height="8.93" fill="#BBBBBB" stroke="#000" stroke-width="0.25"/>
+<rect class="rail" x="31.25" y="43.13" width="161.96" height="15.63"/>
+<rect class="rail" x="37.52" y="86.64" width="88.11" height="15.63"/>
+<rect class="rail" x="137" y="81.7" width="28.37" height="15.63"/>
+<rect class="rail" x="199.57" y="84.6" width="37.18" height="15.63"/>
+<rect class="rail" x="31.25" y="145.77" width="121.84" height="15.63"/>
+<rect class="rail" x="161.17" y="145.77" width="75.58" height="15.63"/>
+<rect class="duct" x="31.25" y="62.81" width="161.96" height="11.46"/>
+<rect class="duct" x="154.02" y="125.45" width="6.21" height="56.28"/>
+<rect x="155.3" y="105.46" width="6.36" height="11.08" rx="3.18" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
+<rect x="166.3" y="96.53" width="29.35" height="5.81" rx="2.9" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
+<rect x="31.25" y="75.98" width="8.23" height="7.15" rx="3.57" fill="none" stroke="#EE7733" stroke-width=".35" stroke-dasharray="1 .6"/>
+<circle class="symf" cx="185.87" cy="102.78" r="0.9"/>
+<path class="ac" d="M26.36 183.07 L26.36 120.98 L238.22 120.98" stroke-dasharray="2 1"/>
+<rect x="34.74" y="40.27" width="75.68" height="21.35" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="44.33" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="48.99" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="53.65" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="58.3" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="62.96" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="67.62" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="72.28" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="76.93" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="81.59" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="86.25" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="90.9" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="95.56" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="100.22" y="61.02" width="0.6" height="0.6"/>
+<rect x="113.35" y="40.27" width="77.41" height="21.35" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="123.17" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="127.94" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="132.7" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="137.46" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="142.23" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="146.99" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="151.76" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="156.52" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="161.28" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="166.05" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="170.81" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="175.58" y="61.02" width="0.6" height="0.6"/>
+<rect class="symf" x="180.34" y="61.02" width="0.6" height="0.6"/>
+<rect x="68.34" y="75.45" width="17.66" height="38.01" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="71.22" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="74.05" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="76.87" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="79.7" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="82.52" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="71.22" y="112.86" width="0.6" height="0.6"/>
+<rect class="symf" x="74.05" y="112.86" width="0.6" height="0.6"/>
+<rect class="symf" x="76.87" y="112.86" width="0.6" height="0.6"/>
+<rect class="symf" x="79.7" y="112.86" width="0.6" height="0.6"/>
+<rect class="symf" x="82.52" y="112.86" width="0.6" height="0.6"/>
+<rect x="39.97" y="76.14" width="26.42" height="36.63" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
+<rect class="symf" x="45.83" y="76.14" width="0.6" height="0.6"/>
+<rect class="symf" x="52.88" y="76.14" width="0.6" height="0.6"/>
+<rect class="symf" x="59.92" y="76.14" width="0.6" height="0.6"/>
+<rect class="symf" x="45.83" y="112.17" width="0.6" height="0.6"/>
+<rect class="symf" x="52.88" y="112.17" width="0.6" height="0.6"/>
+<rect class="symf" x="59.92" y="112.17" width="0.6" height="0.6"/>
+<rect x="88.94" y="77.03" width="9.78" height="34.84" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="90.92" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="93.53" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="96.14" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="91.57" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="95.49" y="111.27" width="0.6" height="0.6"/>
+<rect x="101.66" y="77.03" width="9.78" height="34.84" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="103.64" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="106.25" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="108.86" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="102.9" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="104.01" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="105.13" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="106.25" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="107.37" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="108.49" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="109.6" y="111.27" width="0.6" height="0.6"/>
+<rect x="113.4" y="77.03" width="9.78" height="34.84" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="116.03" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="119.95" y="77.03" width="0.6" height="0.6"/>
+<rect class="symf" x="115.38" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="117.99" y="111.27" width="0.6" height="0.6"/>
+<rect class="symf" x="120.6" y="111.27" width="0.6" height="0.6"/>
+<rect x="137" y="75.45" width="28.37" height="28.14" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="145.21" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="156.56" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="164.77" y="83.59" width="0.6" height="0.6"/>
+<rect class="symf" x="164.77" y="94.84" width="0.6" height="0.6"/>
+<rect x="199.57" y="75.45" width="37.18" height="33.95" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="206.7" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="214.14" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="221.58" y="75.45" width="0.6" height="0.6"/>
+<rect class="symf" x="229.01" y="75.45" width="0.6" height="0.6"/>
+<rect x="31.25" y="125.45" width="121.84" height="56.28" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="152.49" y="133.99" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="140.42" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="146.85" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="153.29" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="159.72" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="166.15" width="0.6" height="0.6"/>
+<rect class="symf" x="152.49" y="172.58" width="0.6" height="0.6"/>
+<rect x="188.76" y="135.27" width="17.66" height="36.63" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="192.58" y="135.27" width="0.6" height="0.6"/>
+<rect class="symf" x="197.29" y="135.27" width="0.6" height="0.6"/>
+<rect class="symf" x="202" y="135.27" width="0.6" height="0.6"/>
+<rect class="symf" x="192.58" y="171.3" width="0.6" height="0.6"/>
+<rect class="symf" x="197.29" y="171.3" width="0.6" height="0.6"/>
+<rect class="symf" x="202" y="171.3" width="0.6" height="0.6"/>
+<rect x="208.37" y="135.72" width="8.81" height="35.73" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
+<rect class="symf" x="212.48" y="135.72" width="0.6" height="0.6"/>
+<rect class="symf" x="212.48" y="170.85" width="0.6" height="0.6"/>
+<rect x="163.61" y="144.09" width="12.13" height="18.98" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="164.83" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="164.83" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M166.65 144.09 L166.65 163.08"/>
+<rect class="symf" x="167.86" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="167.86" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M169.68 144.09 L169.68 163.08"/>
+<rect class="symf" x="170.89" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="170.89" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M172.71 144.09 L172.71 163.08"/>
+<rect class="symf" x="173.93" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="173.93" y="162.48" width="0.6" height="0.6"/>
+<rect x="177.7" y="144.09" width="9.1" height="18.98" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="178.92" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="178.92" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M180.73 144.09 L180.73 163.08"/>
+<rect class="symf" x="181.95" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="181.95" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M183.77 144.09 L183.77 163.08"/>
+<rect class="symf" x="184.98" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="184.98" y="162.48" width="0.6" height="0.6"/>
+<rect x="219.14" y="144.09" width="15.17" height="18.98" fill="#fff" stroke="#000" stroke-width=".25"/>
+<rect class="symf" x="220.35" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="220.35" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M222.17 144.09 L222.17 163.08"/>
+<rect class="symf" x="223.39" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="223.39" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M225.2 144.09 L225.2 163.08"/>
+<rect class="symf" x="226.42" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="226.42" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M228.24 144.09 L228.24 163.08"/>
+<rect class="symf" x="229.45" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="229.45" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M231.27 144.09 L231.27 163.08"/>
+<rect class="symf" x="232.49" y="144.09" width="0.6" height="0.6"/>
+<rect class="symf" x="232.49" y="162.48" width="0.6" height="0.6"/>
+<path class="sym" d="M220.65 160.88 L223.69 160.88"/>
+<circle class="dot" cx="220.65" cy="160.88" r="0.28" fill="#000"/>
+<circle class="dot" cx="223.69" cy="160.88" r="0.28" fill="#000"/>
+<path class="sym" d="M226.72 160.88 L229.75 160.88"/>
+<circle class="dot" cx="226.72" cy="160.88" r="0.28" fill="#000"/>
+<circle class="dot" cx="229.75" cy="160.88" r="0.28" fill="#000"/>
+<rect x="182.94" y="101.44" width="5.87" height="11.61" fill="#fff" stroke="#000" stroke-width=".25" stroke-dasharray="1.2 .7"/>
+<rect class="symf" x="182.94" y="103.85" width="0.6" height="0.6"/>
+<rect class="symf" x="182.94" y="106.95" width="0.6" height="0.6"/>
+<rect class="symf" x="182.94" y="110.05" width="0.6" height="0.6"/>
+<path class="ac" d="M220.65 144.09 L220.65 133.4 L192.88 133.4 L192.88 135.27"/>
+<path class="ac" d="M226.72 144.09 L226.72 132.9 L197.59 132.9 L197.59 135.27"/>
+<path class="ac" d="M223.69 144.09 L223.69 134.4 L212.78 134.4 L212.78 135.72"/>
+<path class="ac" d="M212.78 171.45 L212.78 172.85 L179.22 172.85 L179.22 163.08"/>
+<path class="ac" d="M182.25 163.08 L182.25 172.35 L202.3 172.35 L202.3 171.9"/>
+<path class="ac" d="M229.75 163.08 L229.75 173.35 L185.28 173.35 L185.28 163.08"/>
+<path class="ac" d="M229.75 144.09 L229.75 133.9 L202.3 133.9 L202.3 135.27"/>
+<path class="ac" d="M192.88 171.9 L192.88 176.85 L156.97 176.85 L156.97 172.88 L153.09 172.88"/>
+<path class="ac" d="M197.59 171.9 L197.59 175.85 L156.47 175.85 L156.47 166.45 L153.09 166.45"/>
+<path class="ac" d="M220.65 163.08 L220.65 175.85 L242.7 175.85 L242.7 150.91 L248 150.91"/>
+<path class="ac" d="M226.72 163.08 L226.72 176.85 L241.7 176.85 L241.7 153.59 L248 153.59"/>
+<path class="pe" d="M232.79 163.08 L232.79 176.35 L242.2 176.35 L242.2 156.27 L248 156.27"/>
+<path class="ac" d="M179.22 144.09 L179.22 129.4 L242.2 129.4 L242.2 128.39 L248 128.39"/>
+<path class="ac" d="M182.25 144.09 L182.25 130.4 L241.7 130.4 L241.7 129.73 L248 129.73"/>
+<path class="ac" d="M185.28 144.09 L185.28 129.9 L242.7 129.9 L242.7 131.07 L248 131.07"/>
+<path class="pe" d="M171.19 144.09 L171.19 130.9 L241.2 130.9 L241.2 132.41 L248 132.41"/>
+<path class="pe" d="M232.79 144.09 L232.79 132.4 L165.13 132.4 L165.13 144.09"/>
+<path class="pe" d="M153.09 160.02 L157.47 160.02 L157.47 176.35 L168.16 176.35 L168.16 163.08"/>
+<path class="pe" d="M174.23 144.09 L174.23 129.9 L156.47 129.9 L156.47 112.04 L173.32 112.04 L173.32 104.15 L182.94 104.15"/>
+<path class="pe" d="M95.79 111.87 L95.79 114.41 L131.08 114.41 L131.08 116.54 L172.82 116.54 L172.82 107.25 L182.94 107.25"/>
+<path class="va" d="M153.09 134.29 L156.97 134.29 L156.97 108.04 L130.58 108.04 L130.58 113.91 L53.18 113.91 L53.18 112.77"/>
+<path class="va" d="M53.18 76.14 L53.18 67.26 L123.47 67.26 L123.47 61.62"/>
+<path class="va" d="M153.09 140.72 L157.47 140.72 L157.47 116.04 L131.58 116.04 L131.58 120.41 L46.13 120.41 L46.13 112.77"/>
+<path class="va" d="M46.13 76.14 L46.13 73.76 L31.7 73.76 L31.7 116.91 L71.52 116.91 L71.52 113.46"/>
+<path class="va" d="M71.52 75.45 L71.52 73.26 L36.7 73.26 L36.7 117.41 L74.35 117.41 L74.35 113.46"/>
+<path class="ve" d="M74.35 75.45 L74.35 68.26 L100.52 68.26 L100.52 61.62"/>
+<path class="zp" d="M153.09 147.15 L155.97 147.15 L155.97 107.54 L130.08 107.54 L130.08 119.91 L91.87 119.91 L91.87 111.87"/>
+<path class="zp" d="M91.22 77.03 L91.22 73.76 L103.94 73.76 L103.94 77.03"/>
+<path class="zp" d="M109.16 77.03 L109.16 73.76 L116.33 73.76 L116.33 77.03"/>
+<path class="zp" d="M82.82 75.45 L82.82 73.26 L106.55 73.26 L106.55 77.03"/>
+<path class="va" d="M133 61.62 L133 67.26 L207 67.26 L207 75.45"/>
+<path class="zp" d="M214.44 75.45 L214.44 72.26 L93.83 72.26 L93.83 77.03"/>
+<path class="ve" d="M81.89 61.62 L81.89 68.76 L145.51 68.76 L145.51 75.45"/>
+<path class="zp" d="M156.86 75.45 L156.86 72.76 L96.44 72.76 L96.44 77.03"/>
+<path class="ve" d="M77.23 61.62 L77.23 63.26 L214.94 63.26 L214.94 30"/>
+<path class="zp" d="M120.25 77.03 L120.25 65.26 L215.44 65.26 L215.44 30"/>
+<path class="lv" d="M221.88 75.45 L221.88 68.26 L214.44 68.26 L214.44 30"/>
+<path class="zl" d="M229.31 75.45 L229.31 68.76 L215.94 68.76 L215.94 30"/>
+<path class="ve" d="M44.63 61.62 L44.63 65.76 L134.58 65.76 L134.58 111.54 L158.48 111.54"/>
+<path class="ve" d="M49.29 61.62 L49.29 66.26 L127.08 66.26 L127.08 112.54 L158.48 112.54"/>
+<path class="ve" d="M53.95 61.62 L53.95 70.26 L135.08 70.26 L135.08 111.04 L158.48 111.04"/>
+<path class="ve" d="M58.6 61.62 L58.6 66.76 L126.58 66.76 L126.58 113.04 L158.48 113.04"/>
+<path class="ve" d="M63.26 61.62 L63.26 69.76 L135.58 69.76 L135.58 110.54 L158.48 110.54"/>
+<path class="ve" d="M67.92 61.62 L67.92 69.26 L126.08 69.26 L126.08 113.54 L158.48 113.54"/>
+<path class="ve" d="M72.58 61.62 L72.58 67.76 L136.08 67.76 L136.08 110.04 L158.48 110.04"/>
+<path class="zp" d="M103.2 111.87 L103.2 119.41 L132.08 119.41 L132.08 114.04 L158.48 114.04"/>
+<path class="zp" d="M104.31 111.87 L104.31 114.91 L129.58 114.91 L129.58 109.54 L158.48 109.54"/>
+<path class="zp" d="M105.43 111.87 L105.43 118.91 L132.58 118.91 L132.58 114.54 L158.48 114.54"/>
+<path class="zp" d="M106.55 111.87 L106.55 115.41 L129.08 115.41 L129.08 109.04 L158.48 109.04"/>
+<path class="zp" d="M107.67 111.87 L107.67 118.41 L133.08 118.41 L133.08 115.04 L158.48 115.04"/>
+<path class="zp" d="M108.79 111.87 L108.79 115.91 L128.58 115.91 L128.58 108.54 L158.48 108.54"/>
+<path class="zp" d="M109.9 111.87 L109.9 117.91 L133.58 117.91 L133.58 115.54 L158.48 115.54"/>
+<path class="ve" d="M86.55 61.62 L86.55 71.26 L171.82 71.26 L171.82 98.98 L180 98.98"/>
+<path class="ve" d="M91.2 61.62 L91.2 70.76 L175.32 70.76 L175.32 99.48 L180 99.48"/>
+<path class="va" d="M142.53 61.62 L142.53 68.26 L171.32 68.26 L171.32 98.48 L180 98.48"/>
+<path class="zp" d="M115.68 111.87 L115.68 116.41 L128.08 116.41 L128.08 107.04 L174.32 107.04 L174.32 99.98 L180 99.98"/>
+<path class="zp" d="M118.29 111.87 L118.29 117.41 L134.08 117.41 L134.08 117.04 L172.32 117.04 L172.32 97.98 L180 97.98"/>
+<path class="zp" d="M120.9 111.87 L120.9 116.91 L127.58 116.91 L127.58 106.54 L174.82 106.54 L174.82 100.48 L180 100.48"/>
+<path class="lv" d="M165.37 83.89 L172.82 83.89 L172.82 97.48 L180 97.48"/>
+<path class="zl" d="M165.37 95.14 L173.32 95.14 L173.32 100.98 L180 100.98"/>
+<path class="pe" d="M182.94 110.35 L173.82 110.35 L173.82 96.98 L180 96.98"/>
+<path class="va" d="M147.29 61.62 L147.29 71.76 L34.2 71.76 L34.2 79.43 L35.78 79.43"/>
+<path class="ve" d="M77.17 113.46 L77.17 116.41 L35.7 116.41 L35.7 78.93 L35.78 78.93"/>
+<path class="ve" d="M77.17 75.45 L77.17 72.76 L33.7 72.76 L33.7 79.93 L35.78 79.93"/>
+<path class="ve" d="M82.82 113.46 L82.82 115.91 L32.2 115.91 L32.2 78.43 L35.78 78.43"/>
+<path class="sg" d="M80 113.46 L80 117.91 L36.2 117.91 L36.2 80.43 L35.78 80.43"/>
+<path class="zs" d="M80 75.45 L80 72.26 L34.7 72.26 L34.7 77.93 L35.78 77.93"/>
+<path class="va" d="M35.78 80.93 L33.2 80.93 L33.2 64.76 L213.94 64.76 L213.94 30"/>
+<path class="ve" d="M35.78 77.43 L35.2 77.43 L35.2 64.26 L216.44 64.26 L216.44 30"/>
+<path class="ve" d="M35.78 81.43 L32.7 81.43 L32.7 63.76 L213.44 63.76 L213.44 30"/>
+<circle class="dot" cx="214.94" cy="30" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="215.44" cy="30" r="0.17" fill="#000"/>
+<circle class="dot" cx="214.44" cy="30" r="0.17" fill="#EE7733"/>
+<circle class="dot" cx="215.94" cy="30" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="111.54" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="112.54" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="111.04" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="113.04" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="110.54" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="113.54" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="110.04" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="158.48" cy="114.04" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="109.54" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="114.54" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="109.04" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="115.04" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="108.54" r="0.17" fill="#000"/>
+<circle class="dot" cx="158.48" cy="115.54" r="0.17" fill="#000"/>
+<circle class="dot" cx="180" cy="98.98" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="180" cy="99.48" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="180" cy="98.48" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="180" cy="99.98" r="0.17" fill="#000"/>
+<circle class="dot" cx="180" cy="97.98" r="0.17" fill="#000"/>
+<circle class="dot" cx="180" cy="100.48" r="0.17" fill="#000"/>
+<circle class="dot" cx="180" cy="97.48" r="0.17" fill="#EE7733"/>
+<circle class="dot" cx="180" cy="100.98" r="0.17" fill="#000"/>
+<circle class="dot" cx="180" cy="96.98" r="0.17" fill="#009988"/>
+<circle class="dot" cx="35.78" cy="79.43" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="35.78" cy="78.93" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="35.78" cy="79.93" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="35.78" cy="78.43" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="35.78" cy="80.43" r="0.17" fill="#000"/>
+<circle class="dot" cx="35.78" cy="77.93" r="0.17" fill="#33BBEE"/>
+<circle class="dot" cx="35.78" cy="80.93" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="213.94" cy="30" r="0.17" fill="#0077BB"/>
+<circle class="dot" cx="35.78" cy="77.43" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="216.44" cy="30" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="35.78" cy="81.43" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="213.44" cy="30" r="0.17" fill="#EE3377"/>
 <rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
-<rect x="202.62" y="29.1" width="24.66" height="0.9" fill="#000" stroke="none"/>
-<rect x="248" y="148.25" width="0.9" height="10.71" fill="#000" stroke="none"/>
-<rect x="248" y="125.87" width="0.9" height="9.15" fill="#000" stroke="none"/>
+<rect x="202.99" y="29.1" width="24.46" height="0.9" fill="#000" stroke="none"/>
+<rect x="248" y="148.23" width="0.9" height="10.72" fill="#000" stroke="none"/>
+<rect x="248" y="125.83" width="0.9" height="9.16" fill="#000" stroke="none"/>
 <path class="ac" d="M256 32.75 L261 32.75"/>
 <path class="va" d="M303 32.75 L308 32.75"/>
 <path class="ve" d="M256 35.05 L261 35.05"/>
@@ -348,140 +357,149 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <path class="ve" d="M256.4 110.75 L259.4 110.75"/>
 <path class="ve" d="M256.4 112.3 L259.4 112.3"/>
 <rect class="bx" x="256" y="186" width="92" height="21.5"/>
-<text x="161.74" y="107.6" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 1</text>
-<text x="196.02" y="98.68" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 2</text>
-<text x="31.74" y="85.48" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 3</text>
-<text x="186.56" y="102.43" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PE stud</text>
-<text x="27.41" y="123.42" font-size="1.15" style="fill:#CC3311" stroke="#fff" stroke-width="0.52" paint-order="stroke" font-weight="bold">110 VAC compartment: no wall (ADR-0013); mains parts 10 mm inside this line, low voltage outside it</text>
+<text x="162.46" y="107.06" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 1</text>
+<text x="196.46" y="98.13" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 2</text>
+<text x="31.65" y="84.93" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 3</text>
+<text x="187.07" y="101.88" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PE stud</text>
+<text x="27.36" y="123.38" font-size="1.15" style="fill:#CC3311" stroke="#fff" stroke-width="0.52" paint-order="stroke" font-weight="bold">110 VAC compartment: no wall (ADR-0013); mains parts 10 mm inside this line, low voltage outside it</text>
 <text x="21" y="28.8" font-size="1.4" stroke="#fff" stroke-width="0.63" paint-order="stroke" font-weight="bold">LEFT WALL</text>
 <text x="21" y="194.6" font-size="1.4" stroke="#fff" stroke-width="0.63" paint-order="stroke" font-weight="bold">RIGHT WALL</text>
 <text x="18.8" y="111" font-size="1.4" text-anchor="middle" font-weight="bold" transform="rotate(-90 18.8 111)">FRONT</text>
 <text x="250.4" y="111" font-size="1.4" text-anchor="middle" font-weight="bold" transform="rotate(-90 250.4 111)">BACK</text>
-<text x="71.54" y="48.8" font-size="1.7" text-anchor="middle" font-weight="bold">FB2  12-way</text>
-<text x="71.54" y="50.71" font-size="1.33" text-anchor="middle">+24 V cut by the E-stop (K2)</text>
-<text x="99.41" y="60.76" font-size="1" text-anchor="middle">IN</text>
-<text x="151.26" y="48.8" font-size="1.7" text-anchor="middle" font-weight="bold">FB1  12-way</text>
-<text x="151.26" y="50.71" font-size="1.33" text-anchor="middle">+24 V always on</text>
-<text x="122.44" y="60.76" font-size="1" text-anchor="middle">IN</text>
-<text x="74.28" y="93.64" font-size="1.6" text-anchor="middle" font-weight="bold">K2</text>
-<text x="74.28" y="95.44" font-size="1.25" text-anchor="middle">BMC7-25U</text>
-<text x="74.28" y="97.36" font-size="1.25" text-anchor="middle">coil 24 V</text>
-<text x="68.58" y="77.51" font-size="1" text-anchor="middle">2</text>
-<text x="71.43" y="77.51" font-size="1" text-anchor="middle">4</text>
-<text x="74.28" y="77.51" font-size="1" text-anchor="middle">6</text>
-<text x="77.13" y="77.51" font-size="1" text-anchor="middle">8</text>
-<text x="79.98" y="77.51" font-size="1" text-anchor="middle">A2</text>
-<text x="68.58" y="113.15" font-size="1" text-anchor="middle">1</text>
-<text x="71.43" y="113.15" font-size="1" text-anchor="middle">3</text>
-<text x="74.28" y="113.15" font-size="1" text-anchor="middle">5</text>
-<text x="77.13" y="113.15" font-size="1" text-anchor="middle">7</text>
-<text x="79.98" y="113.15" font-size="1" text-anchor="middle">A1</text>
-<text x="90.74" y="95" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 90.74 95)">Star S</text>
-<text x="92.26" y="95" font-size="1.05" text-anchor="middle" transform="rotate(-90 92.26 95)">uxcell</text>
-<text x="89.1" y="111.56" font-size="1" text-anchor="middle">in</text>
-<text x="103.56" y="95" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 103.56 95)">0V-P 1</text>
-<text x="105.08" y="95" font-size="1.05" text-anchor="middle" transform="rotate(-90 105.08 95)">linked to 0V-P 2</text>
-<text x="101.27" y="79.09" font-size="1" text-anchor="middle">in</text>
-<text x="116.21" y="95" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 116.21 95)">0V-P 2</text>
-<text x="113.77" y="79.09" font-size="1" text-anchor="middle">in</text>
-<text x="148.91" y="89.69" font-size="1.5" text-anchor="middle" font-weight="bold">Servo PSU</text>
-<text x="148.91" y="91.38" font-size="1.17" text-anchor="middle">6 V, DC-DC</text>
-<text x="143.18" y="77.51" font-size="1" text-anchor="middle">+24</text>
-<text x="154.63" y="77.51" font-size="1" text-anchor="middle">0V</text>
-<text x="162.31" y="84.79" font-size="1" text-anchor="end">+6V</text>
-<text x="162.31" y="96.04" font-size="1" text-anchor="end">0V</text>
-<text x="217.91" y="95.09" font-size="1.5" text-anchor="middle" font-weight="bold">5 V PSU</text>
-<text x="217.91" y="96.77" font-size="1.17" text-anchor="middle">feeds the Pi</text>
-<text x="217.91" y="98.57" font-size="1.17" text-anchor="middle">at the panel</text>
-<text x="206.67" y="77.51" font-size="1" text-anchor="middle">+24</text>
-<text x="214.16" y="77.51" font-size="1" text-anchor="middle">0V</text>
-<text x="221.66" y="77.51" font-size="1" text-anchor="middle">+5V</text>
-<text x="229.16" y="77.51" font-size="1" text-anchor="middle">0V</text>
-<text x="91.83" y="152.16" font-size="1.7" text-anchor="middle" font-weight="bold">24 V PSU 1200 W, lying flat</text>
-<text x="91.83" y="154.07" font-size="1.33" text-anchor="middle">terminals toward the mains duct,</text>
-<text x="91.83" y="156.11" font-size="1.33" text-anchor="middle">fan toward the right wall</text>
-<text x="151.41" y="134.67" font-size="1" text-anchor="end">+V</text>
-<text x="151.41" y="141.1" font-size="1" text-anchor="end">+V</text>
-<text x="151.41" y="147.53" font-size="1" text-anchor="end">-V</text>
-<text x="151.41" y="153.96" font-size="1" text-anchor="end">-V</text>
-<text x="151.41" y="160.39" font-size="1" text-anchor="end">FG</text>
-<text x="151.41" y="166.82" font-size="1" text-anchor="end">N</text>
-<text x="151.41" y="173.24" font-size="1" text-anchor="end">L</text>
-<text x="197.17" y="152.33" font-size="1.5" text-anchor="middle" font-weight="bold">K1</text>
-<text x="197.17" y="154.02" font-size="1.17" text-anchor="middle">HC1-63</text>
-<text x="197.17" y="155.82" font-size="1.17" text-anchor="middle">coil 110 VAC</text>
-<text x="192.42" y="136.81" font-size="1" text-anchor="middle">1</text>
-<text x="197.17" y="136.81" font-size="1" text-anchor="middle">3</text>
-<text x="201.92" y="136.81" font-size="1" text-anchor="middle">A2</text>
-<text x="192.42" y="171.06" font-size="1" text-anchor="middle">2</text>
-<text x="197.17" y="171.06" font-size="1" text-anchor="middle">4</text>
-<text x="201.92" y="171.06" font-size="1" text-anchor="middle">A1</text>
-<text x="212.16" y="153.61" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 212.16 153.61)">F0</text>
-<text x="213.62" y="153.61" font-size="1.01" text-anchor="middle" transform="rotate(-90 213.62 153.61)">1 A T</text>
-<text x="164.44" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
-<text x="164.44" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
-<text x="167.5" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
-<text x="167.5" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
-<text x="170.56" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
-<text x="170.56" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
-<text x="173.62" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
-<text x="173.62" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
-<text x="169.03" y="159.87" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">PE</text>
-<text x="178.65" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">1</text>
-<text x="178.65" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
-<text x="181.71" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">2</text>
-<text x="181.71" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
-<text x="184.77" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">3</text>
-<text x="184.77" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
-<text x="181.71" y="159.87" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X1</text>
-<text x="181.71" y="148.49" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">door 110 V</text>
-<text x="220.43" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">L</text>
-<text x="220.43" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
-<text x="223.49" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">L</text>
-<text x="223.49" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
-<text x="226.54" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">N</text>
-<text x="226.54" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
-<text x="229.6" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">N</text>
-<text x="229.6" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
-<text x="232.66" y="153.96" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
-<text x="232.66" y="146.22" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
-<text x="226.54" y="159.87" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X0</text>
-<text x="226.54" y="148.49" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">mains in</text>
-<text x="185.74" y="107.79" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 185.74 107.79)">ground bar</text>
+<text x="72.58" y="48.82" font-size="1.7" text-anchor="middle" font-weight="bold">FB2  12-way</text>
+<text x="72.58" y="50.72" font-size="1.33" text-anchor="middle">+24 V cut by the E-stop (K2)</text>
+<text x="100.52" y="60.77" font-size="1" text-anchor="middle">IN</text>
+<text x="152.06" y="48.82" font-size="1.7" text-anchor="middle" font-weight="bold">FB1  12-way</text>
+<text x="152.06" y="50.72" font-size="1.33" text-anchor="middle">+24 V always on</text>
+<text x="123.47" y="60.77" font-size="1" text-anchor="middle">IN</text>
+<text x="77.17" y="93.09" font-size="1.6" text-anchor="middle" font-weight="bold">K2</text>
+<text x="77.17" y="94.89" font-size="1.25" text-anchor="middle">BMC7-25U</text>
+<text x="77.17" y="96.81" font-size="1.25" text-anchor="middle">coil 24 V</text>
+<text x="71.52" y="76.95" font-size="1" text-anchor="middle">2</text>
+<text x="74.35" y="76.95" font-size="1" text-anchor="middle">4</text>
+<text x="77.17" y="76.95" font-size="1" text-anchor="middle">6</text>
+<text x="80" y="76.95" font-size="1" text-anchor="middle">8</text>
+<text x="82.82" y="76.95" font-size="1" text-anchor="middle">A2</text>
+<text x="71.52" y="112.61" font-size="1" text-anchor="middle">1</text>
+<text x="74.35" y="112.61" font-size="1" text-anchor="middle">3</text>
+<text x="77.17" y="112.61" font-size="1" text-anchor="middle">5</text>
+<text x="80" y="112.61" font-size="1" text-anchor="middle">7</text>
+<text x="82.82" y="112.61" font-size="1" text-anchor="middle">A1</text>
+<text x="53.18" y="93.26" font-size="1.4" text-anchor="middle" font-weight="bold">F3</text>
+<text x="53.18" y="94.83" font-size="1.09" text-anchor="middle">RT18-32</text>
+<text x="53.18" y="96.51" font-size="1.09" text-anchor="middle">3-pole</text>
+<text x="46.13" y="77.64" font-size="1" text-anchor="middle">1</text>
+<text x="53.18" y="77.64" font-size="1" text-anchor="middle">2</text>
+<text x="60.22" y="77.64" font-size="1" text-anchor="middle">3</text>
+<text x="46.13" y="111.92" font-size="1" text-anchor="middle">1</text>
+<text x="53.18" y="111.92" font-size="1" text-anchor="middle">2</text>
+<text x="60.22" y="111.92" font-size="1" text-anchor="middle">3</text>
+<text x="93.49" y="94.45" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 93.49 94.45)">Star S</text>
+<text x="95.01" y="94.45" font-size="1.05" text-anchor="middle" transform="rotate(-90 95.01 94.45)">uxcell</text>
+<text x="91.87" y="111.02" font-size="1" text-anchor="middle">in</text>
+<text x="106.21" y="94.45" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 106.21 94.45)">0V-P 1</text>
+<text x="107.73" y="94.45" font-size="1.05" text-anchor="middle" transform="rotate(-90 107.73 94.45)">linked to 0V-P 2</text>
+<text x="103.94" y="78.53" font-size="1" text-anchor="middle">in</text>
+<text x="118.76" y="94.45" font-size="1.35" text-anchor="middle" font-weight="bold" transform="rotate(-90 118.76 94.45)">0V-P 2</text>
+<text x="116.33" y="78.53" font-size="1" text-anchor="middle">in</text>
+<text x="151.19" y="89.14" font-size="1.5" text-anchor="middle" font-weight="bold">Servo PSU</text>
+<text x="151.19" y="90.83" font-size="1.17" text-anchor="middle">6 V, DC-DC</text>
+<text x="145.51" y="76.95" font-size="1" text-anchor="middle">+24</text>
+<text x="156.86" y="76.95" font-size="1" text-anchor="middle">0V</text>
+<text x="164.47" y="84.24" font-size="1" text-anchor="end">+6V</text>
+<text x="164.47" y="95.49" font-size="1" text-anchor="end">0V</text>
+<text x="218.16" y="94.54" font-size="1.5" text-anchor="middle" font-weight="bold">5 V PSU</text>
+<text x="218.16" y="96.22" font-size="1.17" text-anchor="middle">feeds the Pi</text>
+<text x="218.16" y="98.02" font-size="1.17" text-anchor="middle">at the panel</text>
+<text x="207" y="76.95" font-size="1" text-anchor="middle">+24</text>
+<text x="214.44" y="76.95" font-size="1" text-anchor="middle">0V</text>
+<text x="221.88" y="76.95" font-size="1" text-anchor="middle">+5V</text>
+<text x="229.31" y="76.95" font-size="1" text-anchor="middle">0V</text>
+<text x="92.17" y="152.14" font-size="1.7" text-anchor="middle" font-weight="bold">24 V PSU 1200 W, lying flat</text>
+<text x="92.17" y="154.05" font-size="1.33" text-anchor="middle">terminals toward the mains duct,</text>
+<text x="92.17" y="156.09" font-size="1.33" text-anchor="middle">fan toward the right wall</text>
+<text x="152.19" y="134.64" font-size="1" text-anchor="end">+V</text>
+<text x="152.19" y="141.07" font-size="1" text-anchor="end">+V</text>
+<text x="152.19" y="147.5" font-size="1" text-anchor="end">-V</text>
+<text x="152.19" y="153.94" font-size="1" text-anchor="end">-V</text>
+<text x="152.19" y="160.37" font-size="1" text-anchor="end">FG</text>
+<text x="152.19" y="166.8" font-size="1" text-anchor="end">N</text>
+<text x="152.19" y="173.23" font-size="1" text-anchor="end">L</text>
+<text x="197.59" y="152.31" font-size="1.5" text-anchor="middle" font-weight="bold">K1</text>
+<text x="197.59" y="154" font-size="1.17" text-anchor="middle">HC1-63</text>
+<text x="197.59" y="155.8" font-size="1.17" text-anchor="middle">coil 110 VAC</text>
+<text x="192.88" y="136.77" font-size="1" text-anchor="middle">1</text>
+<text x="197.59" y="136.77" font-size="1" text-anchor="middle">3</text>
+<text x="202.3" y="136.77" font-size="1" text-anchor="middle">A2</text>
+<text x="192.88" y="171.05" font-size="1" text-anchor="middle">2</text>
+<text x="197.59" y="171.05" font-size="1" text-anchor="middle">4</text>
+<text x="202.3" y="171.05" font-size="1" text-anchor="middle">A1</text>
+<text x="212.45" y="153.59" font-size="1.3" text-anchor="middle" font-weight="bold" transform="rotate(-90 212.45 153.59)">F0</text>
+<text x="213.91" y="153.59" font-size="1.01" text-anchor="middle" transform="rotate(-90 213.91 153.59)">1 A T</text>
+<text x="165.13" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
+<text x="165.13" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
+<text x="168.16" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
+<text x="168.16" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
+<text x="171.19" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
+<text x="171.19" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
+<text x="174.23" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
+<text x="174.23" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
+<text x="169.68" y="159.85" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">PE</text>
+<text x="179.22" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">1</text>
+<text x="179.22" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
+<text x="182.25" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">2</text>
+<text x="182.25" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
+<text x="185.28" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">3</text>
+<text x="185.28" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
+<text x="182.25" y="159.85" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X1</text>
+<text x="182.25" y="148.46" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">door 110 V</text>
+<text x="220.65" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">L</text>
+<text x="220.65" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
+<text x="223.69" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">L</text>
+<text x="223.69" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
+<text x="226.72" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">N</text>
+<text x="226.72" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
+<text x="229.75" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">N</text>
+<text x="229.75" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">4</text>
+<text x="232.79" y="153.94" font-size="1" text-anchor="middle" font-weight="bold">PE</text>
+<text x="232.79" y="146.19" font-size="0.8" style="fill:#555" text-anchor="middle">5</text>
+<text x="226.72" y="159.85" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X0</text>
+<text x="226.72" y="148.46" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">mains in</text>
+<text x="186.26" y="107.25" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 186.26 107.25)">ground bar</text>
 <text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: lower deck wiring</text>
 <text x="8" y="15.4" font-size="2.1">Lower deck, on the base plate: 110 VAC and 24 V power. Sheet 1's circuits on the parts of sheet 3, every wire from terminal to terminal.</text>
-<text x="228.28" y="23.2" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke" font-weight="bold">Lower left grommet</text>
-<text x="228.28" y="24.7" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">ODrive 24 V: F2-8 and 0V-P 2</text>
-<text x="228.28" y="26.2" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">Pi 5 V: the 5 V PSU</text>
-<text x="228.28" y="27.7" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">E-stop loop: the door cable from X2</text>
-<text x="250" y="153.61" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 250 153.61)">IEC inlet with switch Q0</text>
-<text x="251.5" y="153.61" font-size="1.1" text-anchor="middle" transform="rotate(-90 251.5 153.61)">L, N, PE</text>
-<text x="250" y="130.44" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 250 130.44)">M20 gland: door 110 V</text>
-<text x="251.5" y="130.44" font-size="1.1" text-anchor="middle" transform="rotate(-90 251.5 130.44)">X1 1-3 and PE</text>
-<text x="44.01" y="60.41" font-size="0.95" transform="rotate(-90 44.01 60.41)">F2-1  X  5 A</text>
-<text x="48.65" y="60.41" font-size="0.95" transform="rotate(-90 48.65 60.41)">F2-2  Y1  5 A</text>
-<text x="53.3" y="60.41" font-size="0.95" transform="rotate(-90 53.3 60.41)">F2-3  Y2  5 A</text>
-<text x="57.94" y="60.41" font-size="0.95" transform="rotate(-90 57.94 60.41)">F2-4  Z  5 A</text>
-<text x="62.59" y="60.41" font-size="0.95" transform="rotate(-90 62.59 60.41)">F2-5  A  5 A</text>
-<text x="67.23" y="60.41" font-size="0.95" transform="rotate(-90 67.23 60.41)">F2-6  B  5 A</text>
-<text x="71.87" y="60.41" font-size="0.95" transform="rotate(-90 71.87 60.41)">F2-7  C  5 A</text>
-<text x="76.52" y="60.41" font-size="0.95" transform="rotate(-90 76.52 60.41)">F2-8  ODrive  10 A</text>
-<text x="81.16" y="60.41" font-size="0.95" transform="rotate(-90 81.16 60.41)">F2-9  servo  3 A</text>
-<text x="85.81" y="60.41" font-size="0.95" transform="rotate(-90 85.81 60.41)">F2-10  UV  2 A</text>
-<text x="90.45" y="60.41" font-size="0.95" transform="rotate(-90 90.45 60.41)">F2-11  valve  2 A</text>
-<text x="95.09" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 95.09 60.41)">F2-12  spare</text>
-<text x="127.58" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 127.58 60.41)">F1-1  spare</text>
-<text x="132.38" y="60.41" font-size="0.95" transform="rotate(-90 132.38 60.41)">F1-2  5 V PSU  3 A</text>
-<text x="137.18" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 137.18 60.41)">F1-3  spare</text>
-<text x="141.99" y="60.41" font-size="0.95" transform="rotate(-90 141.99 60.41)">F1-4  tower  3 A</text>
-<text x="146.79" y="60.41" font-size="0.95" transform="rotate(-90 146.79 60.41)">F1-5  latch  3 A</text>
-<text x="151.59" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 151.59 60.41)">F1-6  spare</text>
-<text x="156.4" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 156.4 60.41)">F1-7  spare</text>
-<text x="161.2" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 161.2 60.41)">F1-8  spare</text>
-<text x="166" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 166 60.41)">F1-9  spare</text>
-<text x="170.81" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 170.81 60.41)">F1-10  spare</text>
-<text x="175.61" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 175.61 60.41)">F1-11  spare</text>
-<text x="180.41" y="60.41" font-size="0.95" style="fill:#555" transform="rotate(-90 180.41 60.41)">F1-12  spare</text>
+<text x="228.45" y="23.2" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke" font-weight="bold">Lower left grommet</text>
+<text x="228.45" y="24.7" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">ODrive 24 V: F2-8 and 0V-P 2</text>
+<text x="228.45" y="26.2" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">Pi 5 V: the 5 V PSU</text>
+<text x="228.45" y="27.7" font-size="1.15" stroke="#fff" stroke-width="0.52" paint-order="stroke">E-stop loop: the door cable from X2</text>
+<text x="250" y="153.59" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 250 153.59)">IEC inlet with switch Q0</text>
+<text x="251.5" y="153.59" font-size="1.1" text-anchor="middle" transform="rotate(-90 251.5 153.59)">L, N, PE</text>
+<text x="250" y="130.4" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 250 130.4)">M20 gland: door 110 V</text>
+<text x="251.5" y="130.4" font-size="1.1" text-anchor="middle" transform="rotate(-90 251.5 130.4)">X1 1-3 and PE</text>
+<text x="44.96" y="60.42" font-size="0.95" transform="rotate(-90 44.96 60.42)">F2-1  X  5 A</text>
+<text x="49.62" y="60.42" font-size="0.95" transform="rotate(-90 49.62 60.42)">F2-2  Y1  5 A</text>
+<text x="54.28" y="60.42" font-size="0.95" transform="rotate(-90 54.28 60.42)">F2-3  Y2  5 A</text>
+<text x="58.93" y="60.42" font-size="0.95" transform="rotate(-90 58.93 60.42)">F2-4  Z  5 A</text>
+<text x="63.59" y="60.42" font-size="0.95" transform="rotate(-90 63.59 60.42)">F2-5  A  5 A</text>
+<text x="68.25" y="60.42" font-size="0.95" transform="rotate(-90 68.25 60.42)">F2-6  B  5 A</text>
+<text x="72.91" y="60.42" font-size="0.95" transform="rotate(-90 72.91 60.42)">F2-7  C  5 A</text>
+<text x="77.56" y="60.42" font-size="0.95" transform="rotate(-90 77.56 60.42)">F2-8  ODrive  10 A</text>
+<text x="82.22" y="60.42" font-size="0.95" transform="rotate(-90 82.22 60.42)">F2-9  servo  3 A</text>
+<text x="86.88" y="60.42" font-size="0.95" transform="rotate(-90 86.88 60.42)">F2-10  UV  2 A</text>
+<text x="91.53" y="60.42" font-size="0.95" transform="rotate(-90 91.53 60.42)">F2-11  valve  2 A</text>
+<text x="96.19" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 96.19 60.42)">F2-12  spare</text>
+<text x="128.57" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 128.57 60.42)">F1-1  spare</text>
+<text x="133.33" y="60.42" font-size="0.95" transform="rotate(-90 133.33 60.42)">F1-2  5 V PSU  3 A</text>
+<text x="138.09" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 138.09 60.42)">F1-3  spare</text>
+<text x="142.86" y="60.42" font-size="0.95" transform="rotate(-90 142.86 60.42)">F1-4  tower  3 A</text>
+<text x="147.62" y="60.42" font-size="0.95" transform="rotate(-90 147.62 60.42)">F1-5  latch  3 A</text>
+<text x="152.39" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 152.39 60.42)">F1-6  spare</text>
+<text x="157.15" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 157.15 60.42)">F1-7  spare</text>
+<text x="161.91" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 161.91 60.42)">F1-8  spare</text>
+<text x="166.68" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 166.68 60.42)">F1-9  spare</text>
+<text x="171.44" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 171.44 60.42)">F1-10  spare</text>
+<text x="176.21" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 176.21 60.42)">F1-11  spare</text>
+<text x="180.97" y="60.42" font-size="0.95" style="fill:#555" transform="rotate(-90 180.97 60.42)">F1-12  spare</text>
 <text x="256" y="30" font-size="2" font-weight="bold">Legend</text>
 <text x="262" y="33.2" font-size="1.3">110 VAC</text>
 <text x="309" y="33.2" font-size="1.3">+24 V always on (FB1)</text>
@@ -543,18 +561,21 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="256" y="124.95" font-size="1.2">Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and</text>
 <text x="256" y="126.7" font-size="1.2">the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button</text>
 <text x="256" y="128.45" font-size="1.2">are wired at the panel). The ODrive sits in the spin coater's base.</text>
-<text x="256" y="130.2" font-size="1.2">Gauges, copper only: mains, the PSU to FB1, K2 and S, K2 to FB2, S to 0V-P: 12 AWG. F2-1 to F2-7:</text>
-<text x="256" y="131.95" font-size="1.2">18 AWG; F2-8: 16 AWG; the F0 rung: 300 V insulation; everything else: 20 AWG.</text>
-<text x="256" y="133.7" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
-<text x="256" y="135.45" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
-<text x="256" y="137.2" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
-<text x="256" y="138.95" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
-<text x="256" y="140.7" font-size="1.2">Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC</text>
-<text x="256" y="142.45" font-size="1.2">terminal finger-safe or covered (ADR-0013). Fuses: F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A,</text>
-<text x="256" y="144.2" font-size="1.2">F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T. The PSU's terminal order is assumed.</text>
+<text x="256" y="130.2" font-size="1.2">Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to</text>
+<text x="256" y="131.95" font-size="1.2">0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V</text>
+<text x="256" y="133.7" font-size="1.2">pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. Everything else: the 20 AWG on hand,</text>
+<text x="256" y="135.45" font-size="1.2">copper-clad aluminum (about 3 A), only on fuses of 3 A or less.</text>
+<text x="256" y="137.2" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
+<text x="256" y="138.95" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
+<text x="256" y="140.7" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
+<text x="256" y="142.45" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
+<text x="256" y="144.2" font-size="1.2">Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC</text>
+<text x="256" y="145.95" font-size="1.2">terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),</text>
+<text x="256" y="147.7" font-size="1.2">F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T.</text>
+<text x="256" y="149.45" font-size="1.2">The PSU's terminal order is assumed.</text>
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: lower deck wiring</text>
 <text x="258" y="194.4" font-size="2">Sheet 2A (2B: upper deck). Legal 14 x 8.5 in, landscape, 100 %.</text>
-<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-10-22.</text>
 <text x="258" y="199.9" font-size="2">Status: design, not yet built or tested.</text>
 <text x="258" y="202.65" font-size="2">Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.</text>
 </svg>

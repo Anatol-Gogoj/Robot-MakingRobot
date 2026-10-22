@@ -29,7 +29,7 @@ PsuGap = 3.0                                            # PSU top to the plate a
 Blocks = {
     "R110": (154.5, 82.0, 72.5, "mains", True),    # X0, F0, K1, X1, PE blocks on the 110 V rail
     "PSU": (240.0, 65.0, 143.5, "mains", True),    # 24 V 1200 W standing on a 240 x 65 face
-    "R24": (122.1, 85.1, 75.6, "dc", True),        # K2, Star S, two 0V-P bars
+    "R24": (180.1, 85.1, 75.6, "dc", True),        # F3 (issue #205), K2, Star S, two 0V-P bars
     "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
     "PS6": (63.0, 58.0, 40.5, "dc", True),         # servo PSU
     "PS5": (76.0, 76.0, 49.5, "dc", True),         # 5 V PSU for the Pi
@@ -56,7 +56,7 @@ Exits = {
 # From sheet 1's circuits (2026-10-06 panel reference); a cable to an exit counts its conductors.
 Nets = [
     ("INLET", "R110", 3), ("R110", "PSU", 3),                       # mains, K1, PE
-    ("PSU", "R24", 3), ("PSU", "RFB", 1), ("R24", "RFB", 3),         # V+, K2 out, 0V to the buses
+    ("PSU", "R24", 4), ("R24", "RFB", 4),                            # V+ to F3, F3 and K2 out, 0V
     ("RFB", "DRV", 7), ("R24", "DRV", 7),                            # driver feeds and returns
     ("RFB", "PS6", 1), ("PS6", "R24", 1), ("PS6", "FIELD", 2),       # servo supply
     ("RFB", "LL", 2),                                                # ODrive 24 V feed

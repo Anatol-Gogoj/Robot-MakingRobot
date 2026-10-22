@@ -65,120 +65,125 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="26" y="51.4" font-size="1.8" style="fill:#000">12-way fuse module: +24 V cut by the E-stop</text>
 <text x="26" y="53.8" font-size="1.8" style="fill:#000">(behind K2)</text>
 <text x="73" y="51.4" font-size="1.8" style="fill:#000">fuse rail</text>
-<text x="8" y="56.2" font-size="1.8" style="fill:#000" font-weight="bold">K2</text>
-<text x="26" y="56.2" font-size="1.8" style="fill:#000">24 V contactor BMC7-25U: 1-2 and 3-4 in series</text>
-<text x="26" y="58.6" font-size="1.8" style="fill:#000">feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 that</text>
-<text x="26" y="61" font-size="1.8" style="fill:#000">motor power is on</text>
+<text x="8" y="56.2" font-size="1.8" style="fill:#000" font-weight="bold">F3</text>
+<text x="26" y="56.2" font-size="1.8" style="fill:#000">3-pole fuse holder RT18-32, 10 x 38 mm: F3-1 25</text>
+<text x="26" y="58.6" font-size="1.8" style="fill:#000">A from PSU V+ to K2 (FB2), F3-2 10 A to FB1,</text>
+<text x="26" y="61" font-size="1.8" style="fill:#000">F3-3 spare</text>
 <text x="73" y="56.2" font-size="1.8" style="fill:#000">24 V rail</text>
-<text x="8" y="63.4" font-size="1.8" style="fill:#000" font-weight="bold">star S</text>
-<text x="26" y="63.4" font-size="1.8" style="fill:#000">the 0 V star at the PSU's -V; the only 0 V to PE</text>
-<text x="26" y="65.8" font-size="1.8" style="fill:#000">bond</text>
+<text x="8" y="63.4" font-size="1.8" style="fill:#000" font-weight="bold">K2</text>
+<text x="26" y="63.4" font-size="1.8" style="fill:#000">24 V contactor BMC7-25U: 1-2 and 3-4 in series</text>
+<text x="26" y="65.8" font-size="1.8" style="fill:#000">feed FB2, 5-6 seal in, 7-8 tell Mega pin 43 that</text>
+<text x="26" y="68.2" font-size="1.8" style="fill:#000">motor power is on</text>
 <text x="73" y="63.4" font-size="1.8" style="fill:#000">24 V rail</text>
-<text x="8" y="68.2" font-size="1.8" style="fill:#000" font-weight="bold">0V-P 1, 2</text>
-<text x="26" y="68.2" font-size="1.8" style="fill:#000">0 V power buses, linked: drivers, ODrive, K2</text>
-<text x="26" y="70.6" font-size="1.8" style="fill:#000">coil, loads</text>
-<text x="73" y="68.2" font-size="1.8" style="fill:#000">24 V rail</text>
-<text x="8" y="73" font-size="1.8" style="fill:#000" font-weight="bold">servo PSU</text>
-<text x="26" y="73" font-size="1.8" style="fill:#000">6 V DC-DC for the gripper and lid servos</text>
-<text x="73" y="73" font-size="1.8" style="fill:#000">beside 24 V rail</text>
-<text x="8" y="75.4" font-size="1.8" style="fill:#000" font-weight="bold">5 V PSU</text>
-<text x="26" y="75.4" font-size="1.8" style="fill:#000">feeds the Pi at the operator panel</text>
-<text x="73" y="75.4" font-size="1.8" style="fill:#000">24 V row, back</text>
-<text x="8" y="77.8" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
-<text x="26" y="77.8" font-size="1.8" style="fill:#000">lower PE bar on the base plate's PE stud</text>
-<text x="73" y="77.8" font-size="1.8" style="fill:#000">behind servo PSU</text>
-<text x="8" y="81.4" font-size="2.3" font-weight="bold">Upper deck: drives, logic, field terminals</text>
-<text x="8" y="84.4" font-size="1.8" style="fill:#000" font-weight="bold">X2</text>
-<text x="26" y="84.4" font-size="1.8" style="fill:#000">E-stop latch: the door cable from S2 and S3</text>
-<text x="73" y="84.4" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="86.8" font-size="1.8" style="fill:#000" font-weight="bold">X4</text>
-<text x="26" y="86.8" font-size="1.8" style="fill:#000">endstops: a signal and a common for each axis</text>
-<text x="73" y="86.8" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="89.2" font-size="1.8" style="fill:#000" font-weight="bold">X5</text>
-<text x="26" y="89.2" font-size="1.8" style="fill:#000">servos: 6 V, 0 V and signal for the gripper and</text>
-<text x="26" y="91.6" font-size="1.8" style="fill:#000">lid</text>
-<text x="73" y="89.2" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="94" font-size="1.8" style="fill:#000" font-weight="bold">X6</text>
-<text x="26" y="94" font-size="1.8" style="fill:#000">lid (UV array, switch S5) and the argon valve</text>
+<text x="8" y="70.6" font-size="1.8" style="fill:#000" font-weight="bold">star S</text>
+<text x="26" y="70.6" font-size="1.8" style="fill:#000">the 0 V star at the PSU's -V; the only 0 V to PE</text>
+<text x="26" y="73" font-size="1.8" style="fill:#000">bond</text>
+<text x="73" y="70.6" font-size="1.8" style="fill:#000">24 V rail</text>
+<text x="8" y="75.4" font-size="1.8" style="fill:#000" font-weight="bold">0V-P 1, 2</text>
+<text x="26" y="75.4" font-size="1.8" style="fill:#000">0 V power buses, linked: drivers, ODrive, K2</text>
+<text x="26" y="77.8" font-size="1.8" style="fill:#000">coil, loads</text>
+<text x="73" y="75.4" font-size="1.8" style="fill:#000">24 V rail</text>
+<text x="8" y="80.2" font-size="1.8" style="fill:#000" font-weight="bold">servo PSU</text>
+<text x="26" y="80.2" font-size="1.8" style="fill:#000">6 V DC-DC for the gripper and lid servos</text>
+<text x="73" y="80.2" font-size="1.8" style="fill:#000">beside 24 V rail</text>
+<text x="8" y="82.6" font-size="1.8" style="fill:#000" font-weight="bold">5 V PSU</text>
+<text x="26" y="82.6" font-size="1.8" style="fill:#000">feeds the Pi at the operator panel</text>
+<text x="73" y="82.6" font-size="1.8" style="fill:#000">24 V row, back</text>
+<text x="8" y="85" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
+<text x="26" y="85" font-size="1.8" style="fill:#000">lower PE bar on the base plate's PE stud</text>
+<text x="73" y="85" font-size="1.8" style="fill:#000">behind servo PSU</text>
+<text x="8" y="88.6" font-size="2.3" font-weight="bold">Upper deck: drives, logic, field terminals</text>
+<text x="8" y="91.6" font-size="1.8" style="fill:#000" font-weight="bold">X2</text>
+<text x="26" y="91.6" font-size="1.8" style="fill:#000">E-stop latch: the door cable from S2 and S3</text>
+<text x="73" y="91.6" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="94" font-size="1.8" style="fill:#000" font-weight="bold">X4</text>
+<text x="26" y="94" font-size="1.8" style="fill:#000">endstops: a signal and a common for each axis</text>
 <text x="73" y="94" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="96.4" font-size="1.8" style="fill:#000" font-weight="bold">X7</text>
-<text x="26" y="96.4" font-size="1.8" style="fill:#000">status tower: red, amber, green, buzzer, common</text>
+<text x="8" y="96.4" font-size="1.8" style="fill:#000" font-weight="bold">X5</text>
+<text x="26" y="96.4" font-size="1.8" style="fill:#000">servos: 6 V, 0 V and signal for the gripper and</text>
+<text x="26" y="98.8" font-size="1.8" style="fill:#000">lid</text>
 <text x="73" y="96.4" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="98.8" font-size="1.8" style="fill:#000" font-weight="bold">X8</text>
-<text x="26" y="98.8" font-size="1.8" style="fill:#000">spare (was the screen supply and the home</text>
-<text x="26" y="101.2" font-size="1.8" style="fill:#000">button)</text>
-<text x="73" y="98.8" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="103.6" font-size="1.8" style="fill:#000" font-weight="bold">Mega</text>
-<text x="26" y="103.6" font-size="1.8" style="fill:#000">Arduino Mega 2560 on a screw shield; runs on the</text>
-<text x="26" y="106" font-size="1.8" style="fill:#000">Pi's USB</text>
-<text x="73" y="103.6" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="108.4" font-size="1.8" style="fill:#000" font-weight="bold">0V-S</text>
-<text x="26" y="108.4" font-size="1.8" style="fill:#000">signal 0 V bus, 9 linked: driver COMs, Mega GND,</text>
-<text x="26" y="110.8" font-size="1.8" style="fill:#000">endstops</text>
-<text x="73" y="108.4" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="113.2" font-size="1.8" style="fill:#000" font-weight="bold">0V-S2</text>
-<text x="26" y="113.2" font-size="1.8" style="fill:#000">second 0V-S group: SSR input returns, S5 return</text>
-<text x="73" y="113.2" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="115.6" font-size="1.8" style="fill:#000" font-weight="bold">SSR-UV</text>
-<text x="26" y="115.6" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 4 switches the UV</text>
-<text x="26" y="118" font-size="1.8" style="fill:#000">array</text>
-<text x="73" y="115.6" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="120.4" font-size="1.8" style="fill:#000" font-weight="bold">SSR-valve</text>
-<text x="26" y="120.4" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 42 switches the</text>
-<text x="26" y="122.8" font-size="1.8" style="fill:#000">argon valve</text>
-<text x="73" y="120.4" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="125.2" font-size="1.8" style="fill:#000" font-weight="bold">tower R A G</text>
-<text x="26" y="125.2" font-size="1.8" style="fill:#000">DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber,</text>
-<text x="26" y="127.6" font-size="1.8" style="fill:#000">green lamps</text>
-<text x="73" y="125.2" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="130" font-size="1.8" style="fill:#000" font-weight="bold">buzzer</text>
-<text x="26" y="130" font-size="1.8" style="fill:#000">DC SSR: Pi GPIO 26 switches the tower's buzzer</text>
-<text x="73" y="130" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="132.4" font-size="1.8" style="fill:#000" font-weight="bold">X ... C</text>
-<text x="26" y="132.4" font-size="1.8" style="fill:#000">TB6600 drivers: X, Y1, Y2 (follows Y), Z, A</text>
-<text x="26" y="134.8" font-size="1.8" style="fill:#000">(filter feed), B (syringe height), C (syringe)</text>
-<text x="73" y="132.4" font-size="1.8" style="fill:#000">drivers rail</text>
-<text x="8" y="137.2" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
-<text x="26" y="137.2" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
-<text x="73" y="137.2" font-size="1.8" style="fill:#000">past the drivers</text>
-<text x="8" y="139.6" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
-<text x="26" y="139.6" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
-<text x="73" y="139.6" font-size="1.8" style="fill:#000">behind back run</text>
-<text x="8" y="143.2" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
-<text x="8" y="146.2" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
-<text x="26" y="146.2" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
-<text x="26" y="148.6" font-size="1.8" style="fill:#000">while K1 is in</text>
-<text x="73" y="146.2" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="151" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
-<text x="26" y="151" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
-<text x="26" y="153.4" font-size="1.8" style="fill:#000">(GPIO 20)</text>
-<text x="73" y="151" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="155.8" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
-<text x="26" y="155.8" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
-<text x="26" y="158.2" font-size="1.8" style="fill:#000">E-stop</text>
-<text x="73" y="155.8" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="160.6" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
-<text x="26" y="160.6" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
-<text x="26" y="163" font-size="1.8" style="fill:#000">lid shut</text>
-<text x="73" y="160.6" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="165.4" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
-<text x="26" y="165.4" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
-<text x="26" y="167.8" font-size="1.8" style="fill:#000">for now)</text>
-<text x="73" y="165.4" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="170.2" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
-<text x="26" y="170.2" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
-<text x="73" y="170.2" font-size="1.8" style="fill:#000">at the valve</text>
-<text x="8" y="172.6" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
-<text x="26" y="172.6" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
-<text x="26" y="175" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
-<text x="73" y="172.6" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
-<text x="26" y="177.4" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
-<text x="73" y="177.4" font-size="1.8" style="fill:#000">spin coater base</text>
-<text x="8" y="179.8" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
-<text x="26" y="179.8" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
-<text x="26" y="182.2" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
-<text x="73" y="179.8" font-size="1.8" style="fill:#000"></text>
+<text x="8" y="101.2" font-size="1.8" style="fill:#000" font-weight="bold">X6</text>
+<text x="26" y="101.2" font-size="1.8" style="fill:#000">lid (UV array, switch S5) and the argon valve</text>
+<text x="73" y="101.2" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="103.6" font-size="1.8" style="fill:#000" font-weight="bold">X7</text>
+<text x="26" y="103.6" font-size="1.8" style="fill:#000">status tower: red, amber, green, buzzer, common</text>
+<text x="73" y="103.6" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="106" font-size="1.8" style="fill:#000" font-weight="bold">X8</text>
+<text x="26" y="106" font-size="1.8" style="fill:#000">spare (was the screen supply and the home</text>
+<text x="26" y="108.4" font-size="1.8" style="fill:#000">button)</text>
+<text x="73" y="106" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="110.8" font-size="1.8" style="fill:#000" font-weight="bold">Mega</text>
+<text x="26" y="110.8" font-size="1.8" style="fill:#000">Arduino Mega 2560 on a screw shield; runs on the</text>
+<text x="26" y="113.2" font-size="1.8" style="fill:#000">Pi's USB</text>
+<text x="73" y="110.8" font-size="1.8" style="fill:#000">logic rail</text>
+<text x="8" y="115.6" font-size="1.8" style="fill:#000" font-weight="bold">0V-S</text>
+<text x="26" y="115.6" font-size="1.8" style="fill:#000">signal 0 V bus, 9 linked: driver COMs, Mega GND,</text>
+<text x="26" y="118" font-size="1.8" style="fill:#000">endstops</text>
+<text x="73" y="115.6" font-size="1.8" style="fill:#000">logic rail</text>
+<text x="8" y="120.4" font-size="1.8" style="fill:#000" font-weight="bold">0V-S2</text>
+<text x="26" y="120.4" font-size="1.8" style="fill:#000">second 0V-S group: SSR input returns, S5 return</text>
+<text x="73" y="120.4" font-size="1.8" style="fill:#000">logic rail</text>
+<text x="8" y="122.8" font-size="1.8" style="fill:#000" font-weight="bold">SSR-UV</text>
+<text x="26" y="122.8" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 4 switches the UV</text>
+<text x="26" y="125.2" font-size="1.8" style="fill:#000">array</text>
+<text x="73" y="122.8" font-size="1.8" style="fill:#000">SSR rail</text>
+<text x="8" y="127.6" font-size="1.8" style="fill:#000" font-weight="bold">SSR-valve</text>
+<text x="26" y="127.6" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 42 switches the</text>
+<text x="26" y="130" font-size="1.8" style="fill:#000">argon valve</text>
+<text x="73" y="127.6" font-size="1.8" style="fill:#000">SSR rail</text>
+<text x="8" y="132.4" font-size="1.8" style="fill:#000" font-weight="bold">tower R A G</text>
+<text x="26" y="132.4" font-size="1.8" style="fill:#000">DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber,</text>
+<text x="26" y="134.8" font-size="1.8" style="fill:#000">green lamps</text>
+<text x="73" y="132.4" font-size="1.8" style="fill:#000">SSR rail</text>
+<text x="8" y="137.2" font-size="1.8" style="fill:#000" font-weight="bold">buzzer</text>
+<text x="26" y="137.2" font-size="1.8" style="fill:#000">DC SSR: Pi GPIO 26 switches the tower's buzzer</text>
+<text x="73" y="137.2" font-size="1.8" style="fill:#000">SSR rail</text>
+<text x="8" y="139.6" font-size="1.8" style="fill:#000" font-weight="bold">X ... C</text>
+<text x="26" y="139.6" font-size="1.8" style="fill:#000">TB6600 drivers: X, Y1, Y2 (follows Y), Z, A</text>
+<text x="26" y="142" font-size="1.8" style="fill:#000">(filter feed), B (syringe height), C (syringe)</text>
+<text x="73" y="139.6" font-size="1.8" style="fill:#000">drivers rail</text>
+<text x="8" y="144.4" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
+<text x="26" y="144.4" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
+<text x="73" y="144.4" font-size="1.8" style="fill:#000">past the drivers</text>
+<text x="8" y="146.8" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
+<text x="26" y="146.8" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
+<text x="73" y="146.8" font-size="1.8" style="fill:#000">behind back run</text>
+<text x="8" y="150.4" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
+<text x="8" y="153.4" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
+<text x="26" y="153.4" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
+<text x="26" y="155.8" font-size="1.8" style="fill:#000">while K1 is in</text>
+<text x="73" y="153.4" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="158.2" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
+<text x="26" y="158.2" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
+<text x="26" y="160.6" font-size="1.8" style="fill:#000">(GPIO 20)</text>
+<text x="73" y="158.2" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="163" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
+<text x="26" y="163" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
+<text x="26" y="165.4" font-size="1.8" style="fill:#000">E-stop</text>
+<text x="73" y="163" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="167.8" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
+<text x="26" y="167.8" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
+<text x="26" y="170.2" font-size="1.8" style="fill:#000">lid shut</text>
+<text x="73" y="167.8" font-size="1.8" style="fill:#000">lid</text>
+<text x="8" y="172.6" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
+<text x="26" y="172.6" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
+<text x="26" y="175" font-size="1.8" style="fill:#000">for now)</text>
+<text x="73" y="172.6" font-size="1.8" style="fill:#000">lid</text>
+<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
+<text x="26" y="177.4" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
+<text x="73" y="177.4" font-size="1.8" style="fill:#000">at the valve</text>
+<text x="8" y="179.8" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
+<text x="26" y="179.8" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
+<text x="26" y="182.2" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
+<text x="73" y="179.8" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="184.6" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
+<text x="26" y="184.6" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
+<text x="73" y="184.6" font-size="1.8" style="fill:#000">spin coater base</text>
+<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
+<text x="26" y="187" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
+<text x="26" y="189.4" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
+<text x="73" y="187" font-size="1.8" style="fill:#000"></text>
 <text x="95" y="22" font-size="2.3" font-weight="bold">Terminal plan</text>
 <text x="95" y="25" font-size="1.8" style="fill:#555" font-weight="bold">No.</text>
 <text x="100" y="25" font-size="1.8" style="fill:#555">label</text>
@@ -475,6 +480,9 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="189" y="94.6" font-size="1.8" style="fill:#000">valve (2 A), F2-12 spare</text>
 <text x="182" y="97" font-size="1.8" style="fill:#000" font-weight="bold">F0</text>
 <text x="189" y="97" font-size="1.8" style="fill:#000">1 A T, 5 x 20 mm: the K1 rung (S1, K1 coil, H1)</text>
+<text x="182" y="99.4" font-size="1.8" style="fill:#000" font-weight="bold">F3</text>
+<text x="189" y="99.4" font-size="1.8" style="fill:#000">10 x 38 mm, DC rated: F3-1 25 A, PSU V+ to K2 (FB2); F3-2 10 A, PSU V+ to FB1;</text>
+<text x="189" y="101.8" font-size="1.8" style="fill:#000">F3-3 spare</text>
 <text x="268" y="22" font-size="2.3" font-weight="bold">Cable entries and slots</text>
 <text x="268" y="25" font-size="1.8" style="fill:#000" font-weight="bold">UL</text>
 <text x="278" y="25" font-size="1.8" style="fill:#000">upper left grommet: field cables X4, X5, X6</text>
@@ -509,8 +517,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="287" y="62.8" font-size="1.8" style="fill:#000">common</text>
 <text x="268" y="65.2" font-size="1.8" style="fill:#000" font-weight="bold">PUL, DIR, ENA</text>
 <text x="287" y="65.2" font-size="1.8" style="fill:#000">a TB6600's step, direction, enable inputs</text>
-<text x="268" y="67.6" font-size="1.8" style="fill:#000" font-weight="bold">F1-n, F2-n</text>
-<text x="287" y="67.6" font-size="1.8" style="fill:#000">fuse n of FB1, of FB2</text>
+<text x="268" y="67.6" font-size="1.8" style="fill:#000" font-weight="bold">F1-n, F2-n, F3-n</text>
+<text x="287" y="67.6" font-size="1.8" style="fill:#000">fuse n of FB1, of FB2, of F3</text>
 <text x="268" y="70" font-size="1.8" style="fill:#000" font-weight="bold">0V-P, 0V-S</text>
 <text x="287" y="70" font-size="1.8" style="fill:#000">0 V power, 0 V signal</text>
 <text x="268" y="72.4" font-size="1.8" style="fill:#000" font-weight="bold">GPIO</text>

@@ -877,20 +877,22 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="256" y="124.95" font-size="1.2">Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and</text>
 <text x="256" y="126.7" font-size="1.2">the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button</text>
 <text x="256" y="128.45" font-size="1.2">are wired at the panel). The ODrive sits in the spin coater's base.</text>
-<text x="256" y="130.2" font-size="1.2">Gauges, copper only: mains, the PSU to FB1, K2 and S, K2 to FB2, S to 0V-P: 12 AWG. F2-1 to F2-7:</text>
-<text x="256" y="131.95" font-size="1.2">18 AWG; F2-8: 16 AWG; the F0 rung: 300 V insulation; everything else: 20 AWG.</text>
-<text x="256" y="133.7" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
-<text x="256" y="135.45" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
-<text x="256" y="137.2" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
-<text x="256" y="138.95" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
-<text x="256" y="140.7" font-size="1.2">Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper</text>
-<text x="256" y="142.45" font-size="1.2">right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.</text>
-<text x="256" y="144.2" font-size="1.2">The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck</text>
-<text x="256" y="145.95" font-size="1.2">behind every rail; the upper left grommet, beside X7, would save most of that run.</text>
-<text x="256" y="147.7" font-size="1.2">1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield.</text>
+<text x="256" y="130.2" font-size="1.2">Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to</text>
+<text x="256" y="131.95" font-size="1.2">0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V</text>
+<text x="256" y="133.7" font-size="1.2">pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. Everything else: the 20 AWG on hand,</text>
+<text x="256" y="135.45" font-size="1.2">copper-clad aluminum (about 3 A), only on fuses of 3 A or less.</text>
+<text x="256" y="137.2" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
+<text x="256" y="138.95" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
+<text x="256" y="140.7" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
+<text x="256" y="142.45" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
+<text x="256" y="144.2" font-size="1.2">Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper</text>
+<text x="256" y="145.95" font-size="1.2">right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.</text>
+<text x="256" y="147.7" font-size="1.2">The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck</text>
+<text x="256" y="149.45" font-size="1.2">behind every rail; the upper left grommet, beside X7, would save most of that run.</text>
+<text x="256" y="151.2" font-size="1.2">1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield.</text>
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: upper deck wiring</text>
 <text x="258" y="194.4" font-size="2">Sheet 2B (2A: lower deck). Legal 14 x 8.5 in, landscape, 100 %.</text>
-<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164).</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-10-22.</text>
 <text x="258" y="199.9" font-size="2">Status: design, not yet built or tested.</text>
 <text x="258" y="202.65" font-size="2">Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.</text>
 </svg>
