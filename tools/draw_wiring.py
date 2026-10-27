@@ -16,10 +16,12 @@ Usage: python tools/draw_wiring.py [out_dir]   (default docs/wiring)
 """
 
 import csv
+import hashlib
 import io
 import json
 import math
 import os
+import re
 import sys
 import textwrap
 
@@ -98,8 +100,9 @@ def Esc(s):
 
 
 class Sheet:
-    def __init__(self, title):
+    def __init__(self, title, size=(PageW, PageH)):
         self.Title = title
+        self.W, self.H = size  # paper in mm: Legal for the wiring sheets, ANSI B for the shop drawings
         self.Parts = []
         self.TextParts = []   # drawn last, so a haloed label sits on top of every wire
         self.CssExtra = ""
@@ -160,11 +163,11 @@ class Sheet:
         body = "\n".join(self.Parts + self.TextParts)
         cls = ' class="%s"' % self.SvgClass if self.SvgClass else ""
         return ('<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<svg xmlns="http://www.w3.org/2000/svg"%s width="14in" height="8.5in" '
+                '<svg xmlns="http://www.w3.org/2000/svg"%s width="%sin" height="%sin" '
                 'viewBox="0 0 %s %s">\n<title>%s</title>\n<style>%s</style>\n'
                 '<rect x="0" y="0" width="%s" height="%s" fill="#fff"/>\n%s\n</svg>\n'
-                % (cls, Fmt(PageW), Fmt(PageH), Esc(self.Title), Css + self.CssExtra, Fmt(PageW), Fmt(PageH),
-                   body))
+                % (cls, Fmt(self.W / 25.4), Fmt(self.H / 25.4), Fmt(self.W), Fmt(self.H), Esc(self.Title),
+                   Css + self.CssExtra, Fmt(self.W), Fmt(self.H), body))
 
 
 # ---------------------------------------------------------------- symbols
@@ -5360,6 +5363,495 @@ def BuildGantry():
     return sh
 
 
+# ---------------------------------------------------------------- shop drawings of the deck plates
+
+# Part drawings of the two deck plates for a machine shop (issue #213): one ANSI B sheet each, drawn
+# from PlateGeom() like the plate DXFs and in the DXF's own frame (origin at the plate's front-left
+# corner, x toward the back, y toward the right wall, so the plate is seen from below), so the shop can
+# hold each drawing against the file it cuts from. ShopChecks() reads each DXF back from disk and
+# refuses a chart, as printed, that differs from it. Only the plate's own holes and slots are drawn;
+# the DIN rail, duct, ground bar and shield clamp holes are drilled at assembly (sheet 4).
+# Datums: the centres of the corner holes A1 and A3 (ShopDatums), which the frame's studs and feet
+# screws pass, not the cut edges. Every centre is +/-ShopPosTol from them and every edge lies on its
+# nominal line or up to ShopOutlineTol[1] inside it, so the plate is never larger than nominal round
+# its holes; how far the studs let it shift against the frame is not covered here.
+# Holes: 5.5 mm is ISO 273 medium clearance for M5 and 4.5 mm for M4, 0.25 mm of radial float at the
+# smallest hole; a centre at the corner of its +/-ShopPosTol zone is ShopPosTol x 1.41 = 0.21 mm off,
+# so one hole still passes a screw at true position (ShopChecks). That is per hole: where the
+# hand-built frame puts each stud and T-nut is not. A CNC punch, laser, waterjet or mill holds it.
+# Revisions: ShopRevs lists each plate's revisions, newest last, and ShopGeomPin the ShopGeomId() of
+# the newest. A change to PlateGeom() changes the id, and ShopChecks() then refuses to write the
+# drawings until the plate gets a new revision and the pin is updated.
+ShopPage = (431.8, 279.4)          # ANSI B, 17 x 11 in, landscape
+ShopMargin = 10.0                  # paper edge to the border
+ShopScale = 2.0                    # 1:2
+ShopDrawn = "A. GOGOJ"
+ShopDwg = {"base": ("RMR-CB-DECK-BASE", "DECK PLATE, BASE"),
+           "upper": ("RMR-CB-DECK-UPPER", "DECK PLATE, UPPER")}
+ShopRevs = {"base": [("A", "FIRST RELEASE, ISSUE #213", "2026-10-27", "AG")],   # (rev, what, date, by)
+            "upper": [("A", "FIRST RELEASE, ISSUE #213", "2026-10-27", "AG")]}
+ShopGeomPin = {"base": "c9a33bc2f182", "upper": "411165133e7f"}
+ShopPosTol = 0.15                  # hole and slot centres from the datums, plus or minus
+ShopSizeTol = (0.2, 0.0)           # hole and slot sizes: plus, minus
+ShopOutlineTol = (0.0, 0.5)        # each edge from its nominal line: outward, inward
+ShopScrews = [(HoleM5, 5.0), (HoleRing, 4.0)]   # (hole, the screw through it)
+ShopTextH = 3.0                    # notes, chart and dimensions
+ShopTagH = 2.5                     # feature tags in the view
+ShopMark = 1.5                     # centre marks run this far past a hole or slot, on paper
+ShopCapW = 0.66                    # advance width of an upper-case Arial character over the font size, a bound
+ShopNearer = 1.5                   # a tag with no leader is this much nearer its own feature, on paper
+PlusMinus = chr(0xB1)
+
+
+def ShopShape(x0, y0, x1, y1):
+    """("slot", width, overall length, the axis it runs along) of a PlateGeom() slot."""
+    return ("slot", min(x1 - x0, y1 - y0), max(x1 - x0, y1 - y0), "X" if x1 - x0 >= y1 - y0 else "Y")
+
+
+def ShopSize(shape):
+    if shape[0] == "hole":
+        return "%s%.1f THRU" % (Dia, shape[1])
+    return "SLOT %.1f X %.1f, ALONG %s" % shape[1:]
+
+
+def ShopFeatures(kind):
+    """[(tag, x, y, size, shape)] for each hole and slot of PlateGeom(kind) in the DXF's frame, x and y at
+    its centre; shape is ("hole", dia) or ShopShape(). One letter per size: holes first, largest first,
+    then slots, narrowest first. Each letter numbers its features in PlateGeom()'s order, so on the upper
+    plate D1 to D3 are sheet 4's cable slots 1 to 3."""
+    _, holes, slots = PlateGeom(kind)
+    items = [((0, -round(d, 3)), x, y, ("hole", d)) for x, y, d in holes]
+    items += [((1, round(min(x1 - x0, y1 - y0), 3)), (x0 + x1) / 2, (y0 + y1) / 2, ShopShape(x0, y0, x1, y1))
+              for x0, y0, x1, y1 in slots]
+    out = []
+    for i, key in enumerate(sorted(set(k for k, _, _, _ in items))):
+        group = [(x, y, s) for k, x, y, s in items if k == key]
+        out += [("%s%d" % (chr(ord("A") + i), n + 1), x, y, ShopSize(s), s) for n, (x, y, s) in enumerate(group)]
+    return out
+
+
+def ShopRows(kind):
+    """The chart as printed: [(tag, x, y, size)], the centre to 0.01 mm, the size to 0.1 mm."""
+    return [(tag, "%.2f" % x, "%.2f" % y, size) for tag, x, y, size, _ in ShopFeatures(kind)]
+
+
+def ShopDatums(kind):
+    """The tags of the two datum holes: the posts' holes at the front-left and back-left corners (the
+    origin's corner and the far end of the x axis)."""
+    at = {(round(x, 3), round(y, 3)): tag for tag, x, y, _, s in ShopFeatures(kind) if s[0] == "hole"}
+    tags = [at.get((round(x, 3), round(y, 3))) for x, y in ((Frame / 2, Frame / 2), (BoxD - Frame / 2, Frame / 2))]
+    if None in tags:
+        raise ValueError("deck %s plate: no post hole at a datum corner" % kind)
+    return tags
+
+
+def ShopGeomId(kind):
+    """A short hash of what the drawing tells the shop about the part: its outline and its chart."""
+    outline, _, _ = PlateGeom(kind)
+    text = repr([("%.3f" % x, "%.3f" % y) for x, y in outline] + ShopRows(kind))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def ShopHalf(shape, scale):
+    """Half width and half height on paper of a feature with its centre marks, in a view at 1:scale."""
+    if shape[0] == "hole":
+        h = shape[1] / 2 / scale + ShopMark
+        return h, h
+    _, w, length, along = shape
+    a, b = length / 2 / scale + ShopMark, w / 2 / scale + ShopMark
+    return (a, b) if along == "X" else (b, a)
+
+
+def PtBoxGap(p, b):
+    """Distance from the point p to the box b (x0, y0, x1, y1); 0 inside it."""
+    return math.hypot(max(b[0] - p[0], 0.0, p[0] - b[2]), max(b[1] - p[1], 0.0, p[1] - b[3]))
+
+
+def BoxesMeet(a, b, pad=0.0):
+    return a[0] - pad < b[2] and b[0] - pad < a[2] and a[1] - pad < b[3] and b[1] - pad < a[3]
+
+
+def SegBoxGap(p, q, b):
+    """Least distance from the segment pq to the box b (x0, y0, x1, y1); 0 when they meet."""
+    if PtBoxGap(p, b) == 0.0 or PtBoxGap(q, b) == 0.0:
+        return 0.0
+    c = [(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3])]
+    return min(SegSeg(p, q, c[i], c[(i + 1) % 4]) for i in range(4))
+
+
+def ShopTags(v, feats):
+    """[(x, y, leader)]: the paper centre of each feature's tag, with None or a leader (tail, tip) to the
+    feature. A tag stands inside the outline, clear of every feature's marks and of every other tag and
+    leader, at the first free place on rings round its feature, nearest ring first, beside a slot's long
+    side first, then toward the plate's middle first. It stands beside its feature when it is ShopNearer
+    nearer that feature than any other; where features crowd (a corner hole between two bracket slots),
+    farther out, with a leader that keeps clear of every other feature and tag. Raises when a tag finds
+    no place."""
+    boxes, edges = [], []
+    for _, x, y, _, shape in feats:
+        hx, hy = ShopHalf(shape, v.S)
+        boxes.append((v.X(x) - hx, v.Y(y) - hy, v.X(x) + hx, v.Y(y) + hy))
+        ex, ey = hx - ShopMark, hy - ShopMark       # the hole or slot itself, without its marks
+        edges.append((ex, ey, shape[0] == "hole"))
+    inner = (v.X(0) + 1.0, v.Y(BoxW) + 1.0, v.X(BoxD) - 1.0, v.Y(0) - 1.0)
+    mx, my = (inner[0] + inner[2]) / 2, (inner[1] + inner[3]) / 2
+    out, taken, leaders = [], [], []
+    for k, (tag, _, _, _, shape) in enumerate(feats):
+        fb = boxes[k]
+        cx, cy = (fb[0] + fb[2]) / 2, (fb[1] + fb[3]) / 2
+        hx, hy = (fb[2] - fb[0]) / 2, (fb[3] - fb[1]) / 2
+        tw, th = len(tag) * ShopTagH * ShopCapW / 2, ShopTagH * 0.75 / 2   # half sizes
+        toMid = math.atan2(my - cy, mx - cx)
+        # a slot's tag goes beside the middle of its long side first, where no end of it is nearer
+        across = [] if shape[0] == "hole" else ([math.pi / 2, 3 * math.pi / 2] if shape[3] == "X" else [0.0, math.pi])
+        angles = sorted((math.pi * j / 8 for j in range(16)),
+                        key=lambda a: (min((abs(math.sin((a - b) / 2)) for b in across), default=0.0) > 1e-6,
+                                       abs(math.atan2(math.sin(a - toMid), math.cos(a - toMid)))))
+
+        def Places(rings):
+            for ring in rings:
+                gap = 0.6 + 0.8 * ring
+                for a in angles:
+                    dx, dy = math.cos(a), math.sin(a)
+                    t = min((hx + tw + gap) / abs(dx) if abs(dx) > 1e-9 else float("inf"),
+                            (hy + th + gap) / abs(dy) if abs(dy) > 1e-9 else float("inf"))
+                    px, py = cx + dx * t, cy + dy * t
+                    tb = (px - tw, py - th, px + tw, py + th)
+                    if not (inner[0] <= tb[0] and tb[2] <= inner[2] and inner[1] <= tb[1] and tb[3] <= inner[3]):
+                        continue
+                    if any(BoxesMeet(tb, b, 0.3) for b in boxes) or any(BoxesMeet(tb, b, 0.6) for b in taken):
+                        continue
+                    if any(SegBoxGap(p, q, tb) < 0.4 for p, q in leaders):
+                        continue
+                    yield px, py, tb
+
+        found = None
+        for px, py, tb in Places(range(4)):
+            own = PtBoxGap((px, py), fb)
+            if all(PtBoxGap((px, py), b) >= own + ShopNearer for j, b in enumerate(boxes) if j != k):
+                found = (px, py, tb, None)
+                break
+        if not found:
+            for px, py, tb in Places(range(2, 24)):
+                d = math.hypot(cx - px, cy - py)
+                ux, uy = (cx - px) / d, (cy - py) / d
+                s = min(tw / abs(ux) if abs(ux) > 1e-9 else float("inf"),
+                        th / abs(uy) if abs(uy) > 1e-9 else float("inf")) + 0.5
+                ex, ey, round_ = edges[k]
+                e = ex if round_ else min(ex / abs(ux) if abs(ux) > 1e-9 else float("inf"),
+                                          ey / abs(uy) if abs(uy) > 1e-9 else float("inf"))
+                tail, tip = (px + ux * s, py + uy * s), (cx - ux * e, cy - uy * e)
+                if any(SegBoxGap(tail, tip, b) < 0.3 for j, b in enumerate(boxes) if j != k):
+                    continue
+                if any(SegBoxGap(tail, tip, b) < 0.4 for b in taken):
+                    continue
+                if any(SegSeg(tail, tip, p, q) < 0.6 for p, q in leaders):
+                    continue
+                found = (px, py, tb, (tail, tip))
+                break
+        if not found:
+            raise ValueError("shop drawing: no room for the tag of %s" % tag)
+        out.append((found[0], found[1], found[3]))
+        taken.append(found[2])
+        if found[3]:
+            leaders.append(found[3])
+    return out
+
+
+def ShopArrow(sh, x, y, dx, dy, length=3.0, width=1.0):
+    """A filled arrowhead with its tip at (x, y), pointing along the unit axis (dx, dy)."""
+    bx, by, px, py = x - dx * length, y - dy * length, -dy * width / 2, dx * width / 2
+    sh.Add('<path d="M%s %s L%s %s L%s %s Z" style="fill:#000" stroke="none"/>'
+           % (Fmt(x), Fmt(y), Fmt(bx + px), Fmt(by + py), Fmt(bx - px), Fmt(by - py)))
+
+
+def ShopCell(sh, x, y, w, h, label, value, size=2.6, bold=False):
+    """A title block cell: its frame, a small label at the top left and the value under it."""
+    sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" stroke-width=".35"/>'
+           % (Fmt(x), Fmt(y), Fmt(w), Fmt(h)))
+    sh.Text(x + 1.2, y + 2.4, label, size=1.8)
+    sh.Text(x + 1.2, y + h - 1.6, value, size=size, weight="bold" if bold else "normal")
+
+
+def ShopWrap(text, width, size):
+    """Lines of text no wider than width mm at character height size."""
+    return textwrap.wrap(text, int(width / (size * ShopCapW)))
+
+
+def ShopNotes(kind):
+    no = ShopDwg[kind][0]
+    feats = ShopFeatures(kind)
+    d0, d1 = ShopDatums(kind)
+    at = {tag: (x, y) for tag, x, y, _, _ in feats}
+    pe = [tag for tag, x, y, _, _ in feats if (round(x, 3), round(y, 3)) == tuple(round(v, 3) for v in PeStud[kind])]
+    cable = [tag for tag, x, y, _, s in feats if s[0] == "slot"
+             and any(abs(x - (a0 + a1) / 2) < 1e-6 and abs(y - (b0 + b1) / 2) < 1e-6 for a0, b0, a1, b1 in CableSlots)]
+    drilled = ("DIN RAILS, DUCTS, GROUND BARS AND THE SHIELD CLAMP" if kind == "upper"
+               else "DIN RAILS, DUCTS AND GROUND BARS")
+    return ["DIMENSIONS IN MILLIMETERS. THE PLATE IS %.1f X %.1f (%.2f X %.2f IN). DO NOT SCALE THIS DRAWING."
+            % (BoxD, BoxW, BoxD / 25.4, BoxW / 25.4),
+            "MAKE FROM deck_%s_plate.dxf (MILLIMETERS, LAYER CUT, IN THE FRAME OF THIS VIEW) BY ANY PROCESS THAT "
+            "HOLDS THE TOLERANCES: CNC PUNCH, LASER, WATERJET OR MILL. REPORT ANY DIFFERENCE BETWEEN THE FILE AND "
+            "THIS DRAWING BEFORE CUTTING." % kind,
+            "DATUMS: THE CENTERS OF HOLES %s (X %.2f, Y %.2f) AND %s (Y %.2f). MEASURE EVERY CENTER AND EDGE FROM "
+            "THEM, NOT FROM THE CUT EDGES. EACH EDGE LIES ON ITS NOMINAL LINE OR UP TO %s INSIDE IT, NEVER OUTSIDE."
+            % (d0, at[d0][0], at[d0][1], d1, at[d1][1], Fmt(ShopOutlineTol[1])),
+            "ALL HOLES AND SLOTS THRU. DEBURR EVERY EDGE, HOLE AND SLOT ON BOTH FACES.",
+            "NO ANODIZE, PAINT OR COATING: THE PLATE IS BONDED TO PROTECTIVE EARTH THROUGH ITS BARE METAL.",
+            'MARK "%s REV %s" IN PERMANENT INK ON THE FACE SHOWN, NEAR THE ORIGIN.' % (no, ShopRevs[kind][-1][0]),
+            "THE CUSTOMER MAY SUPPLY THE MATERIAL AS ONE 18 X 24 IN SHEET OF 5052: USE IT AS SUPPLIED, NO "
+            "CERTIFICATE NEEDED." +
+            (" CUT THE PLATE FROM ONE CORNER AND RETURN THE REST IN ONE PIECE: THE LOWER BACK PANEL, %.1f X %.1f, "
+             "IS CUT FROM IT LATER." % (BoxW, LowerPanelH) if kind == "base" else ""),
+            "FOR ASSEMBLY: THE VIEW SHOWS THE UNDERSIDE AS INSTALLED (X FROM THE BOX'S FRONT TO ITS BACK, Y FROM "
+            "ITS LEFT WALL TO ITS RIGHT). THE HOLES FOR THE %s ARE DRILLED AT ASSEMBLY (SHEET 4); %s, THE PE "
+            "STUD, IS THE FIRST SCREW OF A GROUND BAR." % (drilled, " AND ".join(pe)) +
+            (" CABLE SLOTS %s TO %s TAKE RUBBER EDGE TRIM." % (cable[0], cable[-1]) if cable else "")]
+
+
+def BuildShopPlate(kind):
+    """The part drawing of one deck plate for the shop: the plate at 1:2 in the DXF's frame with every
+    feature tagged, the hole and slot chart, the notes, the title and revision blocks."""
+    no, title = ShopDwg[kind]
+    W, H = ShopPage
+    M, S, T = ShopMargin, ShopScale, ShopTextH
+    sh = Sheet("%s %s" % (no, title), size=ShopPage)
+    sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" stroke-width=".7"/>'
+           % (Fmt(M), Fmt(M), Fmt(W - 2 * M), Fmt(H - 2 * M)))
+    feats = ShopFeatures(kind)
+
+    # ------------------------------------------------ the plate
+    v = View(sh, 34.0, 20.0, BoxD, BoxW, S)
+    outline, holes, slots = PlateGeom(kind)
+    v.Poly(outline, fill="#fff", stroke=0.6)
+    for x, y, d in holes:
+        v.Hole(x, y, d, stroke=0.4)
+    for s in slots:
+        v.Obround(*s, stroke=0.4)
+    for _, x, y, _, shape in feats:
+        hx, hy = ShopHalf(shape, S)
+        sh.Wire([(v.X(x) - hx, v.Y(y)), (v.X(x) + hx, v.Y(y))], "sg")
+        sh.Wire([(v.X(x), v.Y(y) - hy), (v.X(x), v.Y(y) + hy)], "sg")
+    for (tag, _, _, _, _), (px, py, leader) in zip(feats, ShopTags(v, feats)):
+        sh.Text(px, py + ShopTagH * 0.375, tag, size=ShopTagH, anchor="middle", weight="bold")
+        if leader:
+            (ax, ay), (bx, by) = leader
+            d = math.hypot(bx - ax, by - ay)
+            sh.Add('<path d="M%s %s L%s %s" stroke="#000" stroke-width=".25"/>'
+                   % (Fmt(ax), Fmt(ay), Fmt(bx - (bx - ax) / d * 2.0), Fmt(by - (by - ay) / d * 2.0)))
+            ShopArrow(sh, bx, by, (bx - ax) / d, (by - ay) / d, length=2.2, width=0.75)
+    x0, x1, yt, yb = v.X(0), v.X(BoxD), v.Y(BoxW), v.Y(0)
+    xm, ym = (x0 + x1) / 2, (yt + yb) / 2
+    sh.Text(xm, yt - 2.0, "BOX RIGHT WALL", size=2.5, anchor="middle")
+    sh.Text(xm, yb + 4.5, "BOX LEFT WALL", size=2.5, anchor="middle")
+    sh.Text(x0 - 2.0, ym, "BOX FRONT", size=2.5, anchor="middle", rot=-90)
+    sh.Text(x1 + 4.0, ym, "BOX BACK", size=2.5, anchor="middle", rot=-90)
+    # the origin and the axes of the hole chart, as in the DXF
+    sh.Add('<path d="M%s %s H%s M%s %s V%s" stroke="#000" stroke-width=".4"/>'
+           % (Fmt(x0 + 1.5), Fmt(yb + 7.5), Fmt(x0 + 16), Fmt(x0 - 7.5), Fmt(yb - 1.5), Fmt(yb - 16)))
+    ShopArrow(sh, x0 + 18.5, yb + 7.5, 1, 0)
+    ShopArrow(sh, x0 - 7.5, yb - 18.5, 0, -1)
+    sh.Text(x0 + 20.5, yb + 8.6, "X", size=T, weight="bold")
+    sh.Text(x0 - 7.5, yb - 20.5, "Y", size=T, anchor="middle", weight="bold")
+    sh.Text(x0 - 1.5, yb + 4.5, "0, 0", size=2.5, anchor="end", weight="bold")
+    # overall size: length below, width on the right
+    yd = yb + 13.5
+    for x in (x0, x1):
+        sh.Wire([(x, yb + 1.0), (x, yd + 1.5)], "sg")
+    sh.Wire([(x0, yd), (x1, yd)], "sg")
+    ShopArrow(sh, x0, yd, -1, 0)
+    ShopArrow(sh, x1, yd, 1, 0)
+    sh.Text(xm, yd - 1.0, "%.1f" % BoxD, size=T, anchor="middle")
+    xd, gap = x1 + 15.5, T * 0.5 + 1.2
+    for y in (yt, yb):
+        sh.Wire([(x1 + 1.0, y), (xd + 1.5, y)], "sg")
+    sh.Wire([(xd, yt), (xd, ym - gap)], "sg")
+    sh.Wire([(xd, ym + gap), (xd, yb)], "sg")
+    ShopArrow(sh, xd, yt, 0, -1)
+    ShopArrow(sh, xd, yb, 0, 1)
+    sh.Text(xd, ym + T * 0.36, "%.1f" % BoxW, size=T, anchor="middle")
+    sh.Text(xm, yb + 21.0, "VIEW AS IN THE DXF, SCALE 1:%d" % S, size=3.5, anchor="middle", weight="bold")
+
+    # ------------------------------------------------ notes, under the view
+    nx, ny, lead, right = 14.0, yb + 27.5, T * 1.2, x1 + 3.5
+    sh.Text(nx, ny, "NOTES", size=T, weight="bold")
+    ny += lead
+    for i, note in enumerate(ShopNotes(kind)):
+        for j, line in enumerate(ShopWrap(note, right - nx - 6.0, T)):
+            if j == 0:
+                sh.Text(nx, ny, "%d." % (i + 1), size=T)
+            sh.Text(nx + 6.0, ny, line, size=T)
+            ny += lead
+    if ny - lead > H - M - 2.0:
+        raise ValueError("%s: the notes run %.1f mm past the border" % (no, ny - lead - (H - M - 2.0)))
+
+    # ------------------------------------------------ revision block, top right
+    rx, rw = W - M - 120.0, 120.0
+    revs = ShopRevs[kind]
+    rev, revDate = revs[-1][0], revs[0][2]       # the current revision; the date first drawn
+    cols = [("REV", 12.0), ("DESCRIPTION", 66.0), ("DATE", 24.0), ("BY", 18.0)]
+    cx = rx
+    for i, (head, cw) in enumerate(cols):
+        sh.Add('<rect x="%s" y="%s" width="%s" height="5" fill="#E6E6E6" stroke="#000" stroke-width=".35"/>'
+               % (Fmt(cx), Fmt(M), Fmt(cw)))
+        sh.Text(cx + cw / 2, M + 3.7, head, size=2.2, anchor="middle", weight="bold")
+        for j, r in enumerate(revs):
+            sh.Add('<rect x="%s" y="%s" width="%s" height="7" fill="none" stroke="#000" stroke-width=".35"/>'
+                   % (Fmt(cx), Fmt(M + 5 + 7 * j), Fmt(cw)))
+            sh.Text(cx + cw / 2, M + 10.5 + 7 * j, r[i], size=2.6, anchor="middle")
+        cx += cw
+
+    # ------------------------------------------------ hole and slot chart, under the revision block
+    cy = M + 5 + 7 * len(revs) + 7.5
+    sh.Text(rx, cy, "HOLE AND SLOT CHART", size=T, weight="bold")
+    cols = [("TAG", 14.0, "middle"), ("X", 22.0, "end"), ("Y", 22.0, "end"), ("SIZE", 62.0, "start")]
+    rowH, cy = 4.4, cy + 2.0
+    rows = ShopRows(kind)
+
+    def Row(cells, fill, bold):
+        sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" stroke="#000" stroke-width=".25"/>'
+               % (Fmt(rx), Fmt(cy), Fmt(rw), Fmt(rowH), fill))
+        cxx = rx
+        for (_, cw, anchor), s in zip(cols, cells):
+            tx = {"middle": cxx + cw / 2, "end": cxx + cw - 2.0, "start": cxx + 2.0}[anchor]
+            sh.Text(tx, cy + rowH - 1.15, s, size=T, anchor=anchor, weight="bold" if bold else "normal")
+            cxx += cw
+
+    Row([c[0] for c in cols], "#E6E6E6", True)
+    for k, row in enumerate(rows):
+        cy += rowH
+        Row(row, "#F2F2F2" if k % 2 else "#fff", False)
+    xs = rx
+    for _, cw, _ in cols[:-1]:            # column lines over the row fills
+        xs += cw
+        sh.Add('<path d="M%s %s V%s" stroke="#000" stroke-width=".25"/>'
+               % (Fmt(xs), Fmt(cy - rowH * len(rows)), Fmt(cy + rowH)))
+    cy += rowH + 4.0
+    nHoles = sum(1 for f in feats if f[4][0] == "hole")
+    nSlots = len(feats) - nHoles
+    chartNotes = ["X, Y: CENTER FROM THE ORIGIN 0, 0, THE NOMINAL LOWER LEFT CORNER. DATUMS: NOTE 3."]
+    if nSlots:
+        chartNotes += ["SLOT W X L: WIDTH X OVERALL LENGTH, FULL-RADIUS ENDS, LONG AXIS ALONG X OR Y.",
+                       "%d HOLES AND %d SLOTS, ALL THRU." % (nHoles, nSlots)]
+    else:
+        chartNotes += ["%d HOLES, ALL THRU." % nHoles]
+    for note in chartNotes:
+        for line in ShopWrap(note, rw, 2.5):
+            sh.Text(rx, cy, line, size=2.5)
+            cy += 3.4
+    tbH, tbW = 56.0, 150.0
+    tx, ty = W - M - tbW, H - M - tbH
+    if cy > ty - 2.0:
+        raise ValueError("%s: the chart runs %.1f mm into the title block" % (no, cy - (ty - 2.0)))
+
+    # ------------------------------------------------ title block, bottom right
+    tolW = 55.0
+    sh.Add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="#000" stroke-width=".5"/>'
+           % (Fmt(tx), Fmt(ty), Fmt(tbW), Fmt(tbH)))
+    sh.Add('<path d="M%s %s V%s" stroke="#000" stroke-width=".35"/>' % (Fmt(tx + tolW), Fmt(ty), Fmt(ty + tbH)))
+    d0, d1 = ShopDatums(kind)
+    tol = ["DIMENSIONS IN MILLIMETERS",
+           "CENTERS %s%s FROM %s, %s" % (PlusMinus, Fmt(ShopPosTol), d0, d1),
+           "HOLE, SLOT SIZES +%s / -%s" % (Fmt(ShopSizeTol[0]), Fmt(ShopSizeTol[1])),
+           "EDGES +%s / -%s (NOTE 3)" % (Fmt(ShopOutlineTol[0]), Fmt(ShopOutlineTol[1])),
+           "DEBURR ALL EDGES"]
+    sh.Text(tx + 1.5, ty + 4.5, "UNLESS OTHERWISE SPECIFIED:", size=2.2, weight="bold")
+    for i, s in enumerate(tol):
+        sh.Text(tx + 1.5, ty + 10.0 + i * 4.2, s, size=2.5)
+    sh.Text(tx + 1.5, ty + tbH - 3.0, "DO NOT SCALE DRAWING", size=2.5, weight="bold")
+    mx0, mw = tx + tolW, tbW - tolW
+    ShopCell(sh, mx0, ty, mw, 13.0, "TITLE", title, size=4.2, bold=True)
+    sh.Text(mx0 + mw - 1.2, ty + 2.4, "RMR CONTROL BOX", size=1.8, anchor="end")
+    ShopCell(sh, mx0, ty + 13.0, mw, 8.0, "MATERIAL", "AL 5052-H32 SHEET, 0.063 IN (1.59 MM), ASTM B209")
+    ShopCell(sh, mx0, ty + 21.0, mw, 8.0, "FINISH", "NONE, MILL FINISH: NO ANODIZE, PAINT OR COATING")
+    ShopCell(sh, mx0, ty + 29.0, 70.0, 12.0, "DWG NO", no, size=4.0, bold=True)
+    ShopCell(sh, mx0 + 70.0, ty + 29.0, mw - 70.0, 12.0, "REV", rev, size=4.0, bold=True)
+    cx = mx0
+    for label, val, cw in [("SIZE", "B", 18.0), ("SCALE", "1:%d" % S, 22.0), ("QTY", "1", 18.0),
+                           ("SHEET", "1 OF 1", mw - 58.0)]:
+        ShopCell(sh, cx, ty + 41.0, cw, 7.5, label, val)
+        cx += cw
+    cx = mx0
+    for label, val, cw in [("DRAWN", ShopDrawn, 35.0), ("DATE", revDate, 30.0), ("CHECKED", "", mw - 65.0)]:
+        ShopCell(sh, cx, ty + 48.5, cw, 7.5, label, val)
+        cx += cw
+    sh.Text(M, H - 4.0, "Made by tools/draw_wiring.py (BuildShopPlate, PlateGeom) in Robot-MakingRobot: change the "
+            "generator, not this sheet.", size=2.0)
+    return sh
+
+
+def ShopParse(row):
+    """(kind, x, y, sizes, along) read back from a printed chart row (ShopRows)."""
+    tag, xs, ys, size = row
+    slot = re.fullmatch(r"SLOT (\d+\.\d) X (\d+\.\d), ALONG ([XY])", size)
+    hole = re.fullmatch(re.escape(Dia) + r"(\d+\.\d) THRU", size)
+    if slot:
+        return ("slot", float(xs), float(ys), (float(slot.group(1)), float(slot.group(2))), slot.group(3))
+    if hole:
+        return ("hole", float(xs), float(ys), (float(hole.group(1)),), None)
+    raise ValueError("shop drawing: %s's size %r does not read back" % (tag, size))
+
+
+def ShopChecks(outDir):
+    """Raise unless each plate's geometry is the one its newest revision pins (ShopGeomPin), a hole at
+    its smallest size and the worst corner of its position zone still passes its screw at true
+    position, and each plate's DXF, read back from outDir, holds the plate's outline and exactly the
+    features of its chart as printed: each centre within the 0.005 mm that printing to 0.01 rounds off,
+    each size exact (a size that does not print exactly to 0.1 mm fails). Returns [(file, holes, slots)]."""
+    for kind in ("base", "upper"):
+        if ShopGeomId(kind) != ShopGeomPin[kind]:
+            raise ValueError("deck %s plate: its geometry is %s, but revision %s pins %s. Add a revision to "
+                             "ShopRevs and set ShopGeomPin to the new id."
+                             % (kind, ShopGeomId(kind), ShopRevs[kind][-1][0], ShopGeomPin[kind]))
+    worst = ShopPosTol * math.sqrt(2)
+    for hole, screw in ShopScrews:
+        if worst >= (hole - ShopSizeTol[1] - screw) / 2:
+            raise ValueError("shop drawings: a centre %.2f mm off leaves no float for an M%g in a %.1f mm hole"
+                             % (worst, screw, hole - ShopSizeTol[1]))
+    corners = sorted((x, y) for x in (0.0, BoxD) for y in (0.0, BoxW))
+    out = []
+    for kind in ("base", "upper"):
+        name = "deck_%s_plate.dxf" % kind
+        with open(os.path.join(outDir, name), encoding="ascii") as f:
+            extent, contours = ReadDxf(f.read())
+        if abs(extent[0] - BoxD) > 1e-3 or abs(extent[1] - BoxW) > 1e-3:
+            raise ValueError("%s: extent %r, the drawing has %s x %s" % (name, extent, Mm(BoxD), Mm(BoxW)))
+        got, outlines = [], 0
+        for c in contours:
+            s = DxfShape(c)
+            if s[0] == "pg":
+                pts = sorted(s[1])
+                if len(pts) != 4 or any(math.hypot(p[0] - q[0], p[1] - q[1]) > 1e-3 for p, q in zip(pts, corners)):
+                    raise ValueError("%s: a contour that is neither the outline, a hole nor a slot" % name)
+                outlines += 1
+                continue
+            _, a, b, r, _ = s
+            length = math.hypot(b[0] - a[0], b[1] - a[1])
+            if length < 1e-6:
+                got.append(("hole", a[0], a[1], (2 * r,), None))
+            else:
+                along = "X" if abs(b[0] - a[0]) > abs(b[1] - a[1]) else "Y"
+                got.append(("slot", (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (2 * r, length + 2 * r), along))
+        if outlines != 1:
+            raise ValueError("%s: %d outlines" % (name, outlines))
+        rows = ShopRows(kind)
+        for row in rows:
+            k, x, y, sizes, along = ShopParse(row)
+            for i, (gk, gx, gy, gs, ga) in enumerate(got):
+                if (gk == k and ga == along and abs(gx - x) <= 0.0051 and abs(gy - y) <= 0.0051
+                        and all(abs(p - q) < 1e-6 for p, q in zip(gs, sizes))):
+                    del got[i]
+                    break
+            else:
+                raise ValueError("%s: nothing in the file matches %s as printed: %s" % (name, row[0], row))
+        if got:
+            raise ValueError("%s: %d features missing from the chart, the first at (%.3f, %.3f)"
+                             % (name, len(got), got[0][1], got[0][2]))
+        nHoles = sum(1 for row in rows if ShopParse(row)[0] == "hole")
+        out.append((name, nHoles, len(rows) - nHoles))
+    return out
+
+
 # ---------------------------------------------------------------- bill of materials
 
 # Sourcing (ADR-0009): Amazon for the rail, the hardware, the sheet stock and the PE parts;
@@ -5850,6 +6342,13 @@ def Main():
         path = os.path.join(outDir, "deck_%s_plate.dxf" % kind)
         with open(path, "w", encoding="ascii", newline="\n") as f:
             f.write(DxfPlate(kind))
+        print("wrote", path)
+    for name, nHoles, nSlots in ShopChecks(outDir):
+        print("shop drawing of %s: %d holes and %d slots, the same as the file" % (name, nHoles, nSlots))
+    for kind in ("base", "upper"):
+        path = os.path.join(outDir, "deck_%s_plate.svg" % kind)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(BuildShopPlate(kind).Svg())
         print("wrote", path)
     PanelChecks()
     for name, text in PanelDxfFiles().items():
