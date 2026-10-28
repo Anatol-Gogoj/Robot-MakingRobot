@@ -5627,35 +5627,25 @@ def ShopWrap(text, width, size):
 
 
 def ShopNotes(kind, unit="mm"):
+    """The notes, only what the shop needs to make, mark and supply the plate."""
     no = ShopDwg[kind][0]
-    feats = ShopFeatures(kind)
     d0, d1 = ShopDatums(kind)
     at = {tag: (x, y) for tag, x, y, _ in ShopRows(kind, unit)}
-    pe = [tag for tag, x, y, _, _ in feats if (round(x, 3), round(y, 3)) == tuple(round(v, 3) for v in PeStud[kind])]
-    cable = [tag for tag, x, y, _, s in feats if s[0] == "slot"
-             and any(abs(x - (a0 + a1) / 2) < 1e-6 and abs(y - (b0 + b1) / 2) < 1e-6 for a0, b0, a1, b1 in CableSlots)]
-    drilled = ("DIN RAILS, DUCTS, GROUND BARS AND THE SHIELD CLAMP" if kind == "upper"
-               else "DIN RAILS, DUCTS AND GROUND BARS")
-    length, width = ShopExtent(unit)
     if unit == "mm":
-        first = ("DIMENSIONS IN MILLIMETERS; THIS DRAWING GOVERNS. THE PLATE IS NOMINALLY %s X %s (EDGES: NOTE 3). IN "
-                 "INCHES: DRAWING %s-IN." % (length, width, no))
+        first = "DIMENSIONS IN MILLIMETERS; THIS DRAWING GOVERNS. AN INCH VERSION IS DRAWING %s-IN." % no
         make = ("MAKE FROM deck_%s_plate.dxf (MILLIMETERS, LAYER CUT, IN THE FRAME OF THIS VIEW) BY ANY PROCESS "
-                "THAT HOLDS THE TOLERANCES: CNC PUNCH, LASER, WATERJET OR MILL. THE FILE'S HOLES AND SLOTS ARE AT "
-                "THEIR LEAST SIZE AND ITS OUTLINE AT ITS LARGEST: OFFSET THE CUT INTO THE TOLERANCES. REPORT ANY "
-                "DIFFERENCE BETWEEN THE FILE AND THIS DRAWING BEFORE CUTTING." % kind)
+                "THAT HOLDS THE TOLERANCES. THE FILE'S HOLES AND SLOTS ARE AT THEIR LEAST SIZE AND ITS OUTLINE AT "
+                "ITS LARGEST: CUT TO THE MIDDLE OF EACH TOLERANCE, NOT ON THE FILE'S LINES. REPORT ANY DIFFERENCE "
+                "BETWEEN THE FILE AND THIS DRAWING BEFORE CUTTING." % kind)
         f, out, inward = Fmt, ShopOutlineTol[0], ShopOutlineTol[1]
-        panel = "%.1f X %.1f" % (BoxW, LowerPanelH)
     else:
-        first = ("DIMENSIONS IN INCHES. THE PLATE IS NOMINALLY %s X %s (EDGES: NOTE 3). CONVERTED FROM DRAWING %s "
-                 "(MILLIMETERS), WHICH GOVERNS: EVERY TOLERANCE ZONE HERE LIES INSIDE ITS ZONE THERE."
-                 % (length, width, no))
+        first = ("DIMENSIONS IN INCHES, CONVERTED FROM DRAWING %s (MILLIMETERS), WHICH GOVERNS. EVERY TOLERANCE "
+                 "ZONE HERE LIES INSIDE ITS ZONE THERE." % no)
         make = ("MAKE FROM deck_%s_plate.dxf (MILLIMETERS, LAYER CUT, IN THE FRAME OF THIS VIEW) BY ANY PROCESS "
-                "THAT HOLDS THE TOLERANCES: CNC PUNCH, LASER, WATERJET OR MILL. THE FILE IS ON THE MILLIMETER LIMITS "
-                "(HOLES AND SLOTS AT THEIR LEAST, THE OUTLINE AT ITS LARGEST), JUST OUTSIDE THESE: OFFSET THE CUT INTO "
-                "THEM. REPORT ANY OTHER DIFFERENCE OVER .001 BEFORE CUTTING." % kind)
+                "THAT HOLDS THE TOLERANCES. THE FILE IS ON THE MILLIMETER LIMITS (HOLES AND SLOTS AT THEIR LEAST, "
+                "THE OUTLINE AT ITS LARGEST), JUST OUTSIDE THESE: CUT TO THE MIDDLE OF EACH TOLERANCE, NOT ON THE "
+                "FILE'S LINES. REPORT ANY OTHER DIFFERENCE OVER .001 BEFORE CUTTING." % kind)
         f, out, inward = InFmt, InchOutlineTol[0], InchOutlineTol[1]
-        panel = "%s X %s" % (InFmt(BoxW / 25.4), InFmt(LowerPanelH / 25.4))
     if out == 0:
         edge = "ON ITS NOMINAL LINE OR UP TO %s INSIDE IT, NEVER OUTSIDE" % f(inward)
     elif out < 0:
@@ -5666,17 +5656,11 @@ def ShopNotes(kind, unit="mm"):
             "DATUMS: THE CENTERS OF HOLES %s (X %s, Y %s) AND %s (Y %s). MEASURE EVERY CENTER AND EDGE FROM "
             "THEM, NOT FROM THE CUT EDGES. EACH EDGE LIES %s." % (d0, at[d0][0], at[d0][1], d1, at[d1][1], edge),
             "ALL HOLES AND SLOTS THRU. DEBURR EVERY EDGE, HOLE AND SLOT ON BOTH FACES.",
-            "NO ANODIZE, PAINT OR COATING: THE PLATE IS BONDED TO PROTECTIVE EARTH THROUGH ITS BARE METAL.",
-            'MARK THE PART NUMBER "%s REV %s" IN PERMANENT INK ON THE FACE SHOWN, NEAR THE ORIGIN.'
-            % (no, ShopRevs[kind][-1][0]),
+            'MARK THE PART NUMBER "%s REV %s"%s IN PERMANENT INK ON THE FACE SHOWN, NEAR THE ORIGIN.'
+            % (no, ShopRevs[kind][-1][0], "" if unit == "mm" else " (THE MILLIMETER DRAWING'S NUMBER)"),
             "THE CUSTOMER MAY SUPPLY THE MATERIAL AS ONE 18 X 24 IN SHEET OF 5052: USE IT AS SUPPLIED, NO "
             "CERTIFICATE NEEDED." +
-            (" CUT THE PLATE FROM ONE CORNER AND RETURN THE REST IN ONE PIECE: THE LOWER BACK PANEL, %s, "
-             "IS CUT FROM IT LATER." % panel if kind == "base" else ""),
-            "FOR ASSEMBLY: THE VIEW SHOWS THE UNDERSIDE AS INSTALLED (SEE THE EDGE LABELS). THE HOLES FOR THE %s "
-            "ARE DRILLED AT ASSEMBLY (SHEET 4); %s, THE PE STUD, IS THE FIRST SCREW OF A GROUND BAR."
-            % (drilled, " AND ".join(pe)) +
-            (" CABLE SLOTS %s TO %s TAKE RUBBER EDGE TRIM." % (cable[0], cable[-1]) if cable else "")]
+            (" CUT THE PLATE FROM ONE CORNER AND RETURN THE REST IN ONE PIECE." if kind == "base" else "")]
 
 
 def BuildShopPlate(kind, unit="mm"):
@@ -5727,7 +5711,7 @@ def BuildShopPlate(kind, unit="mm"):
     sh.Text(x0 - 7.5, yb - 20.5, "Y", size=T, anchor="middle", weight="bold")
     sh.Text(x0 - 1.5, yb + 4.5, "0, 0", size=2.5, anchor="end", weight="bold")
     # overall size: length below, width on the right
-    yd = yb + 12.0
+    yd = yb + 13.5
     for x in (x0, x1):
         sh.Wire([(x, yb + 1.0), (x, yd + 1.5)], "sg")
     sh.Wire([(x0, yd), (x1, yd)], "sg")
@@ -5742,13 +5726,15 @@ def BuildShopPlate(kind, unit="mm"):
     ShopArrow(sh, xd, yt, 0, -1)
     ShopArrow(sh, xd, yb, 0, 1)
     sh.Text(xd, ym + T * 0.36, width, size=T, anchor="middle")
-    sh.Text(xm, yb + 19.0, "VIEW AS IN THE DXF, SCALE 1:%d" % S, size=3.5, anchor="middle", weight="bold")
+    sh.Text(xm, yb + 21.0, "VIEW AS IN THE DXF, SCALE 1:%d" % S, size=3.5, anchor="middle", weight="bold")
 
     # ------------------------------------------------ notes, under the view
-    nx, ny, lead, right = 14.0, yb + 25.0, T * 1.2, x1 + 3.5
+    nx, ny, lead, right = 14.0, yb + 27.5, T * 1.2, x1 + 3.5
     sh.Text(nx, ny, "NOTES", size=T, weight="bold")
     ny += lead
-    for i, note in enumerate(ShopNotes(kind, unit)):
+    notes = ShopNotes(kind, unit)
+    datumNote = 1 + next(i for i, n in enumerate(notes) if n.startswith("DATUMS:"))
+    for i, note in enumerate(notes):
         for j, line in enumerate(ShopWrap(note, right - nx - 6.0, T)):
             if j == 0:
                 sh.Text(nx, ny, "%d." % (i + 1), size=T)
@@ -5801,7 +5787,7 @@ def BuildShopPlate(kind, unit="mm"):
     cy += rowH + 4.0
     nHoles = sum(1 for f in feats if f[4][0] == "hole")
     nSlots = len(feats) - nHoles
-    chartNotes = ["X, Y: CENTER FROM THE ORIGIN 0, 0, THE NOMINAL LOWER LEFT CORNER. DATUMS: NOTE 3."]
+    chartNotes = ["X, Y: CENTER FROM THE ORIGIN 0, 0, THE NOMINAL LOWER LEFT CORNER. DATUMS: NOTE %d." % datumNote]
     if nSlots:
         chartNotes += ["SLOT W X L: WIDTH X OVERALL LENGTH, FULL-RADIUS ENDS, LONG AXIS ALONG X OR Y.",
                        "%d HOLES AND %d SLOTS, ALL THRU." % (nHoles, nSlots)]
@@ -5827,7 +5813,7 @@ def BuildShopPlate(kind, unit="mm"):
     tol = ["DIMENSIONS IN %s" % ("MILLIMETERS" if unit == "mm" else "INCHES"),
            "CENTERS %s%s FROM %s, %s" % (PlusMinus, f(pos), d0, d1),
            "HOLE, SLOT SIZES +%s / -%s" % (f(size[0]), f(size[1])),
-           "EDGES %s%s / -%s (NOTE 3)" % ("-" if edge[0] < 0 else "+", f(abs(edge[0])), f(edge[1])),
+           "EDGES %s%s / -%s (NOTE %d)" % ("-" if edge[0] < 0 else "+", f(abs(edge[0])), f(edge[1]), datumNote),
            "DEBURR ALL EDGES"]
     sh.Text(tx + 1.5, ty + 4.5, "UNLESS OTHERWISE SPECIFIED:", size=2.2, weight="bold")
     for i, s in enumerate(tol):
@@ -5850,8 +5836,6 @@ def BuildShopPlate(kind, unit="mm"):
     for label, val, cw in [("DRAWN", ShopDrawn, 35.0), ("DATE", revDate, 30.0), ("CHECKED", "", mw - 65.0)]:
         ShopCell(sh, cx, ty + 48.5, cw, 7.5, label, val)
         cx += cw
-    sh.Text(M, H - 4.0, "Made by tools/draw_wiring.py (BuildShopPlate, PlateGeom) in Robot-MakingRobot: change the "
-            "generator, not this sheet.", size=2.0)
     return sh
 
 
