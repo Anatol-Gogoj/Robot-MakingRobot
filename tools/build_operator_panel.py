@@ -228,6 +228,8 @@ def Checks():
     leg = IH / 2 - BH / 2      # the bracket's legs stand on the ring's top and bottom sides, outside the pocket
     if leg <= 0.0:
         bad.append("the bracket's legs touch the display")
+    if Depth - W.OpInsertL < 1.0:
+        bad.append("insert holes %.1f deep leave %.1f mm of floor in the %.1f mm ring" % (W.OpInsertL, Depth - W.OpInsertL, Depth))
     wall = (Wall - W.OpInsertD) / 2
     print("insert wall %.1f mm each side; leg clearance to the display %.1f mm" % (wall, leg))
     if wall < 2.5:

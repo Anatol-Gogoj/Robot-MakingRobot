@@ -2329,7 +2329,9 @@ OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, 
 OpBracketGap = 2.0                                 # bracket to housing: 3 mm closed-cell foam squeezed to this, so a
                                                    # few tenths of stack error change the preload little
 OpPadD = 15.0                                      # foam pads, one by each VESA hole
-OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 5.5     # M3 clearance, heat-set insert hole, its depth (set flush: a melt
+OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set insert hole (the owner drills it out to
+                                                   # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
+                                                   # 2026-11-12), so a 1 mm floor stays (set flush: a melt
                                                    # lip on the ring's front would hold it off the plate)
 OpScrewHeadD = 5.5                                 # M3 pan head
 OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
