@@ -15,3 +15,7 @@ DemoProgram.txt
 
 # Mesh exports for printing (STL); the SLDPRT and STEP are the sources
 *.[sS][tT][lL]
+
+# Raw 3D scans (scanner projects, meshes, point clouds; hundreds of MB). The dimensions taken
+# from them live in tools/draw_wiring.py and the models built from those under CAD/ (issue #219).
+CAD/DisplayScan/

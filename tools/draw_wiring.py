@@ -2257,18 +2257,93 @@ def BuildNomenclature():
 # A render of the operator panel as it might look, seen from the front: the 10 in touch screen with the
 # Pi behind it, S1 (the power knob, its H1 lamp inside), S2 (the E-stop) and S3 (Reset), as ordered on
 # 2026-09-14: a 22 mm latching rotary selector with a green 110 V lamp, a 2NC red mushroom, and a blue
-# momentary button. The screen shows the Touch UI's Jog tab. Sizes are assumed (OpPanel): the screen is
-# a generic 10.1 in HDMI module and the housing is not designed yet. A faint extension of the housing,
+# momentary button. The screen shows the Touch UI's Jog tab. The housing behind the plate is not
+# designed yet; the plate, the display and the controls come from the layout below. A faint extension of the housing,
 # inside a dashed outline round the whole future panel, holds a pad of arrow keys and a select key to
 # drive the screen without touching it; nothing about it is designed (OpNav).
 # Issue #218 added S6 (green, Start / Resume) and S7 (red, Stop), two 22 mm flush buttons read by the Pi
 # on GPIO 16 and 25, and took the layout the owner laid out on the bench on 2026-11-11: the screen in the
 # middle, S2 above S1 to its left, and S3, S6, S7 from top to bottom to its right.
 OpScale = 1.75                                     # real mm per paper mm
-OpPanel = (410.0, 220.0)                           # housing front, assumed
-OpScreen = (82.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
-OpActive = (17.5, 15.0, 222.0, 125.0)              # active area inside the module: dx, dy, width, height
 OpNav = (34.0, 24.0, 28.0)                         # future pad: key pitch, arrow key side, select key diameter
+
+# The operator panel's layout (issue #219), shared by sheet 2D and tools/build_operator_panel.py, which
+# builds the FreeCAD model in CAD/Operator Panel. Millimetres, origin at the centre of the display's
+# front face, x to the right and y up as the operator sees the panel.
+# The display, from the owner's 3D scan of 2026-11-11 (CR-Scan Otter, 0.27 mm voxels; the scan stays
+# out of git in CAD/DisplayScan), taken face down on a table whose plane fits to 0.11 mm rms, so the
+# table is its front face. The scan reads 159.7 mm where the owner measured 160.
+OpDisplay = (244.7, 159.7, 5.4)                    # body at 1 to 3 mm off the front face: width, height, corner R
+OpDisplayWall = 8.0                                # its sides run straight back from the front face this far
+OpDisplayEdge = 10.0                               # ... then round over onto the back, which is this far back at the edge
+OpDisplayBack = 13.3                               # the back rises to this next to the rear housing
+OpHousing = (150.7, 96.6, 9.5, 40.5)               # rear housing: width, height, corner R, its back face from the front
+OpVesaHalf = 37.5                                  # VESA 75 holes at +-37.5 (the scan: +-37.6, centred within 0.2)
+OpVesaHoleD = 4.0                                  # M4; the scan cannot see into the holes, so their depth is unknown
+OpPorts = (-34.0, 30.0, 20.0, 28.0)                # port openings in the housing's left end: y from, y to, depth from, to
+OpBezel = (14.0, 12.0)                             # owner: front face edge to the lit area, short sides and long sides
+OpLit = (OpDisplay[0] - 2 * OpBezel[0], OpDisplay[1] - 2 * OpBezel[1])   # 216.7 x 135.7, a 10.1 in 16:10 panel
+OpWindowMargin = 3.0                               # window = lit area plus this all round, so the plate's edge does not
+                                                   # shade the UI's edge targets (tab bar, Connected) seen off axis
+OpWindow = (OpLit[0] + 2 * OpWindowMargin, OpLit[1] + 2 * OpWindowMargin)
+# The front plate, laser cut from the owner's 1/8 in cast acrylic. S2's collar clamps the plate and its
+# yellow legend plate together, so plate + legend plate must stay within OpPlateMaxT: 3/16 in (4.76) with
+# a 1.5 mm legend plate would be 6.26. A thicker plate needs the real legend plate measured first.
+OpPlate = (392.0, 210.0, 8.0)                      # width, height, corner R
+OpPlateT = 3.175                                   # 1/8 in
+OpPlateMount = (10.0, 4.5)                         # mounting holes this far in from each corner's edges, and their size
+# The controls in the bench layout of 2026-11-11 (issue #218): name, kind, x, y. The columns sit far enough
+# out that the bodies behind the plate (OpRearBody) clear the cradle.
+OpControls = [("S2", "estop", -158.0, 40.0), ("S1", "selector", -158.0, -50.0),
+              ("S3", "blue", 158.0, 55.0), ("S6", "green", 158.0, 0.0), ("S7", "red", 158.0, -55.0)]
+# Assumed, not measured: each control's body behind the plate (square across, depth from the plate's back
+# face) and its parts in front of the plate (diameter, height).
+OpRearBody = {"estop": (40.0, 60.0), "selector": (32.0, 55.0), "blue": (32.0, 50.0), "green": (32.0, 50.0),
+              "red": (32.0, 50.0)}
+OpLegendPlate = (60.0, 1.5)                        # S2's yellow legend plate
+OpFront = {"estop": (40.0, 30.0), "selector": (30.0, 9.0), "blue": (30.0, 9.0), "green": (30.0, 9.0),
+           "red": (30.0, 9.0)}
+# The printed cradle behind the plate: a ring round the display's straight sides, screwed to the plate
+# from the front (M3 into heat-set inserts), locates the display. A printed bracket standing on the ring
+# presses it forward against the plate through closed-cell foam pads on the rear housing's back face. No
+# screw goes into the VESA holes: with one, the bracket would fix the display's depth twice over.
+OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
+OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
+OpBracketGap = 2.0                                 # bracket to housing: 3 mm closed-cell foam squeezed to this, so a
+                                                   # few tenths of stack error change the preload little
+OpPadD = 15.0                                      # foam pads, one by each VESA hole
+OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 5.5     # M3 clearance, heat-set insert hole, its depth (set flush: a melt
+                                                   # lip on the ring's front would hold it off the plate)
+OpScrewHeadD = 5.5                                 # M3 pan head
+OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
+OpLegScrewL = 45.0                                 # M3 x 45 down each leg, its head on the arm, into the ring's back inserts
+
+
+def OpRing():
+    """The cradle ring: pocket (w, h, r), outside (w, h, r), and the centre lines of its sides (x, z)."""
+    bw, bh, br = OpDisplay
+    iw, ih, ir = bw + 2 * OpCradleGap, bh + 2 * OpCradleGap, br + OpCradleGap
+    return (iw, ih, ir), (iw + 2 * OpCradleWall, ih + 2 * OpCradleWall, ir + OpCradleWall), \
+        (iw / 2 + OpCradleWall / 2, ih / 2 + OpCradleWall / 2)
+
+
+def OpCradleScrews():
+    """Screws through the plate into the ring's front: two on each side, off the controls' legend plates."""
+    rx, rz = OpRing()[2]
+    return [(sx * rx, sz * 60.0) for sx in (1, -1) for sz in (1, -1)] + \
+           [(sx * 60.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+
+
+def OpLegScrews():
+    """Screws down the bracket's legs into the ring's back, on its top and bottom sides."""
+    rz = OpRing()[2][1]
+    return [(sx * 8.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+
+
+def OpMounts():
+    """The plate's mounting holes, OpPlateMount[0] in from the edges at each corner."""
+    m = OpPlateMount[0]
+    return [(sx * (OpPlate[0] / 2 - m), sz * (OpPlate[1] / 2 - m)) for sx in (1, -1) for sz in (1, -1)]
 # Measured by the owner on 2026-11-11: every 22 mm device's threaded collar is 21.8 mm across, and its
 # nut reaches through a front plate 5 to 6 mm thick at most; S2's base clamps with two angled screws
 # whose rounded tips bear on the plate's back face; the screen has a VESA 75 pattern on its back.
@@ -2305,8 +2380,9 @@ def BuildOperatorPanel():
     """Sheet 2D: the operator panel rendered from the front, its wiring, and the future arrow pad."""
     sh = Sheet("RMR operator panel")
     DrawFrame(sh, "RMR control panel: operator panel",
-              "Sheet 2D: how the operator panel might look from the front, at 1:1.75 with assumed sizes, and what "
-              "each control wires to. The dashed outline is the panel as it may grow.")
+              "Sheet 2D: the operator panel from the front at 1:1.75 (plate, window and display as modelled in "
+              "CAD/Operator Panel; the controls' sizes assumed), and what each control wires to. The dashed outline "
+              "is the panel as it may grow.")
     sh.Add(OpDefs)
     X0, Y0, S = 14.0, 27.0, OpScale
 
@@ -2333,8 +2409,12 @@ def BuildOperatorPanel():
         Rect(x - w / 2, y, w, 9.5 + 4.5 * (len(lines) - 1), "#FFFFFF", sw=0.2, rx=1.5)
         Label(x, y + 6.0, lines, size=1.45)
 
-    W, H = OpPanel
-    # housing, screen module, active area
+    W, H = OpPlate[0], OpPlate[1]
+
+    def L(x, y):                                   # layout (centre, y up) to the sheet's housing frame
+        return W / 2 + x, H / 2 - y
+
+    # the plate, the window onto the display and the lit area, the controls, the screw heads and mounting holes
     # the panel as it may grow: a faint extension joined to the housing's right edge, and a dashed
     # outline round both. Drawn first, so the housing's own outline stays on top where they meet
     pitch, key, sel = OpNav
@@ -2342,9 +2422,12 @@ def BuildOperatorPanel():
     Rect(W - 8.0, 0, ext + 8.0, H, "url(#opHousing)", stroke="none", sw=0, rx=8.0, extra=' fill-opacity=".35"')
     Rect(0, 0, W + ext, H, "none", sw=0.35, rx=8.0, extra=' stroke-dasharray="1.6 1"')
     Rect(0, 0, W, H, "url(#opHousing)", sw=0.4, rx=8.0)
-    sx, sy, sw_, sh_ = OpScreen
-    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=4.0)
-    ax, ay, aw, ah = sx + OpActive[0], sy + OpActive[1], OpActive[2], OpActive[3]
+    # the window in the plate onto the display, and the lit area inside it
+    sw_, sh_ = OpWindow
+    sx, sy = L(-sw_ / 2, sh_ / 2)
+    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=1.0)
+    aw, ah = OpLit
+    ax, ay = L(-aw / 2, ah / 2)
     Rect(ax, ay, aw, ah, "#1E1E24", stroke="#000", sw=0.2)
     # the Touch UI's Jog tab, roughly as it draws in its tol-dark theme
     Rect(ax, ay, aw, 13.0, "#2B2B33", stroke="none", sw=0)
@@ -2370,32 +2453,42 @@ def BuildOperatorPanel():
     for i, t in enumerate(("Step  1 mm", "Feed  3000 mm/min", "A  B  C axes")):
         Rect(ax + 172.0, ay + 38.0 + i * 21.0, 44.0, 16.0, "#33333C", stroke="none", sw=0, rx=2.0)
         Label(ax + 194.0, ay + 48.0 + i * 21.0, [t], size=1.2, fill="#DDDDDD", bold0=False)
-    Label(sx + sw_ / 2, sy + sh_ + 9.0, ["10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)"], size=1.5,
-          bold0=False)
+    Label(sx + sw_ / 2, sy + sh_ + 7.0, ["window onto the 10.1 in display, Pi 5 behind it (Touch UI, Jog tab)"],
+          size=1.5, bold0=False)
 
-    # left of the screen: the E-stop on its yellow plate, and below it the power knob with its lamp
-    kx = 41.0
-    Disc(kx, 52.0, 62.0, "#EEDD88", sw=0.3)
-    Disc(kx, 52.0, 34.0, "url(#opRing)", sw=0.2)
-    Disc(kx, 52.0, 42.0, "url(#opRed)", sw=0.35)
-    Label(kx, 47.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
-    Label(kx, 58.5, ["STOP"], size=1.15, fill="#FFFFFF")
-    Plate(kx, 86.0, 56.0, ["S2  E-STOP", "push to stop, twist to release"])
-    Disc(kx, 160.0, 30.0, "url(#opRing)", sw=0.25)
-    Disc(kx, 160.0, 23.0, "url(#opGreen)", sw=0.3)
-    Rect(kx - 3.0, 150.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
-         % tuple(Fmt(v) for v in P(kx, 160.0)))
-    Label(kx - 20.0, 152.0, ["0"], size=1.4)
-    Label(kx + 20.0, 152.0, ["I"], size=1.4)
-    Plate(kx, 177.0, 56.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
-    # right of the screen: Reset, then the soft Start and Stop the Pi reads (issue #218)
-    kx = 375.0
-    for y, fill, lines in ((40.0, "url(#opBlue)", ["S3  RESET", "starts the motors after an E-stop"]),
-                           (100.0, "url(#opGreen)", ["S6  START", "Run All, or resume a hold"]),
-                           (160.0, "url(#opRed)", ["S7  STOP", "soft stop (M410): the run ends"])):
-        Disc(kx, y, 30.0, "url(#opRing)", sw=0.25)
-        Disc(kx, y, 22.0, fill, sw=0.3)
-        Plate(kx, y + 18.0, 56.0, lines)
+    # the M3 pan heads of the cradle screws, and the mounting holes
+    for x, y in OpCradleScrews():
+        Disc(*L(x, y), OpScrewHeadD, "#555555", sw=0.15)
+    for x, y in OpMounts():
+        Disc(*L(x, y), OpPlateMount[1], "#FFFFFF", sw=0.2)
+
+    # the controls where OpControls puts them: the E-stop on its yellow plate and the power knob with its
+    # lamp to the left of the screen; Reset, then the soft Start and Stop the Pi reads (issue #218), to its right
+    text = {"S2": ["S2  E-STOP", "push to stop, twist to release"], "S1": ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"],
+            "S3": ["S3  RESET", "starts the motors after an E-stop"], "S6": ["S6  START", "Run All, or resume a hold"],
+            "S7": ["S7  STOP", "soft stop (M410): the run ends"]}
+    fills = {"blue": "url(#opBlue)", "green": "url(#opGreen)", "red": "url(#opRed)"}
+    for name, kind, x, y in OpControls:
+        kx, ky = L(x, y)
+        if kind == "estop":
+            Disc(kx, ky, OpLegendPlate[0], "#EEDD88", sw=0.3)
+            Disc(kx, ky, 34.0, "url(#opRing)", sw=0.2)
+            Disc(kx, ky, OpFront["estop"][0], "url(#opRed)", sw=0.35)
+            Label(kx, ky - 5.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
+            Label(kx, ky + 6.5, ["STOP"], size=1.15, fill="#FFFFFF")
+            Plate(kx, ky + OpLegendPlate[0] / 2 + 3.0, 56.0, text[name])
+        elif kind == "selector":
+            Disc(kx, ky, 30.0, "url(#opRing)", sw=0.25)
+            Disc(kx, ky, 23.0, "url(#opGreen)", sw=0.3)
+            Rect(kx - 3.0, ky - 10.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5,
+                 extra=' transform="rotate(45 %s %s)"' % tuple(Fmt(v) for v in P(kx, ky)))
+            Label(kx - 20.0, ky - 8.0, ["0"], size=1.4)
+            Label(kx + 20.0, ky - 8.0, ["I"], size=1.4)
+            Plate(kx, ky + 17.0, 56.0, text[name])
+        else:
+            Disc(kx, ky, 30.0, "url(#opRing)", sw=0.25)
+            Disc(kx, ky, 22.0, fills[kind], sw=0.3)
+            Plate(kx, ky + 18.0, 56.0, text[name])
 
     # the future arrow pad, in the extension drawn first above: four arrow keys round a select key,
     # to move between the screen's controls and press one without touching the screen
@@ -2434,7 +2527,9 @@ def BuildOperatorPanel():
             "(S2's yellow plate): the collar nuts reach no further.",
             "S2's base clamps with two angled screws whose round tips bear on the",
             "plate's back: keep the back flat and bare round its hole.",
-            "Screen: VESA %.0f x %.0f on its back. Window, bracket, size: not designed." % (OpVesa, OpVesa)]):
+            "Screen: VESA %.0f x %.0f on its back, from the scan of 2026-11-11." % (OpVesa, OpVesa),
+            "Model (issue #219): CAD/Operator Panel, plate %.0f x %.0f x %.2f," % (OpPlate[0], OpPlate[1], OpPlateT),
+            "window %.1f x %.1f onto a %.1f x %.1f display." % (OpWindow[0], OpWindow[1], OpDisplay[0], OpDisplay[1])]):
         sh.Text(nx, ny + 3.6 + i * 2.15, s2, size=1.3)
 
     # what each control wires to
@@ -2449,8 +2544,8 @@ def BuildOperatorPanel():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: operator panel",
         "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218).",
-        "Status: concept; housing and sizes not designed yet.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218, #219).",
+        "Status: plate laid out (#219); housing behind it not designed.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
     return sh
