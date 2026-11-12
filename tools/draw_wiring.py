@@ -2302,6 +2302,14 @@ OpHousing = (150.7, 96.6, 9.5, 40.5)               # rear housing: width, height
 OpVesaHalf = 37.5                                  # VESA 75 holes at +-37.5 (the scan: +-37.6, centred within 0.2)
 OpVesaHoleD = 4.0                                  # M4; the scan cannot see into the holes, so their depth is unknown
 OpPorts = (-34.0, 30.0, 20.0, 28.0)                # port openings in the housing's left end: y from, y to, depth from, to
+# The display's two fans vent through the rear housing's back face (owner's photo, 2026-11-12): a ring of
+# slots each, seen in the scan centred at (+-41, -2) and about 40 mm across (the photo, scaled by the
+# VESA pitch: 38). The bracket must leave both open, and nothing may sit closer behind them than
+# OpFanExhaust, so the air can turn and leave sideways.
+OpFans = [(41.0, -2.0), (-41.0, -2.0)]             # grille centres, x and y as the layout's
+OpFanD = 40.0                                      # grille diameter
+OpFanClear = 3.0                                   # bracket cut-out radius beyond the grille
+OpFanExhaust = 20.0                                # least depth of free air behind a grille
 OpBezel = (14.0, 12.0)                             # owner: front face edge to the lit area, short sides and long sides
 OpLit = (OpDisplay[0] - 2 * OpBezel[0], OpDisplay[1] - 2 * OpBezel[1])   # 216.7 x 135.7, a 10.1 in 16:10 panel
 OpWindowMargin = 3.0                               # window = lit area plus this all round, so the plate's edge does not
@@ -2331,15 +2339,38 @@ OpFront = {"estop": (40.0, 30.0), "selector": (30.0, 9.0), "blue": (30.0, 9.0), 
 # presses it forward against the plate through closed-cell foam pads on the rear housing's back face. No
 # screw goes into the VESA holes: with one, the bracket would fix the display's depth twice over.
 OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
+# The cradle in two PETG pieces for a 256 mm bed (Bambu P1S): split on its top and bottom sides with a
+# 24 mm half lap, clear of the bracket's legs and of every screw. The plate holds each piece with four
+# M3 screws, so the lap only keeps the pocket's walls in line.
+OpCradleLap = (16.0, 40.0, 0.2)                    # lap from x, to x, gap at each end of a tongue (as printed and
+                                                   # fitted by the owner, 2026-11-12)
+OpPrintBed = 256.0                                 # Bambu P1S, square
 OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
-OpBracketGap = 2.0                                 # bracket to housing: 3 mm closed-cell foam squeezed to this, so a
-                                                   # few tenths of stack error change the preload little
-OpPadD = 15.0                                      # foam pads, one by each VESA hole
-OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 5.5     # M3 clearance, heat-set insert hole, its depth (set flush: a melt
+OpBracketGap = 0.0                                 # bracket to housing, installed: the face bears on the housing
+OpBracketPress = 0.0                               # how much shorter the printed legs are than the gap they span.
+                                                   # The angled struts make the bracket stiff, so any interference
+                                                   # loads the display hard: it is printed to exact contact, 2 mm
+                                                   # shorter than the foam design (owner, 2026-11-12); shim if it rattles
+OpPadD = 15.0                                      # foam pads, one by each VESA hole, when OpBracketGap > 0
+# The bracket is a trapezoid seen from the side (owner, 2026-11-12: "/_\" rather than an upside-down U):
+# from each end of the pad plate a straight strut runs down at an angle, past the housing's side and over
+# the display's back, to a foot on the ring. An M3 x OpLegScrewL goes down through each foot into the
+# ring's inserts at x = +-8, its head reached straight from behind through a counterbore cut down through
+# the strut, so a short screw does (the owner has nothing over M3 x 30).
+OpLegFoot = 6.0                                    # foot thickness on the ring
+OpLegStrut = (3.0, 6.0)                            # strut: starts this far past the housing's side, thickness
+OpLegClear = 2.0                                   # least gap from a strut to the display
+OpLegScrewX = 8.0                                  # the two foot screws, x = +-8 (the fitted cradle's inserts)
+OpLegCbore = 6.2                                   # access counterbore over each screw head (M3 socket head 5.5)
+OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set insert hole (the owner drills it out to
+                                                   # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
+                                                   # 2026-11-12), so a 1 mm floor stays (set flush: a melt
                                                    # lip on the ring's front would hold it off the plate)
+OpInsert = (4.0, 5.0)                              # the insert: M3 x 4 x 5 from the owner's stock (lengths 4, 6, 8;
+                                                   # 5 OD), leaving 2 mm of the hole for melt and the screw tip
 OpScrewHeadD = 5.5                                 # M3 pan head
 OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
-OpLegScrewL = 45.0                                 # M3 x 45 down each leg, its head on the arm, into the ring's back inserts
+OpLegScrewL = 10.0                                 # M3 x 10 through each foot into the ring's back inserts
 
 
 def OpRing():
@@ -2360,7 +2391,7 @@ def OpCradleScrews():
 def OpLegScrews():
     """Screws down the bracket's legs into the ring's back, on its top and bottom sides."""
     rz = OpRing()[2][1]
-    return [(sx * 8.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+    return [(sx * OpLegScrewX, sz * rz) for sx in (1, -1) for sz in (1, -1)]
 
 
 # The frame (owner, 2026-11-11): a ring of 2020 (6 mm slot, the 1000 mm sticks of the frame order, 4 spare)
@@ -2377,8 +2408,9 @@ def OpLegScrews():
 OpProfile = 20.0                                   # 2020
 OpFrameGap = 3.0                                   # least clearance from the ring to a control's body or the cradle
 OpFrameScrewD, OpFrameScrewHeadD = 5.5, 8.7        # M5 x 8 socket head through the plate into the ring's front slot
-OpSpineX, OpSpineY = 50.0, 51.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
-                                                   # Y 51, 3.5 mm behind the display bracket
+OpSpineX, OpSpineY = 50.0, 62.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
+                                                   # Y 62: each spine crosses half a fan grille (OpFans), so it
+                                                   # stands 21.5 mm behind the vents, not 10.5
 OpArmVesa = 100.0                                  # the arm's VESA plate, screwed to the spines' back slots
 OpArmPlate = (120.0, 3.0)                          # assumed: the arm's plate, square, thickness
 OpBracketKit = 17.0                                # cast corner bracket, 17 x 20 mm (the kit's listing)
@@ -2411,6 +2443,33 @@ def OpFrameSticks():
         else:
             sticks.append([L])
     return len(sticks)
+
+
+def OpRoundRect(x0, y0, w, h, r):
+    """A closed rectangle with corner radius r as (x, y, bulge) vertices, counter-clockwise: a bulge of
+    tan(22.5 deg) on the vertex before each corner makes that segment a quarter circle."""
+    q = math.tan(math.pi / 8)
+    x1, y1 = x0 + w, y0 + h
+    return [(x0 + r, y0, 0.0), (x1 - r, y0, q), (x1, y0 + r, 0.0), (x1, y1 - r, q),
+            (x1 - r, y1, 0.0), (x0 + r, y1, q), (x0, y1 - r, 0.0), (x0, y0 + r, q)]
+
+
+def OpPlateDxf():
+    """The operator panel's front plate for the laser (issue #219), as DxfDoc writes the panels: R12,
+    millimetres, layer CUT. Drawn as the operator sees it, so cut it front face up: origin at the
+    plate's bottom-left corner, x to the right, y up. The outline, the window, the five control holes,
+    the cradle's M3 holes and the ring's M5 holes, all from the layout that sheet 2D and the model use."""
+    w, h, r = OpPlate
+    c = (w / 2, h / 2)
+    ww, wh = OpWindow
+    contours = [("poly", OpRoundRect(0.0, 0.0, w, h, r)),
+                ("poly", OpRoundRect(c[0] - ww / 2, c[1] - wh / 2, ww, wh, 1.0))]
+    contours += [("circle", c[0] + x, c[1] + y, OpHoleD) for _, _, x, y in OpControls]
+    contours += [("circle", c[0] + x, c[1] + y, OpScrewD) for x, y in OpCradleScrews()]
+    contours += [("circle", c[0] + x, c[1] + y, OpFrameScrewD) for x, y in OpFrameScrews()]
+    if w + 2 * NestGap > min(SheetW, LaserBed[0]) or h + 2 * NestGap > min(SheetH, LaserBed[1]):
+        raise ValueError("the operator plate does not fit a 24 x 18 in sheet on the laser bed")
+    return DxfDoc((w, h), contours)
 
 
 def OpBomUse():
@@ -6745,6 +6804,12 @@ def Main():
         with open(path, encoding="ascii") as f:
             web, where = CheckWebs(f.read())
         print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
+    path = os.path.join(outDir, "operator_plate.dxf")
+    with open(path, "w", encoding="ascii", newline="\n") as f:
+        f.write(OpPlateDxf())
+    with open(path, encoding="ascii") as f:
+        web, where = CheckWebs(f.read())
+    print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
     for item in PanelOpen():
         print("OPEN, not cut yet:", item)
     for item in GantryOpen():
