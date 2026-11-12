@@ -588,7 +588,7 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="256" y="143.4" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
 <text x="256" y="145.15" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
 <text x="256" y="146.9" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
-<text x="256" y="148.65" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A), the screen plug's pin size.</text>
+<text x="256" y="148.65" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
 <text x="256" y="150.4" font-size="1.2">Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC</text>
 <text x="256" y="152.15" font-size="1.2">terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),</text>
 <text x="256" y="153.9" font-size="1.2">F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.</text>

@@ -906,7 +906,7 @@ def BuildSchematic():
         ("5", ["Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to",
                "their OFF level. The bootloader's seconds before setup() are not covered."]),
         ("6", ["12 V DC-DC (ADR-0020), isolated: the screen's DC-12V jack (12 V 2 A; adapter 3 A).",
-               "Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug pin: open."]),
+               "Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug 5.5 x 2.5 mm."]),
     ]
     ny = 48.0
     sh.Text(lx, ny, "Notes", size=2.4, weight="bold")
@@ -1941,7 +1941,7 @@ def WireNotes(deck):
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
         "0 V meets PE only at star S, by its one wire to the lower ground bar.",
         "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
-        "5 V PSU's current for the Pi 5 (5.1 V, 5 A), the screen plug's pin size."]
+        "5 V PSU's current for the Pi 5 (5.1 V, 5 A)."]
     if deck == "lower":
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
@@ -6199,6 +6199,7 @@ def ShopInchChecks():
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
 Trc = "TRC Electronics"            # Mean Well distributor: the 12 V DC-DC (issue #220)
+Dk = "Digi-Key"                    # the screen's plug pigtail (issue #220)
 Dc12Date = "2026-11-12"            # its price, read at TRC; Amazon refused automated reads that day
 # The screen's 12 V (ADR-0020): the screen is rated 12 V 2 A and its adapter 12.0 V 3.0 A (the owner's photos
 # of both labels, 2026-11-12); the supply is sized for the adapter.
@@ -6267,6 +6268,8 @@ def Link(src, part):
         return "https://www.amazon.com/dp/%s" % part
     if src == Mc:
         return "https://www.mcmaster.com/%s/" % part
+    if src == Dk:
+        return "https://www.digikey.com/en/products/result?keywords=%s" % part
     if src == Trc:
         return "https://www.trcelectronics.com/products/mean-well-%s" % part.lower()
     return ""
@@ -6541,13 +6544,16 @@ def BomRows():
          "%.2f A from %s V, 60 %% of F1-3's 3 A, which also opens before its own current limit on an overload. "
          "Its 0 V out is not tied in the box; the Pi's HDMI references it. Mean Well DDR-60-SPEC (2026-03-31). "
          "Price read %s" % (ScreenDrop()[1], Mm(Dc12InMin), Dc12Date)),
-        ("Power supplies", "not chosen", NotBought, "DC plug pigtail, 5.5 mm, right angle, 18 AWG, 6 ft", "-",
-         "DC power plug, 5.5 mm outside, 2.1 or 2.5 mm pin to fit the screen's DC-12V jack, right angle, center "
-         "positive, on 18 AWG stranded copper leads (not copper-clad aluminum), about 6 ft", 1, "each", 0, None,
+        ("Power supplies", Dk, Buy, "DC plug pigtail, 5.5 x 2.5 mm, right angle, 18 AWG, 6 ft", "10-02226",
+         "Tensility 10-02226 (Digi-Key 839-10-02226-ND): 1830 mm of 2-conductor 18 AWG UL 2464, 300 V, 80 C, "
+         "from a 5.5 x 2.5 mm right-angle DC plug (center red, sleeve black) to stripped, tinned leads; rated "
+         "48 V, 7 A", 1, "each", 1, 6.57,
          "screen 12 V: the DC-DC's output screws to the screen, out through the lower left grommet",
-         "Pin size open: read it off the adapter's plug or its listing. At the adapter's 3 A the pigtail drops "
+         "The screen's plug is 5.5 x 2.5 mm (owner, 2026-11-12). Red to +Vo, black to -Vo. Its 7 A rating (the "
+         "maker's drawing) covers the DC-DC's current limit, at most 6.75 A. At the adapter's 3 A it drops "
          "%.2f V (%.1f %%); the DC-DC's output trims up to 13.2 V if the screen needs it. A longer run to the "
-         "panel drops in proportion" % (ScreenDrop()[0], 100 * ScreenDrop()[0] / ScreenVolts)),
+         "panel drops in proportion. Price read %s" % (ScreenDrop()[0], 100 * ScreenDrop()[0] / ScreenVolts,
+                                                       Dc12Date)),
         ("Wire marking", Amz, Buy, "Flexible ID tape 12 mm, TZe-FX231 type, 4-pack", "B0FJ25359S",
          "Greateam TZe-FX231 compatible flexible ID laminated tape, black on white, 12 mm x 8 m, 4 cassettes",
          "both ends of every wire and cable", "4-pack", 1, 16.29,
@@ -6678,7 +6684,7 @@ def BomCsv():
         w.writerow(["", "", "", label, "", "", "", "", "", "", "%.2f" % usd, "", note, ""])
 
     box, lab = byPlan.get(Buy, 0.0) + byPlan.get(LabFirst, 0.0), byPlan.get(LabFirst, 0.0)
-    for key in (Amz, Mc, Trc):
+    for key in (Amz, Mc, Trc, Dk):
         Total("Total, %s" % key, bySrc.get(key, 0.0))
     Total("Total, control box", box)
     Total("Total, lab stock first (control box fasteners)", lab,
@@ -6694,7 +6700,7 @@ def BomCsv():
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
           "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
           "wire and fuse lines and the issue #209 terminal block packs on %s), McMaster on 2026-10-15 (the "
-          "acrylic on 2026-10-18), TRC Electronics on %s (the 12 V DC-DC); shipping and tax extra"
+          "acrylic on 2026-10-18), TRC Electronics and Digi-Key on %s (the 12 V DC-DC and its pigtail); shipping and tax extra"
           % (BomDate, ToolDate, WireDate, Dc12Date))
     return out.getvalue()
 

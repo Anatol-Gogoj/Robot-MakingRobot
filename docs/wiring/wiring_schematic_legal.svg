@@ -906,7 +906,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="247" y="76.3" font-size="1.65">their OFF level. The bootloader's seconds before setup() are not covered.</text>
 <text x="244" y="79.1" font-size="1.65" font-weight="bold">6</text>
 <text x="247" y="79.1" font-size="1.65">12 V DC-DC (ADR-0020), isolated: the screen's DC-12V jack (12 V 2 A; adapter 3 A).</text>
-<text x="247" y="81.4" font-size="1.65">Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug pin: open.</text>
+<text x="247" y="81.4" font-size="1.65">Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug 5.5 x 2.5 mm.</text>
 <text x="258" y="165" font-size="2" font-weight="bold">Drive and wiring rules</text>
 <text x="258" y="168" font-size="1.6">Every driver: PUL-, DIR- and ENA- jumpered at the driver (COM);</text>
 <text x="258" y="170.3" font-size="1.6">one COM wire per driver to 0V-S. Driver top: +V, 0V, A+, A-, B+, B-.</text>
