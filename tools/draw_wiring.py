@@ -2394,6 +2394,33 @@ def OpFrameSticks():
     return len(sticks)
 
 
+def OpRoundRect(x0, y0, w, h, r):
+    """A closed rectangle with corner radius r as (x, y, bulge) vertices, counter-clockwise: a bulge of
+    tan(22.5 deg) on the vertex before each corner makes that segment a quarter circle."""
+    q = math.tan(math.pi / 8)
+    x1, y1 = x0 + w, y0 + h
+    return [(x0 + r, y0, 0.0), (x1 - r, y0, q), (x1, y0 + r, 0.0), (x1, y1 - r, q),
+            (x1 - r, y1, 0.0), (x0 + r, y1, q), (x0, y1 - r, 0.0), (x0, y0 + r, q)]
+
+
+def OpPlateDxf():
+    """The operator panel's front plate for the laser (issue #219), as DxfDoc writes the panels: R12,
+    millimetres, layer CUT. Drawn as the operator sees it, so cut it front face up: origin at the
+    plate's bottom-left corner, x to the right, y up. The outline, the window, the five control holes,
+    the cradle's M3 holes and the ring's M5 holes, all from the layout that sheet 2D and the model use."""
+    w, h, r = OpPlate
+    c = (w / 2, h / 2)
+    ww, wh = OpWindow
+    contours = [("poly", OpRoundRect(0.0, 0.0, w, h, r)),
+                ("poly", OpRoundRect(c[0] - ww / 2, c[1] - wh / 2, ww, wh, 1.0))]
+    contours += [("circle", c[0] + x, c[1] + y, OpHoleD) for _, _, x, y in OpControls]
+    contours += [("circle", c[0] + x, c[1] + y, OpScrewD) for x, y in OpCradleScrews()]
+    contours += [("circle", c[0] + x, c[1] + y, OpFrameScrewD) for x, y in OpFrameScrews()]
+    if w + 2 * NestGap > min(SheetW, LaserBed[0]) or h + 2 * NestGap > min(SheetH, LaserBed[1]):
+        raise ValueError("the operator plate does not fit a 24 x 18 in sheet on the laser bed")
+    return DxfDoc((w, h), contours)
+
+
 def OpBomUse():
     """What the operator panel takes from the frame's stock (issue #219)."""
     screws = len(OpFrameScrews())
@@ -6677,6 +6704,12 @@ def Main():
         with open(path, encoding="ascii") as f:
             web, where = CheckWebs(f.read())
         print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
+    path = os.path.join(outDir, "operator_plate.dxf")
+    with open(path, "w", encoding="ascii", newline="\n") as f:
+        f.write(OpPlateDxf())
+    with open(path, encoding="ascii") as f:
+        web, where = CheckWebs(f.read())
+    print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
     for item in PanelOpen():
         print("OPEN, not cut yet:", item)
     for item in GantryOpen():
