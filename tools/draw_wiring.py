@@ -2263,7 +2263,9 @@ def BuildNomenclature():
 # drive the screen without touching it; nothing about it is designed (OpNav).
 # Issue #218 added S6 (green, Start / Resume) and S7 (red, Stop), two 22 mm flush buttons read by the Pi
 # on GPIO 16 and 25, and took the layout the owner laid out on the bench on 2026-11-11: the screen in the
-# middle, S2 above S1 to its left, and S3, S6, S7 from top to bottom to its right.
+# middle, S2 above S1 to its left, and S3, S6, S7 from top to bottom to its right. Issue #219 moved S3 into
+# the left column (owner, 2026-11-11): E-stop, Reset and power on one side, so recovering from an E-stop
+# never reaches across the screen, and the right column keeps only the Pi's soft Start and Stop.
 OpScale = 1.75                                     # real mm per paper mm
 OpNav = (34.0, 24.0, 28.0)                         # future pad: key pitch, arrow key side, select key diameter
 
@@ -2292,10 +2294,11 @@ OpWindow = (OpLit[0] + 2 * OpWindowMargin, OpLit[1] + 2 * OpWindowMargin)
 OpPlate = (392.0, 210.0, 8.0)                      # width, height, corner R
 OpPlateT = 3.175                                   # 1/8 in
 OpPlateMount = (10.0, 4.5)                         # mounting holes this far in from each corner's edges, and their size
-# The controls in the bench layout of 2026-11-11 (issue #218): name, kind, x, y. The columns sit far enough
+# The controls: name, kind, x, y. The bench layout of 2026-11-11 (issue #218) with S3 moved under S2 (#219):
+# the left column is E-stop, Reset, power; the right is Start and Stop. The columns sit far enough
 # out that the bodies behind the plate (OpRearBody) clear the cradle.
-OpControls = [("S2", "estop", -158.0, 40.0), ("S1", "selector", -158.0, -50.0),
-              ("S3", "blue", 158.0, 55.0), ("S6", "green", 158.0, 0.0), ("S7", "red", 158.0, -55.0)]
+OpControls = [("S2", "estop", -158.0, 66.0), ("S3", "blue", -158.0, 0.0), ("S1", "selector", -158.0, -50.0),
+              ("S6", "green", 158.0, 35.0), ("S7", "red", 158.0, -35.0)]
 # Assumed, not measured: each control's body behind the plate (square across, depth from the plate's back
 # face) and its parts in front of the plate (diameter, height).
 OpRearBody = {"estop": (40.0, 60.0), "selector": (32.0, 55.0), "blue": (32.0, 50.0), "green": (32.0, 50.0),
@@ -2328,9 +2331,9 @@ def OpRing():
 
 
 def OpCradleScrews():
-    """Screws through the plate into the ring's front: two on each side, off the controls' legend plates."""
+    """Screws through the plate into the ring's front: two on each side, clear of S2's legend plate."""
     rx, rz = OpRing()[2]
-    return [(sx * rx, sz * 60.0) for sx in (1, -1) for sz in (1, -1)] + \
+    return [(sx * rx, sz * 45.0) for sx in (1, -1) for sz in (1, -1)] + \
            [(sx * 60.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
 
 
