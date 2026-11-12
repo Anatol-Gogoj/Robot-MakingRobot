@@ -1,4 +1,4 @@
-"""Build the RMR operator panel in FreeCAD: the display, the front plate, the cradle and the VESA bracket.
+"""Build the RMR operator panel in FreeCAD: the display, the front plate, its cradle and bracket, and its 2020 frame.
 
 Every size comes from the operator panel layout in tools/draw_wiring.py (OpDisplay, OpHousing,
 OpWindow, OpPlate, OpControls and the constants round them), which sheet 2D draws too, so the
@@ -17,6 +17,13 @@ display cannot pass through; a printed cradle ring round its straight sides, scr
 the front, locates it; a printed bracket standing on the ring presses it against the plate through
 closed-cell foam pads on the rear housing's back face (OpBracketGap). No screw goes into the VESA holes,
 which would fix the display's depth a second time.
+
+A ring of 2020 extrusion on the plate's back edge stiffens it, and two vertical 2020 spines behind the
+display, standing on four risers off the ring's top and bottom rails, carry a monitor spring arm's VESA
+100 plate on their back slots (OpFrameScrews, OpSpineX, OpArmVesa). The extrusions are drawn as plain
+20 x 20 bars: their slots and the drilled and tapped joints are described in draw_wiring.py, not modelled.
+Not placed yet: the Pi 5, which the wiring sheets put behind the display, where the spines and the arm's
+plate now are; Clearances() cannot see a part that is not modelled.
 
 Run it inside FreeCAD 1.x, from the Python console or a macro:
     import runpy; runpy.run_path(r"<repo>/tools/build_operator_panel.py", run_name="__main__")
@@ -46,10 +53,10 @@ DocName = "OperatorPanel"
 V = App.Vector
 
 # Paul Tol colors: Bright for the controls, Light for the printed parts, greys for the rest.
-Fill = {"plate": "#DDDDDD", "display": "#333333", "lit": "#4477AA", "cradle": "#77AADD", "bracket": "#EEDD88",
+Fill = {"plate": "#DDDDDD", "display": "#333333", "frame": "#999999", "arm": "#555555", "lit": "#4477AA", "cradle": "#77AADD", "bracket": "#EEDD88",
         "pad": "#444444", "ports": "#EE8866", "rear": "#BBBBBB", "legend": "#CCBB44",
         "estop": "#EE6677", "red": "#EE6677", "green": "#228833", "blue": "#4477AA", "selector": "#228833"}
-Transp = {"plate": 60, "ports": 70, "rear": 60}
+Transp = {"plate": 60, "ports": 70, "rear": 60, "arm": 50}
 MinWeb = 5.0                       # least acrylic between two cut-outs, or a cut-out and the edge
 
 
@@ -75,7 +82,8 @@ Wall, Depth = W.OpCradleWall, W.OpCradleDepth
 (IW, IH, IR), (OW, OH, OR), (RingX, RingZ) = W.OpRing()        # pocket, outside, centre lines of its sides
 BrSide, BrT, BrArm = W.OpBracket
 BrY0 = HT + W.OpBracketGap                                       # bracket's face against the foam pads
-CradleScrews, LegScrews, Mounts = W.OpCradleScrews(), W.OpLegScrews(), W.OpMounts()
+CradleScrews, LegScrews, FrameScrews = W.OpCradleScrews(), W.OpLegScrews(), W.OpFrameScrews()
+P = W.OpProfile
 
 
 def Display():
@@ -112,9 +120,36 @@ def Plate():
         p = p.cut(CylY(W.OpHoleD, -T - 1.0, T + 2.0, x, z))
     for x, z in CradleScrews:
         p = p.cut(CylY(W.OpScrewD, -T - 1.0, T + 2.0, x, z))
-    for x, z in Mounts:
-        p = p.cut(CylY(W.OpPlateMount[1], -T - 1.0, T + 2.0, x, z))
+    for x, z in FrameScrews:
+        p = p.cut(CylY(W.OpFrameScrewD, -T - 1.0, T + 2.0, x, z))
     return p
+
+
+def Frame():
+    """[(name, solid, fill, source)] for the 2020 ring, risers, spines, corner brackets and the arm's plate."""
+    out = []
+    rz = PH / 2 - P / 2                            # the rails' centre lines
+    for n, sz in (("RailTop", 1), ("RailBottom", -1)):
+        out.append((n, Part.makeBox(PW, P, P, V(-PW / 2, 0.0, sz * rz - P / 2)), "frame", "2020"))
+    for n, sx in (("PostRight", 1), ("PostLeft", -1)):
+        out.append((n, Part.makeBox(P, P, PH - 2 * P, V(sx * (PW / 2 - P / 2) - P / 2, 0.0, -PH / 2 + P)), "frame", "2020"))
+    sy, sx0 = W.OpSpineY, W.OpSpineX
+    k = W.OpBracketKit
+    i = 0
+    for sx in (1, -1):
+        out.append(("Spine" + ("Right" if sx > 0 else "Left"),
+                    Part.makeBox(P, P, PH, V(sx * sx0 - P / 2, sy, -PH / 2)), "frame", "2020"))
+        for sz in (1, -1):
+            i += 1
+            out.append(("Riser%d" % i, Part.makeBox(P, sy - P, P, V(sx * sx0 - P / 2, P, sz * rz - P / 2)), "frame", "2020"))
+            # cast corner brackets on both sides of the riser, against the rail's back face
+            for j, side in enumerate((1, -1)[:W.OpRiserBrackets]):
+                x0 = sx * sx0 + side * P / 2 + (0 if side > 0 else -k)
+                out.append(("CornerBracket%d%s" % (i, "ab"[j]), Part.makeBox(k, k, P, V(x0, P, sz * rz - P / 2)),
+                            "frame", "assumed"))
+    a, at = W.OpArmPlate
+    out.append(("ArmPlate", Part.makeBox(a, at, a, V(-a / 2, sy + P, -a / 2)), "arm", "assumed"))
+    return out
 
 
 def Cradle():
@@ -184,10 +219,18 @@ def Checks():
         bad.append("M3 x %.0f gives %.1f mm in a %.1f mm insert hole" % (W.OpCradleScrewL, front, W.OpInsertL))
     if not (Depth - W.OpInsertL + 0.3 <= legtip <= Depth - 3.0):
         bad.append("M3 x %.0f down the leg ends at Y %.1f" % (W.OpLegScrewL, legtip))
+    # screws into slot T-nuts, by the frame's rule (draw_wiring ScrewFits): SlotLip + 3 pitches <= tip <= SlotDepth - 0.5
+    for what, thread, length, stack in (("plate to the ring", "M5", W.OpFrameScrewL, T),
+                                        ("arm's plate to a spine", "M4", W.OpArmScrewL, W.OpArmPlate[1])):
+        tip = length - stack
+        lo, hi = W.SlotLip + 3 * W.ThreadPitch[thread], W.SlotDepth - 0.5
+        print("%s x %.0f, %s: %.2f mm past the slot face (%.2f to %.2f)" % (thread, length, what, tip, lo, hi))
+        if not lo <= tip <= hi:
+            bad.append("%s x %.0f for the %s leaves %.2f mm past the slot face" % (thread, length, what, tip))
     # acrylic webs: control holes, screw and mount holes against each other, the window and the edge
     holes = [(x, z, W.OpHoleD / 2, n) for n, _, x, z in W.OpControls] + \
             [(x, z, W.OpScrewD / 2, "cradle screw") for x, z in CradleScrews] + \
-            [(x, z, W.OpPlateMount[1] / 2, "mount") for x, z in Mounts]
+            [(x, z, W.OpFrameScrewD / 2, "frame screw") for x, z in FrameScrews]
     least = (1e9, "")
     for i, (x, z, r, n) in enumerate(holes):
         edge = min(PW / 2 - abs(x), PH / 2 - abs(z)) - r
@@ -206,8 +249,8 @@ def Checks():
     for n, kind, x, z in W.OpControls:
         if kind != "estop":
             continue
-        for sx, sz in CradleScrews + Mounts:
-            gap = math.hypot(sx - x, sz - z) - W.OpLegendPlate[0] / 2 - 2.75
+        for (sx, sz), head in [(c, W.OpScrewHeadD) for c in CradleScrews] + [(c, W.OpFrameScrewHeadD) for c in FrameScrews]:
+            gap = math.hypot(sx - x, sz - z) - W.OpLegendPlate[0] / 2 - head / 2
             if gap < 1.0:
                 bad.append("%s's legend plate covers a screw head at (%.1f, %.1f)" % (n, sx, sz))
     # what each collar clamps: the plate, plus S2's legend plate
@@ -217,6 +260,23 @@ def Checks():
             bad.append("%s clamps %.2f mm, its collar reaches %.1f at most" % (n, stack, W.OpPlateMaxT))
     print("S2 clamps %.2f mm (plate %.3f + legend plate %.1f) of %.1f" % (
         T + W.OpLegendPlate[1], T, W.OpLegendPlate[1], W.OpPlateMaxT))
+    return bad
+
+
+def Clearances(parts):
+    """The frame must clear the controls' bodies, the cradle and the display bracket by OpFrameGap."""
+    bad = []
+    frame = [(n, s) for n, s, f, src in parts if f == "frame"]
+    others = [(n, s) for n, s, f, _ in parts if f in ("rear", "cradle", "bracket", "display", "pad", "ports")]
+    least = (1e9, "")
+    for n1, s1 in frame:
+        for n2, s2 in others:
+            d = s1.distToShape(s2)[0]
+            if d < least[0]:
+                least = (d, n1 + " to " + n2)
+    print("least frame clearance: %.1f mm (%s)" % least)
+    if least[0] < W.OpFrameGap:
+        bad.append("frame clearance %.1f mm < %.1f (%s)" % (least[0], W.OpFrameGap, least[1]))
     return bad
 
 
@@ -239,6 +299,7 @@ def Build():
              ("FrontPlate", Plate(), "plate", "layout"),
              ("Cradle", Cradle(), "cradle", "layout"),
              ("Bracket", Bracket(), "bracket", "layout")]
+    parts += Frame()
     for i, p in enumerate(Pads()):
         parts.append(("Pad%d" % (i + 1), p, "pad", "assumed"))
     for n, kind, x, z in W.OpControls:
@@ -246,7 +307,8 @@ def Build():
         parts.append((n + "_Rear", rear, "rear", "assumed"))
         for tag, s in front:
             parts.append((n + "_" + ("Legend" if tag == "legend" else "Front"), s, tag, "assumed"))
-    bad = Checks() + Overlaps([(n, s) for n, s, _, _ in parts])
+    bad = Checks() + Clearances(parts) + Overlaps([(n, s) for n, s, _, _ in parts])
+    print("2020 cut list: " + "; ".join("%d x %.0f mm %s" % (c, l, n) for n, c, l in W.OpFrameCuts()))
     for n, s, fill, src in parts:
         o = Doc.addObject("Part::Feature", n)
         o.Shape = s

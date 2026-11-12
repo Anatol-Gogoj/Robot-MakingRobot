@@ -39,117 +39,127 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <radialGradient id="opGrey" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#DDDDDD"/><stop offset=".6" stop-color="#777777"/><stop offset="1" stop-color="#333333"/></radialGradient>
 <radialGradient id="opRing" cx=".5" cy=".5" r=".5"><stop offset=".7" stop-color="#F2F2F2"/><stop offset="1" stop-color="#8C8C8C"/></radialGradient>
 </defs>
-<rect x="233.43" y="27" width="73.14" height="120" rx="4.57" fill="url(#opHousing)" stroke="none" stroke-width="0" fill-opacity=".35"/>
-<rect x="14" y="27" width="292.57" height="120" rx="4.57" fill="none" stroke="#000" stroke-width="0.35" stroke-dasharray="1.6 1"/>
-<rect x="14" y="27" width="224" height="120" rx="4.57" fill="url(#opHousing)" stroke="#000" stroke-width="0.4"/>
-<rect x="62.37" y="46.51" width="127.26" height="80.97" rx="0.57" fill="url(#opBezel)" stroke="#000" stroke-width="0.3"/>
-<rect x="64.09" y="48.23" width="123.83" height="77.54" rx="0" fill="#1E1E24" stroke="#000" stroke-width="0.2"/>
-<rect x="64.09" y="48.23" width="123.83" height="7.43" rx="0" fill="#2B2B33" stroke="none" stroke-width="0"/>
-<rect x="161.63" y="49.94" width="24" height="4.29" rx="1.14" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="64.54" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="82.23" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="99.92" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="117.61" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="135.3" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="152.99" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="170.68" y="56.51" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="93.23" y="68.8" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="93.23" y="97.37" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="78.94" y="83.09" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="107.51" y="83.09" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="93.23" y="83.09" width="12.57" height="12.57" rx="1.71" fill="#228833" stroke="none" stroke-width="0"/>
-<rect x="141.23" y="69.94" width="17.14" height="14.86" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="141.23" y="87.66" width="17.14" height="14.86" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
-<rect x="162.37" y="69.94" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="162.37" y="81.94" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
-<rect x="162.37" y="93.94" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
-<circle cx="199.06" cy="61.29" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="199.06" cy="112.71" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="52.94" cy="61.29" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="52.94" cy="112.71" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="160.29" cy="38.23" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="160.29" cy="135.77" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="91.71" cy="38.23" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="91.71" cy="135.77" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="232.29" cy="32.71" r="1.29" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="232.29" cy="141.29" r="1.29" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="19.71" cy="32.71" r="1.29" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="19.71" cy="141.29" r="1.29" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="35.71" cy="49.29" r="17.14" fill="#EEDD88" stroke="#000" stroke-width="0.3"/>
-<circle cx="35.71" cy="49.29" r="9.71" fill="url(#opRing)" stroke="#000" stroke-width="0.2"/>
-<circle cx="35.71" cy="49.29" r="11.43" fill="url(#opRed)" stroke="#000" stroke-width="0.35"/>
-<rect x="19.71" y="68.14" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="35.71" cy="87" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
-<circle cx="35.71" cy="87" r="6.29" fill="url(#opBlue)" stroke="#000" stroke-width="0.3"/>
-<rect x="19.71" y="97.29" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="35.71" cy="115.57" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
-<circle cx="35.71" cy="115.57" r="6.57" fill="url(#opGreen)" stroke="#000" stroke-width="0.3"/>
-<rect x="34" y="109.86" width="3.43" height="11.43" rx="1.43" fill="#1C3A20" stroke="none" stroke-width="0" transform="rotate(45 35.71 115.57)"/>
-<rect x="19.71" y="125.29" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="216.29" cy="67" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
-<circle cx="216.29" cy="67" r="6.29" fill="url(#opGreen)" stroke="#000" stroke-width="0.3"/>
-<rect x="200.29" y="77.29" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<circle cx="216.29" cy="107" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
-<circle cx="216.29" cy="107" r="6.29" fill="url(#opRed)" stroke="#000" stroke-width="0.3"/>
-<rect x="200.29" y="117.29" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
-<rect x="265.43" y="46.43" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
-<path d="M272.29 49.29 L275.71 56.14 L268.86 56.14 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
-<rect x="265.43" y="85.29" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
-<path d="M272.29 96.14 L268.86 89.29 L275.71 89.29 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
-<rect x="246" y="65.86" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
-<path d="M248.86 72.71 L255.71 69.29 L255.71 76.14 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
-<rect x="284.86" y="65.86" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
-<path d="M295.71 72.71 L288.86 76.14 L288.86 69.29 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
-<circle cx="272.29" cy="72.71" r="9.71" fill="url(#opRing)" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
-<circle cx="272.29" cy="72.71" r="8" fill="#228833" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<rect x="242.57" y="27" width="73.14" height="130.29" rx="4.57" fill="url(#opHousing)" stroke="none" stroke-width="0" fill-opacity=".35"/>
+<rect x="14" y="27" width="301.71" height="130.29" rx="4.57" fill="none" stroke="#000" stroke-width="0.35" stroke-dasharray="1.6 1"/>
+<rect x="14" y="27" width="233.14" height="130.29" rx="4.57" fill="url(#opHousing)" stroke="#000" stroke-width="0.4"/>
+<rect x="66.94" y="51.66" width="127.26" height="80.97" rx="0.57" fill="url(#opBezel)" stroke="#000" stroke-width="0.3"/>
+<rect x="68.66" y="53.37" width="123.83" height="77.54" rx="0" fill="#1E1E24" stroke="#000" stroke-width="0.2"/>
+<rect x="68.66" y="53.37" width="123.83" height="7.43" rx="0" fill="#2B2B33" stroke="none" stroke-width="0"/>
+<rect x="166.2" y="55.09" width="24" height="4.29" rx="1.14" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="69.11" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="86.8" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="104.49" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="122.18" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="139.87" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="157.56" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="175.25" y="61.66" width="16.78" height="5.14" rx="0.86" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="97.8" y="73.94" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="97.8" y="102.51" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="83.51" y="88.23" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="112.09" y="88.23" width="12.57" height="12.57" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="97.8" y="88.23" width="12.57" height="12.57" rx="1.71" fill="#228833" stroke="none" stroke-width="0"/>
+<rect x="145.8" y="75.09" width="17.14" height="14.86" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="145.8" y="92.8" width="17.14" height="14.86" rx="1.71" fill="#4477AA" stroke="none" stroke-width="0"/>
+<rect x="166.94" y="75.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="166.94" y="87.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
+<rect x="166.94" y="99.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
+<circle cx="203.63" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="203.63" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="57.51" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="57.51" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="164.86" cy="43.37" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="164.86" cy="140.91" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="96.29" cy="43.37" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="96.29" cy="140.91" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="241.43" cy="75" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="241.43" cy="109.29" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="19.71" cy="75" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="19.71" cy="109.29" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="130.57" cy="32.71" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="130.57" cy="151.57" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="187.71" cy="32.71" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="187.71" cy="151.57" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="73.43" cy="32.71" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="73.43" cy="151.57" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="227.71" cy="32.71" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="227.71" cy="151.57" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="33.43" cy="32.71" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="33.43" cy="151.57" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
+<circle cx="40.29" cy="54.43" r="17.14" fill="#EEDD88" stroke="#000" stroke-width="0.3"/>
+<circle cx="40.29" cy="54.43" r="9.71" fill="url(#opRing)" stroke="#000" stroke-width="0.2"/>
+<circle cx="40.29" cy="54.43" r="11.43" fill="url(#opRed)" stroke="#000" stroke-width="0.35"/>
+<rect x="24.29" y="73.29" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="40.29" cy="92.14" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="40.29" cy="92.14" r="6.29" fill="url(#opBlue)" stroke="#000" stroke-width="0.3"/>
+<rect x="24.29" y="102.43" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="40.29" cy="120.71" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="40.29" cy="120.71" r="6.57" fill="url(#opGreen)" stroke="#000" stroke-width="0.3"/>
+<rect x="38.57" y="115" width="3.43" height="11.43" rx="1.43" fill="#1C3A20" stroke="none" stroke-width="0" transform="rotate(45 40.29 120.71)"/>
+<rect x="24.29" y="130.43" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="220.86" cy="72.14" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="220.86" cy="72.14" r="6.29" fill="url(#opGreen)" stroke="#000" stroke-width="0.3"/>
+<rect x="204.86" y="82.43" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<circle cx="220.86" cy="112.14" r="8.57" fill="url(#opRing)" stroke="#000" stroke-width="0.25"/>
+<circle cx="220.86" cy="112.14" r="6.29" fill="url(#opRed)" stroke="#000" stroke-width="0.3"/>
+<rect x="204.86" y="122.43" width="32" height="8" rx="0.86" fill="#FFFFFF" stroke="#000" stroke-width="0.2"/>
+<rect x="274.57" y="46.43" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M281.43 49.29 L284.86 56.14 L278 56.14 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="274.57" y="85.29" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M281.43 96.14 L278 89.29 L284.86 89.29 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="255.14" y="65.86" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M258 72.71 L264.86 69.29 L264.86 76.14 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<rect x="294" y="65.86" width="13.71" height="13.71" rx="1.71" fill="#777777" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<path d="M304.86 72.71 L298 76.14 L298 69.29 Z" style="fill:#FFFFFF;fill-opacity:.85" stroke="none"/>
+<circle cx="281.43" cy="72.71" r="9.71" fill="url(#opRing)" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
+<circle cx="281.43" cy="72.71" r="8" fill="#228833" stroke="#000" stroke-width="0.25" fill-opacity=".4" stroke-dasharray="1 .7"/>
 <rect class="bx" x="256" y="186" width="92" height="21.5"/>
 <text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: operator panel</text>
 <text x="8" y="15.4" font-size="2.1">Sheet 2D: the operator panel from the front at 1:1.75 (plate, window and display as modelled in CAD/Operator Panel; the controls' sizes assumed), and what each control wires to. The dashed outline is the panel as it may grow.</text>
-<text x="76.66" y="53.09" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">RMR Touch</text>
-<text x="173.63" y="52.91" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Connected</text>
-<text x="135.34" y="53.09" font-size="1.2" style="fill:#BBCCEE" text-anchor="middle">X 385.00  Y 120.00  Z 10.00</text>
-<text x="72.93" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Jog</text>
-<text x="90.62" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Recipe</text>
-<text x="108.31" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Log</text>
-<text x="126" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Spin</text>
-<text x="143.69" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Console</text>
-<text x="161.38" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Program</text>
-<text x="179.07" y="60" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Advanced</text>
-<text x="99.51" y="76.51" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y+</text>
-<text x="99.51" y="105.09" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y-</text>
-<text x="85.23" y="90.8" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X-</text>
-<text x="113.8" y="90.8" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X+</text>
-<text x="99.51" y="89.09" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">HOME</text>
-<text x="99.51" y="90.65" font-size="1.06" style="fill:#FFFFFF" text-anchor="middle">ALL</text>
-<text x="149.8" y="78.8" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z up</text>
-<text x="149.8" y="96.51" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z down</text>
-<text x="174.94" y="75.66" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Step  1 mm</text>
-<text x="174.94" y="87.66" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Feed  3000 mm/min</text>
-<text x="174.94" y="99.66" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">A  B  C axes</text>
-<text x="126" y="131.49" font-size="1.5" style="fill:#000" text-anchor="middle">window onto the 10.1 in display, Pi 5 behind it (Touch UI, Jog tab)</text>
-<text x="35.71" y="46.43" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">EMERGENCY</text>
-<text x="35.71" y="53" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">STOP</text>
-<text x="35.71" y="71.57" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S2  E-STOP</text>
-<text x="35.71" y="73.38" font-size="1.23" style="fill:#000" text-anchor="middle">push to stop, twist to release</text>
-<text x="35.71" y="100.71" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S3  RESET</text>
-<text x="35.71" y="102.53" font-size="1.23" style="fill:#000" text-anchor="middle">starts the motors after an E-stop</text>
-<text x="24.29" y="111" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">0</text>
-<text x="47.14" y="111" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">I</text>
-<text x="35.71" y="128.71" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S1  POWER, H1 lamp</text>
-<text x="35.71" y="130.53" font-size="1.23" style="fill:#000" text-anchor="middle">on: K1 in, lamp lit</text>
-<text x="216.29" y="80.71" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S6  START</text>
-<text x="216.29" y="82.53" font-size="1.23" style="fill:#000" text-anchor="middle">Run All, or resume a hold</text>
-<text x="216.29" y="120.71" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S7  STOP</text>
-<text x="216.29" y="122.53" font-size="1.23" style="fill:#000" text-anchor="middle">soft stop (M410): the run ends</text>
-<text x="272.29" y="73.57" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">SELECT</text>
-<text x="272.29" y="37.29" font-size="1.8" style="fill:#555555" text-anchor="middle" font-weight="bold">FUTURE</text>
-<text x="272.29" y="107" font-size="1.4" style="fill:#555555" text-anchor="middle" font-weight="bold">arrow keys and select</text>
-<text x="242.57" y="113.86" font-size="1.35" style="fill:#555555">To use the screen without touching it (gloves,</text>
-<text x="242.57" y="115.86" font-size="1.35" style="fill:#555555">dirty hands). Not designed: how the keys reach</text>
-<text x="242.57" y="117.86" font-size="1.35" style="fill:#555555">the Pi (a USB keypad sends arrows and Enter with</text>
-<text x="242.57" y="119.86" font-size="1.35" style="fill:#555555">no new wiring; GPIO keys would need new bridge</text>
-<text x="242.57" y="121.86" font-size="1.35" style="fill:#555555">actions, as S6 and S7 have), and how the Touch</text>
-<text x="242.57" y="123.86" font-size="1.35" style="fill:#555555">UI moves between its controls.</text>
+<text x="81.23" y="58.23" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">RMR Touch</text>
+<text x="178.2" y="58.06" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Connected</text>
+<text x="139.91" y="58.23" font-size="1.2" style="fill:#BBCCEE" text-anchor="middle">X 385.00  Y 120.00  Z 10.00</text>
+<text x="77.5" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Jog</text>
+<text x="95.19" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Recipe</text>
+<text x="112.88" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Log</text>
+<text x="130.57" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Spin</text>
+<text x="148.26" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Console</text>
+<text x="165.95" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Program</text>
+<text x="183.64" y="65.14" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle">Advanced</text>
+<text x="104.09" y="81.66" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y+</text>
+<text x="104.09" y="110.23" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Y-</text>
+<text x="89.8" y="95.94" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X-</text>
+<text x="118.37" y="95.94" font-size="1.7" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">X+</text>
+<text x="104.09" y="94.23" font-size="1.25" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">HOME</text>
+<text x="104.09" y="95.79" font-size="1.06" style="fill:#FFFFFF" text-anchor="middle">ALL</text>
+<text x="154.37" y="83.94" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z up</text>
+<text x="154.37" y="101.66" font-size="1.4" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">Z down</text>
+<text x="179.51" y="80.8" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Step  1 mm</text>
+<text x="179.51" y="92.8" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">Feed  3000 mm/min</text>
+<text x="179.51" y="104.8" font-size="1.2" style="fill:#DDDDDD" text-anchor="middle">A  B  C axes</text>
+<text x="130.57" y="136.63" font-size="1.5" style="fill:#000" text-anchor="middle">window onto the 10.1 in display, Pi 5 behind it (Touch UI, Jog tab)</text>
+<text x="40.29" y="51.57" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">EMERGENCY</text>
+<text x="40.29" y="58.14" font-size="1.15" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">STOP</text>
+<text x="40.29" y="76.71" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S2  E-STOP</text>
+<text x="40.29" y="78.53" font-size="1.23" style="fill:#000" text-anchor="middle">push to stop, twist to release</text>
+<text x="40.29" y="105.86" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S3  RESET</text>
+<text x="40.29" y="107.67" font-size="1.23" style="fill:#000" text-anchor="middle">starts the motors after an E-stop</text>
+<text x="28.86" y="116.14" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">0</text>
+<text x="51.71" y="116.14" font-size="1.4" style="fill:#000" text-anchor="middle" font-weight="bold">I</text>
+<text x="40.29" y="133.86" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S1  POWER, H1 lamp</text>
+<text x="40.29" y="135.67" font-size="1.23" style="fill:#000" text-anchor="middle">on: K1 in, lamp lit</text>
+<text x="220.86" y="85.86" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S6  START</text>
+<text x="220.86" y="87.67" font-size="1.23" style="fill:#000" text-anchor="middle">Run All, or resume a hold</text>
+<text x="220.86" y="125.86" font-size="1.45" style="fill:#000" text-anchor="middle" font-weight="bold">S7  STOP</text>
+<text x="220.86" y="127.67" font-size="1.23" style="fill:#000" text-anchor="middle">soft stop (M410): the run ends</text>
+<text x="281.43" y="73.57" font-size="1.3" style="fill:#FFFFFF" text-anchor="middle" font-weight="bold">SELECT</text>
+<text x="281.43" y="37.29" font-size="1.8" style="fill:#555555" text-anchor="middle" font-weight="bold">FUTURE</text>
+<text x="281.43" y="107" font-size="1.4" style="fill:#555555" text-anchor="middle" font-weight="bold">arrow keys and select</text>
+<text x="251.71" y="113.86" font-size="1.35" style="fill:#555555">To use the screen without touching it (gloves,</text>
+<text x="251.71" y="115.86" font-size="1.35" style="fill:#555555">dirty hands). Not designed: how the keys reach</text>
+<text x="251.71" y="117.86" font-size="1.35" style="fill:#555555">the Pi (a USB keypad sends arrows and Enter with</text>
+<text x="251.71" y="119.86" font-size="1.35" style="fill:#555555">no new wiring; GPIO keys would need new bridge</text>
+<text x="251.71" y="121.86" font-size="1.35" style="fill:#555555">actions, as S6 and S7 have), and how the Touch</text>
+<text x="251.71" y="123.86" font-size="1.35" style="fill:#555555">UI moves between its controls.</text>
 <text x="168" y="164" font-size="2.1" font-weight="bold">Front plate (measured 2026-11-11)</text>
 <text x="168" y="167.6" font-size="1.3">S1, S2, S3, S6, S7: a 22.3 mm hole each; their collars measure 21.8 mm.</text>
 <text x="168" y="169.75" font-size="1.3">Cut one test hole first: 22.3 mm is the usual 22 mm device hole, not read</text>
@@ -159,8 +169,9 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="168" y="178.35" font-size="1.3">S2's base clamps with two angled screws whose round tips bear on the</text>
 <text x="168" y="180.5" font-size="1.3">plate's back: keep the back flat and bare round its hole.</text>
 <text x="168" y="182.65" font-size="1.3">Screen: VESA 75 x 75 on its back, from the scan of 2026-11-11.</text>
-<text x="168" y="184.8" font-size="1.3">Model (issue #219): CAD/Operator Panel, plate 392 x 210 x 3.17,</text>
-<text x="168" y="186.95" font-size="1.3">window 222.7 x 141.7 onto a 244.7 x 159.7 display.</text>
+<text x="168" y="184.8" font-size="1.3">Model (issue #219): CAD/Operator Panel, plate 408 x 228 x 3.17,</text>
+<text x="168" y="186.95" font-size="1.3">window 222.7 x 141.7 onto a 244.7 x 159.7 display; a 2020 ring</text>
+<text x="168" y="189.1" font-size="1.3">behind it, and two spines for a monitor arm (VESA 100).</text>
 <text x="14" y="164" font-size="2.1" font-weight="bold">Behind the panel</text>
 <text x="14" y="167.4" font-size="1.3" style="fill:#555555">control</text>
 <text x="44" y="167.4" font-size="1.3" style="fill:#555555">contact</text>
@@ -217,6 +228,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: operator panel</text>
 <text x="258" y="194.4" font-size="2">Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.</text>
 <text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218, #219).</text>
-<text x="258" y="199.9" font-size="2">Status: plate laid out (#219); housing behind it not designed.</text>
+<text x="258" y="199.9" font-size="2">Status: plate and 2020 frame laid out (#219); the arm not chosen.</text>
 <text x="258" y="202.65" font-size="2">Circuits: sheet 1. Terminals: sheet 2C.</text>
 </svg>

@@ -2291,9 +2291,10 @@ OpWindow = (OpLit[0] + 2 * OpWindowMargin, OpLit[1] + 2 * OpWindowMargin)
 # The front plate, laser cut from the owner's 1/8 in cast acrylic. S2's collar clamps the plate and its
 # yellow legend plate together, so plate + legend plate must stay within OpPlateMaxT: 3/16 in (4.76) with
 # a 1.5 mm legend plate would be 6.26. A thicker plate needs the real legend plate measured first.
-OpPlate = (392.0, 210.0, 8.0)                      # width, height, corner R
+OpPlate = (408.0, 228.0, 1.0)                      # width, height, corner R: the 2020 ring behind it clears the
+                                                   # controls' bodies and the cradle (OpFrameGap); a corner R
+                                                   # above 1 would leave the ring's square corners showing past it
 OpPlateT = 3.175                                   # 1/8 in
-OpPlateMount = (10.0, 4.5)                         # mounting holes this far in from each corner's edges, and their size
 # The controls: name, kind, x, y. The bench layout of 2026-11-11 (issue #218) with S3 moved under S2 (#219):
 # the left column is E-stop, Reset, power; the right is Start and Stop. The columns sit far enough
 # out that the bodies behind the plate (OpRearBody) clear the cradle.
@@ -2343,10 +2344,61 @@ def OpLegScrews():
     return [(sx * 8.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
 
 
-def OpMounts():
-    """The plate's mounting holes, OpPlateMount[0] in from the edges at each corner."""
-    m = OpPlateMount[0]
-    return [(sx * (OpPlate[0] / 2 - m), sz * (OpPlate[1] / 2 - m)) for sx in (1, -1) for sz in (1, -1)]
+# The frame (owner, 2026-11-11): a ring of 2020 (6 mm slot, the 1000 mm sticks of the frame order, 4 spare)
+# on the plate's back edge stiffens the 1/8 in acrylic, and two vertical spines behind the display carry a
+# monitor spring arm on their back slots. Joints: the side posts are tapped M5 at their ends (the M5 tap,
+# 4.2 core) and held by M5 x 30 through 5.56 mm holes drilled across the top and bottom rails, from the
+# rails' outer faces; each riser is tapped M5 at its back end and held by M5 x 30 through a 5.56 mm hole
+# drilled across its spine, from the spine's back face (never through the rail: that head would sit under
+# the acrylic). Each M5 x 30 takes a DIN 125 washer, since its head bridges the 6 mm slot on 1.35 mm of lip.
+# Each riser's front end stands on the rail's back face with a cast corner bracket on both sides
+# (OpRiserBrackets), because pulling the panel to move the arm puts that joint in tension. The plate screws
+# to the ring with M5 x 8 into M5 roll-in T-nuts, and the arm's VESA plate to the spines with M4 x 8 into
+# M4 roll-in T-nuts: the arm's own M4 x 10 to 16 would bottom on the slot floor.
+OpProfile = 20.0                                   # 2020
+OpFrameGap = 3.0                                   # least clearance from the ring to a control's body or the cradle
+OpFrameScrewD, OpFrameScrewHeadD = 5.5, 8.7        # M5 x 8 socket head through the plate into the ring's front slot
+OpSpineX, OpSpineY = 50.0, 51.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
+                                                   # Y 51, 3.5 mm behind the display bracket
+OpArmVesa = 100.0                                  # the arm's VESA plate, screwed to the spines' back slots
+OpArmPlate = (120.0, 3.0)                          # assumed: the arm's plate, square, thickness
+OpBracketKit = 17.0                                # cast corner bracket, 17 x 20 mm (the kit's listing)
+OpRiserBrackets = 2                                # per riser, one each side
+OpFrameScrewL, OpArmScrewL, OpJointScrewL = 8.0, 8.0, 30.0   # M5 plate screws, M4 arm screws, M5 joint screws
+
+
+def OpFrameScrews():
+    """M5 x 8 through the plate into the ring: two up each post, five along each rail, off S2's legend plate."""
+    w, h, p = OpPlate[0], OpPlate[1], OpProfile
+    return [(sx * (w / 2 - p / 2), sz * 30.0) for sx in (1, -1) for sz in (1, -1)] + \
+           [(x, sz * (h / 2 - p / 2)) for x in (0.0, 100.0, -100.0, 170.0, -170.0) for sz in (1, -1)]
+
+
+def OpFrameCuts():
+    """The 2020 pieces: (name, count, length mm)."""
+    w, h, p = OpPlate[0], OpPlate[1], OpProfile
+    return [("rail (top, bottom)", 2, w), ("post (left, right)", 2, h - 2 * p), ("spine", 2, h),
+            ("riser", 4, OpSpineY - p)]
+
+
+def OpFrameSticks():
+    """How many 1000 mm sticks the frame's pieces take, first fit by decreasing length (as NestSticks)."""
+    sticks = []
+    for L in sorted((L for _, n, L in OpFrameCuts() for _ in range(n)), reverse=True):
+        for s in sticks:
+            if sum(q + Kerf for q in s) + L + Kerf <= StickL - EndTrim:
+                s.append(L)
+                break
+        else:
+            sticks.append([L])
+    return len(sticks)
+
+
+def OpBomUse():
+    """What the operator panel takes from the frame's stock (issue #219)."""
+    screws = len(OpFrameScrews())
+    return {"sticks": OpFrameSticks(), "brackets": 4 * OpRiserBrackets, "m5 nuts": screws, "m5 x 8": screws,
+            "m4 nuts": 4, "m4 x 8": 4, "m5 x 30": 8}
 # Measured by the owner on 2026-11-11: every 22 mm device's threaded collar is 21.8 mm across, and its
 # nut reaches through a front plate 5 to 6 mm thick at most; S2's base clamps with two angled screws
 # whose rounded tips bear on the plate's back face; the screen has a VESA 75 pattern on its back.
@@ -2459,11 +2511,11 @@ def BuildOperatorPanel():
     Label(sx + sw_ / 2, sy + sh_ + 7.0, ["window onto the 10.1 in display, Pi 5 behind it (Touch UI, Jog tab)"],
           size=1.5, bold0=False)
 
-    # the M3 pan heads of the cradle screws, and the mounting holes
+    # the M3 pan heads of the cradle screws, and the M5 heads into the 2020 ring
     for x, y in OpCradleScrews():
         Disc(*L(x, y), OpScrewHeadD, "#555555", sw=0.15)
-    for x, y in OpMounts():
-        Disc(*L(x, y), OpPlateMount[1], "#FFFFFF", sw=0.2)
+    for x, y in OpFrameScrews():                   # M5 socket heads into the 2020 ring behind the plate
+        Disc(*L(x, y), OpFrameScrewHeadD, "#777777", sw=0.15)
 
     # the controls where OpControls puts them: the E-stop on its yellow plate and the power knob with its
     # lamp to the left of the screen; Reset, then the soft Start and Stop the Pi reads (issue #218), to its right
@@ -2532,7 +2584,9 @@ def BuildOperatorPanel():
             "plate's back: keep the back flat and bare round its hole.",
             "Screen: VESA %.0f x %.0f on its back, from the scan of 2026-11-11." % (OpVesa, OpVesa),
             "Model (issue #219): CAD/Operator Panel, plate %.0f x %.0f x %.2f," % (OpPlate[0], OpPlate[1], OpPlateT),
-            "window %.1f x %.1f onto a %.1f x %.1f display." % (OpWindow[0], OpWindow[1], OpDisplay[0], OpDisplay[1])]):
+            "window %.1f x %.1f onto a %.1f x %.1f display; a 2020 ring" % (OpWindow[0], OpWindow[1], OpDisplay[0],
+                                                                         OpDisplay[1]),
+            "behind it, and two spines for a monitor arm (VESA %.0f)." % OpArmVesa]):
         sh.Text(nx, ny + 3.6 + i * 2.15, s2, size=1.3)
 
     # what each control wires to
@@ -2548,7 +2602,7 @@ def BuildOperatorPanel():
         "RMR control panel: operator panel",
         "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
         "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218, #219).",
-        "Status: plate laid out (#219); housing behind it not designed.",
+        "Status: plate and 2020 frame laid out (#219); the arm not chosen.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
     return sh
@@ -6186,6 +6240,7 @@ def BomRows():
     nBars = sum(b for _, b in bonds.values())
     sticks, pieces = NestSticks(), CutPieces()
     nPieces = sum(n for _, n, _, _ in pieces)
+    op = OpBomUse()                # the operator panel's 2020 frame (issue #219) draws on the same stock
     nSheets = PanelNest()
     nEntries = PanelChecks()
     dinRails = [s for s in DeckSolids() if s["kind"] == "rail"]
@@ -6224,30 +6279,33 @@ def BomRows():
         # ---- frame
         ("Frame", Amz, Buy, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
          "IXGNIJ 10 pcs 1000 mm T-slot 2020 European standard anodized rail, 6063-T5, cut +/-0.5 mm",
-         "%d sticks" % len(sticks), "10-pack", 1, 74.99,
-         "%d pieces, %d mm: the sheet 4 cut list" % (nPieces, round(sum(n * L for _, n, L, _ in pieces))),
+         "%d sticks" % (len(sticks) + op["sticks"]), "10-pack", 1, 74.99,
+         "%d pieces, %d mm: the sheet 4 cut list; the operator panel's frame, %d sticks (OpFrameCuts)"
+         % (nPieces, round(sum(n * L for _, n, L, _ in pieces)), op["sticks"]),
          "%d sticks spare. 6 mm slot per the brand's comparison table; measure depth and lip on the first"
-         % (10 - len(sticks))),
+         % (10 - len(sticks) - op["sticks"])),
         ("Frame", Amz, Buy, "Corner bracket kit, 2020, 40 sets", "B0FK9W8KGW",
          "TOCLUX 40 cast corner brackets 17 x 20 mm, 80 M5 sliding T-nuts, 80 M5 socket cap screws, hex key",
-         brackets, "kit of 40", 1, 24.99,
-         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4, gantry mount %d"
-         % mounts,
+         brackets + op["brackets"], "kit of 40", -(-(brackets + op["brackets"] + 1) // 40), 24.99,
+         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4, gantry mount %d, "
+         "operator panel risers %d; one more for the length stop" % (mounts, op["brackets"]),
          "Slide the kit's nuts in from the rail ends before each joint closes"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M5, 2020, 100", "B0DX7B5ZNN",
          "Yaocom 100 pcs 2020 series M5 half roll-in spring T-nuts",
-         panelScrews + mounts + GantryFeet, "pack of 100", 1, 9.99,
-         "panels %d, gantry mount %d, gantry feet %d (sheet 5)" % (panelScrews, mounts, GantryFeet),
+         panelScrews + mounts + GantryFeet + op["m5 nuts"], "pack of 100", 1, 9.99,
+         "panels %d, gantry mount %d, gantry feet %d (sheet 5), operator plate %d"
+         % (panelScrews, mounts, GantryFeet, op["m5 nuts"]),
          "Spring-leaf roll-in nut: drops in after assembly, so it also goes into the standing gantry. Ball-spring nuts were $8.89 for 25 (B082F9B1TZ)"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M4, 2020, 100", "B0FLP1BW2M",
          "Yaocom 100 pcs 2020 series M4 half roll-in spring T-nuts",
-         2 * ringScrews + legs, "pack of 100", 1, 9.99,
-         "plate screws %d, upper-post bracket legs %d" % (2 * ringScrews, legs), ""),
+         2 * ringScrews + legs + op["m4 nuts"], "pack of 100", 1, 9.99,
+         "plate screws %d, upper-post bracket legs %d, monitor arm plate %d" % (2 * ringScrews, legs, op["m4 nuts"]), ""),
         ("Frame", Amz, LabFirst, "Socket head M5 x 8, 304, 100", "B0DF75LXL4",
          "Joamang 100 pcs M5-0.8 x 8 304 (A2-70) stainless socket head cap screws, fully threaded, head %s "
          "across, 5 tall" % Mm(HeadM5),
-         panelScrews, "pack of 100", 1, 9.88,
-         "panels %d, mount brackets to the gantry %d" % (panelScrews - mounts, mounts),
+         panelScrews + op["m5 x 8"], "pack of 100", 1, 9.88,
+         "panels %d, mount brackets to the gantry %d, operator plate to its ring %d"
+         % (panelScrews - mounts, mounts, op["m5 x 8"]),
          "Back panel: add a flat washer. Acrylic panels: snug by hand. " + read),
         ("Frame", Amz, LabFirst, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
          "100 pcs M5-0.8 x 16 304 stainless socket head cap screws",
@@ -6255,10 +6313,12 @@ def BomRows():
          "feet %d, rail bond holes %d" % (len(PostCentres), railBonds), "Also the gantry bond holes"),
         ("Frame", Amz, LabFirst, "M5 socket head assortment, nuts and washers", "B0FGV561HZ",
          "Fgruh 272 pcs: 72 M5 socket cap screws 8 to 35 mm (9 per size), 40 nuts, 80 flat, 80 spring washers",
-         "M5 x 35: %d; x 12: %d; x 10: %d; gantry feet: %d" % (len(PostCentres), mounts // 2, mounts // 2, GantryFeet),
+         "M5 x 35: %d; x 30: %d; x 12: %d; x 10: %d; gantry feet: %d"
+         % (len(PostCentres), op["m5 x 30"], mounts // 2, mounts // 2, GantryFeet),
          "kit", 1, 9.99,
          "lid ring to the upper posts, back panel washers and PE stud, ground bar screws (x 12) and nuts; the "
-         "mount brackets' panel screws (x 12 front, x 10 back); the gantry feet (%s)"
+         "mount brackets' panel screws (x 12 front, x 10 back); the operator panel's frame joints (x 30, with "
+         "flat washers); the gantry feet (%s)"
          % ("length open: measure a foot" if gantry["foot screw"] is None else "x %d" % gantry["foot screw"]),
          "Black 12.9 alloy steel. The listing gives 8 to 35 mm, 9 per size: check it has 10 and 12, and buy a "
          "pack of one length if the ground bar screws and the gantry feet land on it together"),
@@ -6268,7 +6328,8 @@ def BomRows():
         ("Frame", Amz, LabFirst, "M4 socket head assortment, 304", "B0CLM7VMB8",
          "Sutemribor 385 pcs M4 x 5, 6, 8, 10, 12, 16, 20 304 stainless socket head cap screws with nuts, "
          "lock and flat washers",
-         "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
+         "x 10: %d; x 8: %d" % (legs, op["m4 x 8"]), "kit", 1, 9.99,
+         "upper-post bracket legs (x 10), the monitor arm's plate to the operator panel's spines (x 8), and spare sizes",
          "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack. "
          "No hex key in the kit. " + read),
         ("Frame", Amz, LabFirst, "Socket head M4 x 12, 304, 100", "B089M2LTHX",
@@ -6476,7 +6537,9 @@ def BomRows():
          "a spare stick clamped to the bench in line with the saw fence, shimmed to the table's height, with a "
          "spare corner bracket on a T-nut in its top slot as the stop", 1, "-", 0, None,
          "cut each set of equal pieces against one stop, up to %s mm" % Mm(max(L for _, _, L, _ in pieces)),
-         "%d sticks and %d brackets are spare" % (10 - len(sticks), 40 - brackets)),
+         "%d sticks and %d brackets are spare after the operator panel's frame"
+         % (10 - len(sticks) - op["sticks"],
+            40 * -(-(brackets + op["brackets"] + 1) // 40) - brackets - op["brackets"])),
         ("Cutting tools", Amz, Optional, "Bar clamp, 12 in, 2-pack", "B001NP9S7M",
          "IRWIN QUICK-GRIP one-handed mini bar clamps, 12 in, 2-pack (1964745)", 2, "2-pack", 1, 19.87,
          "the stop stick to the bench", read),
