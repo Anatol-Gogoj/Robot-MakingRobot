@@ -44,6 +44,9 @@ calibration and tuning; it is not used at run time.
 - **10″ touchscreen:** HDMI video with **USB-HID capacitive touch** is the most universal
   (plug-and-play on Linux, no driver). Avoid panels that need a vendor touch driver.
 - A separate **5 V / 3 A** supply for the Pi (do not power it from the Mega).
+- The screen's own supply, if it has a DC jack. The machine's 10.1 in screen takes 12 V on a barrel
+  jack (its adapter is rated 12 V 3 A), from the control box's isolated 12 V DC-DC on fuse F1-3
+  (`docs/adr/0020-screen-on-12-v-from-a-dc-dc-on-the-upper-deck.md`).
 - Active cooling if it lives in an enclosure.
 
 ## One-time setup

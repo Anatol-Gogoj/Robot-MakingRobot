@@ -33,6 +33,7 @@ Blocks = {
     "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
     "PS6": (63.0, 58.0, 40.5, "dc", True),         # servo PSU
     "PS5": (76.0, 76.0, 49.5, "dc", True),         # 5 V PSU for the Pi
+    "PS12": (66.5, 90.0, 62.0, "dc", True),        # 12 V DC-DC for the screen (ADR-0020, issue #220)
     "DRV": (242.0, 124.4, 85.5, "drv", True),      # 7 TB6600 + motor duct
     "SSR": (46.6, 88.1, 78.4, "drv", True),        # 6 SSR sockets
     "LOGIC": (211.6, 53.0, 52.5, "log", True),     # Mega on its carrier + 0V-S groups
@@ -62,6 +63,7 @@ Nets = [
     ("RFB", "LL", 2),                                                # ODrive 24 V feed
     ("RFB", "SSR", 3), ("SSR", "R24", 2), ("SSR", "FIELD", 8),       # UV, valve, tower feeds/outputs
     ("RFB", "PS5", 2), ("PS5", "LL", 2),                             # Pi supply
+    ("RFB", "PS12", 1), ("PS12", "R24", 1), ("PS12", "LL", 2),      # screen 12 V (issue #220)
     ("RFB", "FIELD", 1), ("FIELD", "R24", 2), ("FIELD", "LL", 5),    # E-stop latch, door cable
     ("LOGIC", "DRV", 28), ("LOGIC", "FIELD", 16), ("LOGIC", "SSR", 4),
     ("FIELD", "SSR", 5), ("LOGIC", "R24", 2),                        # tower inputs, pin 43 sense
@@ -73,7 +75,7 @@ Nets = [
 
 def Arch(name):
     """Deck of each block, the PSU pose, and the box height rules for an architecture."""
-    up = ["DRV", "SSR", "LOGIC", "FIELD", "SHIELD"]
+    up = ["DRV", "SSR", "LOGIC", "FIELD", "SHIELD", "PS12"]
     lo = ["R110", "PSU", "R24", "RFB", "PS6", "PS5"]
     if name in ("A", "A*"):
         return {"deck": {**{b: "lower" for b in lo}, **{b: "upper" for b in up}}, "psu": "standing"}
@@ -298,7 +300,8 @@ def Breakdown(run):
 def Main():
     out = sys.argv[1] if len(sys.argv) > 1 else "."
     os.makedirs(out, exist_ok=True)
-    runs = [("current (hand)", Score("A", Current)),
+    # the hand layout predates the screen's 12 V DC-DC (issue #220), so it is scored without it
+    runs = [("current (hand)", Score("A", Current, nets=[n for n in Nets if "PS12" not in n[:2]])),
             ("A*: stacked, PSU standing, solver", Solve("A")),
             ("B: stacked, PSU flat, solver", Solve("B")),
             ("C: one deck in %g x %g" % (BoxD, BoxW), Solve("C", seconds=30))]

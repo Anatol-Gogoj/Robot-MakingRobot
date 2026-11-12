@@ -411,7 +411,7 @@ def BuildSchematic():
     sh.Text(80, 46.2, "V-  12 AWG", size=1.6)
 
     # ------------------------------------------------ FB1 and its loads
-    fb1Drops = [(118, "F1-1", ""), (142, "F1-2", "3 A"), (166, "F1-3", ""),
+    fb1Drops = [(118, "F1-1", ""), (142, "F1-2", "3 A"), (166, "F1-3", "3 A"),
                 (190, "F1-4", "3 A"), (210, "F1-5", "3 A"), (230, "F1-6", "")]
     sh.Text(104, 23.3, "FB1", size=2.4, weight="bold", fill=TolBlue)
     sh.Text(104, 25.6, "12-way", size=1.6)
@@ -424,9 +424,10 @@ def BuildSchematic():
         FuseV(sh, x, fb1Y, 26.0, "va")
         sh.Text(x + 1.6, 22.3, name, size=1.7)
         sh.Text(x + 1.6, 24.4, amp, size=1.7)
-    # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel; the Mega runs on the Pi's USB
-    # and the screen on the Pi, so F1-1 and F1-3 (the Mega buck and the screen supply) are spare
-    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)")]
+    # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel and the Mega runs on the Pi's USB,
+    # so F1-1 (the Mega buck) is spare; since 2026-11-12 F1-3 feeds the screen's 12 V DC-DC (ADR-0020)
+    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)"),
+             (166, "12 V DC-DC", "DDR-60G-12", "12 V to screen (note 6)")]
     for x, l1, l2, outLabel in bucks:
         sh.Wire([(x, 26.0), (x, 28.0)], "va")
         sh.Rect(x - 8, 28.0, 16, 8.5, "bx")
@@ -451,7 +452,7 @@ def BuildSchematic():
     sh.Rect(104.2, sY - 2.0, 4.6, 4.0, "bx")
     sh.Text(106.5, sY + 0.75, "S", size=2.2, anchor="middle", weight="bold")
     sh.Text(170, sY - 1.0, "Star S at PSU V-: every 0 V return lands here on its own wire", size=1.7)
-    for x in (137,):
+    for x in (137, 161):
         sh.Dot(x, sY)
     # servo PSU IN- tag stub and 0V-P drop and PE bond
     sh.Wire([(222, sY), (222, sY + 3.0)], "zp")
@@ -823,7 +824,7 @@ def BuildSchematic():
     sh.Text(243, 166.6, "touch", size=1.5, anchor="middle", weight="bold")
     sh.Text(243, 168.8, "screen", size=1.5, anchor="middle", weight="bold")
     sh.Wire([(243, 170.6), (243, 172.6)], "lv")
-    Tag(sh, 243, 174.0, "from the Pi", "lv", side="left", size=1.3)
+    Tag(sh, 243, 174.0, "12 V DC-DC, F1-3", "lv", side="left", size=1.3)
     # tower SSRs
     gp = [(170.0, "5", "red"), (174.0, "6", "amber"), (178.0, "13", "green"), (182.0, "26", "buzzer")]
     sh.Rect(190, 168.0, 14, 16.0, "bx")
@@ -904,6 +905,8 @@ def BuildSchematic():
                "5 A; check its rating and the drop along the cable. The Mega runs on the Pi's USB."]),
         ("5", ["Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to",
                "their OFF level. The bootloader's seconds before setup() are not covered."]),
+        ("6", ["12 V DC-DC (ADR-0020), isolated: the screen's DC-12V jack (12 V 2 A; adapter 3 A).",
+               "Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug pin: open."]),
     ]
     ny = 48.0
     sh.Text(lx, ny, "Notes", size=2.4, weight="bold")
@@ -928,7 +931,7 @@ def BuildSchematic():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: wiring schematic",
         "Sheet 1. Legal 14 x 8.5 in, landscape. Print at 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-22.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-11-12 (#220).",
         "Status: design, not yet wired or tested on the machine.",
         "Sheets 2A and 2B show the same circuits on the two decks.",
     ])
@@ -949,8 +952,9 @@ def BuildSchematic():
 # their order and their places relative to each other but not their exact distances; sheet 3 gives
 # those.
 # The parts follow the owner's decisions of 2026-10-15: the Pi sits at the operator panel on the 5 V
-# PSU, the Mega runs on the Pi's USB, the screen has no supply of its own, the tower runs on 24 V
-# through SSRs in the box, and the ODrive sits in the spin coater's base. Sheet 1 carries the same.
+# PSU, the Mega runs on the Pi's USB, the tower runs on 24 V through SSRs in the box, and the ODrive
+# sits in the spin coater's base. The screen takes 12 V from a DC-DC on F1-3 (ADR-0020, issue #220).
+# Sheet 1 carries the same.
 
 WirePitch = 0.5                    # paper mm between two tracks of a lane
 WireMargin = 0.45                  # paper mm from a lane's edge to its first track
@@ -1372,6 +1376,10 @@ def SlotWires():
             (2, "lv", "servo PSU.OUT+", "X5.1b", "servo PSU +6 V to X5 6V"),
             (2, "zl", "servo PSU.OUT-", "X5.3b", "servo PSU 0 V to X5 0V"),
             (2, "pe", "bar.3", "bar.2", "lower ground bar to upper ground bar"),
+            (2, "va", "FB1.3", "12 V DC-DC.+Vin", "F1-3 to the 12 V DC-DC +Vin (screen supply)"),
+            (2, "zp", "Star S.P12", "12 V DC-DC.-Vin", "12 V DC-DC -Vin to star S"),
+            (2, "lv", "LL", "12 V DC-DC.+Vo", "screen +12 V: the plug's pigtail, via the lower left grommet"),
+            (2, "zl", "LL", "12 V DC-DC.-Vo", "screen 12 V return, isolated: the same pigtail"),
             (3, "va", "FB1.5", "X2.1b", "F1-5 to X2 1 (E-stop latch)"),
             (3, "ve", "K2.5", "X2.3b", "K2 5 to X2 2b (seal-in, node X)"),
             (3, "ve", "K2.6", "X2.4b", "K2 6 to X2 3 (node Y)"),
@@ -1431,7 +1439,7 @@ def LowerWiring(d):
     d.Face("F3", "y0", "duct", ["out1", "out2", "out3"], ["1", "2", "3"])
     d.Face("F3", "y1", "top", ["in1", "in2", "in3"], ["1", "2", "3"])
     d.Part("Star S", B["Star S"], ["Star S", "uxcell"], size=1.35, rot=-90)
-    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP"], ["", "", ""])
+    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP", "P12"], ["", "", "", ""])
     d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
     d.Part("0V-P", B["0V-P"], ["0V-P 1", "linked to 0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P", "y0", "duct", ["IN", "K2", "LK"], ["in", "", ""])
@@ -1537,6 +1545,8 @@ def UpperWiring(d):
     d.AddLane("to UR", (clamp[0] + 1.0, md[0], clamp[2] - 1.0, BoxW), "y")
     d.AddLane("right wall", (Frame + 1.0, md[1], back1, BoxW - 2.0), "x")
     d.AddLane("behind", (back1, In, bar[0] - 2.0, BoxW - 2.0), "y")
+    dc = B["12 V DC-DC"]
+    d.AddLane("beside DC-DC", (clamp[2], s2[3], dc[0], md[0]), "y")
     d.InLane("S1", "feed duct", y=(s1[1] + s1[3]) / 2)
     d.InLane("S2", "slot 2", x=(s2[0] + s2[2]) / 2)
     d.InLane("S3", "front", y=(s3[1] + s3[3]) / 2)
@@ -1585,6 +1595,10 @@ def UpperWiring(d):
     d.Face("clamp", "y1", "right wall", ["PE"], [""])
     d.Part("bar", bar, ["ground bar"], size=1.1, rot=-90, dashed=True)
     d.Face("bar", "x0", "behind", ["1", "2", "3"], ["", "", ""])
+    # the screen's 12 V DC-DC (ADR-0020): input toward slot 2, output toward the motor duct
+    d.Part("12 V DC-DC", dc, ["12 V DC-DC", "DDR-60G-12", "screen, isolated"], size=1.4)
+    d.Face("12 V DC-DC", "y0", "slot 2", ["+Vin", "-Vin"], ["+24", "0V"])
+    d.Face("12 V DC-DC", "y1", "motor duct 2", ["+Vo", "-Vo"], ["+12V", "0V"])
 
     W = d.W
     for i, ax in enumerate(DriveAxes):
@@ -1763,7 +1777,7 @@ def WireLegend(sh, x, y, w):
     sh.Text(x, y, "Legend", size=2.0, weight="bold")
     items = [("ac", "110 VAC"), ("va", "+24 V always on (FB1)"), ("ve", "+24 V behind K2 (FB2)"),
              ("zp", "0 V power (0V-P, star S)"), ("zs", "0V-S signal 0 V"), ("pe", "PE"),
-             ("lv", "+6 V servo, +5 V Pi"), ("zl", "their 0 V"), ("sg", "signal"),
+             ("lv", "+6 V servo, +5 V Pi, +12 V screen"), ("zl", "their 0 V"), ("sg", "signal"),
              ("sgc", "multi-core signal cable"), ("cb", "motor cable")]
     col = w / 2
     for i, (cls, lab) in enumerate(items):
@@ -1894,7 +1908,8 @@ def MainsWireChecks(d):
 
 
 ExitNotes = {
-    "LL": ["Lower left grommet", "ODrive 24 V: F2-8 and 0V-P 2", "Pi 5 V: the 5 V PSU", "E-stop loop: the door cable from X2"],
+    "LL": ["Lower left grommet", "ODrive 24 V: F2-8 and 0V-P 2", "Pi 5 V: the 5 V PSU",
+           "screen 12 V: the DC-DC's plug pigtail", "E-stop loop: the door cable from X2"],
     "inlet": ["IEC inlet with switch Q0", "L, N, PE"],
     "gland": ["M20 gland: door 110 V", "X1 1-3 and PE"],
     "UL": ["Upper left grommet: field cables", "X4 to the endstops, a pair each; X5 to the servos;",
@@ -1905,10 +1920,10 @@ ExitNotes = {
     "UR": ["Upper right grommet", "X7 to the tower, 1 motor cable"],
 }
 FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "spare"],
-           "FB1": ["spare", "5 V PSU", "spare", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
+           "FB1": ["spare", "5 V PSU", "12 V DC-DC", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
                    "spare"]}
 FuseAmps = {"FB2": ["5", "5", "5", "5", "5", "5", "5", "10", "3", "2", "2", ""],
-            "FB1": ["", "3", "", "3", "3", "", "", "", "", "", "", ""]}
+            "FB1": ["", "3", "3", "3", "3", "", "", "", "", "", "", ""]}
 
 
 def WireNotes(deck):
@@ -1916,22 +1931,22 @@ def WireNotes(deck):
         "Seen from above, front at the left, so the left wall is at the top. Each part sits where sheet 3",
         "puts it; ducts and channels are drawn wider than scale so that every wire shows: measure from sheet 3.",
         "Terminals are drawn on the face their wires leave from; read the real order off each part.",
-        "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and",
-        "the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button",
-        "are wired at the panel). The ODrive sits in the spin coater's base.",
+        "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU and the Mega runs on the Pi's USB:",
+        "F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in",
+        "the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).",
         "Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to",
         "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V",
-        "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. Everything else: the 20 AWG on hand,",
-        "copper-clad aluminum (about 3 A), only on fuses of 3 A or less.",
+        "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG",
+        "pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.",
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
         "0 V meets PE only at star S, by its one wire to the lower ground bar.",
         "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
-        "5 V PSU's current for the Pi 5 (5.1 V, 5 A)."]
+        "5 V PSU's current for the Pi 5 (5.1 V, 5 A), the screen plug's pin size."]
     if deck == "lower":
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
             "terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),",
-            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T.",
+            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.",
             "The PSU's terminal order is assumed."]
     return common + [
         "Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper",
@@ -1968,7 +1983,7 @@ def BuildDeckWiring(deck):
         "RMR control panel: %s deck wiring" % deck,
         "Sheet 2%s (2%s: %s deck). Legal 14 x 8.5 in, landscape, 100 %%." % (("A", "B", "upper") if lower else
                                                                             ("B", "A", "lower")),
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-10-22.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-11-12 (#220).",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
     ])
@@ -2021,6 +2036,7 @@ NameParts = [
                     "C (syringe)", "drivers rail"),
         ("shield clamp", "grips the motor cables' shields, bonded to PE", "past the drivers"),
         ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
+        ("12 V DC-DC", "Mean Well DDR-60G-12, isolated: 12 V for the screen, fed by F1-3", "behind slot 2"),
     ]),
     ("Outside the box (sheet 1)", [
         ("S1, H1", "panel knob that switches K1 on; H1 its lamp, lit while K1 is in", "operator panel"),
@@ -2032,6 +2048,7 @@ NameParts = [
         ("S7", "Stop push button (NO, red): Pi GPIO 25, M410 and a soft stop of the run", "operator panel"),
         ("D1", "1N4007 across the argon valve's coil, band to +", "at the valve"),
         ("Pi", "Raspberry Pi 5 with the touch screen, runs rmr_bridge.py", "operator panel"),
+        ("screen", "10.1 in touch screen: HDMI and USB from the Pi, 12 V from the DC-DC", "operator panel"),
         ("ODrive", "ODrive S1 spin coater drive; J11 is its UART", "spin coater base"),
         ("X, Y (nodes)", "E-stop latch nodes: X after NC1, Y after S3 (sheet 1, rung B)", ""),
     ]),
@@ -2042,11 +2059,11 @@ NameEntries = [
     ("ULM", "upper left grommet 2: 6 motor cables, gantry PE"),
     ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
     ("UR", "upper right grommet: X7 tower, 1 motor cable"),
-    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, door cable"),
+    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, screen 12 V, door cable"),
     ("inlet", "IEC inlet with switch Q0, back panel"),
     ("gland", "M20 gland, back panel: door 110 V cable"),
     ("slot 1", "upper plate: driver +V and 0 V"),
-    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link"),
+    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link, 12 V DC-DC"),
     ("slot 3", "upper plate: E-stop latch, pin 43, door cable"),
 ]
 
@@ -2125,6 +2142,7 @@ def TerminalPlan(d):
     grommet a wire passes, or ''. A wire to a slot is followed to its end on the other deck."""
     slotUp = dict(((s, b), a) for s, _, a, b, _ in SlotWires())
     slotLo = dict(((s, a), b) for s, _, a, b, _ in SlotWires())
+    slotWhat = dict(((s, b), what) for s, _, a, b, what in SlotWires() if a == "LL")
     out = {}
     for w in d.Wires:
         for here, there in ((w["a"], w["b"]), (w["b"], w["a"])):
@@ -2134,7 +2152,8 @@ def TerminalPlan(d):
             if there in ("S1", "S2", "S3"):
                 s = int(there[1])
                 far = slotUp.get((s, here)) if d.Deck == "upper" else slotLo.get((s, here))
-                text, by = (NameEnd(far) if far != "LL" else "door cable, LL"), "slot %d" % s
+                text = NameEnd(far) if far != "LL" else slotWhat[(s, here)].split(":")[0] + ", LL"
+                by = "slot %d" % s
             elif "#" in there or there in ("LL", "ULM"):
                 text, by = None, NameEnd(there)
             else:
@@ -2416,6 +2435,7 @@ OpWiring = [
     ("S6 Start", "NO", "Pi GPIO 16 and GND", "at the panel"),
     ("S7 Stop", "NO", "Pi GPIO 25 and GND", "at the panel"),
     ("touch screen", "HDMI, USB", "Pi 5", "at the panel"),
+    ("touch screen", "DC-12V jack", "12 V DC-DC (F1-3)", "12 V pigtail (LL)"),
     ("Pi 5", "5 V in", "5 V PSU (F1-2)", "5 V feed (LL)"),
     ("Pi 5", "USB", "Mega", "USB cable (UF)"),
     ("Pi 5", "GPIO 5, 6, 13, 26", "tower SSRs (GND to their inputs -)", "tower inputs (UF)"),
@@ -2601,7 +2621,7 @@ def BuildOperatorPanel():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: operator panel",
         "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218, #219).",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-12 (#218 to #220).",
         "Status: plate and 2020 frame laid out (#219); the arm not chosen.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
@@ -2935,6 +2955,9 @@ PartSize = {
                                                  # terminal order not measured yet
     "PSU6": (58.0, 63.0, 23.0, True, "clip"),    # servo PSU 63 x 58 x 23, the 63 across its rail
     "PSU5": (76.0, 76.0, 32.0, True, "clip"),    # 5 V PSU 76 x 76 x 32
+    "DDR12": (52.5, 90.0, 54.5, True, "rail"),   # Mean Well DDR-60G-12, the screen's 12 V (ADR-0020):
+                                                 # 52.5 W x 90 H x 54.5 D on TS35 (DDR-60-SPEC,
+                                                 # 2026-03-31, mechanical page)
     "Clamp": (22.0, 124.0, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed
 }
 
@@ -2971,7 +2994,7 @@ CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Upper side, left", 390.0, "most motor cables", "ULM"),
                 ("Upper front", 110.0, "Mega USB, J11, Pi GPIO", "UF"),
                 ("Upper side, right", 292.0, "one motor cable, the tower", "UR"),
-                ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
+                ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, screen 12 V, E-stop loop", "LL")]
 
 # The lower bay, from the deck to the underside of the upper plate, is the larger of two needs: the
 # tallest lower part plus PartClear, which with the measured PSU lying flat (ADR-0010, issue #202) is
@@ -3239,6 +3262,12 @@ DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left ed
 # from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
 FieldRail0 = 40.0                  # front end of the field terminal rail
 LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
+# The screen's 12 V DC-DC (ADR-0020) has the upper deck's one free spot: between the shield clamp and
+# the back run, behind cable slot 2, on its own short rail along x, its back face level with the
+# drivers'. Its rail reaches Dc12RailEnd past each end of the DC-DC, room for the rail's USLKG 5 ground
+# block (6.2 mm), and stops 1 mm short of the clamp; it gets its input up slot 2 and sends its 12 V down it.
+Dc12X0 = 313.0                     # front end of the DC-DC itself
+Dc12RailEnd = 7.0                  # rail past each end of it
 R24Rail0 = 32.0                    # front end of the 24 V rail: F3, K2, Star S, the 0V-P bars. F3
                                    # (issue #205) clears cable slot 3 by 1 mm; the study had 87
 # The front face of the 24 V PSU, RingClear from the front ring. The study put it at 46.5 for a 215 mm
@@ -4343,6 +4372,8 @@ def UpperRails():
         "SSR": DinRun(False, logic["a1"] + Chan + PartSize["SSR"][1] / 2,
                       RailRun(UpRows["logic"][0] + 5.0, ssr), "SSR", ZoneFill["log"]),
         "drivers": DinRun(True, Row("drivers"), RailRun(DrvX[0], drv), "DRV", ZoneFill["drv"]),
+        "12 V DC-DC": DinRun(True, UpRows["drivers"][1] - PartSize["DDR12"][1] / 2,
+                             RailRun(Dc12X0, [("DDR12", "12 V DC-DC")]), "PS12", ZoneFill["24"], Dc12RailEnd),
     }
 
 
@@ -4645,6 +4676,7 @@ def PlanLabel(s):
                        1.2, 0),
              "PSU6": (["Servo PSU", "6 V, 58 x 63"], 1.1, 0),
              "PSU5": (["5 V PSU", "76 x 76", "Pi at the panel"], 1.2, 0),
+             "DDR12": (["12 V DC-DC", "52.5 x 90", "screen"], 1.1, 0),
              "Clamp": (["shield clamp"], 1.1, -90)}
     if key in fixed:
         return fixed[key]
@@ -4667,7 +4699,7 @@ def BuildPacking():
     upper = UpperRails()
     wireStudy, wireDrawn = StudyScore()
     room = TopIn - UpDeck - DrvH
-    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11, GPIO", "UR": "motor, tower", "LL": "ODrive, Pi, E-stop"}
+    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11, GPIO", "UR": "motor, tower", "LL": "ODrive, Pi, screen, E-stop"}
 
     def Plan(v, deck):
         """Rails first, then ducts, parts and the clamp, each at its footprint."""
@@ -4700,7 +4732,8 @@ def BuildPacking():
 
     # ------------------------------------------------ upper deck plan
     up = View(sh, 10.0, PlanTop, BoxD, BoxW, S, down=True)
-    up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size")
+    up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size. "
+             "Not in the box: the ODrive (spin coater base), the Pi (operator panel)")
     PlanFrame(up, "upper plate %s x %s, part of the upper module" % (Mm(BoxD), Mm(BoxW)), upper=True)
     Plan(up, "upper")
     mega = [p for p in upper["logic"]["run"] if p[0] == "Mega"][0]
@@ -4711,11 +4744,6 @@ def BuildPacking():
     sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) - 0.75, "field rail,", size=1.1)
     sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) + 0.85, "%d mm" % round(lengths["field"]),
             size=1.1)
-    # in the open deck between slot 2 and the motor duct, past the shield clamp
-    ax = (ClampBox()[2] + BackRunX - DuctWide / 2) / 2
-    ay = (CableSlots[1][3] + UpRows["motor duct"][0]) / 2
-    for i, s2 in enumerate(["ODrive: in the", "spincoater base", "", "Pi: at the", "operator panel"]):
-        sh.Text(up.X(ax), up.Y(ay) + 1.6 * (i - 2) + 0.4, s2, size=1.1, anchor="middle", italic=True)
     for i, (a0, b0, a1, b1) in enumerate(CableSlots):
         up.Obround(a0, b0, a1, b1, stroke=0.35)
         sh.Text(up.X((a0 + a1) / 2), up.Y((b0 + b1) / 2) + 0.45, "slot %d" % (i + 1), size=1.05,
@@ -4911,7 +4939,8 @@ def BuildPacking():
             "and FB2 153 x 48 x 43; uxcell bar 20 x 78 x",
             "53; SSR 6.1 x 88 x 71 (41F-1Z socket);",
             "UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x",
-            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067).",
+            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067);",
+            "12 V DC-DC 52.5 x 90 x 54.5 (datasheet).",
             "Assumed (dashed): F0, F3, PE blocks, end and",
             "shield clamps, Mega height. Heights add the rail."]),
         ("Layout 3b (ADR-0010)", [
@@ -6169,6 +6198,22 @@ def ShopInchChecks():
 # Quantities come from the frame, panel and bonding constants above.
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
+Trc = "TRC Electronics"            # Mean Well distributor: the 12 V DC-DC (issue #220)
+Dc12Date = "2026-11-12"            # its price, read at TRC; Amazon refused automated reads that day
+# The screen's 12 V (ADR-0020): the screen is rated 12 V 2 A and its adapter 12.0 V 3.0 A (the owner's photos
+# of both labels, 2026-11-12); the supply is sized for the adapter.
+# The plug's pigtail is taken as 6 ft of 18 AWG stranded copper, 7.95 ohm per 1000 ft at 75 C (NEC
+# Chapter 9 Table 8), so at the adapter's full current both conductors together drop ScreenDrop() volts.
+ScreenAmps, ScreenVolts, PigtailM, Awg18OhmPerM = 3.0, 12.0, 6 * 0.3048, 7.95 / 304.8
+Dc12Eff, Dc12InMin = 0.91, 22.0       # DDR-60G-12 efficiency at 24 V in (DDR-60-SPEC), and the least input
+                                      # voltage assumed at it after FB1 and the slot 2 run
+
+
+def ScreenDrop():
+    """(volts lost in the pigtail at ScreenAmps, the DC-DC's input current at the most input power)."""
+    return 2 * PigtailM * Awg18OhmPerM * ScreenAmps, ScreenVolts * ScreenAmps / Dc12Eff / Dc12InMin
+
+
 # Purchase plan per line (issue #145), the CSV's Plan column; BomCsv sums the totals by it. Buy:
 # order it; the gantry PE wire is bought with the box (owner, 2026-10-18, issue #149), and the bond
 # survey only sets how much of it the gantry takes. LabFirst: the control box's screws, nuts and
@@ -6222,6 +6267,8 @@ def Link(src, part):
         return "https://www.amazon.com/dp/%s" % part
     if src == Mc:
         return "https://www.mcmaster.com/%s/" % part
+    if src == Trc:
+        return "https://www.trcelectronics.com/products/mean-well-%s" % part.lower()
     return ""
 
 
@@ -6481,11 +6528,26 @@ def BomRows():
          "F3-1, the FB2 trunk; one spare", "25 A: 12 AWG at 75 C, under the FB module's 30 A input. " + wread),
         ("Power wiring", Amz, Buy, "Fuse 10 x 38 mm, 10 A, 1000 V DC gPV, 10-pack", "B0B7MX355G",
          "Heschen HSPV-30 10 x 38 mm gPV fuses, 10 A, 1000 V DC, 33 kA, 10 pcs", 1, "pack of 10", 1, 13.49,
-         "F3-2, the FB1 trunk; spares", "FB1's three loads are fused at 3 A each. " + wread),
+         "F3-2, the FB1 trunk; spares", "FB1's four loads are fused at 3 A each. " + wread),
         ("Power wiring", Amz, Buy, "Cord 18/4 SJOOW, 300 V, 25 ft", "B0BKPRWN4N",
          "GEARit 18 AWG 4-conductor SJOOW portable cord, 300 V, stranded copper, 25 ft", 1, "25 ft", 1, 24.30,
          "the 110 V door cable: X1 1 to 3 and the plate PE, out through the M20 gland",
          "Caliper the jacket: the gland takes 6 to 12 mm. " + read),
+        ("Power supplies", Trc, Buy, "DC-DC converter, DIN rail, 24 to 12 V, 60 W, isolated", "DDR-60G-12",
+         "Mean Well DDR-60G-12: 9 to 36 V DC in, 12 V 5 A out (adjustable 9 to 13.2 V), 60 W, 4 kV DC input to "
+         "output isolation, 52.5 x 90 x 54.5 mm on TS35", 1, "each", 1, 43.82,
+         "the screen's 12 V on its own rail on the upper deck, fed by F1-3 (ADR-0020)",
+         "The screen is rated 12 V 2 A, its adapter 12 V 3 A; sized for the adapter: 5 A, 60 W. At 36 W it draws "
+         "%.2f A from %s V, 60 %% of F1-3's 3 A, which also opens before its own current limit on an overload. "
+         "Its 0 V out is not tied in the box; the Pi's HDMI references it. Mean Well DDR-60-SPEC (2026-03-31). "
+         "Price read %s" % (ScreenDrop()[1], Mm(Dc12InMin), Dc12Date)),
+        ("Power supplies", "not chosen", NotBought, "DC plug pigtail, 5.5 mm, right angle, 18 AWG, 6 ft", "-",
+         "DC power plug, 5.5 mm outside, 2.1 or 2.5 mm pin to fit the screen's DC-12V jack, right angle, center "
+         "positive, on 18 AWG stranded copper leads (not copper-clad aluminum), about 6 ft", 1, "each", 0, None,
+         "screen 12 V: the DC-DC's output screws to the screen, out through the lower left grommet",
+         "Pin size open: read it off the adapter's plug or its listing. At the adapter's 3 A the pigtail drops "
+         "%.2f V (%.1f %%); the DC-DC's output trims up to 13.2 V if the screen needs it. A longer run to the "
+         "panel drops in proportion" % (ScreenDrop()[0], 100 * ScreenDrop()[0] / ScreenVolts)),
         ("Wire marking", Amz, Buy, "Flexible ID tape 12 mm, TZe-FX231 type, 4-pack", "B0FJ25359S",
          "Greateam TZe-FX231 compatible flexible ID laminated tape, black on white, 12 mm x 8 m, 4 cassettes",
          "both ends of every wire and cable", "4-pack", 1, 16.29,
@@ -6616,7 +6678,7 @@ def BomCsv():
         w.writerow(["", "", "", label, "", "", "", "", "", "", "%.2f" % usd, "", note, ""])
 
     box, lab = byPlan.get(Buy, 0.0) + byPlan.get(LabFirst, 0.0), byPlan.get(LabFirst, 0.0)
-    for key in (Amz, Mc):
+    for key in (Amz, Mc, Trc):
         Total("Total, %s" % key, bySrc.get(key, 0.0))
     Total("Total, control box", box)
     Total("Total, lab stock first (control box fasteners)", lab,
@@ -6632,8 +6694,8 @@ def BomCsv():
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
           "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
           "wire and fuse lines and the issue #209 terminal block packs on %s), McMaster on 2026-10-15 (the "
-          "acrylic on 2026-10-18); shipping and tax extra"
-          % (BomDate, ToolDate, WireDate))
+          "acrylic on 2026-10-18), TRC Electronics on %s (the 12 V DC-DC); shipping and tax extra"
+          % (BomDate, ToolDate, WireDate, Dc12Date))
     return out.getvalue()
 
 
