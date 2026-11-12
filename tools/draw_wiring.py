@@ -2311,7 +2311,18 @@ OpFront = {"estop": (40.0, 30.0), "selector": (30.0, 9.0), "blue": (30.0, 9.0), 
 # from the front (M3 into heat-set inserts), locates the display. A printed bracket standing on the ring
 # presses it forward against the plate through closed-cell foam pads on the rear housing's back face. No
 # screw goes into the VESA holes: with one, the bracket would fix the display's depth twice over.
-OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
+OpCradleGap, OpCradleWall, OpCradleDepth = 0.3, 9.4, 7.0   # bumper to cradle, ring wall, ring depth
+# A TPU bumper (owner, 2026-11-12: nothing rigid on the display's glass): an L-section frame whose flange
+# lies between the display's front face and the plate, its inner edge 1 mm outside the window so it stays
+# hidden, and whose lip wraps the display's straight sides inside the cradle. It sets the display back from
+# the plate by the flange, and with the cradle (PETG: it carries heat-set inserts and the bracket's preload)
+# it locates the display in x and y to within the lip's give.
+OpBumper = (1.0, 1.0, 4.0, 0.1)                   # flange thickness, lip thickness, lip length, lip to display
+# The cradle in two pieces for a 256 mm bed (Bambu P1S): split on its top and bottom sides with a 24 mm
+# half lap, clear of the bracket's legs and of every screw. The plate holds each piece with four M3
+# screws, so the lap only keeps the pocket's walls in line.
+OpCradleLap = (16.0, 40.0, 0.2)                    # lap from x, to x, gap at each end of a tongue
+OpPrintBed = 256.0                                 # Bambu P1S, square
 OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
 OpBracketGap = 2.0                                 # bracket to housing: 3 mm closed-cell foam squeezed to this, so a
                                                    # few tenths of stack error change the preload little
@@ -2326,7 +2337,8 @@ OpLegScrewL = 45.0                                 # M3 x 45 down each leg, its 
 def OpRing():
     """The cradle ring: pocket (w, h, r), outside (w, h, r), and the centre lines of its sides (x, z)."""
     bw, bh, br = OpDisplay
-    iw, ih, ir = bw + 2 * OpCradleGap, bh + 2 * OpCradleGap, br + OpCradleGap
+    g = OpBumper[3] + OpBumper[1] + OpCradleGap    # display to pocket wall: lip clearance, lip, gap
+    iw, ih, ir = bw + 2 * g, bh + 2 * g, br + g
     return (iw, ih, ir), (iw + 2 * OpCradleWall, ih + 2 * OpCradleWall, ir + OpCradleWall), \
         (iw / 2 + OpCradleWall / 2, ih / 2 + OpCradleWall / 2)
 
@@ -2358,8 +2370,8 @@ def OpLegScrews():
 OpProfile = 20.0                                   # 2020
 OpFrameGap = 3.0                                   # least clearance from the ring to a control's body or the cradle
 OpFrameScrewD, OpFrameScrewHeadD = 5.5, 8.7        # M5 x 8 socket head through the plate into the ring's front slot
-OpSpineX, OpSpineY = 50.0, 51.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
-                                                   # Y 51, 3.5 mm behind the display bracket
+OpSpineX, OpSpineY = 50.0, 52.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
+                                                   # Y 52, 3.5 mm behind the display bracket
 OpArmVesa = 100.0                                  # the arm's VESA plate, screwed to the spines' back slots
 OpArmPlate = (120.0, 3.0)                          # assumed: the arm's plate, square, thickness
 OpBracketKit = 17.0                                # cast corner bracket, 17 x 20 mm (the kit's listing)

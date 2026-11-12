@@ -63,14 +63,14 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="166.94" y="75.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
 <rect x="166.94" y="87.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
 <rect x="166.94" y="99.09" width="25.14" height="9.14" rx="1.14" fill="#33333C" stroke="none" stroke-width="0"/>
-<circle cx="203.63" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="203.63" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="57.51" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="57.51" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="164.86" cy="43.37" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="164.86" cy="140.91" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="96.29" cy="43.37" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
-<circle cx="96.29" cy="140.91" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="203.97" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="203.97" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="57.17" cy="66.43" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="57.17" cy="117.86" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="164.86" cy="43.03" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="164.86" cy="141.26" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="96.29" cy="43.03" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
+<circle cx="96.29" cy="141.26" r="1.57" fill="#555555" stroke="#000" stroke-width="0.15"/>
 <circle cx="241.43" cy="75" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
 <circle cx="241.43" cy="109.29" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
 <circle cx="19.71" cy="75" r="2.49" fill="#777777" stroke="#000" stroke-width="0.15"/>
