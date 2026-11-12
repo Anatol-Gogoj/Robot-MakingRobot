@@ -2283,6 +2283,14 @@ OpHousing = (150.7, 96.6, 9.5, 40.5)               # rear housing: width, height
 OpVesaHalf = 37.5                                  # VESA 75 holes at +-37.5 (the scan: +-37.6, centred within 0.2)
 OpVesaHoleD = 4.0                                  # M4; the scan cannot see into the holes, so their depth is unknown
 OpPorts = (-34.0, 30.0, 20.0, 28.0)                # port openings in the housing's left end: y from, y to, depth from, to
+# The display's two fans vent through the rear housing's back face (owner's photo, 2026-11-12): a ring of
+# slots each, seen in the scan centred at (+-41, -2) and about 40 mm across (the photo, scaled by the
+# VESA pitch: 38). The bracket must leave both open, and nothing may sit closer behind them than
+# OpFanExhaust, so the air can turn and leave sideways.
+OpFans = [(41.0, -2.0), (-41.0, -2.0)]             # grille centres, x and y as the layout's
+OpFanD = 40.0                                      # grille diameter
+OpFanClear = 3.0                                   # bracket cut-out radius beyond the grille
+OpFanExhaust = 20.0                                # least depth of free air behind a grille
 OpBezel = (14.0, 12.0)                             # owner: front face edge to the lit area, short sides and long sides
 OpLit = (OpDisplay[0] - 2 * OpBezel[0], OpDisplay[1] - 2 * OpBezel[1])   # 216.7 x 135.7, a 10.1 in 16:10 panel
 OpWindowMargin = 3.0                               # window = lit area plus this all round, so the plate's edge does not
@@ -2363,8 +2371,9 @@ def OpLegScrews():
 OpProfile = 20.0                                   # 2020
 OpFrameGap = 3.0                                   # least clearance from the ring to a control's body or the cradle
 OpFrameScrewD, OpFrameScrewHeadD = 5.5, 8.7        # M5 x 8 socket head through the plate into the ring's front slot
-OpSpineX, OpSpineY = 50.0, 51.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
-                                                   # Y 51, 3.5 mm behind the display bracket
+OpSpineX, OpSpineY = 50.0, 62.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
+                                                   # Y 62: each spine crosses half a fan grille (OpFans), so it
+                                                   # stands 21.5 mm behind the vents, not 10.5
 OpArmVesa = 100.0                                  # the arm's VESA plate, screwed to the spines' back slots
 OpArmPlate = (120.0, 3.0)                          # assumed: the arm's plate, square, thickness
 OpBracketKit = 17.0                                # cast corner bracket, 17 x 20 mm (the kit's listing)

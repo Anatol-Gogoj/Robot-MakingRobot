@@ -184,7 +184,9 @@ def Bracket():
     b = b.removeSplitter()
     for x, z in LegScrews:     # M3 x OpLegScrewL down the leg, its head on the arm
         b = b.cut(CylY(W.OpScrewD, Depth - 1.0, BrY0 - Depth + BrT + 2.0, x, z))
-    return b
+    for x, z in W.OpFans:      # leave the display's fans open: the pad plate keeps its arm and its bands
+        b = b.cut(CylY(W.OpFanD + 2 * W.OpFanClear, BrY0 - 1.0, BrT + 2.0, x, z))
+    return b.removeSplitter()
 
 
 def Pads():
@@ -283,6 +285,21 @@ def Checks():
     return bad
 
 
+def FanChecks(parts):
+    """Nothing covers a fan grille, and the first part behind each is at least OpFanExhaust away."""
+    bad = []
+    names = [(n, s) for n, s, f, _ in parts if f not in ("display", "ports", "plate", "rear", "legend",
+                                                          "estop", "red", "green", "blue", "selector")]
+    for x, z in W.OpFans:
+        reach = CylY(W.OpFanD, HT, 200.0, x, z)
+        hits = [(s.common(reach).BoundBox.YMin - HT, n) for n, s in names if s.common(reach).Volume > 1e-3]
+        gap, what = min(hits) if hits else (999.0, "nothing")
+        print("fan at (%.0f, %.0f): free air behind it %.1f mm (%s)" % (x, z, gap, what))
+        if gap < W.OpFanExhaust:
+            bad.append("%s sits %.1f mm behind the fan at (%.0f, %.0f)" % (what, gap, x, z))
+    return bad
+
+
 def Clearances(parts):
     """The frame must clear the controls' bodies, the cradle and the display bracket by OpFrameGap."""
     bad = []
@@ -329,7 +346,7 @@ def Build():
         parts.append((n + "_Rear", rear, "rear", "assumed"))
         for tag, s in front:
             parts.append((n + "_" + ("Legend" if tag == "legend" else "Front"), s, tag, "assumed"))
-    bad = Checks() + Clearances(parts) + Overlaps([(n, s) for n, s, _, _ in parts])
+    bad = Checks() + Clearances(parts) + FanChecks(parts) + Overlaps([(n, s) for n, s, _, _ in parts])
     print("2020 cut list: " + "; ".join("%d x %.0f mm %s" % (c, l, n) for n, c, l in W.OpFrameCuts()))
     for n, s, fill, src in parts:
         o = Doc.addObject("Part::Feature", n)
