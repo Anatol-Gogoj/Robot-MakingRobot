@@ -13,8 +13,10 @@ front face is the plane Y = 0 and the plate lies in front of it (Y < 0), so Free
 shows the panel as the operator sees it.
 
 The display is held like this: the plate's window is smaller than the display's front face, so the
-display cannot pass through; a printed cradle ring round its straight sides, screwed to the plate from
-the front, locates it; a printed bracket standing on the ring presses it against the plate through
+display cannot pass through; a TPU bumper (OpBumper) keeps everything rigid off its glass, its flange
+between the display and the plate and its lip round the display's sides; a PETG cradle ring round the
+lip, screwed to the plate from the front and printed in two pieces joined by half laps (OpCradleLap),
+locates it; a printed bracket standing on the ring presses it against the plate through
 closed-cell foam pads on the rear housing's back face (OpBracketGap). No screw goes into the VESA holes,
 which would fix the display's depth a second time.
 
