@@ -178,29 +178,44 @@ def CradleHalves():
     return left.removeSplitter(), right.removeSplitter()
 
 
+def LegProfile(bottom):
+    """One leg's side profile as (z, y) points for z > 0: from inside the pad plate, along the arm to just past
+    the housing's side, down a straight strut to the inner edge of the ring, down to the foot on the ring
+    (underside at Y = bottom), and back up the strut's outer face. Returns (points, strut start, strut end)."""
+    lead, t = W.OpLegStrut
+    zi, zo = RingZ - Wall / 2, RingZ + Wall / 2          # the ring's inner and outer edges
+    za = HH / 2 + lead                                   # the strut leaves the arm here, past the housing's side
+    yb = W.OpDisplayBack + W.OpLegClear + 2.0            # ... and reaches the ring's inner edge at this height
+    dz, dy = zi - za, yb - BrY0
+    L = math.hypot(dz, dy)
+    nz, ny = -dy / L * t, dz / L * t                     # the strut's outer face is t off its inner face
+    sl = dy / dz                                         # slope of both faces
+    zt = zo                                              # outer face meets the foot's outer side
+    yt = (yb + ny) + (zt - (zi + nz)) * sl
+    zr = (za + nz) + (BrY0 + BrT - (BrY0 + ny)) / sl     # outer face meets the arm's top
+    pts = [(BrSide / 2 - 8.0, BrY0), (za, BrY0), (zi, yb), (zi, bottom), (zo, bottom), (zt, yt), (zr, BrY0 + BrT),
+           (BrSide / 2 - 8.0, BrY0 + BrT)]
+    return pts, (za, BrY0), (zi, yb)
+
+
 def Leg(sz, bottom):
-    """One leg, seen along Z: 30 wide under the arm, flaring out at 45 deg into a foot OpLegFoot[1] each
-    side of centre and OpLegFoot[0] thick, whose underside is at Y = bottom."""
-    ft, fx, fh = W.OpLegFoot
+    """One leg, BrArm wide in X, its profile mirrored for the bottom side (sz = -1)."""
+    pts, _, _ = LegProfile(bottom)
     a = BrArm / 2
-    yf = bottom + ft
-    pts = [(-a, BrY0), (a, BrY0), (a, yf + fh), (fx, yf), (fx, bottom), (-fx, bottom), (-fx, yf), (-a, yf + fh)]
-    z0 = sz * RingZ - Wall / 2
-    face = Part.Face(Part.makePolygon([V(x, y, z0) for x, y in pts] + [V(pts[0][0], pts[0][1], z0)]))
-    return face.extrude(V(0, 0, Wall))
+    face = Part.Face(Part.makePolygon([V(-a, y, sz * z) for z, y in pts] + [V(-a, pts[0][1], sz * pts[0][0])]))
+    return face.extrude(V(BrArm, 0, 0))
 
 
 def Bracket(press=0.0):
     """The bracket installed (press 0), or as printed (press = OpBracketPress: the legs that much shorter)."""
     b = RoundBox(BrSide, BrSide, 6.0, BrY0, BrT)
-    b = b.fuse(RoundBox(BrArm, OH, 3.0, BrY0, BrT))   # the arm runs out over the ring's sides, Z = +-OH/2
     bottom = Depth + press
     for sz in (1, -1):
         b = b.fuse(Leg(sz, bottom))
     b = b.removeSplitter()
     for x, z in LegScrews:     # M3 x OpLegScrewL through the foot; its head reached through the counterbore
-        b = b.cut(CylY(W.OpScrewD, bottom - 1.0, W.OpLegFoot[0] + 2.0, x, z))
-        b = b.cut(CylY(W.OpLegCbore, bottom + W.OpLegFoot[0], BrY0 + BrT, x, z))
+        b = b.cut(CylY(W.OpScrewD, bottom - 1.0, W.OpLegFoot + 2.0, x, z))
+        b = b.cut(CylY(W.OpLegCbore, bottom + W.OpLegFoot, BrY0 + BrT, x, z))
     for x, z in W.OpFans:      # leave the display's fans open: the pad plate keeps its arm and its bands
         b = b.cut(CylY(W.OpFanD + 2 * W.OpFanClear, BrY0 - 1.0, BrT + 2.0, x, z))
     return b.removeSplitter()
@@ -257,13 +272,24 @@ def Checks():
         bad.append("only %.1f mm of ring round a heat-set insert" % wall)
     # screw reach: M3 x OpCradleScrewL through the plate, M3 x OpLegScrewL down a leg, into inserts OpInsertL deep
     front = W.OpCradleScrewL - T
-    legtip = Depth + W.OpLegFoot[0] - W.OpLegScrewL
-    ft, fx, fh = W.OpLegFoot
-    if not (BrArm / 2 + 1.0 <= W.OpLegScrewX - W.OpLegCbore / 2 and W.OpLegScrewX + W.OpLegCbore / 2 <= fx - 1.5):
-        bad.append("the foot screws' counterbores cut the leg or the foot's edge")
-    if Depth + W.OpBracketPress + ft + fh >= BrY0:
-        bad.append("the leg's flare reaches the arm")
-    print("bracket: legs %.1f mm short as printed, M3 x %.0f through each foot" % (W.OpBracketPress, W.OpLegScrewL))
+    legtip = Depth + W.OpLegFoot - W.OpLegScrewL
+    cb = W.OpLegCbore / 2
+    if not (W.OpLegScrewX + cb <= BrArm / 2 - 1.0 and W.OpLegScrewX - cb >= 1.0):
+        bad.append("the foot screws' counterbores cut the leg's sides or each other")
+    pts, a, b2 = LegProfile(Depth)
+    angle = math.degrees(math.atan2(a[1] - b2[1], b2[0] - a[0]))
+    disp = Display()
+    # the strut alone, above the display's back: the arm before it bears on the housing on purpose, like
+    # the pad plate, and the foot's inner face stands beside the display's side with the cradle pocket's gap
+    y0 = W.OpDisplayBack
+    za = a[0]                  # where the strut leaves the arm
+    beyond = [Part.makeBox(400.0, 400.0, 200.0, V(-200.0, y0, za)),
+              Part.makeBox(400.0, 400.0, 200.0, V(-200.0, y0, -za - 200.0))]
+    gap = min(Leg(sz, Depth).common(beyond[i]).distToShape(disp)[0] for i, sz in enumerate((1, -1)))
+    print("bracket: struts at %.0f deg from the plate, %.1f mm above the display's back; legs %.1f mm short as "
+          "printed, M3 x %.0f through each foot" % (angle, gap, W.OpBracketPress, W.OpLegScrewL))
+    if gap < W.OpLegClear:
+        bad.append("a strut comes %.1f mm from the display" % gap)
     for what, caught in (("cradle screw", min(front, W.OpInsert[0])), ("leg screw", min(Depth - legtip, W.OpInsert[0]))):
         if caught < 3.0:
             bad.append("the %s catches only %.1f mm of a %.0f mm insert" % (what, caught, W.OpInsert[0]))

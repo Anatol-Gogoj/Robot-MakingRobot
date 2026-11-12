@@ -2323,21 +2323,25 @@ OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
 # The cradle in two PETG pieces for a 256 mm bed (Bambu P1S): split on its top and bottom sides with a
 # 24 mm half lap, clear of the bracket's legs and of every screw. The plate holds each piece with four
 # M3 screws, so the lap only keeps the pocket's walls in line.
-OpCradleLap = (30.0, 52.0, 0.2)                    # lap from x, to x, gap at each end of a tongue (clear of the
-                                                   # bracket's feet, OpLegFoot, and the cradle screws at x = +-60)
+OpCradleLap = (16.0, 40.0, 0.2)                    # lap from x, to x, gap at each end of a tongue (as printed and
+                                                   # fitted by the owner, 2026-11-12)
 OpPrintBed = 256.0                                 # Bambu P1S, square
 OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
 OpBracketGap = 0.0                                 # bracket to housing, installed: the face bears on the housing
-OpBracketPress = 0.5                               # the printed legs are this much shorter than the installed gap, so
-                                                   # tightening the leg screws bends the arms and presses the display
-                                                   # against the plate with no play (owner, 2026-11-12: 2 mm shorter
-                                                   # at least; this is 2.5 shorter than the earlier foam design)
+OpBracketPress = 0.0                               # how much shorter the printed legs are than the gap they span.
+                                                   # The angled struts make the bracket stiff, so any interference
+                                                   # loads the display hard: it is printed to exact contact, 2 mm
+                                                   # shorter than the foam design (owner, 2026-11-12); shim if it rattles
 OpPadD = 15.0                                      # foam pads, one by each VESA hole, when OpBracketGap > 0
-# Each leg flares out at 45 deg into a foot that stands on the ring; an M3 x OpLegScrewL goes down through
-# the foot on each side of the leg, its head reached straight from behind through a counterbore, so a short
-# screw does (the owner has nothing over M3 x 30).
-OpLegFoot = (6.0, 27.0, 12.0)                      # foot thickness, foot half-width in x, height of the 45 deg flare
-OpLegScrewX = 21.0                                 # the two foot screws, x = +-21
+# The bracket is a trapezoid seen from the side (owner, 2026-11-12: "/_\" rather than an upside-down U):
+# from each end of the pad plate a straight strut runs down at an angle, past the housing's side and over
+# the display's back, to a foot on the ring. An M3 x OpLegScrewL goes down through each foot into the
+# ring's inserts at x = +-8, its head reached straight from behind through a counterbore cut down through
+# the strut, so a short screw does (the owner has nothing over M3 x 30).
+OpLegFoot = 6.0                                    # foot thickness on the ring
+OpLegStrut = (3.0, 6.0)                            # strut: starts this far past the housing's side, thickness
+OpLegClear = 2.0                                   # least gap from a strut to the display
+OpLegScrewX = 8.0                                  # the two foot screws, x = +-8 (the fitted cradle's inserts)
 OpLegCbore = 6.2                                   # access counterbore over each screw head (M3 socket head 5.5)
 OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set insert hole (the owner drills it out to
                                                    # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
