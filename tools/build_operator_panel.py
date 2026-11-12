@@ -341,6 +341,40 @@ def Save(Doc, parts):
         Import.export(objs, step)
     print("wrote", fcstd)
     print("wrote", step)
+    SavePrintables(parts)
+
+
+def PrintPose(name, shape):
+    """The part as it goes on the printer's bed, lowest face at Z = 0 and centred on X and Y. The cradle
+    lies on its front face, the one against the plate; the bracket lies on its back face with its legs
+    up, so neither needs supports."""
+    s = shape.copy()
+    m = App.Matrix()
+    if name == "Cradle":           # Y (depth) becomes Z: the front face (Y = 0) on the bed
+        m.rotateX(math.pi / 2)
+    else:                          # Bracket: Y becomes -Z, so its back face goes down
+        m.rotateX(-math.pi / 2)
+    s = s.transformGeometry(m)
+    bb = s.BoundBox
+    s.translate(V(-(bb.XMin + bb.XMax) / 2, -(bb.YMin + bb.YMax) / 2, -bb.ZMin))
+    return s
+
+
+def SavePrintables(parts):
+    """One STEP AP214 file per 3D-printed part, in print orientation: OperatorPanel_Cradle.step and
+    OperatorPanel_Bracket.step. Refuses a file whose header names another schema."""
+    App.ParamGet("User parameter:BaseApp/Preferences/Mod/Part/STEP").SetString("Scheme", "AP214IS")
+    shapes = {n: s for n, s, _, _ in parts}
+    for name in ("Cradle", "Bracket"):
+        s = PrintPose(name, shapes[name])
+        path = os.path.join(OutDir, "%s_%s.step" % (DocName, name))
+        s.exportStep(path)
+        head = open(path, encoding="ascii", errors="replace").read(2000)
+        if "10303 214" not in head:
+            raise RuntimeError("%s is not STEP AP214: %s" % (path, head[head.find("FILE_SCHEMA"):][:80]))
+        bb = s.BoundBox
+        print("wrote %s (AP214, print pose %.1f x %.1f x %.1f mm, %.1f cm3)" % (
+            path, bb.XLength, bb.YLength, bb.ZLength, s.Volume / 1000.0))
 
 
 def Main():
