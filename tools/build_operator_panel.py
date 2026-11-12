@@ -14,9 +14,11 @@ shows the panel as the operator sees it.
 
 The display is held like this: the plate's window is smaller than the display's front face, so the
 display cannot pass through; a printed cradle ring round its straight sides, screwed to the plate from
-the front and printed in two PETG pieces joined by half laps (OpCradleLap), locates it; a printed bracket standing on the ring presses it against the plate through
-closed-cell foam pads on the rear housing's back face (OpBracketGap). No screw goes into the VESA holes,
-which would fix the display's depth a second time.
+the front and printed in two PETG pieces joined by half laps (OpCradleLap), locates it; a printed bracket
+standing on the ring bears on the rear housing's back face and presses the display against the plate: its
+legs are printed OpBracketPress shorter than the gap they span, so the screws through its feet bend its
+arms and leave no play. No screw goes into the VESA holes, which would fix the display's depth a second
+time. The model shows the bracket installed; its print file is the shorter, unbent part.
 
 A ring of 2020 extrusion on the plate's back edge stiffens it, and two vertical 2020 spines behind the
 display, standing on four risers off the ring's top and bottom rails, carry a monitor spring arm's VESA
@@ -81,7 +83,7 @@ T = W.OpPlateT
 Wall, Depth = W.OpCradleWall, W.OpCradleDepth
 (IW, IH, IR), (OW, OH, OR), (RingX, RingZ) = W.OpRing()        # pocket, outside, centre lines of its sides
 BrSide, BrT, BrArm = W.OpBracket
-BrY0 = HT + W.OpBracketGap                                       # bracket's face against the foam pads
+BrY0 = HT + W.OpBracketGap                                       # bracket's face on the housing
 CradleScrews, LegScrews, FrameScrews = W.OpCradleScrews(), W.OpLegScrews(), W.OpFrameScrews()
 P = W.OpProfile
 
@@ -176,21 +178,38 @@ def CradleHalves():
     return left.removeSplitter(), right.removeSplitter()
 
 
-def Bracket():
+def Leg(sz, bottom):
+    """One leg, seen along Z: 30 wide under the arm, flaring out at 45 deg into a foot OpLegFoot[1] each
+    side of centre and OpLegFoot[0] thick, whose underside is at Y = bottom."""
+    ft, fx, fh = W.OpLegFoot
+    a = BrArm / 2
+    yf = bottom + ft
+    pts = [(-a, BrY0), (a, BrY0), (a, yf + fh), (fx, yf), (fx, bottom), (-fx, bottom), (-fx, yf), (-a, yf + fh)]
+    z0 = sz * RingZ - Wall / 2
+    face = Part.Face(Part.makePolygon([V(x, y, z0) for x, y in pts] + [V(pts[0][0], pts[0][1], z0)]))
+    return face.extrude(V(0, 0, Wall))
+
+
+def Bracket(press=0.0):
+    """The bracket installed (press 0), or as printed (press = OpBracketPress: the legs that much shorter)."""
     b = RoundBox(BrSide, BrSide, 6.0, BrY0, BrT)
     b = b.fuse(RoundBox(BrArm, OH, 3.0, BrY0, BrT))   # the arm runs out over the ring's sides, Z = +-OH/2
+    bottom = Depth + press
     for sz in (1, -1):
-        b = b.fuse(Part.makeBox(BrArm, BrY0 - Depth, Wall, V(-BrArm / 2, Depth, sz * RingZ - Wall / 2)))
+        b = b.fuse(Leg(sz, bottom))
     b = b.removeSplitter()
-    for x, z in LegScrews:     # M3 x OpLegScrewL down the leg, its head on the arm
-        b = b.cut(CylY(W.OpScrewD, Depth - 1.0, BrY0 - Depth + BrT + 2.0, x, z))
+    for x, z in LegScrews:     # M3 x OpLegScrewL through the foot; its head reached through the counterbore
+        b = b.cut(CylY(W.OpScrewD, bottom - 1.0, W.OpLegFoot[0] + 2.0, x, z))
+        b = b.cut(CylY(W.OpLegCbore, bottom + W.OpLegFoot[0], BrY0 + BrT, x, z))
     for x, z in W.OpFans:      # leave the display's fans open: the pad plate keeps its arm and its bands
         b = b.cut(CylY(W.OpFanD + 2 * W.OpFanClear, BrY0 - 1.0, BrT + 2.0, x, z))
     return b.removeSplitter()
 
 
 def Pads():
-    """Closed-cell foam, drawn squeezed to the gap; no hole, since no screw goes into the VESA holes."""
+    """Closed-cell foam when the bracket stands off the housing (OpBracketGap > 0); none when it bears on it."""
+    if W.OpBracketGap <= 0.0:
+        return []
     return [CylY(W.OpPadD, HT, W.OpBracketGap, sx * W.OpVesaHalf, sz * W.OpVesaHalf)
             for sx in (1, -1) for sz in (1, -1)]
 
@@ -238,7 +257,13 @@ def Checks():
         bad.append("only %.1f mm of ring round a heat-set insert" % wall)
     # screw reach: M3 x OpCradleScrewL through the plate, M3 x OpLegScrewL down a leg, into inserts OpInsertL deep
     front = W.OpCradleScrewL - T
-    legtip = BrY0 + BrT - W.OpLegScrewL
+    legtip = Depth + W.OpLegFoot[0] - W.OpLegScrewL
+    ft, fx, fh = W.OpLegFoot
+    if not (BrArm / 2 + 1.0 <= W.OpLegScrewX - W.OpLegCbore / 2 and W.OpLegScrewX + W.OpLegCbore / 2 <= fx - 1.5):
+        bad.append("the foot screws' counterbores cut the leg or the foot's edge")
+    if Depth + W.OpBracketPress + ft + fh >= BrY0:
+        bad.append("the leg's flare reaches the arm")
+    print("bracket: legs %.1f mm short as printed, M3 x %.0f through each foot" % (W.OpBracketPress, W.OpLegScrewL))
     for what, caught in (("cradle screw", min(front, W.OpInsert[0])), ("leg screw", min(Depth - legtip, W.OpInsert[0]))):
         if caught < 3.0:
             bad.append("the %s catches only %.1f mm of a %.0f mm insert" % (what, caught, W.OpInsert[0]))
@@ -416,6 +441,7 @@ def SavePrintables(parts):
     not fit the bed (OpPrintBed)."""
     App.ParamGet("User parameter:BaseApp/Preferences/Mod/Part/STEP").SetString("Scheme", "AP214IS")
     shapes = {n: s for n, s, _, _ in parts}
+    shapes["Bracket"] = Bracket(W.OpBracketPress)   # as printed: the legs OpBracketPress short of the ring
     for name, down in Printables:
         s = PrintPose(name, shapes[name], down)
         if max(s.BoundBox.XLength, s.BoundBox.YLength) > W.OpPrintBed - 6.0:

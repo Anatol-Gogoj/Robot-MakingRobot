@@ -2323,12 +2323,22 @@ OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
 # The cradle in two PETG pieces for a 256 mm bed (Bambu P1S): split on its top and bottom sides with a
 # 24 mm half lap, clear of the bracket's legs and of every screw. The plate holds each piece with four
 # M3 screws, so the lap only keeps the pocket's walls in line.
-OpCradleLap = (16.0, 40.0, 0.2)                    # lap from x, to x, gap at each end of a tongue
+OpCradleLap = (30.0, 52.0, 0.2)                    # lap from x, to x, gap at each end of a tongue (clear of the
+                                                   # bracket's feet, OpLegFoot, and the cradle screws at x = +-60)
 OpPrintBed = 256.0                                 # Bambu P1S, square
 OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
-OpBracketGap = 2.0                                 # bracket to housing: 3 mm closed-cell foam squeezed to this, so a
-                                                   # few tenths of stack error change the preload little
-OpPadD = 15.0                                      # foam pads, one by each VESA hole
+OpBracketGap = 0.0                                 # bracket to housing, installed: the face bears on the housing
+OpBracketPress = 0.5                               # the printed legs are this much shorter than the installed gap, so
+                                                   # tightening the leg screws bends the arms and presses the display
+                                                   # against the plate with no play (owner, 2026-11-12: 2 mm shorter
+                                                   # at least; this is 2.5 shorter than the earlier foam design)
+OpPadD = 15.0                                      # foam pads, one by each VESA hole, when OpBracketGap > 0
+# Each leg flares out at 45 deg into a foot that stands on the ring; an M3 x OpLegScrewL goes down through
+# the foot on each side of the leg, its head reached straight from behind through a counterbore, so a short
+# screw does (the owner has nothing over M3 x 30).
+OpLegFoot = (6.0, 27.0, 12.0)                      # foot thickness, foot half-width in x, height of the 45 deg flare
+OpLegScrewX = 21.0                                 # the two foot screws, x = +-21
+OpLegCbore = 6.2                                   # access counterbore over each screw head (M3 socket head 5.5)
 OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set insert hole (the owner drills it out to
                                                    # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
                                                    # 2026-11-12), so a 1 mm floor stays (set flush: a melt
@@ -2337,7 +2347,7 @@ OpInsert = (4.0, 5.0)                              # the insert: M3 x 4 x 5 from
                                                    # 5 OD), leaving 2 mm of the hole for melt and the screw tip
 OpScrewHeadD = 5.5                                 # M3 pan head
 OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
-OpLegScrewL = 45.0                                 # M3 x 45 down each leg, its head on the arm, into the ring's back inserts
+OpLegScrewL = 10.0                                 # M3 x 10 through each foot into the ring's back inserts
 
 
 def OpRing():
@@ -2358,7 +2368,7 @@ def OpCradleScrews():
 def OpLegScrews():
     """Screws down the bracket's legs into the ring's back, on its top and bottom sides."""
     rz = OpRing()[2][1]
-    return [(sx * 8.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+    return [(sx * OpLegScrewX, sz * rz) for sx in (1, -1) for sz in (1, -1)]
 
 
 # The frame (owner, 2026-11-11): a ring of 2020 (6 mm slot, the 1000 mm sticks of the frame order, 4 spare)
