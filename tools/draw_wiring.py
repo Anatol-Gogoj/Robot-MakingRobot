@@ -2333,6 +2333,8 @@ OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set inse
                                                    # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
                                                    # 2026-11-12), so a 1 mm floor stays (set flush: a melt
                                                    # lip on the ring's front would hold it off the plate)
+OpInsert = (4.0, 5.0)                              # the insert: M3 x 4 x 5 from the owner's stock (lengths 4, 6, 8;
+                                                   # 5 OD), leaving 2 mm of the hole for melt and the screw tip
 OpScrewHeadD = 5.5                                 # M3 pan head
 OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
 OpLegScrewL = 45.0                                 # M3 x 45 down each leg, its head on the arm, into the ring's back inserts

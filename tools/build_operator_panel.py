@@ -230,13 +230,18 @@ def Checks():
         bad.append("the bracket's legs touch the display")
     if Depth - W.OpInsertL < 1.0:
         bad.append("insert holes %.1f deep leave %.1f mm of floor in the %.1f mm ring" % (W.OpInsertL, Depth - W.OpInsertL, Depth))
-    wall = (Wall - W.OpInsertD) / 2
+    wall = (Wall - W.OpInsert[1]) / 2              # plastic round the insert's knurl, not round the drilled hole
+    if W.OpInsert[0] > W.OpInsertL - 1.0:
+        bad.append("a %.0f mm insert leaves no room below it in a %.1f mm hole" % (W.OpInsert[0], W.OpInsertL))
     print("insert wall %.1f mm each side; leg clearance to the display %.1f mm" % (wall, leg))
     if wall < 2.5:
         bad.append("only %.1f mm of ring round a heat-set insert" % wall)
     # screw reach: M3 x OpCradleScrewL through the plate, M3 x OpLegScrewL down a leg, into inserts OpInsertL deep
     front = W.OpCradleScrewL - T
     legtip = BrY0 + BrT - W.OpLegScrewL
+    for what, caught in (("cradle screw", min(front, W.OpInsert[0])), ("leg screw", min(Depth - legtip, W.OpInsert[0]))):
+        if caught < 3.0:
+            bad.append("the %s catches only %.1f mm of a %.0f mm insert" % (what, caught, W.OpInsert[0]))
     print("cradle screw %.1f mm into its insert; leg screw tip at Y %.1f in an insert from Y %.1f to %.1f" % (
         front, legtip, Depth - W.OpInsertL, Depth))
     if not (3.0 <= front <= W.OpInsertL - 0.3):
