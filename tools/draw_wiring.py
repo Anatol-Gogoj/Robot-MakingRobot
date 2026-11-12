@@ -871,9 +871,23 @@ def BuildSchematic():
     sh.Text(146.4, 196.6, "home", size=1.2, anchor="end")
     sh.Text(146.4, 198.2, "button", size=1.2, anchor="end")
     sh.Text(146.4, 199.8, "(optional)", size=1.2, anchor="end")
-    sh.Text(178.8, 199.0, "rmr_io.json: estop pin 20, nc true,", size=1.3)
-    sh.Text(178.8, 200.8, "cmd null (annunciate only);", size=1.3)
-    sh.Text(178.8, 202.6, "tower 5/6/13/26 active high", size=1.3)
+    # S6 Start / Resume (GPIO 16) and S7 Stop (GPIO 25), the panel's flush buttons (issue #218):
+    # NO to GND, internal pull-ups, on the GND return the home button and S2 NC2 share
+    for gy, gx, pin, tag in ((191.0, 183.0, "16", "S6"), (187.0, 189.0, "25", "S7")):
+        sh.Wire([(pX1, gy), (gx, gy), (gx, 196.0)], "sg")
+        sh.Text(pX1 - 0.4, gy + 0.5, pin, size=1.4, anchor="end", weight="bold")
+        ContactV(sh, gx, 196.0, "NO")
+        sh.Wire([(gx, 197.8), (gx, 205.0)], "sg")
+        sh.Text(gx + 2.0, 197.4, tag, size=1.3, weight="bold")
+    sh.Wire([(174, 205.0), (189.0, 205.0)], "sg")
+    sh.Dot(174, 205.0)
+    sh.Dot(183.0, 205.0)
+    sh.Text(185.0, 199.6, "start", size=1.1)
+    sh.Text(191.0, 199.6, "stop", size=1.1)
+    sh.Text(195.0, 197.4, "rmr_io.json: estop pin 20, nc true,", size=1.3)
+    sh.Text(195.0, 199.2, "cmd null (annunciate only); start 16", size=1.3)
+    sh.Text(195.0, 201.0, "(action start), stop 25 (cmd M410,", size=1.3)
+    sh.Text(195.0, 202.8, "action stop); tower 5/6/13/26 active high", size=1.3)
 
     # ------------------------------------------------ legend, notes, title block
     lx, ly = 244.0, 21.0
@@ -2014,6 +2028,8 @@ NameParts = [
         ("S3", "Reset push button (NO): pulls K2 in after an E-stop", "operator panel"),
         ("S4", "lid switch in series with the UV array: closed = lid shut", "lid"),
         ("S5", "lid switch to Mega pin 39 (UV_LID_INTERLOCK, off for now)", "lid"),
+        ("S6", "Start / Resume push button (NO, green): Pi GPIO 16, Run All or resume a hold", "operator panel"),
+        ("S7", "Stop push button (NO, red): Pi GPIO 25, M410 and a soft stop of the run", "operator panel"),
         ("D1", "1N4007 across the argon valve's coil, band to +", "at the valve"),
         ("Pi", "Raspberry Pi 5 with the touch screen, runs rmr_bridge.py", "operator panel"),
         ("ODrive", "ODrive S1 spin coater drive; J11 is its UART", "spin coater base"),
@@ -2245,11 +2261,21 @@ def BuildNomenclature():
 # a generic 10.1 in HDMI module and the housing is not designed yet. A faint extension of the housing,
 # inside a dashed outline round the whole future panel, holds a pad of arrow keys and a select key to
 # drive the screen without touching it; nothing about it is designed (OpNav).
-OpScale = 1.5                                      # real mm per paper mm
-OpPanel = (360.0, 220.0)                           # housing front, assumed
-OpScreen = (15.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
+# Issue #218 added S6 (green, Start / Resume) and S7 (red, Stop), two 22 mm flush buttons read by the Pi
+# on GPIO 16 and 25, and took the layout the owner laid out on the bench on 2026-11-11: the screen in the
+# middle, S2 above S1 to its left, and S3, S6, S7 from top to bottom to its right.
+OpScale = 1.75                                     # real mm per paper mm
+OpPanel = (410.0, 220.0)                           # housing front, assumed
+OpScreen = (82.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
 OpActive = (17.5, 15.0, 222.0, 125.0)              # active area inside the module: dx, dy, width, height
 OpNav = (34.0, 24.0, 28.0)                         # future pad: key pitch, arrow key side, select key diameter
+# Measured by the owner on 2026-11-11: every 22 mm device's threaded collar is 21.8 mm across, and its
+# nut reaches through a front plate 5 to 6 mm thick at most; S2's base clamps with two angled screws
+# whose rounded tips bear on the plate's back face; the screen has a VESA 75 pattern on its back.
+OpCollarD = 21.8                                   # measured collar diameter, mm
+OpHoleD = 22.3                                     # hole to cut for it: the usual 22 mm device hole, unverified here
+OpPlateMaxT = 5.0                                  # thickest front plate the collars clamp, lower end of 5 to 6 mm
+OpVesa = 75.0                                      # screen mount pattern on its back, mm square
 OpWiring = [
     ("S1 power knob", "NO, 110 V", "X1 1 in, X1 2 out", "110 V door cable (M20 gland)"),
     ("H1 lamp, in S1", "110 V", "X1 2 and X1 3 (N)", "110 V door cable"),
@@ -2257,6 +2283,8 @@ OpWiring = [
     ("S2 E-stop", "NC1", "X2 1 (+24 V), X2 2 (node X)", "E-stop loop (LL, slot 3)"),
     ("S2 E-stop", "NC2", "Pi GPIO 20 and GND, 1 k to 3V3", "at the panel"),
     ("S3 Reset", "NO", "X2 2 (node X) to X2 3 (node Y)", "E-stop loop (LL, slot 3)"),
+    ("S6 Start", "NO", "Pi GPIO 16 and GND", "at the panel"),
+    ("S7 Stop", "NO", "Pi GPIO 25 and GND", "at the panel"),
     ("touch screen", "HDMI, USB", "Pi 5", "at the panel"),
     ("Pi 5", "5 V in", "5 V PSU (F1-2)", "5 V feed (LL)"),
     ("Pi 5", "USB", "Mega", "USB cable (UF)"),
@@ -2277,7 +2305,7 @@ def BuildOperatorPanel():
     """Sheet 2D: the operator panel rendered from the front, its wiring, and the future arrow pad."""
     sh = Sheet("RMR operator panel")
     DrawFrame(sh, "RMR control panel: operator panel",
-              "Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what "
+              "Sheet 2D: how the operator panel might look from the front, at 1:1.75 with assumed sizes, and what "
               "each control wires to. The dashed outline is the panel as it may grow.")
     sh.Add(OpDefs)
     X0, Y0, S = 14.0, 27.0, OpScale
@@ -2345,24 +2373,29 @@ def BuildOperatorPanel():
     Label(sx + sw_ / 2, sy + sh_ + 9.0, ["10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)"], size=1.5,
           bold0=False)
 
-    # the controls column: E-stop on its yellow plate, Reset, the power knob with its lamp
-    kx = 316.0
+    # left of the screen: the E-stop on its yellow plate, and below it the power knob with its lamp
+    kx = 41.0
     Disc(kx, 52.0, 62.0, "#EEDD88", sw=0.3)
     Disc(kx, 52.0, 34.0, "url(#opRing)", sw=0.2)
     Disc(kx, 52.0, 42.0, "url(#opRed)", sw=0.35)
     Label(kx, 47.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
     Label(kx, 58.5, ["STOP"], size=1.15, fill="#FFFFFF")
-    Plate(kx, 86.0, 50.0, ["S2  E-STOP", "push to stop, twist to release"])
-    Disc(kx, 124.0, 30.0, "url(#opRing)", sw=0.25)
-    Disc(kx, 124.0, 22.0, "url(#opBlue)", sw=0.3)
-    Plate(kx, 142.0, 50.0, ["S3  RESET", "starts the motors after an E-stop"])
-    Disc(kx, 178.0, 30.0, "url(#opRing)", sw=0.25)
-    Disc(kx, 178.0, 23.0, "url(#opGreen)", sw=0.3)
-    Rect(kx - 3.0, 168.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
-         % tuple(Fmt(v) for v in P(kx, 178.0)))
-    Label(kx - 20.0, 170.0, ["0"], size=1.4)
-    Label(kx + 20.0, 170.0, ["I"], size=1.4)
-    Plate(kx, 195.0, 50.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
+    Plate(kx, 86.0, 56.0, ["S2  E-STOP", "push to stop, twist to release"])
+    Disc(kx, 160.0, 30.0, "url(#opRing)", sw=0.25)
+    Disc(kx, 160.0, 23.0, "url(#opGreen)", sw=0.3)
+    Rect(kx - 3.0, 150.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
+         % tuple(Fmt(v) for v in P(kx, 160.0)))
+    Label(kx - 20.0, 152.0, ["0"], size=1.4)
+    Label(kx + 20.0, 152.0, ["I"], size=1.4)
+    Plate(kx, 177.0, 56.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
+    # right of the screen: Reset, then the soft Start and Stop the Pi reads (issue #218)
+    kx = 375.0
+    for y, fill, lines in ((40.0, "url(#opBlue)", ["S3  RESET", "starts the motors after an E-stop"]),
+                           (100.0, "url(#opGreen)", ["S6  START", "Run All, or resume a hold"]),
+                           (160.0, "url(#opRed)", ["S7  STOP", "soft stop (M410): the run ends"])):
+        Disc(kx, y, 30.0, "url(#opRing)", sw=0.25)
+        Disc(kx, y, 22.0, fill, sw=0.3)
+        Plate(kx, y + 18.0, 56.0, lines)
 
     # the future arrow pad, in the extension drawn first above: four arrow keys round a select key,
     # to move between the screen's controls and press one without touching the screen
@@ -2385,13 +2418,27 @@ def BuildOperatorPanel():
     for i, s2 in enumerate(["To use the screen without touching it (gloves,",
                             "dirty hands). Not designed: how the keys reach",
                             "the Pi (a USB keypad sends arrows and Enter with",
-                            "no new wiring; GPIO keys need new code, since",
-                            "rmr_bridge.py's buttons only send G-code), and",
-                            "how the Touch UI moves between its controls."]):
+                            "no new wiring; GPIO keys would need new bridge",
+                            "actions, as S6 and S7 have), and how the Touch",
+                            "UI moves between its controls."]):
         sh.Text(px, py + i * 2.0, s2, size=1.35, fill="#555555")
 
+    # what the front plate must allow for, from the owner's measurements
+    nx, ny = 168.0, 164.0
+    sh.Text(nx, ny, "Front plate (measured 2026-11-11)", size=2.1, weight="bold")
+    for i, s2 in enumerate([
+            "S1, S2, S3, S6, S7: a %.1f mm hole each; their collars measure %.1f mm." % (OpHoleD, OpCollarD),
+            "Cut one test hole first: %.1f mm is the usual 22 mm device hole, not read" % OpHoleD,
+            "off these parts' listings.",
+            "Plate %.0f to 6 mm thick at most, less any legend plate under a collar" % OpPlateMaxT,
+            "(S2's yellow plate): the collar nuts reach no further.",
+            "S2's base clamps with two angled screws whose round tips bear on the",
+            "plate's back: keep the back flat and bare round its hole.",
+            "Screen: VESA %.0f x %.0f on its back. Window, bracket, size: not designed." % (OpVesa, OpVesa)]):
+        sh.Text(nx, ny + 3.6 + i * 2.15, s2, size=1.3)
+
     # what each control wires to
-    tx, ty = 14.0, 182.0
+    tx, ty = 14.0, 164.0
     sh.Text(tx, ty, "Behind the panel", size=2.1, weight="bold")
     cols = (0.0, 30.0, 58.0, 118.0)
     for j, h in enumerate(("control", "contact", "lands on", "cable (by)")):
@@ -2402,7 +2449,7 @@ def BuildOperatorPanel():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: operator panel",
         "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218).",
         "Status: concept; housing and sizes not designed yet.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
     ])

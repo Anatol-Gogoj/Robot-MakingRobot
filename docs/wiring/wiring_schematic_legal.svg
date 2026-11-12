@@ -489,6 +489,17 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="sym" d="M146.4 196 L149.6 196"/>
 <path class="sym" d="M146.4 197.8 L149.6 197.8"/>
 <path class="sg" d="M148 197.8 L148 205 L158 205"/>
+<path class="sg" d="M178 191 L183 191 L183 196"/>
+<path class="sym" d="M181.4 196 L184.6 196"/>
+<path class="sym" d="M181.4 197.8 L184.6 197.8"/>
+<path class="sg" d="M183 197.8 L183 205"/>
+<path class="sg" d="M178 187 L189 187 L189 196"/>
+<path class="sym" d="M187.4 196 L190.6 196"/>
+<path class="sym" d="M187.4 197.8 L190.6 197.8"/>
+<path class="sg" d="M189 197.8 L189 205"/>
+<path class="sg" d="M174 205 L189 205"/>
+<circle class="dot" cx="174" cy="205" r="0.6" fill="#000"/>
+<circle class="dot" cx="183" cy="205" r="0.6" fill="#000"/>
 <path class="ac" d="M244 23.6 L251 23.6"/>
 <path class="va" d="M296 23.6 L303 23.6"/>
 <path class="ve" d="M244 26.6 L251 26.6"/>
@@ -837,9 +848,16 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="146.4" y="196.6" font-size="1.2" text-anchor="end">home</text>
 <text x="146.4" y="198.2" font-size="1.2" text-anchor="end">button</text>
 <text x="146.4" y="199.8" font-size="1.2" text-anchor="end">(optional)</text>
-<text x="178.8" y="199" font-size="1.3">rmr_io.json: estop pin 20, nc true,</text>
-<text x="178.8" y="200.8" font-size="1.3">cmd null (annunciate only);</text>
-<text x="178.8" y="202.6" font-size="1.3">tower 5/6/13/26 active high</text>
+<text x="177.6" y="191.5" font-size="1.4" text-anchor="end" font-weight="bold">16</text>
+<text x="185" y="197.4" font-size="1.3" font-weight="bold">S6</text>
+<text x="177.6" y="187.5" font-size="1.4" text-anchor="end" font-weight="bold">25</text>
+<text x="191" y="197.4" font-size="1.3" font-weight="bold">S7</text>
+<text x="185" y="199.6" font-size="1.1">start</text>
+<text x="191" y="199.6" font-size="1.1">stop</text>
+<text x="195" y="197.4" font-size="1.3">rmr_io.json: estop pin 20, nc true,</text>
+<text x="195" y="199.2" font-size="1.3">cmd null (annunciate only); start 16</text>
+<text x="195" y="201" font-size="1.3">(action start), stop 25 (cmd M410,</text>
+<text x="195" y="202.8" font-size="1.3">action stop); tower 5/6/13/26 active high</text>
 <text x="244" y="21" font-size="2.4" font-weight="bold">Legend</text>
 <text x="252.2" y="24.2" font-size="1.9">Mains 110 VAC, L and N</text>
 <text x="304.2" y="24.2" font-size="1.9">+24 V always on (FB1)</text>

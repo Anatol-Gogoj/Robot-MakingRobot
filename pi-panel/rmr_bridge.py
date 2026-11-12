@@ -17,8 +17,18 @@ Meta plane (JSON, always begins with '{' and carries an "_rmr" key):
     {"_rmr":"status","serial":"open"|"closed","port":...}
     {"_rmr":"tx","cmd":...,"source":"ws"|"button:NAME"}   # every write, echoed to ALL clients
     {"_rmr":"button","name":...,"cmd":...}                # a physical button fired
+    {"_rmr":"button","name":...,"cmd":...,"action":...}   # ... and asks this page to act on it
     {"_rmr":"estop","pressed":true|false}                # E-stop sense input changed
     {"_rmr":"error","msg":...}
+    browser -> bridge: {"_rmr":"state","busy":true|false}  # never written to serial
+
+Operator panel buttons (issue #218) carry an "action" instead of, or as well as, a
+"cmd": "stop" goes to every client (each stops its own sequencer run and Program
+Runner); "start" goes to exactly one client, the page the Pi's own browser opened
+over loopback. It is refused when there is no such page or more than one, and while
+any other page reports a run, a program or a Run Log hold open ("state", which the
+greeting's "caps" invites), so a phone, a laptop or a second tab never gets a second
+run started on top of its own.
 
 Multiple clients may connect at once (the panel + a phone/laptop on the LAN);
 serial RX is broadcast to all of them and every TX is echoed to all of them, so
@@ -44,6 +54,7 @@ Deps:  pip install pyserial websockets     (gpiozero is preinstalled on Pi OS)
 import argparse
 import asyncio
 import functools
+import ipaddress
 import json
 import os
 import signal
@@ -63,6 +74,7 @@ except Exception:
 
 # ─── Shared state ───────────────────────────────────────────────────────────
 clients = set()                 # connected WebSocket client protocols
+client_busy = {}                # client -> True while its page reports a run, program or hold open (#218)
 serial_lock = threading.Lock()  # guards writes (WS thread + button threads)
 stop_event = threading.Event()
 loop = None                     # asyncio loop, set in main()
@@ -106,10 +118,13 @@ async def _safe_send(ws, msg: str):
 
 
 # ─── Serial write (from WS clients and from GPIO buttons) ────────────────────
-def write_serial(cmd: str, source: str = "ws"):
+def write_serial(cmd: str, source: str = "ws", before_write=None):
+    """before_write: called under the lock once the echo is queued, before the bytes leave (#218)."""
     global _last_tx_ts
     cmd = cmd.strip()
     if not cmd:
+        if before_write:
+            before_write()
         return
     data = (cmd + "\n").encode("utf-8", "replace")
     wrote = False
@@ -119,6 +134,8 @@ def write_serial(cmd: str, source: str = "ws"):
         # UIs attribute each 'ok' to the oldest echoed command (issue #48). A failed write is
         # reported right after it, below.
         schedule_broadcast(json.dumps({"_rmr": "tx", "cmd": cmd, "source": source}))
+        if before_write:
+            before_write()
         try:
             if ser is not None and ser.is_open:
                 ser.write(data)
@@ -194,20 +211,101 @@ def setup_buttons(mapping):
         try:
             pin = b["pin"]
             name = b.get("name", "btn%s" % pin)
-            cmd = b["cmd"]
+            cmd, action = button_spec(b)
             pull = b.get("pull", "up")            # "up" = wire button to GND, active-low (default)
             bounce = float(b.get("bounce", 0.05))  # debounce seconds
             btn = Button(pin, pull_up=(pull == "up"), bounce_time=bounce)
-            btn.when_pressed = functools.partial(_on_button, name, cmd)
+            btn.when_pressed = functools.partial(_on_button, name, cmd, action)
             _buttons.append(btn)
-            print("[gpio] %-10s GPIO%-2s -> %s" % (name, pin, cmd))
+            print("[gpio] %-10s GPIO%-2s -> %s%s" % (name, pin, cmd or "",
+                                                     (" [action %s]" % action) if action else ""))
         except Exception as e:
             print("[gpio] failed to set up button %r: %s" % (b, e))
 
 
-def _on_button(name, cmd):
-    write_serial(cmd, source="button:%s" % name)
-    schedule_broadcast(json.dumps({"_rmr": "button", "name": name, "cmd": cmd}))
+# Actions a button may ask the browser pages to take (issue #218).
+BUTTON_ACTIONS = ("start", "stop")
+
+
+def button_spec(b):
+    """(cmd, action) of one button entry. A button needs a 'cmd', an 'action', or both."""
+    cmd = b.get("cmd") or None
+    action = b.get("action") or None
+    if action is not None and action not in BUTTON_ACTIONS:
+        raise ValueError("unknown action %r (expected one of %s)" % (action, ", ".join(BUTTON_ACTIONS)))
+    if cmd is None and action is None:
+        raise ValueError("a button needs a 'cmd', an 'action', or both")
+    return cmd, action
+
+
+def _on_button(name, cmd, action=None):
+    """GPIO thread. The button message is queued after the command's TX echo and before its
+    bytes are written, so a page stops its run before any reply to that command can reach it
+    (Stop: abort the run, then M410 at the board, as the page's own Stop does)."""
+    def dispatch():
+        if loop is not None and not loop.is_closed():
+            try:
+                loop.call_soon_threadsafe(_dispatch_button, name, cmd, action)
+            except RuntimeError:
+                pass
+    if cmd:
+        write_serial(cmd, source="button:%s" % name, before_write=dispatch)
+    else:
+        dispatch()
+
+
+def is_loopback(ws):
+    """True when the client connected from the Pi itself (the panel's kiosk browser)."""
+    try:
+        addr = ipaddress.ip_address(str(getattr(ws, "remote_address", ("",))[0]).split("%")[0])
+    except (ValueError, IndexError, TypeError):
+        return False
+    if getattr(addr, "ipv4_mapped", None) is not None:
+        addr = addr.ipv4_mapped
+    return addr.is_loopback
+
+
+def button_targets(action, conns, busy=None):
+    """(clients asked to act, error message or None) for one press, given the connected clients.
+    'stop' asks every client; 'start' asks the single loopback client, and nobody when there is
+    none or more than one, since two pages each running Run All would drive one machine twice,
+    or while busy(ws) is true for another client: its run, program or Run Log hold is open."""
+    conns = list(conns)
+    busy = busy or (lambda ws: False)
+    if action == "stop":
+        return conns, None
+    if action == "start":
+        local = [ws for ws in conns if is_loopback(ws)]
+        if len(local) == 1:
+            others = [ws for ws in conns if ws is not local[0] and busy(ws)]
+            if others:
+                return [], ("start button ignored: a run, program or hold is open on another screen "
+                            "(%s); resume or stop it there" % ", ".join(_peer(ws) for ws in others))
+            return local, None
+        if not local:
+            return [], "start button ignored: no panel page is open on the Pi (http://localhost)"
+        return [], ("start button ignored: %d pages are open on the Pi; close all but one so "
+                    "only one of them can start a run" % len(local))
+    return [], None
+
+
+def _peer(ws):
+    try:
+        return str(ws.remote_address[0])
+    except Exception:
+        return "?"
+
+
+def _dispatch_button(name, cmd, action):
+    """Event loop thread: tell every client about the press, and the chosen ones what to do."""
+    base = {"_rmr": "button", "name": name, "cmd": cmd}
+    actors, err = button_targets(action, clients, lambda ws: client_busy.get(ws, False))
+    for ws in list(clients):
+        msg = dict(base, action=action) if ws in actors else base
+        asyncio.create_task(_safe_send(ws, json.dumps(msg)))
+    if err:
+        print("[gpio] %s" % err)
+        _broadcast_sync(json.dumps({"_rmr": "error", "msg": err}))
 
 
 def load_io_config(path):
@@ -363,6 +461,20 @@ def start_http(directory, port):
     return httpd
 
 
+def note_client_message(ws, text):
+    """True when text is a page's meta message, which never goes to the serial port. G-code never
+    starts with '{'; a '{' line that is not one of ours is dropped too, not sent to Marlin."""
+    if not text.lstrip().startswith("{"):
+        return False
+    try:
+        m = json.loads(text)
+    except ValueError:
+        return True
+    if isinstance(m, dict) and m.get("_rmr") == "state":
+        client_busy[ws] = bool(m.get("busy"))
+    return True
+
+
 # ─── WebSocket handler ───────────────────────────────────────────────────────
 async def ws_handler(websocket, *args):  # *args: older websockets passes `path`
     clients.add(websocket)
@@ -374,14 +486,18 @@ async def ws_handler(websocket, *args):  # *args: older websockets passes `path`
             "_rmr": "status",
             "serial": "open" if (ser is not None and ser.is_open) else "closed",
             "port": cfg.port,
+            "caps": ["state"],   # this bridge reads {"_rmr":"state"} (issue #218)
         }))
         async for message in websocket:
             cmd = message if isinstance(message, str) else message.decode("utf-8", "replace")
+            if note_client_message(websocket, cmd):
+                continue
             write_serial(cmd, source="ws")
     except Exception:
         pass
     finally:
         clients.discard(websocket)
+        client_busy.pop(websocket, None)
         print("[ws] client disconnected (%s); %d total" % (peer, len(clients)))
 
 

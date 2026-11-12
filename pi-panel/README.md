@@ -163,6 +163,24 @@ every connected screen. A `cmd` may hold several lines (`\n` inside the JSON str
 after the homing has finished, and every browser UI uses it to unlock the Process Sequencer's
 homing gate (Syringe, UV and Stamp stay locked until a full home).
 
+**Operator panel Start and Stop (issue #218):** a button may carry an `"action"` instead of, or as
+well as, a `"cmd"`, and the bridge then asks the browser pages to act on it:
+
+- `"action": "stop"` (S7, red, GPIO 25, with `"cmd": "M410"`): the bridge writes `M410` itself, so
+  moves stop even when no page answers, then tells **every** page to stop: each ends its Process
+  Sequencer run (the UV block still turns the lamp off) and its Program Runner. It is a soft
+  (category 2) stop; the hardware E-stop stays the only safety function.
+- `"action": "start"` (S6, green, GPIO 16, no `cmd`): resumes an open Run Log hold or break; with
+  none, starts Run All when nothing is running; otherwise it does nothing and says so. Run All's
+  own checks still apply (connection, enabled blocks, homing gate). Only the page the Pi's own
+  browser opened over `localhost` acts on it, so a phone or laptop on the LAN never starts a run.
+  The bridge refuses the press, with an error on every screen, when no such page is open, when
+  more than one is (two tabs would start two runs), and while another screen has a run, a program
+  or a Run Log hold open (each page reports that to the bridge): resume or stop it on that screen.
+  One press does one thing: during a break, Start ends the break, and a second press 1.5 s or more
+  later starts Run All. An SSH tunnel to the Pi also reaches the bridge over loopback, so close
+  such a page before using the button.
+
 **Status tower and buzzer:** a red/amber/green tower light and buzzer, driven from machine state
 the bridge infers from the serial stream and the connection:
 
@@ -185,13 +203,14 @@ is set the bridge also sends it (for example `M112`). Match `"pull"` to the cont
 pressed, so a cut wire also raises the alarm. The Mega also prints `MOTOR POWER LOST` when the
 motor contactor drops, which latches the tower red even without this input wired.
 
-A trimmed `rmr_io.json` (see `rmr_io.example.json` for all four example buttons):
+A trimmed `rmr_io.json` (see `rmr_io.example.json` for every example button):
 
 ```json
 {
   "buttons": [
-    { "pin": 17, "name": "estop",    "cmd": "M112", "pull": "up", "bounce": 0.03 },
-    { "pin": 22, "name": "home_all", "cmd": "G28\nM118 RMR:HOMED_ALL", "pull": "up", "bounce": 0.05 }
+    { "pin": 22, "name": "home_all", "cmd": "G28\nM118 RMR:HOMED_ALL", "pull": "up", "bounce": 0.05 },
+    { "pin": 16, "name": "start",    "action": "start", "pull": "up", "bounce": 0.05 },
+    { "pin": 25, "name": "stop",     "cmd": "M410", "action": "stop", "pull": "up", "bounce": 0.05 }
   ],
   "tower":   { "red": 5, "amber": 6, "green": 13, "buzzer": 26, "active_high": true },
   "estop":   { "pin": 20, "pull": "up", "nc": true, "cmd": "M112" }
@@ -212,10 +231,13 @@ A trimmed `rmr_io.json` (see `rmr_io.example.json` for all four example buttons)
 - **Meta plane** (JSON, starts with `{` and carries `_rmr`):
   - `status`: serial port open or closed
   - `tx`: every write, echoed to all clients with its source (`ws`, `button:NAME` or `estop`)
-  - `button`: a physical button fired
+  - `button`: a physical button fired; with `action` (`start` or `stop`) the page is asked to act on it
   - `estop`: the sense input changed
   - `motorpower`: `MOTOR POWER LOST` or `Motor power restored` was seen (the UIs act on the serial line itself)
   - `error`: a bridge error
+  - from a page to the bridge, `{"_rmr":"state","busy":true|false}`: whether that page has a run, a
+    program or a Run Log hold open. Pages send it only when the bridge's greeting lists
+    `"caps": ["state"]`; the bridge never writes a line that starts with `{` to the serial port.
 - The bridge holds the port open, so the Mega resets (DTR) **once** at bridge start rather than
   on every UI connect. It reopens the serial port with backoff (1 s, growing to at most 5 s
   between tries) if the USB drops, and the UI retries the WebSocket every 2 s.

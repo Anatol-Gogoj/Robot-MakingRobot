@@ -170,20 +170,28 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="26" y="172.6" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
 <text x="26" y="175" font-size="1.8" style="fill:#000">for now)</text>
 <text x="73" y="172.6" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
-<text x="26" y="177.4" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
-<text x="73" y="177.4" font-size="1.8" style="fill:#000">at the valve</text>
-<text x="8" y="179.8" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
-<text x="26" y="179.8" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
-<text x="26" y="182.2" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
-<text x="73" y="179.8" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="184.6" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
-<text x="26" y="184.6" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
-<text x="73" y="184.6" font-size="1.8" style="fill:#000">spin coater base</text>
-<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
-<text x="26" y="187" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
-<text x="26" y="189.4" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
-<text x="73" y="187" font-size="1.8" style="fill:#000"></text>
+<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">S6</text>
+<text x="26" y="177.4" font-size="1.8" style="fill:#000">Start / Resume push button (NO, green): Pi GPIO</text>
+<text x="26" y="179.8" font-size="1.8" style="fill:#000">16, Run All or resume a hold</text>
+<text x="73" y="177.4" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="182.2" font-size="1.8" style="fill:#000" font-weight="bold">S7</text>
+<text x="26" y="182.2" font-size="1.8" style="fill:#000">Stop push button (NO, red): Pi GPIO 25, M410 and</text>
+<text x="26" y="184.6" font-size="1.8" style="fill:#000">a soft stop of the run</text>
+<text x="73" y="182.2" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
+<text x="26" y="187" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
+<text x="73" y="187" font-size="1.8" style="fill:#000">at the valve</text>
+<text x="8" y="189.4" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
+<text x="26" y="189.4" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
+<text x="26" y="191.8" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
+<text x="73" y="189.4" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="194.2" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
+<text x="26" y="194.2" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
+<text x="73" y="194.2" font-size="1.8" style="fill:#000">spin coater base</text>
+<text x="8" y="196.6" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
+<text x="26" y="196.6" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
+<text x="26" y="199" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
+<text x="73" y="196.6" font-size="1.8" style="fill:#000"></text>
 <text x="95" y="22" font-size="2.3" font-weight="bold">Terminal plan</text>
 <text x="95" y="25" font-size="1.8" style="fill:#555" font-weight="bold">No.</text>
 <text x="100" y="25" font-size="1.8" style="fill:#555">label</text>

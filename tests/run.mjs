@@ -46,6 +46,7 @@ const checks = [
   { issue: '#188', name: 'seq end poll guard: both pages', script: 'seq-end-poll.test.mjs',         args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
   { issue: '#187', name: 'homing index search: Controller', script: 'homing-index.test.mjs',         args: [CONTROLLER], needs: [CONTROLLER] },
   { issue: '#191', name: 'lid closed above 120 RPM: both pages', script: 'lid-spin-rule.test.mjs',   args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
+  { issue: '#218', name: 'panel Start / Stop buttons: both pages', script: 'panel-buttons.test.mjs', args: [CONTROLLER, TOUCH], needs: [CONTROLLER, TOUCH] },
 ];
 
 const verbose = process.argv.includes('-v');
