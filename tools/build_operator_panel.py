@@ -13,10 +13,8 @@ front face is the plane Y = 0 and the plate lies in front of it (Y < 0), so Free
 shows the panel as the operator sees it.
 
 The display is held like this: the plate's window is smaller than the display's front face, so the
-display cannot pass through; a TPU bumper (OpBumper) keeps everything rigid off its glass, its flange
-between the display and the plate and its lip round the display's sides; a PETG cradle ring round the
-lip, screwed to the plate from the front and printed in two pieces joined by half laps (OpCradleLap),
-locates it; a printed bracket standing on the ring presses it against the plate through
+display cannot pass through; a printed cradle ring round its straight sides, screwed to the plate from
+the front and printed in two PETG pieces joined by half laps (OpCradleLap), locates it; a printed bracket standing on the ring presses it against the plate through
 closed-cell foam pads on the rear housing's back face (OpBracketGap). No screw goes into the VESA holes,
 which would fix the display's depth a second time.
 
@@ -55,7 +53,7 @@ DocName = "OperatorPanel"
 V = App.Vector
 
 # Paul Tol colors: Bright for the controls, Light for the printed parts, greys for the rest.
-Fill = {"plate": "#DDDDDD", "display": "#333333", "bumper": "#AA4499", "frame": "#999999", "arm": "#555555", "lit": "#4477AA", "cradle": "#77AADD", "bracket": "#EEDD88",
+Fill = {"plate": "#DDDDDD", "display": "#333333", "frame": "#999999", "arm": "#555555", "lit": "#4477AA", "cradle": "#77AADD", "bracket": "#EEDD88",
         "pad": "#444444", "ports": "#EE8866", "rear": "#BBBBBB", "legend": "#CCBB44",
         "estop": "#EE6677", "red": "#EE6677", "green": "#228833", "blue": "#4477AA", "selector": "#228833"}
 Transp = {"plate": 60, "ports": 70, "rear": 60, "arm": 50}
@@ -83,8 +81,7 @@ T = W.OpPlateT
 Wall, Depth = W.OpCradleWall, W.OpCradleDepth
 (IW, IH, IR), (OW, OH, OR), (RingX, RingZ) = W.OpRing()        # pocket, outside, centre lines of its sides
 BrSide, BrT, BrArm = W.OpBracket
-G = W.OpBumper[0]                                                # the bumper's flange sets the display back by this
-BrY0 = G + HT + W.OpBracketGap                                   # bracket's face against the foam pads
+BrY0 = HT + W.OpBracketGap                                       # bracket's face against the foam pads
 CradleScrews, LegScrews, FrameScrews = W.OpCradleScrews(), W.OpLegScrews(), W.OpFrameScrews()
 P = W.OpProfile
 
@@ -100,22 +97,12 @@ def Display():
     for sx in (1, -1):
         for sz in (1, -1):
             d = d.cut(CylY(W.OpVesaHoleD, HT - 8.0, 8.1, sx * W.OpVesaHalf, sz * W.OpVesaHalf))
-    d.translate(V(0, G, 0))        # behind the bumper's flange
     return d
-
-
-def Bumper():
-    """TPU: a flange between the display's front face and the plate, and a lip round its straight sides."""
-    ft, lt, lh, lc = W.OpBumper
-    ow, oh, orr = BW + 2 * (lc + lt), BH + 2 * (lc + lt), BR + lc + lt
-    flange = RoundBox(ow, oh, orr, 0.0, ft).cut(RoundBox(WW + 2.0, WH + 2.0, 2.0, -1.0, ft + 2.0))
-    lip = RoundBox(ow, oh, orr, ft, lh).cut(RoundBox(BW + 2 * lc, BH + 2 * lc, BR + lc, ft - 1.0, lh + 2.0))
-    return flange.fuse(lip).removeSplitter()
 
 
 def LitArea():
     aw, ah = W.OpLit
-    y = G - 0.02
+    y = -0.02
     pts = [V(-aw / 2, y, -ah / 2), V(aw / 2, y, -ah / 2), V(aw / 2, y, ah / 2), V(-aw / 2, y, ah / 2)]
     return Part.Face(Part.makePolygon(pts + [pts[0]]))
 
@@ -123,7 +110,7 @@ def LitArea():
 def PortZone():
     z0, z1, y0, y1 = W.OpPorts
     plug = 45.0                    # assumed: a plug and the start of its cable's bend
-    return Part.makeBox(plug, y1 - y0, z1 - z0, V(-HW / 2 - plug, G + y0, z0))
+    return Part.makeBox(plug, y1 - y0, z1 - z0, V(-HW / 2 - plug, y0, z0))
 
 
 def Plate():
@@ -202,7 +189,7 @@ def Bracket():
 
 def Pads():
     """Closed-cell foam, drawn squeezed to the gap; no hole, since no screw goes into the VESA holes."""
-    return [CylY(W.OpPadD, G + HT, W.OpBracketGap, sx * W.OpVesaHalf, sz * W.OpVesaHalf)
+    return [CylY(W.OpPadD, HT, W.OpBracketGap, sx * W.OpVesaHalf, sz * W.OpVesaHalf)
             for sx in (1, -1) for sz in (1, -1)]
 
 
@@ -229,10 +216,8 @@ def Checks():
           "and %.1f (long sides)" % (WW, WH, BW, BH, over[0], over[1]))
     if min(over) < 5.0:        # the owner counted the casing's edge bevel as bezel: keep a flat seat past it
         bad.append("the plate overlaps the bezel by less than 5 mm")
-    if Depth >= G + W.OpDisplayWall:
-        bad.append("the cradle (%.1f deep) reaches the display's rounded edge at %.1f" % (Depth, G + W.OpDisplayWall))
-    if W.OpBumper[2] + G > Depth:
-        bad.append("the bumper's lip runs out of the cradle")
+    if Depth >= W.OpDisplayWall:
+        bad.append("the cradle (%.1f deep) reaches the display's rounded edge at %.1f" % (Depth, W.OpDisplayWall))
     lap = W.OpCradleLap
     if any(lap[0] - 1.0 < abs(x) < lap[1] + 1.0 + W.OpInsertD for x, _ in CradleScrews + LegScrews):
         bad.append("a cradle screw falls in the lap joint")
@@ -302,7 +287,7 @@ def Clearances(parts):
     """The frame must clear the controls' bodies, the cradle and the display bracket by OpFrameGap."""
     bad = []
     frame = [(n, s) for n, s, f, src in parts if f == "frame"]
-    others = [(n, s) for n, s, f, _ in parts if f in ("rear", "cradle", "bracket", "display", "pad", "ports", "bumper")]
+    others = [(n, s) for n, s, f, _ in parts if f in ("rear", "cradle", "bracket", "display", "pad", "ports")]
     least = (1e9, "")
     for n1, s1 in frame:
         for n2, s2 in others:
@@ -333,7 +318,6 @@ def Build():
     parts = [("Display", Display(), "display", "scan 2026-11-11"),
              ("PortZone", PortZone(), "ports", "assumed"),
              ("FrontPlate", Plate(), "plate", "layout"),
-             ("Bumper", Bumper(), "bumper", "layout"),
              ("CradleLeft", halves[0], "cradle", "layout"),
              ("CradleRight", halves[1], "cradle", "layout"),
              ("Bracket", Bracket(), "bracket", "layout")]
@@ -382,11 +366,10 @@ def Save(Doc, parts):
     SavePrintables(parts)
 
 
-# Each printed part, its material, and the face that goes on the bed: "front" (Y low) or "back" (Y high).
+# Each printed part (all PETG) and the face that goes on the bed: "front" (Y low) or "back" (Y high).
 # Every part lies on the face that leaves nothing overhanging: each cradle piece on the face its lap
-# tongue is part of, the bracket with its legs up, the bumper on its flange with the lip up.
-Printables = [("CradleLeft", "PETG", "back"), ("CradleRight", "PETG", "front"), ("Bracket", "PETG", "back"),
-              ("Bumper", "TPU 95A", "front")]
+# tongue is part of, the bracket on its back face with its legs up.
+Printables = [("CradleLeft", "back"), ("CradleRight", "front"), ("Bracket", "back")]
 
 
 def PrintPose(name, shape, down):
@@ -409,7 +392,7 @@ def SavePrintables(parts):
     not fit the bed (OpPrintBed)."""
     App.ParamGet("User parameter:BaseApp/Preferences/Mod/Part/STEP").SetString("Scheme", "AP214IS")
     shapes = {n: s for n, s, _, _ in parts}
-    for name, material, down in Printables:
+    for name, down in Printables:
         s = PrintPose(name, shapes[name], down)
         if max(s.BoundBox.XLength, s.BoundBox.YLength) > W.OpPrintBed - 6.0:
             raise RuntimeError("%s is %.1f x %.1f mm: too big for the %.0f mm bed" % (
@@ -420,8 +403,8 @@ def SavePrintables(parts):
         if "10303 214" not in head:
             raise RuntimeError("%s is not STEP AP214: %s" % (path, head[head.find("FILE_SCHEMA"):][:80]))
         bb = s.BoundBox
-        print("wrote %s (AP214, %s, %s face down, %.1f x %.1f x %.1f mm, %.1f cm3)" % (
-            path, material, down, bb.XLength, bb.YLength, bb.ZLength, s.Volume / 1000.0))
+        print("wrote %s (AP214, PETG, %s face down, %.1f x %.1f x %.1f mm, %.1f cm3)" % (
+            path, down, bb.XLength, bb.YLength, bb.ZLength, s.Volume / 1000.0))
 
 
 def Main():
