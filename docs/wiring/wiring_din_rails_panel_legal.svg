@@ -213,21 +213,25 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="44" y="187.4" font-size="1.3">HDMI, USB</text>
 <text x="72" y="187.4" font-size="1.3">Pi 5</text>
 <text x="132" y="187.4" font-size="1.3">at the panel</text>
-<text x="14" y="189.55" font-size="1.3" font-weight="bold">Pi 5</text>
-<text x="44" y="189.55" font-size="1.3">5 V in</text>
-<text x="72" y="189.55" font-size="1.3">5 V PSU (F1-2)</text>
-<text x="132" y="189.55" font-size="1.3">5 V feed (LL)</text>
+<text x="14" y="189.55" font-size="1.3" font-weight="bold">touch screen</text>
+<text x="44" y="189.55" font-size="1.3">DC-12V jack</text>
+<text x="72" y="189.55" font-size="1.3">12 V DC-DC (F1-3)</text>
+<text x="132" y="189.55" font-size="1.3">12 V pigtail (LL)</text>
 <text x="14" y="191.7" font-size="1.3" font-weight="bold">Pi 5</text>
-<text x="44" y="191.7" font-size="1.3">USB</text>
-<text x="72" y="191.7" font-size="1.3">Mega</text>
-<text x="132" y="191.7" font-size="1.3">USB cable (UF)</text>
+<text x="44" y="191.7" font-size="1.3">5 V in</text>
+<text x="72" y="191.7" font-size="1.3">5 V PSU (F1-2)</text>
+<text x="132" y="191.7" font-size="1.3">5 V feed (LL)</text>
 <text x="14" y="193.85" font-size="1.3" font-weight="bold">Pi 5</text>
-<text x="44" y="193.85" font-size="1.3">GPIO 5, 6, 13, 26</text>
-<text x="72" y="193.85" font-size="1.3">tower SSRs (GND to their inputs -)</text>
-<text x="132" y="193.85" font-size="1.3">tower inputs (UF)</text>
+<text x="44" y="193.85" font-size="1.3">USB</text>
+<text x="72" y="193.85" font-size="1.3">Mega</text>
+<text x="132" y="193.85" font-size="1.3">USB cable (UF)</text>
+<text x="14" y="196" font-size="1.3" font-weight="bold">Pi 5</text>
+<text x="44" y="196" font-size="1.3">GPIO 5, 6, 13, 26</text>
+<text x="72" y="196" font-size="1.3">tower SSRs (GND to their inputs -)</text>
+<text x="132" y="196" font-size="1.3">tower inputs (UF)</text>
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: operator panel</text>
 <text x="258" y="194.4" font-size="2">Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.</text>
-<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-11 (#218, #219).</text>
+<text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-12 (#218 to #220).</text>
 <text x="258" y="199.9" font-size="2">Status: plate and 2020 frame laid out (#219); the arm not chosen.</text>
 <text x="258" y="202.65" font-size="2">Circuits: sheet 1. Terminals: sheet 2C.</text>
 </svg>

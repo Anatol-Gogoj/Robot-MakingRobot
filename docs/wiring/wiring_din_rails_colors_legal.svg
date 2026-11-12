@@ -351,8 +351,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="42" y="164.2" font-size="1.7" text-anchor="end">2</text>
 <text x="45" y="164.2" font-size="1.5">the kits</text>
 <text x="12.2" y="167.1" font-size="1.7">green-yellow</text>
-<text x="42" y="167.1" font-size="1.7" text-anchor="end">14</text>
-<text x="45" y="167.1" font-size="1.5">USLKG 5 or the kits' grounding blocks, 9 of them one per other DIN rail</text>
+<text x="42" y="167.1" font-size="1.7" text-anchor="end">15</text>
+<text x="45" y="167.1" font-size="1.5">USLKG 5 or the kits' grounding blocks, 10 of them one per other DIN rail</text>
 <text x="8" y="172" font-size="1.5">The two kits hold 120 blocks in six colors; the listing does not give the split, but its</text>
 <text x="8" y="174.15" font-size="1.5">photos show 10 of each per kit, 20 in all. The blue and grey packs in the BoM (issue #209)</text>
 <text x="8" y="176.3" font-size="1.5">are the same GUETNEU block and cover those two; count the other colors before wiring.</text>
