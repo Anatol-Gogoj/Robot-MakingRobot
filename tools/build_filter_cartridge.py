@@ -540,6 +540,29 @@ def ExportPrintSet(p, outDir):
               (name, bb.XLength, bb.YLength, bb.ZLength))
 
 
+def PlateDxf(p, path):
+    """Flat pattern of the 430 stainless plate for a metal laser-cutting service: an ASCII R12 DXF
+    in mm on layer CUT, the format tools/check_dxf.py reads back. The bore is a circle; the outline
+    is a closed 360-segment polygon (chord error under 0.002 mm), because check_dxf.py reads bulged
+    polylines as obrounds and cannot size a full-circle outline. Cut from 0.8 mm (PlateT) 430 sheet."""
+    ro, d = p["PlateOD"] / 2, p["PlateID"]
+    n = 360
+    out = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "9", "$INSUNITS", "70", "4",
+           "9", "$EXTMIN", "10", "0.0", "20", "0.0", "30", "0.0",
+           "9", "$EXTMAX", "10", "%.4f" % (2 * ro), "20", "%.4f" % (2 * ro), "30", "0.0",
+           "0", "ENDSEC", "0", "SECTION", "2", "ENTITIES",
+           "0", "POLYLINE", "8", "CUT", "66", "1", "10", "0.0", "20", "0.0", "30", "0.0", "70", "1"]
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        out += ["0", "VERTEX", "8", "CUT", "10", "%.4f" % (ro + ro * math.cos(a)),
+                "20", "%.4f" % (ro + ro * math.sin(a)), "30", "0.0"]
+    out += ["0", "SEQEND", "8", "CUT",
+            "0", "CIRCLE", "8", "CUT", "10", "%.4f" % ro, "20", "%.4f" % ro, "30", "0.0", "40", "%.4f" % (d / 2),
+            "0", "ENDSEC", "0", "EOF"]
+    open(path, "w", encoding="ascii", newline="\n").write("\n".join(out) + "\n")
+    print("  %s: OD %.1f, ID %.1f, %.1f mm 430 stainless" % (os.path.basename(path), 2 * ro, d, p["PlateT"]))
+
+
 Variants = (
     ("FilterCartridge", {}),                                    # bonded stainless shim
     ("FilterCartridgePrintedFlange", {"PrintedFlange": True}),  # collar with printed jaw
@@ -560,6 +583,8 @@ def Main():
     p = dict(P)
     p["PrintedFlange"] = True
     ExportPrintSet(p, os.path.join(outDir, "Print 0.4mm nozzle"))
+    print("==== plate flat pattern (laser-cut 430)")
+    PlateDxf(p, os.path.join(outDir, "FilterCartridge-Plate-430-0.8mm.dxf"))
 
 
 Main()
