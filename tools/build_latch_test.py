@@ -49,11 +49,19 @@ L = dict(
     HubHoleD=8.0,
     SpokeW=8.0,
     # pile seat: holds one steel plate ring flush with its top
-    SeatOD=132.0,
+    SeatOD=144.0,           # r 72: room past the 10 mm slide tick at r 66
     SeatH=12.0,
     SeatBoreD=80.0,
     SeatScrewR=60.0,
     SeatScrewAngles=(30.0, 150.0, 270.0),
+    # slide scale on the seat top, right of the +Y notch, read against the pull tool's notch corner
+    # (the tool's outer rim at r ToolRingRO). Grooves: minor every TickStep, major at 0 and Slide.
+    TickStep=2.0,
+    TickW=0.6,
+    TickDepth=0.6,
+    TickX0=2.5,             # clear of the tool notch (x -2..2) above it
+    TickMinorL=4.0,
+    TickMajorL=7.0,
     # acrylic base
     BaseW=160.0,
     FootHoleD=5.0,
@@ -145,7 +153,26 @@ def PileSeat(p):
         m = Part.makeBox(3, 1.2, 1.0, V(L["SeatOD"] / 2 - 2.5, -0.6, H - 1.0))
         s = s.cut(Rotated(m, a))
     s = s.cut(Part.makeBox(4, 6, 1.0, V(-2, L["SeatOD"] / 2 - 5, H - 1.0)))
+    for tick in SeatTicks():
+        s = s.cut(tick)
     return s.removeSplitter()
+
+
+def SeatTickYs():
+    """Tick centre lines on the seat top: the tool's notch corner at slides 0, TickStep, ... Slide."""
+    n = int(round(L["Slide"] / L["TickStep"]))
+    return [(k * L["TickStep"], L["ToolRingRO"] + k * L["TickStep"]) for k in range(n + 1)]
+
+
+def SeatTicks():
+    H = L["SeatH"]
+    out = []
+    for s, y in SeatTickYs():
+        major = abs(s) < 1e-9 or abs(s - L["Slide"]) < 1e-9
+        length = L["TickMajorL"] if major else L["TickMinorL"]
+        out.append(Part.makeBox(length, L["TickW"], L["TickDepth"] + 0.1,
+                                V(L["TickX0"], y - L["TickW"] / 2, H - L["TickDepth"])))
+    return out
 
 
 # ---------------------------------------------------------------- acrylic base (DXF R12)
@@ -171,12 +198,12 @@ def DxfBase(path, engravePath):
                        c + L["SeatScrewR"] * math.sin(math.radians(a)), 3.4, "CUT")
     for x, y in ((8, 8), (W - 8, 8), (W - 8, W - 8), (8, W - 8)):
         ents += Circle(x, y, L["FootHoleD"], "CUT")
-    # engraved: seat outline, and the pull tool's +Y notch at 0 and at the 10 mm release slide
+    # engraved: seat outline and a +Y mark just outside it (the slide scale is on the seat top)
     eng += Circle(c, c, L["SeatOD"], "ENGRAVE")
-    y0 = c + L["ToolRingRO"]
-    for dy in (0.0, L["Slide"]):
-        eng += Line(c - 6.0, y0 + dy, c + 6.0, y0 + dy, "ENGRAVE")
-    eng += Line(c, y0, c, y0 + L["Slide"], "ENGRAVE")
+    y0 = c + L["SeatOD"] / 2 + 1.5
+    eng += Line(c, y0, c, y0 + 4.0, "ENGRAVE")
+    eng += Line(c - 2.0, y0 + 2.0, c, y0 + 4.0, "ENGRAVE")
+    eng += Line(c + 2.0, y0 + 2.0, c, y0 + 4.0, "ENGRAVE")
     for target, body in ((path, ents), (engravePath, eng)):
         out = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "9", "$INSUNITS", "70", "4",
                "9", "$EXTMIN", "10", "0.0", "20", "0.0", "30", "0.0",
@@ -262,6 +289,30 @@ def Checks(p, masks, tool, toolBalls, seat):
     # 5. seat: the plate ring sits flush, the bore clears the stencil margin
     print("  seat: ring recess depth %.2f = plate %.2f; seat bore r %.1f vs plate ID r %.1f" %
           (p["PlateT"], p["PlateT"], L["SeatBoreD"] / 2, p["PlateID"] / 2))
+    # 6. seat slide scale: ticks clear the plate recess, the +Y notch, the screws and the rim
+    recessR = p["PlateOD"] / 2 + 0.2
+    notchY0 = L["SeatOD"] / 2 - 5
+    ticks = SeatTicks()
+    rIn = min(math.hypot(L["TickX0"], y - L["TickW"] / 2) for s, y in SeatTickYs())
+    xOut = L["TickX0"] + L["TickMajorL"]
+    yLast = SeatTickYs()[-1][1] + L["TickW"] / 2
+    rOut = math.hypot(xOut, yLast)
+    screw = min(t.distToShape(Part.makeCylinder(3.1, 20, V(L["SeatScrewR"] * math.cos(math.radians(a)),
+                                                          L["SeatScrewR"] * math.sin(math.radians(a)), -5)))[0]
+                for t in ticks for a in L["SeatScrewAngles"])
+    print("  seat scale: %d ticks at r %.1f..%.1f; to plate recess %.2f, to seat rim %.2f, to screw bores %.2f, "
+          "x %.1f vs notch half-width 2.0" %
+          (len(ticks), SeatTickYs()[0][1], SeatTickYs()[-1][1], rIn - recessR, L["SeatOD"] / 2 - rOut, screw,
+           L["TickX0"]))
+    if rIn - recessR < 0.5 or L["SeatOD"] / 2 - rOut < 2.0 or screw < 1.0 or L["TickX0"] < 2.4:
+        bad += 1
+    if yLast > notchY0 and L["TickX0"] < 2.0:
+        bad += 1
+    # the pointer: the tool's notch corner sits at the first tick when the tool is on an aligned combo
+    corner = math.sqrt(L["ToolRingRO"] ** 2 - 2.0 ** 2)
+    print("  pointer: tool notch corner at r %.2f vs first tick %.2f" % (corner, SeatTickYs()[0][1]))
+    if abs(corner - SeatTickYs()[0][1]) > 0.1:
+        bad += 1
     print("Checks failing: %d" % bad)
     return bad
 

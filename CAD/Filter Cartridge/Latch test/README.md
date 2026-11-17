@@ -26,9 +26,9 @@ from `tools/build_filter_cartridge.py` and checks itself before writing anything
 | 8-02 | `LatchTest-Mask-Recess0.5.step` | print, stencil down, 0.2 mm nozzle | 1 | magnet face 0.5 mm up; 1 dot at 150 deg on the frame top |
 | 8-03 | `LatchTest-Mask-Recess1.0.step` | print, stencil down, 0.2 mm nozzle | 1 | magnet face 1.0 mm up; 2 dots |
 | 8-04 | `LatchTest-PullTool.step` | print, face down, 0.4 mm nozzle | 1 | stand-in for the Gripper-B ring face: 6 pick magnets, 3 ball pairs, cord hub; notch marks +Y |
-| 8-05 | `LatchTest-PileSeat.step` | print, ring recess up, 0.4 mm nozzle | 1 | holds one steel plate ring flush with its top; notch marks +Y, small marks show the ears |
+| 8-05 | `LatchTest-PileSeat.step` | print, ring recess up, 0.4 mm nozzle | 1 | OD 144. Holds one steel plate ring flush with its top; notch marks +Y, small marks show the ears; a 0 to 10 mm slide scale right of the notch |
 | 8-06 | `LatchTest-Base-acrylic-3mm.dxf` | laser-cut 1/8 in acrylic | 1 | cut file (layer CUT) |
-| 8-06 | `LatchTest-Base-acrylic-3mm-engrave.dxf` | laser-engrave, same origin | 1 | seat outline. Its two slide ticks end up under the seat and are not used; see Assembly step 7 |
+| 8-06 | `LatchTest-Base-acrylic-3mm-engrave.dxf` | laser-engrave, same origin | 1 | seat outline and a +Y arrow just outside it |
 | | Cartridges (body + printed-flange collar) | existing print set, `Print 0.4mm nozzle/` | 3 | a plain filter or no filter is fine; CNT is needed only for test 8 |
 
 **Hardware.** The counts are what the test uses; buy about 20 % spares, since small N52 discs chip.
@@ -81,13 +81,13 @@ still usable for tests 1 to 7.
 5. **Bond the plates:** one ring onto each of the three cartridges, and one into the seat recess. The
    seat ring must sit flush with the seat top (the recess is 0.76 mm, the same as the plate). Keep
    loose magnets and plates apart while the glue cures.
-6. **Mount the seat** on the acrylic base with three M3 x 16 screws, the seat's +Y notch on the
-   engraved +Y mark. Fit the rubber feet.
-7. **Mark the slide scale on the seat.** The base's engraved ticks sit at r 56 and r 66 from the
-   center, under the seat (r 66), so they cannot be read. Instead, on the seat top 3 to 7 mm to the
-   right of its +Y notch, draw ticks at 56, 58, 60, 62 and 64 mm from the seat center; the seat's
-   outer edge is the 66 mm (10 mm slide) tick. The pointer is the tool's outer rim beside its +Y
-   notch, which sits at r 56 when the tool is on an aligned combo. Read it looking straight down.
+6. **Mount the seat** on the acrylic base with three M3 x 16 screws, the seat's +Y notch at the
+   engraved +Y arrow. Fit the rubber feet.
+7. **Check the slide scale.** The seat top carries six grooves just right of its +Y notch, at 56 to
+   66 mm from the seat center: one tick per 2 mm of slide, the long ones at 0 and 10 mm. The pointer
+   is the corner of the pull tool's +Y notch, which sits at r 56 (the 0 tick) when the tool is on an
+   aligned combo. Read it looking straight down; as the tool slides, the tick at its rim is the slide.
+   (Seats printed before #227 have no scale: draw the same ticks with a fine marker.)
 8. **Seat a cartridge in each mask** to make three combos, one per recess. The pick magnets stay out
    of the tool until P2.
 
@@ -282,3 +282,5 @@ Repeated trials and notes:
   - lowering the tool 0.05 mm makes the balls collide (control case).
 - **Pick magnets:** all six sit 100 % over the plate ring.
 - **Seat:** the ring recess is 0.76 mm deep, the plate thickness.
+- **Slide scale:** six ticks at r 56 to 66, 1.06 mm outside the plate recess and 5 mm inside the seat rim,
+  clear of the +Y notch; the pull tool's notch corner, the pointer, sits at r 55.96 on the 0 tick.
