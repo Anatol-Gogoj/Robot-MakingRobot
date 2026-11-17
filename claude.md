@@ -952,7 +952,7 @@ Both UIs carry functionally equivalent — not byte-identical — spincoater par
 | pi-panel/README.md | `pi-panel/` | Pi panel setup guide (OS, venv, udev, kiosk, systemd, buttons, safety) |
 | tools/contrast_check.py | `tools/` | WCAG contrast checker for the UI color themes (parses the theme blocks out of both HTML files) |
 | tools/build_box_model.py | `tools/` | Builds the control box's 3D block model in FreeCAD from `tools/draw_wiring.py` (frame, plates, panels, `DeckSolids()`), refuses overlapping solids, and writes `CAD/Control Box/ControlBoxBlocks.FCStd` and `.step`. Run it inside FreeCAD; see `docs/wiring/README.md` |
-| tools/build_filter_cartridge.py | `tools/` | Builds the filter cartridge (bayonet collar, body, 430 plate), the mask with its ball coupling, and the head-ring reference; checks every part, the fits, the bayonet twist path and the stacking, and writes `CAD/Filter Cartridge/` plus the 0.4 mm-nozzle print set. Run with `freecadcmd` |
+| tools/build_filter_cartridge.py | `tools/` | Builds the filter cartridge (bayonet collar, body, galvanized steel plate), the mask with its ball coupling, and the head-ring reference; checks every part, the fits, the bayonet twist path and the stacking, and writes `CAD/Filter Cartridge/` plus the 0.4 mm-nozzle print set. Run with `freecadcmd` |
 | tools/build_latch_test.py | `tools/` | Builds the combo-pile latch test (three test masks with latch-magnet pockets, a pull tool standing in for the Gripper-B ring face, a pile seat, the acrylic base DXFs) from `tools/build_filter_cartridge.py`'s geometry, checks it, and writes `CAD/Filter Cartridge/Latch test/`; the test procedure is that folder's `README.md`. Run with `freecadcmd` |
 
 ## What's Left To Do

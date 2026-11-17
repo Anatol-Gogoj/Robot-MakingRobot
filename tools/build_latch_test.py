@@ -48,7 +48,7 @@ L = dict(
     HubD=22.0,
     HubHoleD=8.0,
     SpokeW=8.0,
-    # pile seat: holds one 430 plate ring flush with its top
+    # pile seat: holds one steel plate ring flush with its top
     SeatOD=132.0,
     SeatH=12.0,
     SeatBoreD=80.0,
@@ -134,7 +134,7 @@ def PileSeat(p):
     H = L["SeatH"]
     s = Part.makeCylinder(L["SeatOD"] / 2, H)
     s = s.cut(Part.makeCylinder(L["SeatBoreD"] / 2, H + 1, V(0, 0, -0.5)))
-    # recess for the 430 plate ring, flush with the top
+    # recess for the steel plate ring, flush with the top
     s = s.cut(Annulus(p["PlateID"] / 2 - 0.2, p["PlateOD"] / 2 + 0.2, H - p["PlateT"], H + 0.1))
     for a in L["SeatScrewAngles"]:
         hole = Part.makeCylinder(1.7, H + 1, V(L["SeatScrewR"], 0, -0.5))
