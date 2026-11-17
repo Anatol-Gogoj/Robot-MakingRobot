@@ -49,9 +49,9 @@ to feed a line in. That is all of it: no browser, no headless Chrome, no mock fr
 
 ## Expected result on `main`
 
-**`node tests/run.mjs` on `main` reports 22 passed, 0 failed, 0 skipped** (measured 2026-10-20,
-with #48 fixed, the Segment Runner checks archived by #173, and the #182 and #183 checks
-added). Any failure, or a change in that count, is a regression.
+**`node tests/run.mjs` reports 27 passed, 0 failed, 0 skipped** (measured 2026-11-11 with the
+#218 panel-button check added; it was 22 on 2026-10-20, after #48, #173, #182 and #183). Any
+failure, or a change in that count, is a regression.
 
 Until #48 was fixed, `ok attribution: Controller`, `ok attribution: Touch` and
 `homing indicator: Touch` failed on `main` as its reproductions: a foreign `ok` (for example from

@@ -39,19 +39,32 @@ def Load(path):
     return polys, circles
 
 
+def ArcPoints(p, q, bulge, n=32):
+    """Points along the arc from p to q with the given bulge (tan of a quarter of its sweep, positive
+    counter-clockwise): its centre lies off the chord's midpoint by chord * (1 - b^2) / (4 b)."""
+    (x1, y1), (x2, y2) = p, q
+    c = math.hypot(x2 - x1, y2 - y1)
+    if c == 0.0:
+        return [p]
+    off = c * (1 - bulge * bulge) / (4 * bulge)
+    cx = (x1 + x2) / 2 - (y2 - y1) / c * off
+    cy = (y1 + y2) / 2 + (x2 - x1) / c * off
+    r = math.hypot(x1 - cx, y1 - cy)
+    a0, sweep = math.atan2(y1 - cy, x1 - cx), 4 * math.atan(bulge)
+    return [(cx + r * math.cos(a0 + sweep * k / n), cy + r * math.sin(a0 + sweep * k / n)) for k in range(n + 1)]
+
+
 def Bbox(poly):
-    """Bounding box of an obround or rectangle (bulge arcs are half circles on the short side)."""
-    xs = [p[0] for p in poly["pts"]]
-    ys = [p[1] for p in poly["pts"]]
-    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-    if any(p[2] for p in poly["pts"]):
-        if x1 - x0 > y1 - y0:
-            r = (y1 - y0) / 2
-            x0, x1 = x0 - r, x1 + r
-        else:
-            r = (x1 - x0) / 2
-            y0, y1 = y0 - r, y1 + r
-    return x0, y0, x1, y1
+    """Bounding box of a closed polyline, following every bulge arc (an obround's half circles, a
+    rounded rectangle's quarter circles)."""
+    pts = poly["pts"]
+    xy = []
+    for i, (x, y, b) in enumerate(pts):
+        nx, ny, _ = pts[(i + 1) % len(pts)]
+        xy += ArcPoints((x, y), (nx, ny), b) if b else [(x, y)]
+    xs = [p[0] for p in xy]
+    ys = [p[1] for p in xy]
+    return min(xs), min(ys), max(xs), max(ys)
 
 
 def Main(path):

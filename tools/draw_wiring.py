@@ -411,7 +411,7 @@ def BuildSchematic():
     sh.Text(80, 46.2, "V-  12 AWG", size=1.6)
 
     # ------------------------------------------------ FB1 and its loads
-    fb1Drops = [(118, "F1-1", ""), (142, "F1-2", "3 A"), (166, "F1-3", ""),
+    fb1Drops = [(118, "F1-1", ""), (142, "F1-2", "3 A"), (166, "F1-3", "3 A"),
                 (190, "F1-4", "3 A"), (210, "F1-5", "3 A"), (230, "F1-6", "")]
     sh.Text(104, 23.3, "FB1", size=2.4, weight="bold", fill=TolBlue)
     sh.Text(104, 25.6, "12-way", size=1.6)
@@ -424,9 +424,10 @@ def BuildSchematic():
         FuseV(sh, x, fb1Y, 26.0, "va")
         sh.Text(x + 1.6, 22.3, name, size=1.7)
         sh.Text(x + 1.6, 24.4, amp, size=1.7)
-    # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel; the Mega runs on the Pi's USB
-    # and the screen on the Pi, so F1-1 and F1-3 (the Mega buck and the screen supply) are spare
-    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)")]
+    # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel and the Mega runs on the Pi's USB,
+    # so F1-1 (the Mega buck) is spare; since 2026-11-12 F1-3 feeds the screen's 12 V DC-DC (ADR-0020)
+    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)"),
+             (166, "12 V DC-DC", "DDR-60G-12", "12 V to screen (note 6)")]
     for x, l1, l2, outLabel in bucks:
         sh.Wire([(x, 26.0), (x, 28.0)], "va")
         sh.Rect(x - 8, 28.0, 16, 8.5, "bx")
@@ -451,7 +452,7 @@ def BuildSchematic():
     sh.Rect(104.2, sY - 2.0, 4.6, 4.0, "bx")
     sh.Text(106.5, sY + 0.75, "S", size=2.2, anchor="middle", weight="bold")
     sh.Text(170, sY - 1.0, "Star S at PSU V-: every 0 V return lands here on its own wire", size=1.7)
-    for x in (137,):
+    for x in (137, 161):
         sh.Dot(x, sY)
     # servo PSU IN- tag stub and 0V-P drop and PE bond
     sh.Wire([(222, sY), (222, sY + 3.0)], "zp")
@@ -823,7 +824,7 @@ def BuildSchematic():
     sh.Text(243, 166.6, "touch", size=1.5, anchor="middle", weight="bold")
     sh.Text(243, 168.8, "screen", size=1.5, anchor="middle", weight="bold")
     sh.Wire([(243, 170.6), (243, 172.6)], "lv")
-    Tag(sh, 243, 174.0, "from the Pi", "lv", side="left", size=1.3)
+    Tag(sh, 243, 174.0, "12 V DC-DC, F1-3", "lv", side="left", size=1.3)
     # tower SSRs
     gp = [(170.0, "5", "red"), (174.0, "6", "amber"), (178.0, "13", "green"), (182.0, "26", "buzzer")]
     sh.Rect(190, 168.0, 14, 16.0, "bx")
@@ -871,9 +872,23 @@ def BuildSchematic():
     sh.Text(146.4, 196.6, "home", size=1.2, anchor="end")
     sh.Text(146.4, 198.2, "button", size=1.2, anchor="end")
     sh.Text(146.4, 199.8, "(optional)", size=1.2, anchor="end")
-    sh.Text(178.8, 199.0, "rmr_io.json: estop pin 20, nc true,", size=1.3)
-    sh.Text(178.8, 200.8, "cmd null (annunciate only);", size=1.3)
-    sh.Text(178.8, 202.6, "tower 5/6/13/26 active high", size=1.3)
+    # S6 Start / Resume (GPIO 16) and S7 Stop (GPIO 25), the panel's flush buttons (issue #218):
+    # NO to GND, internal pull-ups, on the GND return the home button and S2 NC2 share
+    for gy, gx, pin, tag in ((191.0, 183.0, "16", "S6"), (187.0, 189.0, "25", "S7")):
+        sh.Wire([(pX1, gy), (gx, gy), (gx, 196.0)], "sg")
+        sh.Text(pX1 - 0.4, gy + 0.5, pin, size=1.4, anchor="end", weight="bold")
+        ContactV(sh, gx, 196.0, "NO")
+        sh.Wire([(gx, 197.8), (gx, 205.0)], "sg")
+        sh.Text(gx + 2.0, 197.4, tag, size=1.3, weight="bold")
+    sh.Wire([(174, 205.0), (189.0, 205.0)], "sg")
+    sh.Dot(174, 205.0)
+    sh.Dot(183.0, 205.0)
+    sh.Text(185.0, 199.6, "start", size=1.1)
+    sh.Text(191.0, 199.6, "stop", size=1.1)
+    sh.Text(195.0, 197.4, "rmr_io.json: estop pin 20, nc true,", size=1.3)
+    sh.Text(195.0, 199.2, "cmd null (annunciate only); start 16", size=1.3)
+    sh.Text(195.0, 201.0, "(action start), stop 25 (cmd M410,", size=1.3)
+    sh.Text(195.0, 202.8, "action stop); tower 5/6/13/26 active high", size=1.3)
 
     # ------------------------------------------------ legend, notes, title block
     lx, ly = 244.0, 21.0
@@ -890,6 +905,8 @@ def BuildSchematic():
                "5 A; check its rating and the drop along the cable. The Mega runs on the Pi's USB."]),
         ("5", ["Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to",
                "their OFF level. The bootloader's seconds before setup() are not covered."]),
+        ("6", ["12 V DC-DC (ADR-0020), isolated: the screen's DC-12V jack (12 V 2 A; adapter 3 A).",
+               "Its 0 V out is not tied in the box: the Pi's HDMI references it. Plug 5.5 x 2.5 mm."]),
     ]
     ny = 48.0
     sh.Text(lx, ny, "Notes", size=2.4, weight="bold")
@@ -914,7 +931,7 @@ def BuildSchematic():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: wiring schematic",
         "Sheet 1. Legal 14 x 8.5 in, landscape. Print at 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-10-22.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-14, revised 2026-11-12 (#220).",
         "Status: design, not yet wired or tested on the machine.",
         "Sheets 2A and 2B show the same circuits on the two decks.",
     ])
@@ -935,8 +952,9 @@ def BuildSchematic():
 # their order and their places relative to each other but not their exact distances; sheet 3 gives
 # those.
 # The parts follow the owner's decisions of 2026-10-15: the Pi sits at the operator panel on the 5 V
-# PSU, the Mega runs on the Pi's USB, the screen has no supply of its own, the tower runs on 24 V
-# through SSRs in the box, and the ODrive sits in the spin coater's base. Sheet 1 carries the same.
+# PSU, the Mega runs on the Pi's USB, the tower runs on 24 V through SSRs in the box, and the ODrive
+# sits in the spin coater's base. The screen takes 12 V from a DC-DC on F1-3 (ADR-0020, issue #220).
+# Sheet 1 carries the same.
 
 WirePitch = 0.5                    # paper mm between two tracks of a lane
 WireMargin = 0.45                  # paper mm from a lane's edge to its first track
@@ -1358,6 +1376,10 @@ def SlotWires():
             (2, "lv", "servo PSU.OUT+", "X5.1b", "servo PSU +6 V to X5 6V"),
             (2, "zl", "servo PSU.OUT-", "X5.3b", "servo PSU 0 V to X5 0V"),
             (2, "pe", "bar.3", "bar.2", "lower ground bar to upper ground bar"),
+            (2, "va", "FB1.3", "12 V DC-DC.+Vin", "F1-3 to the 12 V DC-DC +Vin (screen supply)"),
+            (2, "zp", "Star S.P12", "12 V DC-DC.-Vin", "12 V DC-DC -Vin to star S"),
+            (2, "lv", "LL", "12 V DC-DC.+Vo", "screen +12 V: the plug's pigtail, via the lower left grommet"),
+            (2, "zl", "LL", "12 V DC-DC.-Vo", "screen 12 V return, isolated: the same pigtail"),
             (3, "va", "FB1.5", "X2.1b", "F1-5 to X2 1 (E-stop latch)"),
             (3, "ve", "K2.5", "X2.3b", "K2 5 to X2 2b (seal-in, node X)"),
             (3, "ve", "K2.6", "X2.4b", "K2 6 to X2 3 (node Y)"),
@@ -1417,7 +1439,7 @@ def LowerWiring(d):
     d.Face("F3", "y0", "duct", ["out1", "out2", "out3"], ["1", "2", "3"])
     d.Face("F3", "y1", "top", ["in1", "in2", "in3"], ["1", "2", "3"])
     d.Part("Star S", B["Star S"], ["Star S", "uxcell"], size=1.35, rot=-90)
-    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP"], ["", "", ""])
+    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP", "P12"], ["", "", "", ""])
     d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
     d.Part("0V-P", B["0V-P"], ["0V-P 1", "linked to 0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P", "y0", "duct", ["IN", "K2", "LK"], ["in", "", ""])
@@ -1523,6 +1545,8 @@ def UpperWiring(d):
     d.AddLane("to UR", (clamp[0] + 1.0, md[0], clamp[2] - 1.0, BoxW), "y")
     d.AddLane("right wall", (Frame + 1.0, md[1], back1, BoxW - 2.0), "x")
     d.AddLane("behind", (back1, In, bar[0] - 2.0, BoxW - 2.0), "y")
+    dc = B["12 V DC-DC"]
+    d.AddLane("beside DC-DC", (clamp[2], s2[3], dc[0], md[0]), "y")
     d.InLane("S1", "feed duct", y=(s1[1] + s1[3]) / 2)
     d.InLane("S2", "slot 2", x=(s2[0] + s2[2]) / 2)
     d.InLane("S3", "front", y=(s3[1] + s3[3]) / 2)
@@ -1571,6 +1595,10 @@ def UpperWiring(d):
     d.Face("clamp", "y1", "right wall", ["PE"], [""])
     d.Part("bar", bar, ["ground bar"], size=1.1, rot=-90, dashed=True)
     d.Face("bar", "x0", "behind", ["1", "2", "3"], ["", "", ""])
+    # the screen's 12 V DC-DC (ADR-0020): input toward slot 2, output toward the motor duct
+    d.Part("12 V DC-DC", dc, ["12 V DC-DC", "DDR-60G-12", "screen, isolated"], size=1.4)
+    d.Face("12 V DC-DC", "y0", "slot 2", ["+Vin", "-Vin"], ["+24", "0V"])
+    d.Face("12 V DC-DC", "y1", "motor duct 2", ["+Vo", "-Vo"], ["+12V", "0V"])
 
     W = d.W
     for i, ax in enumerate(DriveAxes):
@@ -1749,7 +1777,7 @@ def WireLegend(sh, x, y, w):
     sh.Text(x, y, "Legend", size=2.0, weight="bold")
     items = [("ac", "110 VAC"), ("va", "+24 V always on (FB1)"), ("ve", "+24 V behind K2 (FB2)"),
              ("zp", "0 V power (0V-P, star S)"), ("zs", "0V-S signal 0 V"), ("pe", "PE"),
-             ("lv", "+6 V servo, +5 V Pi"), ("zl", "their 0 V"), ("sg", "signal"),
+             ("lv", "+6 V servo, +5 V Pi, +12 V screen"), ("zl", "their 0 V"), ("sg", "signal"),
              ("sgc", "multi-core signal cable"), ("cb", "motor cable")]
     col = w / 2
     for i, (cls, lab) in enumerate(items):
@@ -1880,7 +1908,8 @@ def MainsWireChecks(d):
 
 
 ExitNotes = {
-    "LL": ["Lower left grommet", "ODrive 24 V: F2-8 and 0V-P 2", "Pi 5 V: the 5 V PSU", "E-stop loop: the door cable from X2"],
+    "LL": ["Lower left grommet", "ODrive 24 V: F2-8 and 0V-P 2", "Pi 5 V: the 5 V PSU",
+           "screen 12 V: the DC-DC's plug pigtail", "E-stop loop: the door cable from X2"],
     "inlet": ["IEC inlet with switch Q0", "L, N, PE"],
     "gland": ["M20 gland: door 110 V", "X1 1-3 and PE"],
     "UL": ["Upper left grommet: field cables", "X4 to the endstops, a pair each; X5 to the servos;",
@@ -1891,10 +1920,10 @@ ExitNotes = {
     "UR": ["Upper right grommet", "X7 to the tower, 1 motor cable"],
 }
 FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "spare"],
-           "FB1": ["spare", "5 V PSU", "spare", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
+           "FB1": ["spare", "5 V PSU", "12 V DC-DC", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
                    "spare"]}
 FuseAmps = {"FB2": ["5", "5", "5", "5", "5", "5", "5", "10", "3", "2", "2", ""],
-            "FB1": ["", "3", "", "3", "3", "", "", "", "", "", "", ""]}
+            "FB1": ["", "3", "3", "3", "3", "", "", "", "", "", "", ""]}
 
 
 def WireNotes(deck):
@@ -1902,13 +1931,13 @@ def WireNotes(deck):
         "Seen from above, front at the left, so the left wall is at the top. Each part sits where sheet 3",
         "puts it; ducts and channels are drawn wider than scale so that every wire shows: measure from sheet 3.",
         "Terminals are drawn on the face their wires leave from; read the real order off each part.",
-        "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU, the Mega runs on the Pi's USB and",
-        "the screen has no supply of its own: F1-1, F1-3, X8 and X2 4-5 are spare (NC2 and the home button",
-        "are wired at the panel). The ODrive sits in the spin coater's base.",
+        "Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU and the Mega runs on the Pi's USB:",
+        "F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in",
+        "the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).",
         "Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to",
         "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V",
-        "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. Everything else: the 20 AWG on hand,",
-        "copper-clad aluminum (about 3 A), only on fuses of 3 A or less.",
+        "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG",
+        "pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.",
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
         "0 V meets PE only at star S, by its one wire to the lower ground bar.",
         "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
@@ -1917,7 +1946,7 @@ def WireNotes(deck):
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
             "terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),",
-            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2, F1-4 and F1-5 3 A; F0 1 A T.",
+            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.",
             "The PSU's terminal order is assumed."]
     return common + [
         "Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper",
@@ -1954,7 +1983,7 @@ def BuildDeckWiring(deck):
         "RMR control panel: %s deck wiring" % deck,
         "Sheet 2%s (2%s: %s deck). Legal 14 x 8.5 in, landscape, 100 %%." % (("A", "B", "upper") if lower else
                                                                             ("B", "A", "lower")),
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-10-22.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-11-12 (#220).",
         "Status: design, not yet built or tested.",
         "Circuits: sheet 1. Positions: sheet 3. Frame and PE: sheet 4.",
     ])
@@ -2007,6 +2036,7 @@ NameParts = [
                     "C (syringe)", "drivers rail"),
         ("shield clamp", "grips the motor cables' shields, bonded to PE", "past the drivers"),
         ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
+        ("12 V DC-DC", "Mean Well DDR-60G-12, isolated: 12 V for the screen, fed by F1-3", "behind slot 2"),
     ]),
     ("Outside the box (sheet 1)", [
         ("S1, H1", "panel knob that switches K1 on; H1 its lamp, lit while K1 is in", "operator panel"),
@@ -2014,8 +2044,11 @@ NameParts = [
         ("S3", "Reset push button (NO): pulls K2 in after an E-stop", "operator panel"),
         ("S4", "lid switch in series with the UV array: closed = lid shut", "lid"),
         ("S5", "lid switch to Mega pin 39 (UV_LID_INTERLOCK, off for now)", "lid"),
+        ("S6", "Start / Resume push button (NO, green): Pi GPIO 16, Run All or resume a hold", "operator panel"),
+        ("S7", "Stop push button (NO, red): Pi GPIO 25, M410 and a soft stop of the run", "operator panel"),
         ("D1", "1N4007 across the argon valve's coil, band to +", "at the valve"),
         ("Pi", "Raspberry Pi 5 with the touch screen, runs rmr_bridge.py", "operator panel"),
+        ("screen", "10.1 in touch screen: HDMI and USB from the Pi, 12 V from the DC-DC", "operator panel"),
         ("ODrive", "ODrive S1 spin coater drive; J11 is its UART", "spin coater base"),
         ("X, Y (nodes)", "E-stop latch nodes: X after NC1, Y after S3 (sheet 1, rung B)", ""),
     ]),
@@ -2026,11 +2059,11 @@ NameEntries = [
     ("ULM", "upper left grommet 2: 6 motor cables, gantry PE"),
     ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
     ("UR", "upper right grommet: X7 tower, 1 motor cable"),
-    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, door cable"),
+    ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, screen 12 V, door cable"),
     ("inlet", "IEC inlet with switch Q0, back panel"),
     ("gland", "M20 gland, back panel: door 110 V cable"),
     ("slot 1", "upper plate: driver +V and 0 V"),
-    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link"),
+    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link, 12 V DC-DC"),
     ("slot 3", "upper plate: E-stop latch, pin 43, door cable"),
 ]
 
@@ -2109,6 +2142,7 @@ def TerminalPlan(d):
     grommet a wire passes, or ''. A wire to a slot is followed to its end on the other deck."""
     slotUp = dict(((s, b), a) for s, _, a, b, _ in SlotWires())
     slotLo = dict(((s, a), b) for s, _, a, b, _ in SlotWires())
+    slotWhat = dict(((s, b), what) for s, _, a, b, what in SlotWires() if a == "LL")
     out = {}
     for w in d.Wires:
         for here, there in ((w["a"], w["b"]), (w["b"], w["a"])):
@@ -2118,7 +2152,8 @@ def TerminalPlan(d):
             if there in ("S1", "S2", "S3"):
                 s = int(there[1])
                 far = slotUp.get((s, here)) if d.Deck == "upper" else slotLo.get((s, here))
-                text, by = (NameEnd(far) if far != "LL" else "door cable, LL"), "slot %d" % s
+                text = NameEnd(far) if far != "LL" else slotWhat[(s, here)].split(":")[0] + ", LL"
+                by = "slot %d" % s
             elif "#" in there or there in ("LL", "ULM"):
                 text, by = None, NameEnd(there)
             else:
@@ -2241,15 +2276,214 @@ def BuildNomenclature():
 # A render of the operator panel as it might look, seen from the front: the 10 in touch screen with the
 # Pi behind it, S1 (the power knob, its H1 lamp inside), S2 (the E-stop) and S3 (Reset), as ordered on
 # 2026-09-14: a 22 mm latching rotary selector with a green 110 V lamp, a 2NC red mushroom, and a blue
-# momentary button. The screen shows the Touch UI's Jog tab. Sizes are assumed (OpPanel): the screen is
-# a generic 10.1 in HDMI module and the housing is not designed yet. A faint extension of the housing,
+# momentary button. The screen shows the Touch UI's Jog tab. The housing behind the plate is not
+# designed yet; the plate, the display and the controls come from the layout below. A faint extension of the housing,
 # inside a dashed outline round the whole future panel, holds a pad of arrow keys and a select key to
 # drive the screen without touching it; nothing about it is designed (OpNav).
-OpScale = 1.5                                      # real mm per paper mm
-OpPanel = (360.0, 220.0)                           # housing front, assumed
-OpScreen = (15.0, 25.0, 257.0, 170.0)              # screen module: x, y, width, height, assumed (10.1 in)
-OpActive = (17.5, 15.0, 222.0, 125.0)              # active area inside the module: dx, dy, width, height
+# Issue #218 added S6 (green, Start / Resume) and S7 (red, Stop), two 22 mm flush buttons read by the Pi
+# on GPIO 16 and 25, and took the layout the owner laid out on the bench on 2026-11-11: the screen in the
+# middle, S2 above S1 to its left, and S3, S6, S7 from top to bottom to its right. Issue #219 moved S3 into
+# the left column (owner, 2026-11-11): E-stop, Reset and power on one side, so recovering from an E-stop
+# never reaches across the screen, and the right column keeps only the Pi's soft Start and Stop.
+OpScale = 1.75                                     # real mm per paper mm
 OpNav = (34.0, 24.0, 28.0)                         # future pad: key pitch, arrow key side, select key diameter
+
+# The operator panel's layout (issue #219), shared by sheet 2D and tools/build_operator_panel.py, which
+# builds the FreeCAD model in CAD/Operator Panel. Millimetres, origin at the centre of the display's
+# front face, x to the right and y up as the operator sees the panel.
+# The display, from the owner's 3D scan of 2026-11-11 (CR-Scan Otter, 0.27 mm voxels; the scan stays
+# out of git in CAD/DisplayScan), taken face down on a table whose plane fits to 0.11 mm rms, so the
+# table is its front face. The scan reads 159.7 mm where the owner measured 160.
+OpDisplay = (244.7, 159.7, 5.4)                    # body at 1 to 3 mm off the front face: width, height, corner R
+OpDisplayWall = 8.0                                # its sides run straight back from the front face this far
+OpDisplayEdge = 10.0                               # ... then round over onto the back, which is this far back at the edge
+OpDisplayBack = 13.3                               # the back rises to this next to the rear housing
+OpHousing = (150.7, 96.6, 9.5, 40.5)               # rear housing: width, height, corner R, its back face from the front
+OpVesaHalf = 37.5                                  # VESA 75 holes at +-37.5 (the scan: +-37.6, centred within 0.2)
+OpVesaHoleD = 4.0                                  # M4; the scan cannot see into the holes, so their depth is unknown
+OpPorts = (-34.0, 30.0, 20.0, 28.0)                # port openings in the housing's left end: y from, y to, depth from, to
+# The display's two fans vent through the rear housing's back face (owner's photo, 2026-11-12): a ring of
+# slots each, seen in the scan centred at (+-41, -2) and about 40 mm across (the photo, scaled by the
+# VESA pitch: 38). The bracket must leave both open, and nothing may sit closer behind them than
+# OpFanExhaust, so the air can turn and leave sideways.
+OpFans = [(41.0, -2.0), (-41.0, -2.0)]             # grille centres, x and y as the layout's
+OpFanD = 40.0                                      # grille diameter
+OpFanClear = 3.0                                   # bracket cut-out radius beyond the grille
+OpFanExhaust = 20.0                                # least depth of free air behind a grille
+OpBezel = (14.0, 12.0)                             # owner: front face edge to the lit area, short sides and long sides
+OpLit = (OpDisplay[0] - 2 * OpBezel[0], OpDisplay[1] - 2 * OpBezel[1])   # 216.7 x 135.7, a 10.1 in 16:10 panel
+OpWindowMargin = 3.0                               # window = lit area plus this all round, so the plate's edge does not
+                                                   # shade the UI's edge targets (tab bar, Connected) seen off axis
+OpWindow = (OpLit[0] + 2 * OpWindowMargin, OpLit[1] + 2 * OpWindowMargin)
+# The front plate, laser cut from the owner's 1/8 in cast acrylic. S2's collar clamps the plate and its
+# yellow legend plate together, so plate + legend plate must stay within OpPlateMaxT: 3/16 in (4.76) with
+# a 1.5 mm legend plate would be 6.26. A thicker plate needs the real legend plate measured first.
+OpPlate = (408.0, 228.0, 1.0)                      # width, height, corner R: the 2020 ring behind it clears the
+                                                   # controls' bodies and the cradle (OpFrameGap); a corner R
+                                                   # above 1 would leave the ring's square corners showing past it
+OpPlateT = 3.175                                   # 1/8 in
+# The controls: name, kind, x, y. The bench layout of 2026-11-11 (issue #218) with S3 moved under S2 (#219):
+# the left column is E-stop, Reset, power; the right is Start and Stop. The columns sit far enough
+# out that the bodies behind the plate (OpRearBody) clear the cradle.
+OpControls = [("S2", "estop", -158.0, 66.0), ("S3", "blue", -158.0, 0.0), ("S1", "selector", -158.0, -50.0),
+              ("S6", "green", 158.0, 35.0), ("S7", "red", 158.0, -35.0)]
+# Assumed, not measured: each control's body behind the plate (square across, depth from the plate's back
+# face) and its parts in front of the plate (diameter, height).
+OpRearBody = {"estop": (40.0, 60.0), "selector": (32.0, 55.0), "blue": (32.0, 50.0), "green": (32.0, 50.0),
+              "red": (32.0, 50.0)}
+OpLegendPlate = (60.0, 1.5)                        # S2's yellow legend plate
+OpFront = {"estop": (40.0, 30.0), "selector": (30.0, 9.0), "blue": (30.0, 9.0), "green": (30.0, 9.0),
+           "red": (30.0, 9.0)}
+# The printed cradle behind the plate: a ring round the display's straight sides, screwed to the plate
+# from the front (M3 into heat-set inserts), locates the display. A printed bracket standing on the ring
+# presses it forward against the plate through closed-cell foam pads on the rear housing's back face. No
+# screw goes into the VESA holes: with one, the bracket would fix the display's depth twice over.
+OpCradleGap, OpCradleWall, OpCradleDepth = 0.5, 10.0, 7.0
+# The cradle in two PETG pieces for a 256 mm bed (Bambu P1S): split on its top and bottom sides with a
+# 24 mm half lap, clear of the bracket's legs and of every screw. The plate holds each piece with four
+# M3 screws, so the lap only keeps the pocket's walls in line.
+OpCradleLap = (16.0, 40.0, 0.2)                    # lap from x, to x, gap at each end of a tongue (as printed and
+                                                   # fitted by the owner, 2026-11-12)
+OpPrintBed = 256.0                                 # Bambu P1S, square
+OpBracket = (95.0, 5.0, 30.0)                      # pad plate side, thickness, width of the legs and the arm
+OpBracketGap = 0.0                                 # bracket to housing, installed: the face bears on the housing
+OpBracketPress = 0.0                               # how much shorter the printed legs are than the gap they span.
+                                                   # The angled struts make the bracket stiff, so any interference
+                                                   # loads the display hard: it is printed to exact contact, 2 mm
+                                                   # shorter than the foam design (owner, 2026-11-12); shim if it rattles
+OpPadD = 15.0                                      # foam pads, one by each VESA hole, when OpBracketGap > 0
+# The bracket is a trapezoid seen from the side (owner, 2026-11-12: "/_\" rather than an upside-down U):
+# from each end of the pad plate a straight strut runs down at an angle, past the housing's side and over
+# the display's back, to a foot on the ring. An M3 x OpLegScrewL goes down through each foot into the
+# ring's inserts at x = +-8, its head reached straight from behind through a counterbore cut down through
+# the strut, so a short screw does (the owner has nothing over M3 x 30).
+OpLegFoot = 6.0                                    # foot thickness on the ring
+OpLegStrut = (3.0, 6.0)                            # strut: starts this far past the housing's side, thickness
+OpLegClear = 2.0                                   # least gap from a strut to the display
+OpLegScrewX = 8.0                                  # the two foot screws, x = +-8 (the fitted cradle's inserts)
+OpLegCbore = 6.2                                   # access counterbore over each screw head (M3 socket head 5.5)
+OpScrewD, OpInsertD, OpInsertL = 3.4, 4.2, 6.0     # M3 clearance, heat-set insert hole (the owner drills it out to
+                                                   # suit), its depth: 6 of the ring's 7 mm (owner wants 6 to 8,
+                                                   # 2026-11-12), so a 1 mm floor stays (set flush: a melt
+                                                   # lip on the ring's front would hold it off the plate)
+OpInsert = (4.0, 5.0)                              # the insert: M3 x 4 x 5 from the owner's stock (lengths 4, 6, 8;
+                                                   # 5 OD), leaving 2 mm of the hole for melt and the screw tip
+OpScrewHeadD = 5.5                                 # M3 pan head
+OpCradleScrewL = 8.0                               # M3 x 8 through the plate into the ring's front inserts
+OpLegScrewL = 10.0                                 # M3 x 10 through each foot into the ring's back inserts
+
+
+def OpRing():
+    """The cradle ring: pocket (w, h, r), outside (w, h, r), and the centre lines of its sides (x, z)."""
+    bw, bh, br = OpDisplay
+    iw, ih, ir = bw + 2 * OpCradleGap, bh + 2 * OpCradleGap, br + OpCradleGap
+    return (iw, ih, ir), (iw + 2 * OpCradleWall, ih + 2 * OpCradleWall, ir + OpCradleWall), \
+        (iw / 2 + OpCradleWall / 2, ih / 2 + OpCradleWall / 2)
+
+
+def OpCradleScrews():
+    """Screws through the plate into the ring's front: two on each side, clear of S2's legend plate."""
+    rx, rz = OpRing()[2]
+    return [(sx * rx, sz * 45.0) for sx in (1, -1) for sz in (1, -1)] + \
+           [(sx * 60.0, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+
+
+def OpLegScrews():
+    """Screws down the bracket's legs into the ring's back, on its top and bottom sides."""
+    rz = OpRing()[2][1]
+    return [(sx * OpLegScrewX, sz * rz) for sx in (1, -1) for sz in (1, -1)]
+
+
+# The frame (owner, 2026-11-11): a ring of 2020 (6 mm slot, the 1000 mm sticks of the frame order, 4 spare)
+# on the plate's back edge stiffens the 1/8 in acrylic, and two vertical spines behind the display carry a
+# monitor spring arm on their back slots. Joints: the side posts are tapped M5 at their ends (the M5 tap,
+# 4.2 core) and held by M5 x 30 through 5.56 mm holes drilled across the top and bottom rails, from the
+# rails' outer faces; each riser is tapped M5 at its back end and held by M5 x 30 through a 5.56 mm hole
+# drilled across its spine, from the spine's back face (never through the rail: that head would sit under
+# the acrylic). Each M5 x 30 takes a DIN 125 washer, since its head bridges the 6 mm slot on 1.35 mm of lip.
+# Each riser's front end stands on the rail's back face with a cast corner bracket on both sides
+# (OpRiserBrackets), because pulling the panel to move the arm puts that joint in tension. The plate screws
+# to the ring with M5 x 8 into M5 roll-in T-nuts, and the arm's VESA plate to the spines with M4 x 8 into
+# M4 roll-in T-nuts: the arm's own M4 x 10 to 16 would bottom on the slot floor.
+OpProfile = 20.0                                   # 2020
+OpFrameGap = 3.0                                   # least clearance from the ring to a control's body or the cradle
+OpFrameScrewD, OpFrameScrewHeadD = 5.5, 8.7        # M5 x 8 socket head through the plate into the ring's front slot
+OpSpineX, OpSpineY = 50.0, 62.0                    # spines' centre lines at x = +-50 (VESA 100), their front face
+                                                   # Y 62: each spine crosses half a fan grille (OpFans), so it
+                                                   # stands 21.5 mm behind the vents, not 10.5
+OpArmVesa = 100.0                                  # the arm's VESA plate, screwed to the spines' back slots
+OpArmPlate = (120.0, 3.0)                          # assumed: the arm's plate, square, thickness
+OpBracketKit = 17.0                                # cast corner bracket, 17 x 20 mm (the kit's listing)
+OpRiserBrackets = 2                                # per riser, one each side
+OpFrameScrewL, OpArmScrewL, OpJointScrewL = 8.0, 8.0, 30.0   # M5 plate screws, M4 arm screws, M5 joint screws
+
+
+def OpFrameScrews():
+    """M5 x 8 through the plate into the ring: two up each post, five along each rail, off S2's legend plate."""
+    w, h, p = OpPlate[0], OpPlate[1], OpProfile
+    return [(sx * (w / 2 - p / 2), sz * 30.0) for sx in (1, -1) for sz in (1, -1)] + \
+           [(x, sz * (h / 2 - p / 2)) for x in (0.0, 100.0, -100.0, 170.0, -170.0) for sz in (1, -1)]
+
+
+def OpFrameCuts():
+    """The 2020 pieces: (name, count, length mm)."""
+    w, h, p = OpPlate[0], OpPlate[1], OpProfile
+    return [("rail (top, bottom)", 2, w), ("post (left, right)", 2, h - 2 * p), ("spine", 2, h),
+            ("riser", 4, OpSpineY - p)]
+
+
+def OpFrameSticks():
+    """How many 1000 mm sticks the frame's pieces take, first fit by decreasing length (as NestSticks)."""
+    sticks = []
+    for L in sorted((L for _, n, L in OpFrameCuts() for _ in range(n)), reverse=True):
+        for s in sticks:
+            if sum(q + Kerf for q in s) + L + Kerf <= StickL - EndTrim:
+                s.append(L)
+                break
+        else:
+            sticks.append([L])
+    return len(sticks)
+
+
+def OpRoundRect(x0, y0, w, h, r):
+    """A closed rectangle with corner radius r as (x, y, bulge) vertices, counter-clockwise: a bulge of
+    tan(22.5 deg) on the vertex before each corner makes that segment a quarter circle."""
+    q = math.tan(math.pi / 8)
+    x1, y1 = x0 + w, y0 + h
+    return [(x0 + r, y0, 0.0), (x1 - r, y0, q), (x1, y0 + r, 0.0), (x1, y1 - r, q),
+            (x1 - r, y1, 0.0), (x0 + r, y1, q), (x0, y1 - r, 0.0), (x0, y0 + r, q)]
+
+
+def OpPlateDxf():
+    """The operator panel's front plate for the laser (issue #219), as DxfDoc writes the panels: R12,
+    millimetres, layer CUT. Drawn as the operator sees it, so cut it front face up: origin at the
+    plate's bottom-left corner, x to the right, y up. The outline, the window, the five control holes,
+    the cradle's M3 holes and the ring's M5 holes, all from the layout that sheet 2D and the model use."""
+    w, h, r = OpPlate
+    c = (w / 2, h / 2)
+    ww, wh = OpWindow
+    contours = [("poly", OpRoundRect(0.0, 0.0, w, h, r)),
+                ("poly", OpRoundRect(c[0] - ww / 2, c[1] - wh / 2, ww, wh, 1.0))]
+    contours += [("circle", c[0] + x, c[1] + y, OpHoleD) for _, _, x, y in OpControls]
+    contours += [("circle", c[0] + x, c[1] + y, OpScrewD) for x, y in OpCradleScrews()]
+    contours += [("circle", c[0] + x, c[1] + y, OpFrameScrewD) for x, y in OpFrameScrews()]
+    if w + 2 * NestGap > min(SheetW, LaserBed[0]) or h + 2 * NestGap > min(SheetH, LaserBed[1]):
+        raise ValueError("the operator plate does not fit a 24 x 18 in sheet on the laser bed")
+    return DxfDoc((w, h), contours)
+
+
+def OpBomUse():
+    """What the operator panel takes from the frame's stock (issue #219)."""
+    screws = len(OpFrameScrews())
+    return {"sticks": OpFrameSticks(), "brackets": 4 * OpRiserBrackets, "m5 nuts": screws, "m5 x 8": screws,
+            "m4 nuts": 4, "m4 x 8": 4, "m5 x 30": 8}
+# Measured by the owner on 2026-11-11: every 22 mm device's threaded collar is 21.8 mm across, and its
+# nut reaches through a front plate 5 to 6 mm thick at most; S2's base clamps with two angled screws
+# whose rounded tips bear on the plate's back face; the screen has a VESA 75 pattern on its back.
+OpCollarD = 21.8                                   # measured collar diameter, mm
+OpHoleD = 22.3                                     # hole to cut for it: the usual 22 mm device hole, unverified here
+OpPlateMaxT = 5.0                                  # thickest front plate the collars clamp, lower end of 5 to 6 mm
+OpVesa = 75.0                                      # screen mount pattern on its back, mm square
 OpWiring = [
     ("S1 power knob", "NO, 110 V", "X1 1 in, X1 2 out", "110 V door cable (M20 gland)"),
     ("H1 lamp, in S1", "110 V", "X1 2 and X1 3 (N)", "110 V door cable"),
@@ -2257,7 +2491,10 @@ OpWiring = [
     ("S2 E-stop", "NC1", "X2 1 (+24 V), X2 2 (node X)", "E-stop loop (LL, slot 3)"),
     ("S2 E-stop", "NC2", "Pi GPIO 20 and GND, 1 k to 3V3", "at the panel"),
     ("S3 Reset", "NO", "X2 2 (node X) to X2 3 (node Y)", "E-stop loop (LL, slot 3)"),
+    ("S6 Start", "NO", "Pi GPIO 16 and GND", "at the panel"),
+    ("S7 Stop", "NO", "Pi GPIO 25 and GND", "at the panel"),
     ("touch screen", "HDMI, USB", "Pi 5", "at the panel"),
+    ("touch screen", "DC-12V jack", "12 V DC-DC (F1-3)", "12 V pigtail (LL)"),
     ("Pi 5", "5 V in", "5 V PSU (F1-2)", "5 V feed (LL)"),
     ("Pi 5", "USB", "Mega", "USB cable (UF)"),
     ("Pi 5", "GPIO 5, 6, 13, 26", "tower SSRs (GND to their inputs -)", "tower inputs (UF)"),
@@ -2277,8 +2514,9 @@ def BuildOperatorPanel():
     """Sheet 2D: the operator panel rendered from the front, its wiring, and the future arrow pad."""
     sh = Sheet("RMR operator panel")
     DrawFrame(sh, "RMR control panel: operator panel",
-              "Sheet 2D: how the operator panel might look from the front, at 1:1.5 with assumed sizes, and what "
-              "each control wires to. The dashed outline is the panel as it may grow.")
+              "Sheet 2D: the operator panel from the front at 1:1.75 (plate, window and display as modelled in "
+              "CAD/Operator Panel; the controls' sizes assumed), and what each control wires to. The dashed outline "
+              "is the panel as it may grow.")
     sh.Add(OpDefs)
     X0, Y0, S = 14.0, 27.0, OpScale
 
@@ -2305,8 +2543,12 @@ def BuildOperatorPanel():
         Rect(x - w / 2, y, w, 9.5 + 4.5 * (len(lines) - 1), "#FFFFFF", sw=0.2, rx=1.5)
         Label(x, y + 6.0, lines, size=1.45)
 
-    W, H = OpPanel
-    # housing, screen module, active area
+    W, H = OpPlate[0], OpPlate[1]
+
+    def L(x, y):                                   # layout (centre, y up) to the sheet's housing frame
+        return W / 2 + x, H / 2 - y
+
+    # the plate, the window onto the display and the lit area, the controls, the screw heads and mounting holes
     # the panel as it may grow: a faint extension joined to the housing's right edge, and a dashed
     # outline round both. Drawn first, so the housing's own outline stays on top where they meet
     pitch, key, sel = OpNav
@@ -2314,9 +2556,12 @@ def BuildOperatorPanel():
     Rect(W - 8.0, 0, ext + 8.0, H, "url(#opHousing)", stroke="none", sw=0, rx=8.0, extra=' fill-opacity=".35"')
     Rect(0, 0, W + ext, H, "none", sw=0.35, rx=8.0, extra=' stroke-dasharray="1.6 1"')
     Rect(0, 0, W, H, "url(#opHousing)", sw=0.4, rx=8.0)
-    sx, sy, sw_, sh_ = OpScreen
-    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=4.0)
-    ax, ay, aw, ah = sx + OpActive[0], sy + OpActive[1], OpActive[2], OpActive[3]
+    # the window in the plate onto the display, and the lit area inside it
+    sw_, sh_ = OpWindow
+    sx, sy = L(-sw_ / 2, sh_ / 2)
+    Rect(sx, sy, sw_, sh_, "url(#opBezel)", sw=0.3, rx=1.0)
+    aw, ah = OpLit
+    ax, ay = L(-aw / 2, ah / 2)
     Rect(ax, ay, aw, ah, "#1E1E24", stroke="#000", sw=0.2)
     # the Touch UI's Jog tab, roughly as it draws in its tol-dark theme
     Rect(ax, ay, aw, 13.0, "#2B2B33", stroke="none", sw=0)
@@ -2342,27 +2587,42 @@ def BuildOperatorPanel():
     for i, t in enumerate(("Step  1 mm", "Feed  3000 mm/min", "A  B  C axes")):
         Rect(ax + 172.0, ay + 38.0 + i * 21.0, 44.0, 16.0, "#33333C", stroke="none", sw=0, rx=2.0)
         Label(ax + 194.0, ay + 48.0 + i * 21.0, [t], size=1.2, fill="#DDDDDD", bold0=False)
-    Label(sx + sw_ / 2, sy + sh_ + 9.0, ["10.1 in HDMI touch screen, Pi 5 behind it (Touch UI, Jog tab)"], size=1.5,
-          bold0=False)
+    Label(sx + sw_ / 2, sy + sh_ + 7.0, ["window onto the 10.1 in display, Pi 5 behind it (Touch UI, Jog tab)"],
+          size=1.5, bold0=False)
 
-    # the controls column: E-stop on its yellow plate, Reset, the power knob with its lamp
-    kx = 316.0
-    Disc(kx, 52.0, 62.0, "#EEDD88", sw=0.3)
-    Disc(kx, 52.0, 34.0, "url(#opRing)", sw=0.2)
-    Disc(kx, 52.0, 42.0, "url(#opRed)", sw=0.35)
-    Label(kx, 47.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
-    Label(kx, 58.5, ["STOP"], size=1.15, fill="#FFFFFF")
-    Plate(kx, 86.0, 50.0, ["S2  E-STOP", "push to stop, twist to release"])
-    Disc(kx, 124.0, 30.0, "url(#opRing)", sw=0.25)
-    Disc(kx, 124.0, 22.0, "url(#opBlue)", sw=0.3)
-    Plate(kx, 142.0, 50.0, ["S3  RESET", "starts the motors after an E-stop"])
-    Disc(kx, 178.0, 30.0, "url(#opRing)", sw=0.25)
-    Disc(kx, 178.0, 23.0, "url(#opGreen)", sw=0.3)
-    Rect(kx - 3.0, 168.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5, extra=' transform="rotate(45 %s %s)"'
-         % tuple(Fmt(v) for v in P(kx, 178.0)))
-    Label(kx - 20.0, 170.0, ["0"], size=1.4)
-    Label(kx + 20.0, 170.0, ["I"], size=1.4)
-    Plate(kx, 195.0, 50.0, ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"])
+    # the M3 pan heads of the cradle screws, and the M5 heads into the 2020 ring
+    for x, y in OpCradleScrews():
+        Disc(*L(x, y), OpScrewHeadD, "#555555", sw=0.15)
+    for x, y in OpFrameScrews():                   # M5 socket heads into the 2020 ring behind the plate
+        Disc(*L(x, y), OpFrameScrewHeadD, "#777777", sw=0.15)
+
+    # the controls where OpControls puts them: the E-stop on its yellow plate and the power knob with its
+    # lamp to the left of the screen; Reset, then the soft Start and Stop the Pi reads (issue #218), to its right
+    text = {"S2": ["S2  E-STOP", "push to stop, twist to release"], "S1": ["S1  POWER, H1 lamp", "on: K1 in, lamp lit"],
+            "S3": ["S3  RESET", "starts the motors after an E-stop"], "S6": ["S6  START", "Run All, or resume a hold"],
+            "S7": ["S7  STOP", "soft stop (M410): the run ends"]}
+    fills = {"blue": "url(#opBlue)", "green": "url(#opGreen)", "red": "url(#opRed)"}
+    for name, kind, x, y in OpControls:
+        kx, ky = L(x, y)
+        if kind == "estop":
+            Disc(kx, ky, OpLegendPlate[0], "#EEDD88", sw=0.3)
+            Disc(kx, ky, 34.0, "url(#opRing)", sw=0.2)
+            Disc(kx, ky, OpFront["estop"][0], "url(#opRed)", sw=0.35)
+            Label(kx, ky - 5.0, ["EMERGENCY"], size=1.15, fill="#FFFFFF")
+            Label(kx, ky + 6.5, ["STOP"], size=1.15, fill="#FFFFFF")
+            Plate(kx, ky + OpLegendPlate[0] / 2 + 3.0, 56.0, text[name])
+        elif kind == "selector":
+            Disc(kx, ky, 30.0, "url(#opRing)", sw=0.25)
+            Disc(kx, ky, 23.0, "url(#opGreen)", sw=0.3)
+            Rect(kx - 3.0, ky - 10.0, 6.0, 20.0, "#1C3A20", stroke="none", sw=0, rx=2.5,
+                 extra=' transform="rotate(45 %s %s)"' % tuple(Fmt(v) for v in P(kx, ky)))
+            Label(kx - 20.0, ky - 8.0, ["0"], size=1.4)
+            Label(kx + 20.0, ky - 8.0, ["I"], size=1.4)
+            Plate(kx, ky + 17.0, 56.0, text[name])
+        else:
+            Disc(kx, ky, 30.0, "url(#opRing)", sw=0.25)
+            Disc(kx, ky, 22.0, fills[kind], sw=0.3)
+            Plate(kx, ky + 18.0, 56.0, text[name])
 
     # the future arrow pad, in the extension drawn first above: four arrow keys round a select key,
     # to move between the screen's controls and press one without touching the screen
@@ -2385,13 +2645,31 @@ def BuildOperatorPanel():
     for i, s2 in enumerate(["To use the screen without touching it (gloves,",
                             "dirty hands). Not designed: how the keys reach",
                             "the Pi (a USB keypad sends arrows and Enter with",
-                            "no new wiring; GPIO keys need new code, since",
-                            "rmr_bridge.py's buttons only send G-code), and",
-                            "how the Touch UI moves between its controls."]):
+                            "no new wiring; GPIO keys would need new bridge",
+                            "actions, as S6 and S7 have), and how the Touch",
+                            "UI moves between its controls."]):
         sh.Text(px, py + i * 2.0, s2, size=1.35, fill="#555555")
 
+    # what the front plate must allow for, from the owner's measurements
+    nx, ny = 168.0, 164.0
+    sh.Text(nx, ny, "Front plate (measured 2026-11-11)", size=2.1, weight="bold")
+    for i, s2 in enumerate([
+            "S1, S2, S3, S6, S7: a %.1f mm hole each; their collars measure %.1f mm." % (OpHoleD, OpCollarD),
+            "Cut one test hole first: %.1f mm is the usual 22 mm device hole, not read" % OpHoleD,
+            "off these parts' listings.",
+            "Plate %.0f to 6 mm thick at most, less any legend plate under a collar" % OpPlateMaxT,
+            "(S2's yellow plate): the collar nuts reach no further.",
+            "S2's base clamps with two angled screws whose round tips bear on the",
+            "plate's back: keep the back flat and bare round its hole.",
+            "Screen: VESA %.0f x %.0f on its back, from the scan of 2026-11-11." % (OpVesa, OpVesa),
+            "Model (issue #219): CAD/Operator Panel, plate %.0f x %.0f x %.2f," % (OpPlate[0], OpPlate[1], OpPlateT),
+            "window %.1f x %.1f onto a %.1f x %.1f display; a 2020 ring" % (OpWindow[0], OpWindow[1], OpDisplay[0],
+                                                                         OpDisplay[1]),
+            "behind it, and two spines for a monitor arm (VESA %.0f)." % OpArmVesa]):
+        sh.Text(nx, ny + 3.6 + i * 2.15, s2, size=1.3)
+
     # what each control wires to
-    tx, ty = 14.0, 182.0
+    tx, ty = 14.0, 164.0
     sh.Text(tx, ty, "Behind the panel", size=2.1, weight="bold")
     cols = (0.0, 30.0, 58.0, 118.0)
     for j, h in enumerate(("control", "contact", "lands on", "cable (by)")):
@@ -2402,8 +2680,8 @@ def BuildOperatorPanel():
     TitleBlock(sh, 256, 186, 92, 21.5, [
         "RMR control panel: operator panel",
         "Sheet 2D (2A, 2B: the decks; 2C: names). Legal 14 x 8.5 in, 100 %.",
-        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (issue #171).",
-        "Status: concept; housing and sizes not designed yet.",
+        "Robot-MakingRobot, docs/wiring. Drawn 2026-10-20 (#171), rev. 2026-11-12 (#218 to #220).",
+        "Status: plate and 2020 frame laid out (#219); the arm not chosen.",
         "Circuits: sheet 1. Terminals: sheet 2C.",
     ])
     return sh
@@ -2736,6 +3014,9 @@ PartSize = {
                                                  # terminal order not measured yet
     "PSU6": (58.0, 63.0, 23.0, True, "clip"),    # servo PSU 63 x 58 x 23, the 63 across its rail
     "PSU5": (76.0, 76.0, 32.0, True, "clip"),    # 5 V PSU 76 x 76 x 32
+    "DDR12": (52.5, 90.0, 54.5, True, "rail"),   # Mean Well DDR-60G-12, the screen's 12 V (ADR-0020):
+                                                 # 52.5 W x 90 H x 54.5 D on TS35 (DDR-60-SPEC,
+                                                 # 2026-03-31, mechanical page)
     "Clamp": (22.0, 124.0, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed
 }
 
@@ -2772,7 +3053,7 @@ CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Upper side, left", 390.0, "most motor cables", "ULM"),
                 ("Upper front", 110.0, "Mega USB, J11, Pi GPIO", "UF"),
                 ("Upper side, right", 292.0, "one motor cable, the tower", "UR"),
-                ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, E-stop loop", "LL")]
+                ("Lower side, left", 390.0, "ODrive 24 V feed, Pi 5 V feed, screen 12 V, E-stop loop", "LL")]
 
 # The lower bay, from the deck to the underside of the upper plate, is the larger of two needs: the
 # tallest lower part plus PartClear, which with the measured PSU lying flat (ADR-0010, issue #202) is
@@ -3040,6 +3321,12 @@ DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left ed
 # from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
 FieldRail0 = 40.0                  # front end of the field terminal rail
 LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
+# The screen's 12 V DC-DC (ADR-0020) has the upper deck's one free spot: between the shield clamp and
+# the back run, behind cable slot 2, on its own short rail along x, its back face level with the
+# drivers'. Its rail reaches Dc12RailEnd past each end of the DC-DC, room for the rail's USLKG 5 ground
+# block (6.2 mm), and stops 1 mm short of the clamp; it gets its input up slot 2 and sends its 12 V down it.
+Dc12X0 = 313.0                     # front end of the DC-DC itself
+Dc12RailEnd = 7.0                  # rail past each end of it
 R24Rail0 = 32.0                    # front end of the 24 V rail: F3, K2, Star S, the 0V-P bars. F3
                                    # (issue #205) clears cable slot 3 by 1 mm; the study had 87
 # The front face of the 24 V PSU, RingClear from the front ring. The study put it at 46.5 for a 215 mm
@@ -4144,6 +4431,8 @@ def UpperRails():
         "SSR": DinRun(False, logic["a1"] + Chan + PartSize["SSR"][1] / 2,
                       RailRun(UpRows["logic"][0] + 5.0, ssr), "SSR", ZoneFill["log"]),
         "drivers": DinRun(True, Row("drivers"), RailRun(DrvX[0], drv), "DRV", ZoneFill["drv"]),
+        "12 V DC-DC": DinRun(True, UpRows["drivers"][1] - PartSize["DDR12"][1] / 2,
+                             RailRun(Dc12X0, [("DDR12", "12 V DC-DC")]), "PS12", ZoneFill["24"], Dc12RailEnd),
     }
 
 
@@ -4446,6 +4735,7 @@ def PlanLabel(s):
                        1.2, 0),
              "PSU6": (["Servo PSU", "6 V, 58 x 63"], 1.1, 0),
              "PSU5": (["5 V PSU", "76 x 76", "Pi at the panel"], 1.2, 0),
+             "DDR12": (["12 V DC-DC", "52.5 x 90", "screen"], 1.1, 0),
              "Clamp": (["shield clamp"], 1.1, -90)}
     if key in fixed:
         return fixed[key]
@@ -4468,7 +4758,7 @@ def BuildPacking():
     upper = UpperRails()
     wireStudy, wireDrawn = StudyScore()
     room = TopIn - UpDeck - DrvH
-    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11, GPIO", "UR": "motor, tower", "LL": "ODrive, Pi, E-stop"}
+    short = {"UL": "field", "ULM": "motors", "UF": "USB, J11, GPIO", "UR": "motor, tower", "LL": "ODrive, Pi, screen, E-stop"}
 
     def Plan(v, deck):
         """Rails first, then ducts, parts and the clamp, each at its footprint."""
@@ -4501,7 +4791,8 @@ def BuildPacking():
 
     # ------------------------------------------------ upper deck plan
     up = View(sh, 10.0, PlanTop, BoxD, BoxW, S, down=True)
-    up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size")
+    up.Title("A  Upper deck, seen from above", "1/16 in aluminum plate on the mid ring; parts at true size. "
+             "Not in the box: the ODrive (spin coater base), the Pi (operator panel)")
     PlanFrame(up, "upper plate %s x %s, part of the upper module" % (Mm(BoxD), Mm(BoxW)), upper=True)
     Plan(up, "upper")
     mega = [p for p in upper["logic"]["run"] if p[0] == "Mega"][0]
@@ -4512,11 +4803,6 @@ def BuildPacking():
     sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) - 0.75, "field rail,", size=1.1)
     sh.Text(up.X(fx1 + 3), up.Y(upper["field"]["centre"]) + 0.85, "%d mm" % round(lengths["field"]),
             size=1.1)
-    # in the open deck between slot 2 and the motor duct, past the shield clamp
-    ax = (ClampBox()[2] + BackRunX - DuctWide / 2) / 2
-    ay = (CableSlots[1][3] + UpRows["motor duct"][0]) / 2
-    for i, s2 in enumerate(["ODrive: in the", "spincoater base", "", "Pi: at the", "operator panel"]):
-        sh.Text(up.X(ax), up.Y(ay) + 1.6 * (i - 2) + 0.4, s2, size=1.1, anchor="middle", italic=True)
     for i, (a0, b0, a1, b1) in enumerate(CableSlots):
         up.Obround(a0, b0, a1, b1, stroke=0.35)
         sh.Text(up.X((a0 + a1) / 2), up.Y((b0 + b1) / 2) + 0.45, "slot %d" % (i + 1), size=1.05,
@@ -4712,7 +4998,8 @@ def BuildPacking():
             "and FB2 153 x 48 x 43; uxcell bar 20 x 78 x",
             "53; SSR 6.1 x 88 x 71 (41F-1Z socket);",
             "UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x",
-            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067).",
+            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067);",
+            "12 V DC-DC 52.5 x 90 x 54.5 (datasheet).",
             "Assumed (dashed): F0, F3, PE blocks, end and",
             "shield clamps, Mega height. Heights add the rail."]),
         ("Layout 3b (ADR-0010)", [
@@ -5970,6 +6257,23 @@ def ShopInchChecks():
 # Quantities come from the frame, panel and bonding constants above.
 BomDate = "2026-10-17"
 Amz, Mc = "Amazon", "McMaster"
+Trc = "TRC Electronics"            # Mean Well distributor: the 12 V DC-DC (issue #220)
+Dk = "Digi-Key"                    # the screen's plug pigtail (issue #220)
+Dc12Date = "2026-11-12"            # its price, read at TRC; Amazon refused automated reads that day
+# The screen's 12 V (ADR-0020): the screen is rated 12 V 2 A and its adapter 12.0 V 3.0 A (the owner's photos
+# of both labels, 2026-11-12); the supply is sized for the adapter.
+# The plug's pigtail is taken as 6 ft of 18 AWG stranded copper, 7.95 ohm per 1000 ft at 75 C (NEC
+# Chapter 9 Table 8), so at the adapter's full current both conductors together drop ScreenDrop() volts.
+ScreenAmps, ScreenVolts, PigtailM, Awg18OhmPerM = 3.0, 12.0, 6 * 0.3048, 7.95 / 304.8
+Dc12Eff, Dc12InMin = 0.91, 22.0       # DDR-60G-12 efficiency at 24 V in (DDR-60-SPEC), and the least input
+                                      # voltage assumed at it after FB1 and the slot 2 run
+
+
+def ScreenDrop():
+    """(volts lost in the pigtail at ScreenAmps, the DC-DC's input current at the most input power)."""
+    return 2 * PigtailM * Awg18OhmPerM * ScreenAmps, ScreenVolts * ScreenAmps / Dc12Eff / Dc12InMin
+
+
 # Purchase plan per line (issue #145), the CSV's Plan column; BomCsv sums the totals by it. Buy:
 # order it; the gantry PE wire is bought with the box (owner, 2026-10-18, issue #149), and the bond
 # survey only sets how much of it the gantry takes. LabFirst: the control box's screws, nuts and
@@ -6023,6 +6327,10 @@ def Link(src, part):
         return "https://www.amazon.com/dp/%s" % part
     if src == Mc:
         return "https://www.mcmaster.com/%s/" % part
+    if src == Dk:
+        return "https://www.digikey.com/en/products/result?keywords=%s" % part
+    if src == Trc:
+        return "https://www.trcelectronics.com/products/mean-well-%s" % part.lower()
     return ""
 
 
@@ -6041,6 +6349,7 @@ def BomRows():
     nBars = sum(b for _, b in bonds.values())
     sticks, pieces = NestSticks(), CutPieces()
     nPieces = sum(n for _, n, _, _ in pieces)
+    op = OpBomUse()                # the operator panel's 2020 frame (issue #219) draws on the same stock
     nSheets = PanelNest()
     nEntries = PanelChecks()
     dinRails = [s for s in DeckSolids() if s["kind"] == "rail"]
@@ -6079,30 +6388,33 @@ def BomRows():
         # ---- frame
         ("Frame", Amz, Buy, "2020 rail, 6 mm slot, 1000 mm, silver, 10-pack", "B08PQPJYHX",
          "IXGNIJ 10 pcs 1000 mm T-slot 2020 European standard anodized rail, 6063-T5, cut +/-0.5 mm",
-         "%d sticks" % len(sticks), "10-pack", 1, 74.99,
-         "%d pieces, %d mm: the sheet 4 cut list" % (nPieces, round(sum(n * L for _, n, L, _ in pieces))),
+         "%d sticks" % (len(sticks) + op["sticks"]), "10-pack", 1, 74.99,
+         "%d pieces, %d mm: the sheet 4 cut list; the operator panel's frame, %d sticks (OpFrameCuts)"
+         % (nPieces, round(sum(n * L for _, n, L, _ in pieces)), op["sticks"]),
          "%d sticks spare. 6 mm slot per the brand's comparison table; measure depth and lip on the first"
-         % (10 - len(sticks))),
+         % (10 - len(sticks) - op["sticks"])),
         ("Frame", Amz, Buy, "Corner bracket kit, 2020, 40 sets", "B0FK9W8KGW",
          "TOCLUX 40 cast corner brackets 17 x 20 mm, 80 M5 sliding T-nuts, 80 M5 socket cap screws, hex key",
-         brackets, "kit of 40", 1, 24.99,
-         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4, gantry mount %d"
-         % mounts,
+         brackets + op["brackets"], "kit of 40", -(-(brackets + op["brackets"] + 1) // 40), 24.99,
+         "bottom 8, lower posts to mid ring 8, mid ring 4, upper posts 8, lid ring 4, gantry mount %d, "
+         "operator panel risers %d; one more for the length stop" % (mounts, op["brackets"]),
          "Slide the kit's nuts in from the rail ends before each joint closes"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M5, 2020, 100", "B0DX7B5ZNN",
          "Yaocom 100 pcs 2020 series M5 half roll-in spring T-nuts",
-         panelScrews + mounts + GantryFeet, "pack of 100", 1, 9.99,
-         "panels %d, gantry mount %d, gantry feet %d (sheet 5)" % (panelScrews, mounts, GantryFeet),
+         panelScrews + mounts + GantryFeet + op["m5 nuts"], "pack of 100", 1, 9.99,
+         "panels %d, gantry mount %d, gantry feet %d (sheet 5), operator plate %d"
+         % (panelScrews, mounts, GantryFeet, op["m5 nuts"]),
          "Spring-leaf roll-in nut: drops in after assembly, so it also goes into the standing gantry. Ball-spring nuts were $8.89 for 25 (B082F9B1TZ)"),
         ("Frame", Amz, Buy, "Roll-in spring T-nut M4, 2020, 100", "B0FLP1BW2M",
          "Yaocom 100 pcs 2020 series M4 half roll-in spring T-nuts",
-         2 * ringScrews + legs, "pack of 100", 1, 9.99,
-         "plate screws %d, upper-post bracket legs %d" % (2 * ringScrews, legs), ""),
+         2 * ringScrews + legs + op["m4 nuts"], "pack of 100", 1, 9.99,
+         "plate screws %d, upper-post bracket legs %d, monitor arm plate %d" % (2 * ringScrews, legs, op["m4 nuts"]), ""),
         ("Frame", Amz, LabFirst, "Socket head M5 x 8, 304, 100", "B0DF75LXL4",
          "Joamang 100 pcs M5-0.8 x 8 304 (A2-70) stainless socket head cap screws, fully threaded, head %s "
          "across, 5 tall" % Mm(HeadM5),
-         panelScrews, "pack of 100", 1, 9.88,
-         "panels %d, mount brackets to the gantry %d" % (panelScrews - mounts, mounts),
+         panelScrews + op["m5 x 8"], "pack of 100", 1, 9.88,
+         "panels %d, mount brackets to the gantry %d, operator plate to its ring %d"
+         % (panelScrews - mounts, mounts, op["m5 x 8"]),
          "Back panel: add a flat washer. Acrylic panels: snug by hand. " + read),
         ("Frame", Amz, LabFirst, "Socket head M5 x 16, 304, 100", "B0GHN9C98P",
          "100 pcs M5-0.8 x 16 304 stainless socket head cap screws",
@@ -6110,10 +6422,12 @@ def BomRows():
          "feet %d, rail bond holes %d" % (len(PostCentres), railBonds), "Also the gantry bond holes"),
         ("Frame", Amz, LabFirst, "M5 socket head assortment, nuts and washers", "B0FGV561HZ",
          "Fgruh 272 pcs: 72 M5 socket cap screws 8 to 35 mm (9 per size), 40 nuts, 80 flat, 80 spring washers",
-         "M5 x 35: %d; x 12: %d; x 10: %d; gantry feet: %d" % (len(PostCentres), mounts // 2, mounts // 2, GantryFeet),
+         "M5 x 35: %d; x 30: %d; x 12: %d; x 10: %d; gantry feet: %d"
+         % (len(PostCentres), op["m5 x 30"], mounts // 2, mounts // 2, GantryFeet),
          "kit", 1, 9.99,
          "lid ring to the upper posts, back panel washers and PE stud, ground bar screws (x 12) and nuts; the "
-         "mount brackets' panel screws (x 12 front, x 10 back); the gantry feet (%s)"
+         "mount brackets' panel screws (x 12 front, x 10 back); the operator panel's frame joints (x 30, with "
+         "flat washers); the gantry feet (%s)"
          % ("length open: measure a foot" if gantry["foot screw"] is None else "x %d" % gantry["foot screw"]),
          "Black 12.9 alloy steel. The listing gives 8 to 35 mm, 9 per size: check it has 10 and 12, and buy a "
          "pack of one length if the ground bar screws and the gantry feet land on it together"),
@@ -6123,7 +6437,8 @@ def BomRows():
         ("Frame", Amz, LabFirst, "M4 socket head assortment, 304", "B0CLM7VMB8",
          "Sutemribor 385 pcs M4 x 5, 6, 8, 10, 12, 16, 20 304 stainless socket head cap screws with nuts, "
          "lock and flat washers",
-         "x 10: %d" % legs, "kit", 1, 9.99, "upper-post bracket legs (x 10), and spare sizes",
+         "x 10: %d; x 8: %d" % (legs, op["m4 x 8"]), "kit", 1, 9.99,
+         "upper-post bracket legs (x 10), the monitor arm's plate to the operator panel's spines (x 8), and spare sizes",
          "Per-size counts are not listed on the page, so the DIN rail and duct screws have their own pack. "
          "No hex key in the kit. " + read),
         ("Frame", Amz, LabFirst, "Socket head M4 x 12, 304, 100", "B089M2LTHX",
@@ -6275,11 +6590,29 @@ def BomRows():
          "F3-1, the FB2 trunk; one spare", "25 A: 12 AWG at 75 C, under the FB module's 30 A input. " + wread),
         ("Power wiring", Amz, Buy, "Fuse 10 x 38 mm, 10 A, 1000 V DC gPV, 10-pack", "B0B7MX355G",
          "Heschen HSPV-30 10 x 38 mm gPV fuses, 10 A, 1000 V DC, 33 kA, 10 pcs", 1, "pack of 10", 1, 13.49,
-         "F3-2, the FB1 trunk; spares", "FB1's three loads are fused at 3 A each. " + wread),
+         "F3-2, the FB1 trunk; spares", "FB1's four loads are fused at 3 A each. " + wread),
         ("Power wiring", Amz, Buy, "Cord 18/4 SJOOW, 300 V, 25 ft", "B0BKPRWN4N",
          "GEARit 18 AWG 4-conductor SJOOW portable cord, 300 V, stranded copper, 25 ft", 1, "25 ft", 1, 24.30,
          "the 110 V door cable: X1 1 to 3 and the plate PE, out through the M20 gland",
          "Caliper the jacket: the gland takes 6 to 12 mm. " + read),
+        ("Power supplies", Trc, Buy, "DC-DC converter, DIN rail, 24 to 12 V, 60 W, isolated", "DDR-60G-12",
+         "Mean Well DDR-60G-12: 9 to 36 V DC in, 12 V 5 A out (adjustable 9 to 13.2 V), 60 W, 4 kV DC input to "
+         "output isolation, 52.5 x 90 x 54.5 mm on TS35", 1, "each", 1, 43.82,
+         "the screen's 12 V on its own rail on the upper deck, fed by F1-3 (ADR-0020)",
+         "The screen is rated 12 V 2 A, its adapter 12 V 3 A; sized for the adapter: 5 A, 60 W. At 36 W it draws "
+         "%.2f A from %s V, 60 %% of F1-3's 3 A, which also opens before its own current limit on an overload. "
+         "Its 0 V out is not tied in the box; the Pi's HDMI references it. Mean Well DDR-60-SPEC (2026-03-31). "
+         "Price read %s" % (ScreenDrop()[1], Mm(Dc12InMin), Dc12Date)),
+        ("Power supplies", Dk, Buy, "DC plug pigtail, 5.5 x 2.5 mm, right angle, 18 AWG, 6 ft", "10-02226",
+         "Tensility 10-02226 (Digi-Key 839-10-02226-ND): 1830 mm of 2-conductor 18 AWG UL 2464, 300 V, 80 C, "
+         "from a 5.5 x 2.5 mm right-angle DC plug (center red, sleeve black) to stripped, tinned leads; rated "
+         "48 V, 7 A", 1, "each", 1, 6.57,
+         "screen 12 V: the DC-DC's output screws to the screen, out through the lower left grommet",
+         "The screen's plug is 5.5 x 2.5 mm (owner, 2026-11-12). Red to +Vo, black to -Vo. Its 7 A rating (the "
+         "maker's drawing) covers the DC-DC's current limit, at most 6.75 A. At the adapter's 3 A it drops "
+         "%.2f V (%.1f %%); the DC-DC's output trims up to 13.2 V if the screen needs it. A longer run to the "
+         "panel drops in proportion. Price read %s" % (ScreenDrop()[0], 100 * ScreenDrop()[0] / ScreenVolts,
+                                                       Dc12Date)),
         ("Wire marking", Amz, Buy, "Flexible ID tape 12 mm, TZe-FX231 type, 4-pack", "B0FJ25359S",
          "Greateam TZe-FX231 compatible flexible ID laminated tape, black on white, 12 mm x 8 m, 4 cassettes",
          "both ends of every wire and cable", "4-pack", 1, 16.29,
@@ -6331,7 +6664,9 @@ def BomRows():
          "a spare stick clamped to the bench in line with the saw fence, shimmed to the table's height, with a "
          "spare corner bracket on a T-nut in its top slot as the stop", 1, "-", 0, None,
          "cut each set of equal pieces against one stop, up to %s mm" % Mm(max(L for _, _, L, _ in pieces)),
-         "%d sticks and %d brackets are spare" % (10 - len(sticks), 40 - brackets)),
+         "%d sticks and %d brackets are spare after the operator panel's frame"
+         % (10 - len(sticks) - op["sticks"],
+            40 * -(-(brackets + op["brackets"] + 1) // 40) - brackets - op["brackets"])),
         ("Cutting tools", Amz, Optional, "Bar clamp, 12 in, 2-pack", "B001NP9S7M",
          "IRWIN QUICK-GRIP one-handed mini bar clamps, 12 in, 2-pack (1964745)", 2, "2-pack", 1, 19.87,
          "the stop stick to the bench", read),
@@ -6408,7 +6743,7 @@ def BomCsv():
         w.writerow(["", "", "", label, "", "", "", "", "", "", "%.2f" % usd, "", note, ""])
 
     box, lab = byPlan.get(Buy, 0.0) + byPlan.get(LabFirst, 0.0), byPlan.get(LabFirst, 0.0)
-    for key in (Amz, Mc):
+    for key in (Amz, Mc, Trc, Dk):
         Total("Total, %s" % key, bySrc.get(key, 0.0))
     Total("Total, control box", box)
     Total("Total, lab stock first (control box fasteners)", lab,
@@ -6424,8 +6759,8 @@ def BomCsv():
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
           "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
           "wire and fuse lines and the issue #209 terminal block packs on %s), McMaster on 2026-10-15 (the "
-          "acrylic on 2026-10-18); shipping and tax extra"
-          % (BomDate, ToolDate, WireDate))
+          "acrylic on 2026-10-18), TRC Electronics and Digi-Key on %s (the 12 V DC-DC and its pigtail); shipping and tax extra"
+          % (BomDate, ToolDate, WireDate, Dc12Date))
     return out.getvalue()
 
 
@@ -6469,6 +6804,12 @@ def Main():
         with open(path, encoding="ascii") as f:
             web, where = CheckWebs(f.read())
         print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
+    path = os.path.join(outDir, "operator_plate.dxf")
+    with open(path, "w", encoding="ascii", newline="\n") as f:
+        f.write(OpPlateDxf())
+    with open(path, encoding="ascii") as f:
+        web, where = CheckWebs(f.read())
+    print("wrote %s: read back, least web %.2f mm, %s" % (path, web, where))
     for item in PanelOpen():
         print("OPEN, not cut yet:", item)
     for item in GantryOpen():

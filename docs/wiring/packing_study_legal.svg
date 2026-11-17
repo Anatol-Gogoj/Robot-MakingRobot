@@ -40,6 +40,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="20.86" y="48.43" width="60.46" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
 <rect x="94.04" y="45.86" width="10" height="13.31" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
 <rect x="16.57" y="74.86" width="69.14" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
+<rect x="97.43" y="75.71" width="19" height="10" fill="#EEEEEE" stroke="#000" stroke-width="0.15"/>
 <rect x="21.43" y="41.47" width="96.37" height="3.63" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="16.57" y="61.76" width="69.14" height="3.63" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="82.07" y="45.1" width="3.63" height="16.66" fill="#fff" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
@@ -79,6 +80,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="56.86" y="66.14" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
 <rect x="66.57" y="66.14" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
 <rect x="76.29" y="66.14" width="8" height="27.43" fill="#77AADD" stroke="#000" stroke-width="0.25"/>
+<rect x="99.43" y="67.86" width="15" height="25.71" fill="#EEDD88" stroke="#000" stroke-width="0.25"/>
 <rect x="90.86" y="66.14" width="6.29" height="35.43" fill="#77AADD" stroke="#000" stroke-width="0.25" stroke-dasharray="1.2 .7"/>
 <rect x="20.57" y="50.71" width="1.71" height="5.43" fill="#99DDFF" stroke="#000" stroke-width="0.2"/>
 <path d="M90.14 68.43 L90.14 71 A1.86 1.86 0 0 1 86.43 71 L86.43 68.43 A1.86 1.86 0 0 1 90.14 68.43 Z" style="fill:#fff" stroke="#000" stroke-width="0.35"/>
@@ -151,7 +153,9 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="35.37" y="193.23" width="21.71" height="9.14" fill="#EEDD88" stroke="#000" stroke-width="0.2"/>
 <rect x="71.69" y="186.66" width="23.43" height="18.57" fill="#FFAABB" stroke="#000" stroke-width="0.2"/>
 <rect x="77.33" y="195.38" width="12.14" height="12" fill="#FFAABB" stroke="#000" stroke-width="0.2"/>
+<rect x="55.86" y="158.92" width="25.71" height="15.57" fill="#EEDD88" stroke="#000" stroke-width="0.2"/>
 <rect x="16.57" y="164.64" width="12.14" height="12" fill="#44BB99" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
+<rect x="63.71" y="174.49" width="10" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
 <rect x="82.43" y="165.75" width="7.26" height="10.89" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="33.86" y="174.49" width="13.31" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
 <rect x="16.57" y="164.64" width="12.14" height="12" fill="#44BB99" stroke="#000" stroke-width="0.2"/>
@@ -291,6 +295,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="160.57" y="186.38" width="15.43" height="18.86" fill="#EEDD88" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="177.14" y="185.77" width="10.31" height="19.46" fill="#EEDD88" stroke="#000" stroke-width="0.2"/>
 <rect x="156.57" y="174.49" width="69.14" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
+<rect x="237.43" y="174.49" width="19" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
 <rect x="158" y="171.64" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="158" y="152.21" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.2"/>
 <rect x="167.71" y="171.64" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
@@ -305,6 +310,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="206.57" y="152.21" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.2"/>
 <rect x="216.29" y="171.64" width="8" height="2.86" fill="#FFFFFF" stroke="#000" stroke-width="0.15" stroke-dasharray="1.2 .7"/>
 <rect x="216.29" y="152.21" width="8" height="19.43" fill="#77AADD" stroke="#000" stroke-width="0.2"/>
+<rect x="239.43" y="158.92" width="15" height="15.57" fill="#EEDD88" stroke="#000" stroke-width="0.2"/>
 <rect x="226.47" y="169.38" width="3.63" height="7.26" fill="#fff" stroke="#000" stroke-width="0.2" stroke-dasharray="1.2 .7"/>
 <rect x="156.57" y="205.23" width="68.57" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
 <rect x="229.86" y="205.23" width="44.14" height="2.14" fill="#888888" stroke="#000" stroke-width="0.12"/>
@@ -338,7 +344,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="8" y="11.2" font-size="4.2" font-weight="bold">RMR control panel: packing study, 18 x 13.5 x 11 in</text>
 <text x="8" y="15.4" font-size="2.1">Two decks in a 2020 frame, both on 1/16 in aluminum plates: lower deck for 110 VAC and 24 V power, upper deck for drives and logic; acrylic walls. Scale 1:3.5 when printed at 100 %.</text>
 <text x="10" y="20.4" font-size="2.2" font-weight="bold">A  Upper deck, seen from above</text>
-<text x="140.57" y="20.4" font-size="1.4" text-anchor="end">1/16 in aluminum plate on the mid ring; parts at true size</text>
+<text x="140.57" y="20.4" font-size="1.4" text-anchor="end">1/16 in aluminum plate on the mid ring; parts at true size. Not in the box: the ODrive (spin coater base), the Pi (operator panel)</text>
 <text x="75.29" y="23.47" font-size="1.2" text-anchor="middle" font-weight="bold">LEFT SIDE</text>
 <text x="75.29" y="119.37" font-size="1.2" text-anchor="middle" font-weight="bold">RIGHT SIDE</text>
 <text x="75.29" y="117.92" font-size="1.2" text-anchor="middle">upper posts stand on the plate; mid ring (dashed) under it</text>
@@ -383,15 +389,13 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="70.57" y="80.99" font-size="1.2" text-anchor="middle">TB6600</text>
 <text x="80.29" y="79.57" font-size="1.2" text-anchor="middle" font-weight="bold">C</text>
 <text x="80.29" y="80.99" font-size="1.2" text-anchor="middle">TB6600</text>
+<text x="106.93" y="79.8" font-size="1.1" text-anchor="middle" font-weight="bold">12 V DC-DC</text>
+<text x="106.93" y="81.1" font-size="1.1" text-anchor="middle">52.5 x 90</text>
+<text x="106.93" y="82.4" font-size="1.1" text-anchor="middle">screen</text>
 <text x="94.39" y="83.86" font-size="1.1" text-anchor="middle" font-weight="bold" transform="rotate(-90 94.39 83.86)">shield clamp</text>
 <text x="20.29" y="57.26" font-size="1" text-anchor="end">USB</text>
 <text x="103.43" y="33.89" font-size="1.1">field rail,</text>
 <text x="103.43" y="35.49" font-size="1.1">274 mm</text>
-<text x="107.47" y="76.7" font-size="1.1" text-anchor="middle" font-style="italic">ODrive: in the</text>
-<text x="107.47" y="78.3" font-size="1.1" text-anchor="middle" font-style="italic">spincoater base</text>
-<text x="107.47" y="79.9" font-size="1.1" text-anchor="middle" font-style="italic"></text>
-<text x="107.47" y="81.5" font-size="1.1" text-anchor="middle" font-style="italic">Pi: at the</text>
-<text x="107.47" y="83.1" font-size="1.1" text-anchor="middle" font-style="italic">operator panel</text>
 <text x="88.29" y="70.16" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle">slot 1</text>
 <text x="101.43" y="63.16" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle">slot 2</text>
 <text x="18.43" y="50.45" font-size="1.05" stroke="#fff" stroke-width="0.47" paint-order="stroke" text-anchor="middle">slot 3</text>
@@ -436,7 +440,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="252.36" y="79.61" font-size="1.3" style="fill:#CC3311" text-anchor="middle" font-weight="bold">110 VAC compartment, no wall</text>
 <text x="282.07" y="95.9" font-size="1.2" text-anchor="middle" transform="rotate(-90 282.07 95.9)">mains in</text>
 <text x="165.14" y="117.51" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke">PSU vent (dashed)</text>
-<text x="253.86" y="25.26" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="end">ODrive, Pi, E-stop</text>
+<text x="253.86" y="25.26" font-size="1" stroke="#fff" stroke-width="0.45" paint-order="stroke" text-anchor="end">ODrive, Pi, screen, E-stop</text>
 <text x="10" y="126.4" font-size="2.2" font-weight="bold">C  End view from the front</text>
 <text x="107.97" y="126.4" font-size="1.4" text-anchor="end">front rails left off; heights, DIN rails dark grey</text>
 <text x="23.4" y="198.9" font-size="1.1" stroke="#fff" stroke-width="0.5" paint-order="stroke" text-anchor="middle">FB1, FB2</text>
@@ -544,16 +548,17 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="291" y="154.6" font-size="1.45">and FB2 153 x 48 x 43; uxcell bar 20 x 78 x</text>
 <text x="291" y="156.55" font-size="1.45">53; SSR 6.1 x 88 x 71 (41F-1Z socket);</text>
 <text x="291" y="158.5" font-size="1.45">UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x</text>
-<text x="291" y="160.45" font-size="1.45">32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067).</text>
-<text x="291" y="162.4" font-size="1.45">Assumed (dashed): F0, F3, PE blocks, end and</text>
-<text x="291" y="164.35" font-size="1.45">shield clamps, Mega height. Heights add the rail.</text>
-<text x="291" y="167.4" font-size="1.75" font-weight="bold">Layout 3b (ADR-0010)</text>
-<text x="291" y="169.8" font-size="1.45">From the CP-SAT packing study: 37,494</text>
-<text x="291" y="171.75" font-size="1.45">conductor-mm as drawn (36,859 at the study's</text>
-<text x="291" y="173.7" font-size="1.45">85.5 bay), against 57,478 for the hand layout.</text>
-<text x="291" y="175.65" font-size="1.45">Each block centre is held to layout3b_build</text>
-<text x="291" y="177.6" font-size="1.45">.json; no box overlaps another, and no plate</text>
-<text x="291" y="179.55" font-size="1.45">slot lies over the mains (y 183.9 and up).</text>
+<text x="291" y="160.45" font-size="1.45">32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067);</text>
+<text x="291" y="162.4" font-size="1.45">12 V DC-DC 52.5 x 90 x 54.5 (datasheet).</text>
+<text x="291" y="164.35" font-size="1.45">Assumed (dashed): F0, F3, PE blocks, end and</text>
+<text x="291" y="166.3" font-size="1.45">shield clamps, Mega height. Heights add the rail.</text>
+<text x="291" y="169.35" font-size="1.75" font-weight="bold">Layout 3b (ADR-0010)</text>
+<text x="291" y="171.75" font-size="1.45">From the CP-SAT packing study: 39,042</text>
+<text x="291" y="173.7" font-size="1.45">conductor-mm as drawn (38,325 at the study's</text>
+<text x="291" y="175.65" font-size="1.45">85.5 bay), against 57,478 for the hand layout.</text>
+<text x="291" y="177.6" font-size="1.45">Each block centre is held to layout3b_build</text>
+<text x="291" y="179.55" font-size="1.45">.json; no box overlaps another, and no plate</text>
+<text x="291" y="181.5" font-size="1.45">slot lies over the mains (y 183.9 and up).</text>
 <text x="290" y="190.6" font-size="3" font-weight="bold">Packing study</text>
 <text x="290" y="194.4" font-size="2">Sheet 3. Legal, landscape, 100 %. Scale 1:3.5.</text>
 <text x="290" y="197.15" font-size="2">Layout 3b (ADR-0010), 2026-10-17; 13.5 in wide</text>

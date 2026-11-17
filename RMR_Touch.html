@@ -1648,12 +1648,15 @@ function handleWSMessage(data) {
       if (m._rmr === 'tx') { okLedgerEcho(m.cmd, m.source); logTx(m.cmd + (m.source && m.source !== 'ws' ? '   [' + m.source + ']' : '')); homedTrackTx(m.cmd); lidTrackTx(m.cmd); }   // the write reached the port: it is owed an 'ok' (#48), and records the lid angle it commanded (#191)
       else if (m._rmr === 'status') {   // the Mega resets on open: nothing outstanding is answered. A close also fails a running sequence (#182); an open follows a close, or greets a new connection.
         logInfo('Bridge: serial ' + m.serial + (m.port ? ' (' + m.port + ')' : ''));
+        bridgeCaps = Array.isArray(m.caps) ? m.caps : [];   // what this bridge reads from a page (#218)
+        panelStateSync(true);
         okLedgerLost('bridge: serial ' + m.serial, m.serial !== 'open', m.serial === 'open' ? null : 'the bridge lost the serial port during the run: ' + SEQ_RELAYS_UNKNOWN);
       }
-      else if (m._rmr === 'button') { logInfo('Physical button: ' + m.name + ' → ' + m.cmd); }
+      else if (m._rmr === 'button') { logInfo('Physical button: ' + m.name + (m.cmd ? ' → ' + m.cmd : '')); if (m.action) panelButton(m.action, m.cmd); }   // operator panel Start / Stop (#218)
       else if (m._rmr === 'estop') { if (m.pressed) { logErr('*** PHYSICAL E-STOP PRESSED ***'); showToast('PHYSICAL E-STOP', 'error'); seqSetHomed(false, 'physical E-stop'); seqFault('physical E-stop pressed'); } else logInfo('Physical E-stop released'); }
       else if (m._rmr === 'error') {
         logErr('Bridge: ' + m.msg);
+        if (/^start button ignored/.test(String(m.msg))) showToast('Start refused: ' + String(m.msg).replace(/^start button ignored: /, ''), 'warn');
         // The bridge echoes a write even when it failed, then says so here: that command is never answered, and with the port down nothing else outstanding is either.
         if (/^serial (write failed|not open)/.test(String(m.msg))) okLedgerLost('bridge: ' + m.msg, true, 'the bridge could not write to the board during the run (' + m.msg + '): ' + SEQ_RELAYS_UNKNOWN);
       }
@@ -2659,15 +2662,67 @@ function seqEnd(statusHtml) {
   if (seqAutoReportWasOn && isConnected && !autoReportInterval && document.getElementById('autoReport').checked) autoReportInterval = setInterval(autoReportTick, 1000);
   if (statusHtml) seqSetStatus(statusHtml);
 }
-function seqStop() {
+// quickstopSent: the panel's Stop button, whose M410 the bridge already wrote (#218).
+function seqStop(quickstopSent) {
   if (!seqRunning) return;
   seqAbort = true;
   rlEvent('seq.stop', {});
   if (seqWaiter) { const w = seqWaiter; seqWaiter = null; w.reject(new Error('aborted')); }
-  sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin (same as the Controller)
-  logInfo('Sequencer: STOP — sent M410 (quickstop). Use E-STOP (M112) for a full halt.');
+  if (quickstopSent !== true) sendCmd('M410');   // real-time quickstop: aborts in-progress moves AND a running spincoater spin (same as the Controller)
+  logInfo('Sequencer: STOP — ' + (quickstopSent === true ? 'the panel button sent' : 'sent') + ' M410 (quickstop). Use E-STOP (M112) for a full halt.');
   seqSetStatus('<b>Stopping…</b>');
 }
+
+// Operator panel buttons (#218), forwarded by the Pi bridge (same rules as the Controller). Stop
+// reaches every page: each stops its own sequencer run (the UV block's finally turns the lamp off)
+// and Program Runner; the bridge has already written the M410. Start reaches only the page the
+// Pi's own browser opened: it resumes an open Run Log hold or break, else starts Run All when
+// nothing runs, else does nothing. The E-stop stays the only safety function.
+function rlHoldOpen() {
+  try { const d = (typeof rmrLog !== 'undefined') ? rmrLog.device : null; return (d && d.state && d.state.hold) || null; }
+  catch (e) { return null; }
+}
+function panelButton(action, cmd) {
+  if (action === 'stop') {
+    const was = [];
+    if (seqRunning) { seqStop(cmd === 'M410'); was.push('the sequencer'); }
+    if (progRunning) { progStop(); was.push('the program'); }
+    logInfo('Panel Stop: ' + (was.length ? 'stopped ' + was.join(' and ') : 'nothing was running') + (cmd ? ' (the button sent ' + cmd + ')' : ''));
+    if (was.length) showToast('Stopped by the panel button', 'warn');
+    return;
+  }
+  if (action !== 'start') { logErr('Panel button: unknown action "' + action + '"'); return; }
+  // One press, one action: a second Start within PANEL_START_GAP_MS (a double tap, a long bounce)
+  // would otherwise turn "end the break" into "end the break and start Run All".
+  const now = Date.now();
+  if (now - panelLastStartAt < PANEL_START_GAP_MS) { logInfo('Panel Start: ignored, pressed again within ' + (PANEL_START_GAP_MS / 1000) + ' s'); return; }
+  panelLastStartAt = now;
+  const hold = rlHoldOpen();
+  if (hold) {
+    logInfo('Panel Start: resuming the ' + (hold.kind === 'break' ? 'break' : 'hold'));
+    try { rmrLog.resume(); } catch (e) { logErr('Panel Start: resume failed: ' + e.message); }
+    return;
+  }
+  if (seqRunning) { logInfo('Panel Start: the sequencer is already running'); showToast('Already running', 'info'); return; }
+  if (progRunning) { logInfo('Panel Start: a program is running; Start acts on the Process Sequencer only'); showToast('A program is running', 'warn'); return; }
+  logInfo('Panel Start: Run All');
+  seqRunAll();   // its own checks (connection, enabled blocks, homing gate) refuse with a message
+  if (!seqRunning) showToast('Start refused: see the console', 'warn');   // seqBegin runs before seqRunAll's first await
+}
+
+// Tell the bridge whether this page has a run, a program or a Run Log hold open, so the panel's
+// Start is refused on the kiosk while another screen's run sits in a cure, a dwell or a hold (#218).
+// Only to a bridge that offered it in its greeting: an older one would write the JSON to Marlin.
+let bridgeCaps = [], panelLastBusy = null, panelLastStartAt = 0;
+const PANEL_START_GAP_MS = 1500;
+function panelStateSync(force) {
+  if (!useWS || !ws || ws.readyState !== WebSocket.OPEN || !bridgeCaps.includes('state')) return;
+  const busy = !!(seqRunning || progRunning || rlHoldOpen());
+  if (!force && busy === panelLastBusy) return;
+  panelLastBusy = busy;
+  try { ws.send(JSON.stringify({ _rmr: 'state', busy })); } catch (e) {}
+}
+{ const t = setInterval(() => panelStateSync(false), 500); if (t && t.unref) t.unref(); }
 async function seqRunBlock(id) {
   if (seqRunning) { logErr('Sequencer is busy'); return; }
   if (!isConnected) { logErr('Not connected'); showToast('Connect first', 'warn'); return; }

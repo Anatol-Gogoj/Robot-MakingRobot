@@ -6,8 +6,11 @@
     { "pin": 17, "name": "estop",      "cmd": "M112",       "pull": "up", "bounce": 0.03 },
     { "pin": 22, "name": "home_all",   "cmd": "G28\nM118 RMR:HOMED_ALL", "pull": "up", "bounce": 0.05 },
     { "pin": 23, "name": "uv_off",     "cmd": "M42 P4 S0",  "pull": "up", "bounce": 0.05 },
-    { "pin": 24, "name": "valve_shut", "cmd": "M42 P42 S0", "pull": "up", "bounce": 0.05 }
+    { "pin": 24, "name": "valve_shut", "cmd": "M42 P42 S0", "pull": "up", "bounce": 0.05 },
+    { "pin": 16, "name": "start",      "action": "start",  "pull": "up", "bounce": 0.05 },
+    { "pin": 25, "name": "stop",       "cmd": "M410", "action": "stop", "pull": "up", "bounce": 0.05 }
   ],
+  "_comment_actions": "Operator panel buttons (issue #218): 'action' asks the browser pages to act. 'start' (S6, green): resume an open Run Log hold, else Run All when idle; only the page the Pi's own browser opened (localhost) gets it, and the press is refused when there is none or more than one. 'stop' (S7, red): every page stops its sequencer run and Program Runner; give it 'cmd':'M410' so moves stop even if no page answers. A button needs a 'cmd', an 'action', or both.",
 
   "_comment_tower": "Status tower + buzzer, driven from machine state: green=ready/idle, amber=active (command sent in last ~1.5 s), red+buzzer=error or E-stop, red steady=serial down. Omit any channel you don't have. 'active_high':false for active-LOW relay/driver boards.",
   "tower": {
