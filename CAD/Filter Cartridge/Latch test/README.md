@@ -23,13 +23,16 @@ from `tools/build_filter_cartridge.py` and checks itself before writing anything
 | `LatchTest-Mask-Recess0.5.step` | print, stencil down | 1 | magnet face 0.5 mm up; 1 dot at 150 deg on the frame top |
 | `LatchTest-Mask-Recess1.0.step` | print, stencil down | 1 | magnet face 1.0 mm up; 2 dots |
 | `LatchTest-PullTool.step` | print, face down | 1 | stand-in for the Gripper-B ring face: 6 pick magnets, 3 ball pairs, cord hub; notch marks +Y |
-| `LatchTest-PileSeat.step` | print, ring recess up | 1 | holds one 430 plate ring flush with its top; notch marks +Y, small marks show the ears |
+| `LatchTest-PileSeat.step` | print, ring recess up | 1 | holds one steel plate ring flush with its top; notch marks +Y, small marks show the ears |
 | `LatchTest-Base-acrylic-3mm.dxf` | laser-cut 1/8 in acrylic | 1 | cut file (layer CUT) |
 | `LatchTest-Base-acrylic-3mm-engrave.dxf` | laser-engrave, same origin | 1 | seat outline, and the tool's +Y notch at 0 and at the 10 mm slide |
 | Cartridges (body + printed-flange collar) | existing print set | 3 | a plain filter or no filter is fine; CNT is not needed |
 
 **Hardware**
-- **430 stainless plate rings** (0.8 mm, ID 92, OD 109): 4. One for each cartridge and one for the seat.
+- **Steel plate rings** (ID 92, OD 109): 4. One for each cartridge and one for the seat.
+  - Material: G90 galvanized steel, 0.030 in (0.762 mm), cut from
+    `CAD/Filter Cartridge/FilterCartridge-Plate-G90-0.030in.dxf`.
+  - SendCutSend stocks this sheet. Their 304 stainless is not magnetic, and they do not offer 430.
   - They must be real steel. The printed `PlateStandIn` is not magnetic and is useless here.
   - A CO2 laser cannot cut steel. If no rings exist yet, order them laser-cut, for example from SendCutSend or OSH Cut.
 - **3 x 2 mm N52 disc magnets:** 15. Each mask takes 2 latch plus 3 weak. Mount every latch magnet the same way up.
@@ -39,6 +42,14 @@ from `tools/build_filter_cartridge.py` and checks itself before writing anything
 - **Measuring:**
   - a digital luggage scale or force gauge, at least 0.05 N (5 g) resolution;
   - a cord through the tool's hub.
+
+**Printing the masks.** The masks carry the real stencil, `CAD/Exploratory Masks/ThinMask_20261016.STEP`:
+- the stencil is 0.5 mm thick at the rim and thinned to 0.1 mm over the Ø75 CNT area;
+- it has two L-shaped electrode openings.
+
+So the first layer must be 0.1 mm. That is the FFF setup the ThinMask was made for: a 0.2 mm nozzle on a
+smooth plate. The latch tests do not depend on the pattern, so a mask whose thin area prints poorly is
+still usable for tests 1 to 6.
 
 Assembly: press the balls into their pockets, glue the magnets, and bond a plate ring onto each
 cartridge and into the seat recess. Screw the seat to the acrylic base with the +Y marks lined up.

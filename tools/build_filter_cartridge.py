@@ -83,10 +83,11 @@ P = dict(
     GrooveClear=0.8,       # extra arc length of the vertical leg over the lug
     GrooveTopClear=0.3,    # groove ceiling above the lug top
     TwistDeg=22.0,         # bayonet twist to lock
-    # Steel target plate (laser-cut 0.8 mm 430 stainless, bonded once)
+    # Steel target plate, bonded once: G90 galvanized steel 0.030 in (0.762 mm), the magnetic sheet
+    # SendCutSend stocks near 0.8 mm (its 304 is not magnetic; 430 is not offered), 2026-11-16
     PlateID=92.0,
     PlateOD=109.0,
-    PlateT=0.8,
+    PlateT=0.762,
     # Mask frame (printed together with the stencil)
     FrameID=101.4,         # 0.5 mm radial clearance to the body
     FrameOD=112.0,         # widened so each magnet pocket has printable walls
@@ -115,7 +116,10 @@ P = dict(
     StrongMagD=6.0,
     StrongMagT=3.0,
     StrongMagR=50.0,
-    # Placeholder stencil opening (replace with the real electrode pattern)
+    # Stencil pattern, relative to the repo root: the owner's ThinMask_20261016 (0.5 mm rim, thinned
+    # to 0.1 mm over the Ø75 CNT area, two L-shaped electrode openings), used as drawn and centred
+    # on the mask axis. None falls back to a solid stencil with the OpenW x OpenH placeholder.
+    StencilPattern="CAD/Exploratory Masks/ThinMask_20261016.STEP",
     OpenW=45.0,
     OpenH=40.0,
 )
@@ -203,6 +207,37 @@ def Rotated(shape, deg):
     return s
 
 
+def StencilPattern(p):
+    """The pattern solid and its openings (planar faces in its bottom plane), or None."""
+    if not p.get("StencilPattern"):
+        return None, []
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pat = Part.read(os.path.join(root, p["StencilPattern"]))
+    bb = pat.BoundBox
+    if len(pat.Solids) != 1 or abs(bb.ZMin) > 1e-6 or abs(bb.ZMax - p["StencilT"]) > 1e-6:
+        raise ValueError("%s: need one solid from z 0 to StencilT (%.2f), got %d solids, z %.3f..%.3f"
+                         % (p["StencilPattern"], p["StencilT"], len(pat.Solids), bb.ZMin, bb.ZMax))
+    if max(bb.XMax, -bb.XMin, bb.YMax, -bb.YMin) > p["FrameID"] / 2 - 0.5:
+        raise ValueError("%s is wider than the frame bore" % p["StencilPattern"])
+    bottom = max((f for f in pat.Faces if abs(f.BoundBox.ZMax) < 1e-6), key=lambda f: f.Area)
+    holes = [Part.Face(w) for w in bottom.Wires if not w.isSame(bottom.OuterWire)]
+    return pat.Solids[0], holes
+
+
+def Stencil(p):
+    """Stencil inside the frame bore, flat bottom at z = 0. With a pattern, the pattern disc as
+    drawn plus a ring that fills from its rim to the frame bore (overlapping the rim by 0.3 so the
+    fuse is not tangent); without one, a solid disc with the placeholder opening."""
+    zS = p["StencilT"]
+    pat, _ = StencilPattern(p)
+    if pat is not None:
+        bb = pat.BoundBox
+        rim = max(bb.XMax, -bb.XMin, bb.YMax, -bb.YMin)
+        return pat.fuse(Annulus(rim - 0.3, p["FrameID"] / 2, 0, zS)).removeSplitter()
+    s = Part.makeCylinder(p["FrameID"] / 2, zS, V(0, 0, 0))
+    return s.cut(Part.makeBox(p["OpenW"], p["OpenH"], zS + 1, V(-p["OpenW"] / 2, -p["OpenH"] / 2, -0.5)))
+
+
 def Build(p):
     zc = p["StencilT"] + p["SeatGap"]           # cartridge bottom
     zb = p["FlangeT"] if p["PrintedFlange"] else p["ShimT"]   # lower jaw thickness
@@ -287,9 +322,7 @@ def Build(p):
     halfSpacing = (rb + rs) * math.sin(k)
     zMaskBall = zBall - (rb + rs) * math.cos(k)
     zFrameTop = zMaskBall + p["MaskBallSink"]
-    stencil = Part.makeCylinder(p["FrameID"] / 2, zStencil, V(0, 0, 0))
-    stencil = stencil.cut(Part.makeBox(p["OpenW"], p["OpenH"], zStencil + 1,
-                                       V(-p["OpenW"] / 2, -p["OpenH"] / 2, -0.5)))
+    stencil = Stencil(p)
     frame = Annulus(p["FrameID"] / 2, p["FrameOD"] / 2, 0, zFrameTop)
     for a in EarAngles:
         # start the ear inside the frame wall, not tangent to its bore
@@ -408,6 +441,16 @@ def Check(parts, levels, p):
     ]
     for label, a, b in pairs:
         print("  %-24s %.3f" % (label, a.distToShape(b)[0]))
+    # stencil pattern: openings must lie inside the CNT area; report the film's clearance to the stencil
+    pat, holes = StencilPattern(p)
+    if pat is not None:
+        rmax = max(math.hypot(v.X, v.Y) for h in holes for v in h.Vertexes)
+        area = sum(h.Area for h in holes)
+        print("  stencil pattern          %s: %d openings, %.1f mm^2, reach r %.2f (CNT r %.1f)" %
+              (os.path.basename(p["StencilPattern"]), len(holes), area, rmax, p["CntD"] / 2))
+        if rmax > p["CntD"] / 2:
+            raise ValueError("stencil openings reach r %.2f, outside the CNT area r %.1f" % (rmax, p["CntD"] / 2))
+    print("  %-24s %.3f" % ("CNT film to stencil", parts["CntFilm"].distToShape(parts["Mask"])[0]))
     # control: a mask ball 0.05 mm too high must run into both head balls
     mb = parts["MaskBall1"].copy()
     mb.translate(V(0, 0, 0.05))
@@ -541,10 +584,11 @@ def ExportPrintSet(p, outDir):
 
 
 def PlateDxf(p, path):
-    """Flat pattern of the 430 stainless plate for a metal laser-cutting service: an ASCII R12 DXF
+    """Flat pattern of the steel plate for a metal laser-cutting service: an ASCII R12 DXF
     in mm on layer CUT, the format tools/check_dxf.py reads back. The bore is a circle; the outline
     is a closed 360-segment polygon (chord error under 0.002 mm), because check_dxf.py reads bulged
-    polylines as obrounds and cannot size a full-circle outline. Cut from 0.8 mm (PlateT) 430 sheet."""
+    polylines as obrounds and cannot size a full-circle outline. Cut from PlateT sheet: G90
+    galvanized steel 0.030 in (any magnetic steel of that thickness works)."""
     ro, d = p["PlateOD"] / 2, p["PlateID"]
     n = 360
     out = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "9", "$INSUNITS", "70", "4",
@@ -560,7 +604,7 @@ def PlateDxf(p, path):
             "0", "CIRCLE", "8", "CUT", "10", "%.4f" % ro, "20", "%.4f" % ro, "30", "0.0", "40", "%.4f" % (d / 2),
             "0", "ENDSEC", "0", "EOF"]
     open(path, "w", encoding="ascii", newline="\n").write("\n".join(out) + "\n")
-    print("  %s: OD %.1f, ID %.1f, %.1f mm 430 stainless" % (os.path.basename(path), 2 * ro, d, p["PlateT"]))
+    print("  %s: OD %.1f, ID %.1f, %.3f mm magnetic steel" % (os.path.basename(path), 2 * ro, d, p["PlateT"]))
 
 
 Variants = (
@@ -583,8 +627,11 @@ def Main():
     p = dict(P)
     p["PrintedFlange"] = True
     ExportPrintSet(p, os.path.join(outDir, "Print 0.4mm nozzle"))
-    print("==== plate flat pattern (laser-cut 430)")
-    PlateDxf(p, os.path.join(outDir, "FilterCartridge-Plate-430-0.8mm.dxf"))
+    print("==== plate flat pattern (laser-cut steel)")
+    for old in os.listdir(outDir):          # a renamed or re-thicknessed plate must not linger
+        if old.startswith("FilterCartridge-Plate-") and old.endswith(".dxf"):
+            os.remove(os.path.join(outDir, old))
+    PlateDxf(p, os.path.join(outDir, "FilterCartridge-Plate-G90-0.030in.dxf"))
 
 
 Main()
