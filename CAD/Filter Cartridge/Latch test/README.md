@@ -269,6 +269,63 @@ Chosen recess: ____    Reason:
 Repeated trials and notes:
 ```
 
+## Lobe hold variant (issue #230)
+
+The weak magnets pull the mask up to the cartridge plate across 1.17 mm: at most about 1.0 N for all
+three, against ideal steel. A first bench piece stayed stuck to the elastomer. In the lobe hold variant the head
+holds the mask itself, and the release tips push it off.
+
+**How it holds.** Each mask ear carries a 3 x 2 mm magnet on a boss at r 63.5, its top 0.33 mm under a 3 x 2 mm
+magnet flush with the face of the head's ball lobe. Facing magnets attract with about 2.4 N per lobe (N52,
+surface-charge estimate, an upper bound). The mask has no weak magnets. The cartridge stays held by the pick
+magnets on its plate, as before.
+
+**How it lets go.** A finger on each release tip lands on the mask's push pad (41 and 221 deg, out to r 62)
+4.0 mm of tip travel before the tip's ball reaches the cartridge plate. Stage 1 pushes the mask 4.0 mm off.
+The lobe pull left at that separation is about 0.26 N for all three lobes. The latch then has to hold it:
+two latch magnets give at most about 6.7 N flush, 2.2 N at the 0.5 mm recess and 0.88 N at 1.0 mm (ideal
+steel, upper bounds). Stage 1 must stop close to where the ball meets the plate: a shorter push leaves more
+pull (0.69 N at 2.5 mm), and any further push starts ejecting the cartridge. Stage 2, further travel, ejects
+the cartridge. The head side of this is a separate head-side proposal, not part of this repo.
+
+| File (in `Lobe hold/`) | Make | Qty | Notes |
+|---|---|---|---|
+| `LatchTest-LobeHold-Mask-Recess0.0/0.5/1.0.step` | print, stencil down, 0.2 mm nozzle | 1 each | the three test masks with ear bosses and push pads, no weak magnets |
+| `LatchTest-LobeHold-PullTool.step` | print, face down, 0.4 mm nozzle | 1 | lobes to r 66.5 with a magnet pocket open at the face |
+| `../Lobe hold/FilterCartridge-Mask-LobeHold.step` | print, stencil down, 0.2 mm nozzle | 1 | the production mask in the lobe hold variant (`../Lobe hold/` also has its assembly model) |
+
+The pile seat and the acrylic base are the same parts.
+
+**Magnets.** The lobe set needs 18 more 3 x 2 mm magnets: five in each lobe test mask (two latch, three in
+the ears) and three in the tool, plus three for the production mask. Glue the ear magnets marked face up, in every
+mask. Glue each tool magnet with the face that attracts a marked face pointing down; check it by holding a mask
+under the tool before the glue sets.
+
+**In a pile** the ear magnets of stacked masks sit coaxial, 3.46 mm apart, and attract with about 0.15 N each
+(0.46 N for three). That pulls the upper mask down, which helps it stay when the cartridge is stripped. After the
+10 mm slide they are no longer coaxial, so the pull on the combo below during a double pick is smaller; test 3
+measures it.
+
+**Bench checks for the lobe hold:**
+- **L1 Hold:** tool held fixed, combo hanging in it, pull the mask down by the bridle under its ears. Peak = the
+  lobe hold. Expect at most about 7 N.
+- **L2 Lift off a layer:** press a combo onto a cured layer with the tool and lift. The mask must come up with
+  the tool. If it does not, measure the adhesion with the bridle on a bare mask pressed the same way.
+- **L1b Residual pull:** as L1, with 4 mm spacers between the ear bosses and the tool lobes. Peak = the pull
+  the latch must beat after stage 1.
+- **L2 is the reason for this variant;** if the mask stays on the layer here too, more hold is needed before
+  anything else.
+- **L3 Push-off (stage 1 by hand):** combo latched on the seat, tool on. Press both push pads down with two
+  fingers about 4 mm while lifting the tool. The mask must stay on the seat and the cartridge come up.
+
+**How tests 1 to 8 change for lobe masks:**
+- Test 1 (strip by a straight pull) cannot pass: the lobe hold is far above the latch. L3 replaces it.
+- The hold margin becomes B / L1b: the latch pull-off of test 1b against the residual pull.
+- The release margin adds the pile attraction: (B + w_cart) / (r + 0.46 N), with r from test 2.
+- Test 7: bare lobe masks stacked directly rest on the lower mask's ear bosses and balls, and their ear
+  magnets are 3.46 mm apart.
+- Rule out the 1.0 mm recess unless test 1b shows at least about three times the L1b residual.
+
 ## Geometry checked by the script
 
 - **Latch pockets:** r 53.0 at 90 and 270 deg, open at the mask bottom.

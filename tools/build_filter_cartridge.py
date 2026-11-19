@@ -106,6 +106,21 @@ P = dict(
     WeakMagT=2.0,
     WeakMagR=52.9,         # pocket r 51.3..54.5: 0.6 mm to the bore, inside the plate
     MagPocketClear=0.1,    # pocket radius over the magnet radius
+    # How the head holds the mask (issue 230). "plate": the three weak magnets pull the mask up to the
+    # cartridge's steel plate across a 1.17 mm gap, at most about 1 N in all. "lobe": a magnet in each
+    # ear sits on a boss under a magnet flush in the head's ball lobe, LobeGap apart, so the mask is
+    # held by the head itself (about 2.4 N per lobe with 3 x 2 N52 pairs); the head's release tips push
+    # it off at PushPadAngles. The lobe variant drops the weak magnets.
+    MaskHold="plate",
+    LobeMagD=3.0,
+    LobeMagT=2.0,
+    LobeMagR=63.5,         # outside the head ball pair (r 56.5..60.5) and the plate ring (r 54.5)
+    LobeGap=0.33,          # ear magnet top to the head lobe magnet face
+    LobeBossWall=1.2,      # boss wall around the ear magnet pocket
+    LobeEarOuterR=66.5,    # ears grow from EarOuterR to carry the magnet
+    PushPadAngles=(41.14, 221.14),  # Gripper-B v33 release tips, r 54.11
+    PushPadR1=62.0,        # the head's mask finger lands at r 58.6..61.1, outside the plate ring (r 54.5)
+    PushPadW=10.0,
     # Head floating ring (reference only, not a design of the head)
     BallD=4.0,
     BallR=58.5,
@@ -324,12 +339,24 @@ def Build(p):
     zFrameTop = zMaskBall + p["MaskBallSink"]
     stencil = Stencil(p)
     frame = Annulus(p["FrameID"] / 2, p["FrameOD"] / 2, 0, zFrameTop)
+    lobe = p["MaskHold"] == "lobe"
+    earOuter = p["LobeEarOuterR"] if lobe else p["EarOuterR"]
     for a in EarAngles:
         # start the ear inside the frame wall, not tangent to its bore
         earR0 = p["FrameID"] / 2 + 1.0
-        ear = Part.makeBox(p["EarOuterR"] - earR0, p["EarWidth"], zFrameTop,
+        ear = Part.makeBox(earOuter - earR0, p["EarWidth"], zFrameTop,
                            V(earR0, -p["EarWidth"] / 2, 0))
         frame = frame.fuse(Rotated(ear, a))
+    zBossTop = zFace - p["LobeGap"]
+    rBoss = p["LobeMagD"] / 2 + p["MagPocketClear"] + p["LobeBossWall"]
+    if lobe:
+        for a in EarAngles:
+            boss = Part.makeCylinder(rBoss, zBossTop - zFrameTop + 0.01, V(p["LobeMagR"], 0, zFrameTop - 0.01))
+            frame = frame.fuse(Rotated(boss, a))
+        for a in p["PushPadAngles"]:
+            r0 = p["FrameOD"] / 2 - 1.0
+            pad = Part.makeBox(p["PushPadR1"] - r0, p["PushPadW"], zFrameTop, V(r0, -p["PushPadW"] / 2, 0))
+            frame = frame.fuse(Rotated(pad, a))
     mask = stencil.fuse(frame)
     # 45 deg lead-in on the frame bore, where the cartridge drops in
     rb0, cb = p["FrameID"] / 2, p["FrameBoreChamfer"]
@@ -342,8 +369,14 @@ def Build(p):
                                    V(p["BallR"], 0, zMaskBall - rs))
         mask = mask.cut(Rotated(pocket, a))
         maskBalls.append(Rotated(Part.makeSphere(rs, V(p["BallR"], 0, zMaskBall)), a))
-    weak = []
-    for a in MagAngles:
+    weak, earMags = [], []
+    for a in (EarAngles if lobe else ()):
+        rp = p["LobeMagD"] / 2 + p["MagPocketClear"]
+        pocket = Part.makeCylinder(rp, p["LobeMagT"] + 0.01, V(p["LobeMagR"], 0, zBossTop - p["LobeMagT"]))
+        mask = mask.cut(Rotated(pocket, a))
+        earMags.append(Rotated(Part.makeCylinder(p["LobeMagD"] / 2, p["LobeMagT"],
+                                                 V(p["LobeMagR"], 0, zBossTop - p["LobeMagT"])), a))
+    for a in (() if lobe else MagAngles):
         m = Part.makeCylinder(p["WeakMagD"] / 2, p["WeakMagT"],
                               V(p["WeakMagR"], 0, zFrameTop - p["WeakMagT"]))
         m = Rotated(m, a)
@@ -356,9 +389,12 @@ def Build(p):
         parts["MaskBall%d" % (i + 1)] = s
     for i, s in enumerate(weak):
         parts["WeakMagnet%d" % (i + 1)] = s
+    for i, s in enumerate(earMags):
+        parts["EarMagnet%d" % (i + 1)] = s
 
     # ---- head floating ring (reference)
-    ring = Annulus(p["RingID"] / 2, p["RingOD"] / 2, zFace, zFace + p["RingT"])
+    ringOD = max(p["RingOD"], 2 * (p["LobeMagR"] + p["LobeMagD"] / 2 + 1.5)) if lobe else p["RingOD"]
+    ring = Annulus(p["RingID"] / 2, ringOD / 2, zFace, zFace + p["RingT"])
     balls, strong = [], []
     for a in EarAngles:
         for off in (-halfSpacing, halfSpacing):        # tangential pair per ear
@@ -370,7 +406,14 @@ def Build(p):
                                       V(p["StrongMagR"], 0, zFace)), a)
         ring = ring.cut(m)
         strong.append(m)
+    lobeMags = []
+    for a in (EarAngles if lobe else ()):
+        m = Rotated(Part.makeCylinder(p["LobeMagD"] / 2, p["LobeMagT"], V(p["LobeMagR"], 0, zFace)), a)
+        ring = ring.cut(m)
+        lobeMags.append(m)
     parts["HeadRingRef"] = ring.removeSplitter()
+    for i, s in enumerate(lobeMags):
+        parts["HeadLobeMagnet%d" % (i + 1)] = s
     for i, s in enumerate(balls):
         parts["Ball%d" % (i + 1)] = s
     for i, s in enumerate(strong):
@@ -429,7 +472,6 @@ def Check(parts, levels, p):
     cart = Part.makeCompound([parts[n] for n in cartNames])
     pairs = [
         ("cartridge to mask", cart, parts["Mask"]),
-        ("plate to weak magnet", parts["Plate"], parts["WeakMagnet1"]),
         ("ball to plate", parts["Ball1"], parts["Plate"]),
         ("head ball A to mask ball", parts["Ball1"], parts["MaskBall1"]),
         ("head ball B to mask ball", parts["Ball2"], parts["MaskBall1"]),
@@ -439,8 +481,37 @@ def Check(parts, levels, p):
         ("CNT film to cartridge", parts["CntFilm"], cart),
         ("filter to body sleeve", parts["Filter"], parts["Body"]),
     ]
+    if "WeakMagnet1" in parts:
+        pairs.insert(1, ("plate to weak magnet", parts["Plate"], parts["WeakMagnet1"]))
+    boss = None
+    if "EarMagnet1" in parts:
+        # the boss alone: the mask material inside the boss cylinder above the frame top
+        rBoss = p["LobeMagD"] / 2 + p["MagPocketClear"] + p["LobeBossWall"]
+        zTop = levels["RingFace"] - p["LobeGap"]
+        cyl = Part.makeCylinder(rBoss + 0.01, zTop - levels["FrameTop"] + 0.01, V(p["LobeMagR"], 0, levels["FrameTop"] + 0.001))
+        boss = parts["Mask"].common(cyl)
+        pairs += [("ear magnet to head magnet", parts["EarMagnet1"], parts["HeadLobeMagnet1"]),
+                  ("ear magnet to plate", parts["EarMagnet1"], parts["Plate"]),
+                  ("head ball to ear boss", parts["Ball1"], boss),
+                  ("head ring to ear boss", parts["HeadRingRef"], boss)]
     for label, a, b in pairs:
         print("  %-24s %.3f" % (label, a.distToShape(b)[0]))
+    if "EarMagnet1" in parts:
+        # combo pile: the next combo's mask rests on this combo's plate, one ring-face height up
+        pitch = levels["RingFace"]
+        up = parts["Mask"].copy()
+        up.translate(V(0, 0, pitch))
+        low = Part.makeCompound([parts[n] for n in cartNames + ["Mask"]])
+        upMag = parts["EarMagnet1"].copy()
+        upMag.translate(V(0, 0, pitch))
+        ov = up.common(low).Volume
+        bossGap = up.distToShape(boss)[0]
+        print("  %-24s %.4f (the next mask rests on this plate)" % ("pile: mask overlap", ov))
+        print("  %-24s %.3f" % ("pile: boss to next mask", bossGap))
+        print("  %-24s %.3f" % ("pile: ear magnet to next", parts["EarMagnet1"].distToShape(upMag)[0]))
+        if ov > 1e-3 or bossGap < 0.2:
+            raise ValueError("lobe hold: the next mask in a pile collides with this one (overlap %.4f, boss gap %.3f)"
+                             % (ov, bossGap))
     # stencil pattern: openings must lie inside the CNT area; report the film's clearance to the stencil
     pat, holes = StencilPattern(p)
     if pat is not None:
@@ -487,7 +558,7 @@ def Check(parts, levels, p):
     print("  %-24s %.3f" % ("stacked CNT to lower", upper[-1].distToShape(lowerAll)[0]))
 
 
-def Save(parts, outDir, docName):
+def Save(parts, outDir, docName, stepNames=("Body", "Collar", "Shim", "Plate", "Mask")):
     os.makedirs(outDir, exist_ok=True)
     doc = FreeCAD.newDocument(docName)
     for name, shape in parts.items():
@@ -496,7 +567,7 @@ def Save(parts, outDir, docName):
     doc.recompute()
     fcstd = os.path.join(outDir, docName + ".FCStd")
     doc.saveAs(fcstd)
-    for name in ("Body", "Collar", "Shim", "Plate", "Mask"):
+    for name in stepNames:
         if doc.getObject(name):
             Part.export([doc.getObject(name)], os.path.join(outDir, "%s-%s.step" % (docName, name)))
     print("Saved", fcstd)
@@ -583,6 +654,23 @@ def ExportPrintSet(p, outDir):
               (name, bb.XLength, bb.YLength, bb.ZLength))
 
 
+def ExportLobeMask(p, outDir):
+    """The lobe hold mask in print orientation (stencil on the bed, 0.2 mm nozzle)."""
+    parts, _ = Build(p)
+    name = "FilterCartridge-Mask-LobeHold.step"
+    shape = ToBed(parts["Mask"])
+    err = GeometryErrors(shape)
+    if err:
+        raise RuntimeError("%s fails the geometry self-check: %s" % (name, err))
+    target = os.path.join(outDir, name)
+    shape.exportStep(target)
+    back = Part.read(target)
+    if GeometryErrors(back) or len(back.Solids) != 1 or abs(back.Volume - shape.Volume) > 1e-3 * shape.Volume:
+        raise RuntimeError("%s fails after STEP round trip" % name)
+    bb = shape.BoundBox
+    print("  %-40s %6.1f x %6.1f x %5.2f mm  self-check ok, re-import ok" % (name, bb.XLength, bb.YLength, bb.ZLength))
+
+
 def PlateDxf(p, path):
     """Flat pattern of the steel plate for a metal laser-cutting service: an ASCII R12 DXF
     in mm on layer CUT, the format tools/check_dxf.py reads back. The bore is a circle; the outline
@@ -632,6 +720,14 @@ def Main():
         if old.startswith("FilterCartridge-Plate-") and old.endswith(".dxf"):
             os.remove(os.path.join(outDir, old))
     PlateDxf(p, os.path.join(outDir, "FilterCartridge-Plate-G90-0.030in.dxf"))
+    print("==== lobe hold variant (issue 230)")
+    q = dict(P)
+    q.update(PrintedFlange=True, MaskHold="lobe")
+    parts, levels = Build(q)
+    Check(parts, levels, q)
+    lobeDir = os.path.join(outDir, "Lobe hold")
+    Save(parts, lobeDir, "FilterCartridgeLobeHold", stepNames=())   # the cartridge is unchanged; mask STEP below
+    ExportLobeMask(q, lobeDir)
 
 
 Main()
