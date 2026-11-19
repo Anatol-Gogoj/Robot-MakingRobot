@@ -111,13 +111,13 @@ P = dict(
     # How the head holds the mask (issue 230). "plate": the three weak magnets pull the mask up to the
     # cartridge's steel plate across a 1.17 mm gap, at most about 1 N in all. "lobe": a magnet in each
     # ear sits on a boss under a magnet flush in the head's ball lobe, LobeGap apart, so the mask is
-    # held by the head itself (about 2.4 N per lobe with 3 x 2 N52 pairs). Three stepped push pins on the
-    # head (agreed with the head's designer, 2026-11-19) push it off: each pin's tip lands on the push
-    # flange and pushes the mask down by the stage 1 travel before the pin's shoulder reaches the
-    # cartridge plate and pushes it off. The flange runs all the way round, so the pins can sit at any
-    # angle clear of the ears; it is cut away around +Y, where the pile seat's slide scale has to stay
-    # visible, and its underside is lifted so it never touches the layer. The lobe variant drops the
-    # weak magnets.
+    # held by the head itself (about 2.4 N per lobe with 3 x 2 N52 pairs). Stepped pushers on the head
+    # (agreed with the head's designer, 2026-11-19; two 30-deg arc feet 180 deg apart in the current
+    # proposal) push it off: each foot's lower step lands on the push flange and pushes the mask down by
+    # the stage 1 travel before its upper step reaches the cartridge plate and pushes it off. The flange
+    # runs all the way round, so the feet can sit at any angle clear of the ears; it is cut away around
+    # +Y, where the pile seat's slide scale has to stay visible, and its underside is lifted so it never
+    # touches the layer. The lobe variant drops the weak magnets.
     MaskHold="plate",
     LobeMagD=3.0,
     LobeMagT=2.0,
@@ -125,7 +125,7 @@ P = dict(
     LobeGap=0.33,          # ear magnet top to the head lobe magnet face
     LobeBossWall=1.2,      # boss wall around the ear magnet pocket
     LobeEarOuterR=66.5,    # ears grow from EarOuterR to carry the magnet
-    PushFlangeR=58.8,      # flange at the frame top out to here; a pin tip lands at r 55..58.3, outside the plate (r 54.5)
+    PushFlangeR=58.8,      # flange at the frame top out to here; a pusher's lower step lands at r 55..58.3, outside the plate (r 54.5)
     PushFlangeGap=(78.0, 102.0),   # cut away around +Y for the pile seat's slide scale (r 56..66, x 2.5..9.5)
     PushFlangeLift=0.3,    # the flange's underside starts this high at the frame wall and rises at 45 deg: it never
                            # touches the layer and prints stencil-down without support

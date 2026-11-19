@@ -273,16 +273,18 @@ Repeated trials and notes:
 
 The weak magnets pull the mask up to the cartridge plate across 1.17 mm: at most about 1.0 N for all
 three, against ideal steel. A first bench piece stayed stuck to the elastomer. In the lobe hold variant the head
-holds the mask itself, and three stepped push pins on the head push it off before they push the cartridge.
+holds the mask itself, and stepped pushers on the head push it off before they push the cartridge.
 
 **How it holds.** Each mask ear carries a 3 x 2 mm magnet on a boss at r 63.5, its top 0.33 mm under a 3 x 2 mm
 magnet flush with the face of the head's ball lobe. Facing magnets attract with about 2.4 N per lobe (N52,
 surface-charge estimate, an upper bound). The mask has no weak magnets. The cartridge stays held by the pick
 magnets on its plate, as before.
 
-**How it lets go.** Each of three pins on the head has two steps. Its tip lands on the mask's push flange,
+**How it lets go.** The head's pushers have stepped feet; the current proposal is two 30 deg arcs, 180 deg
+apart, so the load is spread along the flange instead of at a point. Each foot's lower step lands on the
+mask's push flange,
 which runs round the frame top out to r 58.8 (cut away around +Y for the seat's slide scale; its underside
-rises at 45 deg from 0.3 mm above the stencil face, so it never touches the layer), and pushes the mask down. The pin's shoulder, higher up, then reaches the cartridge plate and pushes the cartridge off. The
+rises at 45 deg from 0.3 mm above the stencil face, so it never touches the layer), and pushes the mask down. The upper step then reaches the cartridge plate and pushes the cartridge off. The
 mask always leaves first, by the step, so the mask's hold and the cartridge's hold no longer have to be
 balanced against each other.
 
@@ -298,8 +300,9 @@ bounds):
 | 5 x 2 mm | 17.0 N | 1.33 N | 0.54 N | 0.25 N |
 | 6 x 2 mm | 22.2 N | 2.21 N | 0.97 N | 0.47 N |
 
-The pin's step height is the stage 1 travel plus 1.93 mm, the depth of the flange below the ring face.
-The pins are the head's part, not in this repo.
+The step height is the stage 1 travel plus 1.93 mm, the depth of the flange below the ring face. The
+pushers are the head's part, not in this repo. On the bench, L3 stands in for them: press the flange down by
+hand at two places 180 deg apart.
 
 | File (in `Lobe hold/`) | Make | Qty | Notes |
 |---|---|---|---|
@@ -330,8 +333,8 @@ measures it.
   the latch must beat after stage 1.
 - **L2 is the reason for this variant;** if the mask stays on the layer here too, more hold is needed before
   anything else.
-- **L3 Push-off (stage 1 by hand):** combo latched on the seat, tool on. Press the push flange down at three
-  points about 4 mm while lifting the tool. The mask must stay on the seat and the cartridge come up.
+- **L3 Push-off (stage 1 by hand):** combo latched on the seat, tool on. Press the push flange down at two
+  places 180 deg apart, about 4 mm, while lifting the tool. The mask must stay on the seat and the cartridge come up.
 
 **How tests 1 to 8 change for lobe masks:**
 - Test 1 (strip by a straight pull) cannot pass: the lobe hold is far above the latch. L3 replaces it.
