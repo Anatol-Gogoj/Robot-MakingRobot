@@ -1,0 +1,50 @@
+Head clearance at every pick pose (envelope grown by 2 mm vs everything not on the worked stack; gap = nominal envelope to the nearest level item)
+  P, 1 combo, slide +0               face  205.5  ok    min plan gap    5.9 mm (ColumnTube)
+  P, 1 combo, slide +10              face  205.5  ok    min plan gap    9.6 mm (ColumnTube)
+  P, 1 combo, slide -10              face  205.5  ok    min plan gap    2.8 mm (ColumnTube)
+  P, 16 combos, slide +0             face  287.4  ok    min plan gap    9.4 mm (ColumnTube)
+  P, 16 combos, slide +10            face  287.4  ok    min plan gap   13.1 mm (ColumnTube)
+  P, 16 combos, slide -10            face  287.4  ok    min plan gap    6.3 mm (ColumnTube)
+  N, 1 combo, slide +0               face  205.5  ok    min plan gap   32.5 mm (PilePFull)
+  N, 1 combo, slide +10              face  205.5  ok    min plan gap   22.5 mm (PilePFull)
+  N, 1 combo, slide -10              face  205.5  ok    min plan gap   42.5 mm (PilePFull)
+  N, 16 combos, slide +0             face  287.4  ok    min plan gap   36.0 mm (PilePFull)
+  N, 16 combos, slide +10            face  287.4  ok    min plan gap   26.0 mm (PilePFull)
+  N, 16 combos, slide -10            face  287.4  ok    min plan gap   46.0 mm (PilePFull)
+  C, pick top cartridge              face  300.0  ok    min plan gap   13.5 mm (ElevatorScrew)
+  D, eject spent cartridge           face  320.0  ok    min plan gap    nan mm (-)
+
+Elevator sweep: carriage and arm against the tube and both piles, from full to the last cartridge
+  ok, no overlap at any of 40 positions
+
+Fixtures against each other (every pair from different groups, stacks at their worst case)
+  ok, no overlaps
+
+Transit between stacks
+  ring face at least 326.2 for straight moves between stacks: highest item ElevatorScrew at 315.0, legs 0.7 below the face, a carried combo 5.462, margin 5
+
+Footprints (plan, at the table and in the air)
+  P at (69.0, 283.7) r 66.5: x 2.5..135.5, y 217.2..350.2  inside the strip, centre in reach
+  N at (69.0, 103.7) r 66.5: x 2.5..135.5, y 37.2..170.2  inside the strip, centre in reach
+  C at (205.0, 233.7) r 58.0: x 147.0..263.0, y 175.7..291.7  inside the strip, centre in reach
+  D at (205.0, 103.7) r 60.5: x 144.5..265.5, y 43.2..164.2  inside the strip, centre in reach
+  P to N: 47.0 mm apart in plan
+  P to C: 20.4 mm apart in plan
+  P to D: 98.6 mm apart in plan
+  N to C: 63.6 mm apart in plan
+  N to D: 9.0 mm apart in plan
+  C to D: 11.5 mm apart in plan
+
+Heights
+  combo pitch 5.462 (mask bottom to plate face; the next mask sits on that plate)
+  cartridge pitch 4.762 (cartridge bottom to plate face)
+  pile pick: 1 combo 205.5, 16 combos 287.4
+  C pick 300.0, tube rim 294.2, carriage 109.5 when full (40 cartridges, 190.5 mm)
+  I axis as C's elevator: 185.7 mm of its 343 mm travel from full to last cartridge;
+    one pick = A-4.762 (1523.84 steps; absolute targets round per move, so no drift)
+  D rim 200.0, eject from ring face 320.0 (drop 120.0 to the rim)
+  D holds at most 41 cartridges lying flat (column 40); tilted landings hold fewer: empty D between devices
+  ring face range: 142.7..396.7 mechanical, down to 210.7 with the legacy Z_MAX_POS 186
+  first pile pick 205.5: within the mechanical Z travel; below the legacy Z limit (210.7): Z_MAX_POS must move (#222), WARNING
+
+0 check(s) failed, 1 warning(s)
