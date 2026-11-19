@@ -273,30 +273,45 @@ Repeated trials and notes:
 
 The weak magnets pull the mask up to the cartridge plate across 1.17 mm: at most about 1.0 N for all
 three, against ideal steel. A first bench piece stayed stuck to the elastomer. In the lobe hold variant the head
-holds the mask itself, and the release tips push it off.
+holds the mask itself, and three stepped push pins on the head push it off before they push the cartridge.
 
 **How it holds.** Each mask ear carries a 3 x 2 mm magnet on a boss at r 63.5, its top 0.33 mm under a 3 x 2 mm
 magnet flush with the face of the head's ball lobe. Facing magnets attract with about 2.4 N per lobe (N52,
 surface-charge estimate, an upper bound). The mask has no weak magnets. The cartridge stays held by the pick
 magnets on its plate, as before.
 
-**How it lets go.** A finger on each release tip lands on the mask's push pad (41 and 221 deg, out to r 62)
-4.0 mm of tip travel before the tip's ball reaches the cartridge plate. Stage 1 pushes the mask 4.0 mm off.
-The lobe pull left at that separation is about 0.26 N for all three lobes. The latch then has to hold it:
-two latch magnets give at most about 6.7 N flush, 2.2 N at the 0.5 mm recess and 0.88 N at 1.0 mm (ideal
-steel, upper bounds). Stage 1 must stop close to where the ball meets the plate: a shorter push leaves more
-pull (0.69 N at 2.5 mm), and any further push starts ejecting the cartridge. Stage 2, further travel, ejects
-the cartridge. The head side of this is a separate head-side proposal, not part of this repo.
+**How it lets go.** Each of three pins on the head has two steps. Its tip lands on the mask's push flange,
+which runs round the frame top out to r 58.8 (cut away around +Y for the seat's slide scale; its underside
+rises at 45 deg from 0.3 mm above the stencil face, so it never touches the layer), and pushes the mask down. The pin's shoulder, higher up, then reaches the cartridge plate and pushes the cartridge off. The
+mask always leaves first, by the step, so the mask's hold and the cartridge's hold no longer have to be
+balanced against each other.
+
+What still has to be balanced is the pull left on the mask after stage 1, which the latch must beat when
+the mask is set down on a pile. Two latch magnets give at most about 6.7 N flush, 2.2 N at the 0.5 mm
+recess and 0.88 N at 1.0 mm. A stronger lobe magnet needs a longer stage 1 (all three lobes, N52, upper
+bounds):
+
+| Lobe magnet | Hold | Left after 4 mm | after 6 mm | after 8 mm |
+|---|---|---|---|---|
+| 3 x 2 mm (default) | 7.2 N | 0.26 N | 0.09 N | 0.04 N |
+| 4 x 2 mm | 11.9 N | 0.67 N | 0.25 N | 0.11 N |
+| 5 x 2 mm | 17.0 N | 1.33 N | 0.54 N | 0.25 N |
+| 6 x 2 mm | 22.2 N | 2.21 N | 0.97 N | 0.47 N |
+
+The pin's step height is the stage 1 travel plus 1.93 mm, the depth of the flange below the ring face.
+The pins are the head's part, not in this repo.
 
 | File (in `Lobe hold/`) | Make | Qty | Notes |
 |---|---|---|---|
-| `LatchTest-LobeHold-Mask-Recess0.0/0.5/1.0.step` | print, stencil down, 0.2 mm nozzle | 1 each | the three test masks with ear bosses and push pads, no weak magnets |
+| `LatchTest-LobeHold-Mask-Recess0.0/0.5/1.0.step` | print, stencil down, 0.2 mm nozzle | 1 each | the three test masks with ear bosses and the push flange, no weak magnets |
 | `LatchTest-LobeHold-PullTool.step` | print, face down, 0.4 mm nozzle | 1 | lobes to r 66.5 with a magnet pocket open at the face |
 | `../Lobe hold/FilterCartridge-Mask-LobeHold.step` | print, stencil down, 0.2 mm nozzle | 1 | the production mask in the lobe hold variant (`../Lobe hold/` also has its assembly model) |
 
 The pile seat and the acrylic base are the same parts.
 
-**Magnets.** The lobe set needs 18 more 3 x 2 mm magnets: five in each lobe test mask (two latch, three in
+**Magnets.** Every magnet pocket in these parts is 0.4 mm over the magnet's diameter (Ø3.4 for a 3 mm
+disc, Ø6.4 for 6 mm): at 0.2 mm the magnets had to be hammered in. Glue them with CA. The lobe set needs 18
+more 3 x 2 mm magnets: five in each lobe test mask (two latch, three in
 the ears) and three in the tool, plus three for the production mask. Glue the ear magnets marked face up, in every
 mask. Glue each tool magnet with the face that attracts a marked face pointing down; check it by holding a mask
 under the tool before the glue sets.
@@ -315,8 +330,8 @@ measures it.
   the latch must beat after stage 1.
 - **L2 is the reason for this variant;** if the mask stays on the layer here too, more hold is needed before
   anything else.
-- **L3 Push-off (stage 1 by hand):** combo latched on the seat, tool on. Press both push pads down with two
-  fingers about 4 mm while lifting the tool. The mask must stay on the seat and the cartridge come up.
+- **L3 Push-off (stage 1 by hand):** combo latched on the seat, tool on. Press the push flange down at three
+  points about 4 mm while lifting the tool. The mask must stay on the seat and the cartridge come up.
 
 **How tests 1 to 8 change for lobe masks:**
 - Test 1 (strip by a straight pull) cannot pass: the lobe hold is far above the latch. L3 replaces it.
@@ -329,7 +344,7 @@ measures it.
 ## Geometry checked by the script
 
 - **Latch pockets:** r 53.0 at 90 and 270 deg, open at the mask bottom.
-  - 0.70 mm wall to the frame bore.
+  - 0.60 mm wall to the frame bore.
   - At least 0.53 mm of skin under the frame top, at the 1.0 mm recess.
   - 24 mm from the weak-magnet pockets.
 - **Plate coverage:** aligned, each latch magnet sits 100 % over the plate ring below. After the 10 mm slide it is 0 %.

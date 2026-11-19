@@ -30,9 +30,9 @@ P, Build, Annulus, Sector, Rotated, GeometryErrors = (Gen[n] for n in
 L = dict(
     LatchMagD=3.0,          # 3 x 2 mm N52 disc, the same part as the mask's weak magnets
     LatchMagT=2.0,
-    LatchR=53.0,            # under the plate ring (r 46..54.5); 0.7 mm wall to the frame bore
+    LatchR=53.0,            # under the plate ring (r 46..54.5); 0.6 mm wall to the frame bore
     LatchAngles=(90.0, 270.0),
-    PocketClear=0.1,        # pocket radius over the magnet radius
+    PocketClear=0.2,        # pocket radius over the magnet radius (0.1 needed a hammer, bench 2026-11-19)
     Recesses=(0.0, 0.5, 1.0),   # magnet face height above the mask bottom: brackets the latch force
     Slide=10.0,             # release slide in +Y
     # Gripper-B pick magnets, measured from the Gripper-B preview assembly STEP (not in the repo)
@@ -253,7 +253,7 @@ def Checks(p, masks, tool, toolBalls, seat):
             dmin = min(pk.distToShape(parts["%s%d" % (kind, i)])[0] for i in (1, 2, 3))
             print("  recess %.1f @%3.0f: wall to bore %.2f, skin to frame top %.2f, to %s %.2f" %
                   (rec, a, wall_bore, skin, "weak magnets" if kind == "WeakMagnet" else "ear magnets", dmin))
-            if wall_bore < 0.6 or skin < 0.5 or dmin < 1.0:
+            if wall_bore < 0.55 or skin < 0.5 or dmin < 1.0:
                 bad += 1
     # 2. magnet over the plate ring below: aligned vs after the release slide
     rM = L["LatchMagD"] / 2
@@ -294,6 +294,23 @@ def Checks(p, masks, tool, toolBalls, seat):
         print("  lobe magnet seated in the tool pocket: overlap %.4f, face %.3f from the tool face, to ear magnet %.3f "
               "(LobeGap %.2f)" % (fit, face, gap, p["LobeGap"]))
         if fit > 1e-3 or abs(face) > 0.02 or abs(gap - p["LobeGap"]) > 0.02:
+            bad += 1
+    if "EarMagnet1" in parts:
+        # lobe hold: the seat's slide-scale ticks stay clear of the mask's push flange through the slide.
+        # The combo slides +Y over the seat, so in the mask frame the ticks move -Y.
+        flangeZone = Part.makeCylinder(p["PushFlangeR"] + 0.1, 20, V(0, 0, -5)).cut(
+            Part.makeCylinder(p["FrameOD"] / 2 + 0.05, 20, V(0, 0, -5)))
+        flange = parts["Mask"].common(flangeZone)
+        worst = 0.0
+        for s10 in range(0, int(L["Slide"] * 10) + 1, 5):
+            s = s10 / 10.0
+            for sl, y in SeatTickYs():
+                major = abs(sl) < 1e-9 or abs(sl - L["Slide"]) < 1e-9
+                ln = L["TickMajorL"] if major else L["TickMinorL"]
+                box = Part.makeBox(ln, L["TickW"], 20, V(L["TickX0"], y - s - L["TickW"] / 2, -5))
+                worst = max(worst, box.common(flange).Volume)
+        print("  slide scale under the push flange over the 0..%.0f mm slide: %.4f mm^3 (must be 0)" % (L["Slide"], worst))
+        if worst > 1e-3:
             bad += 1
     # control: the tool 0.05 lower must hit the mask balls
     t2 = [b.copy() for b in tb[:2]]

@@ -104,13 +104,20 @@ P = dict(
     MaskBallSink=0.4,      # mask ball centre below the ear top
     WeakMagD=3.0,
     WeakMagT=2.0,
-    WeakMagR=52.9,         # pocket r 51.3..54.5: 0.6 mm to the bore, inside the plate
-    MagPocketClear=0.1,    # pocket radius over the magnet radius
+    WeakMagR=53.0,         # pocket r 51.3..54.7: 0.6 mm to the bore (0.1 under the bore's top chamfer, as
+                           # before); the magnet (r 51.5..54.5) sits under the plate
+    MagPocketClear=0.2,    # pocket radius over the magnet radius: printed holes come out small, and at
+                           # 0.1 the magnets had to be hammered in (bench, 2026-11-19); they are glued
     # How the head holds the mask (issue 230). "plate": the three weak magnets pull the mask up to the
     # cartridge's steel plate across a 1.17 mm gap, at most about 1 N in all. "lobe": a magnet in each
     # ear sits on a boss under a magnet flush in the head's ball lobe, LobeGap apart, so the mask is
-    # held by the head itself (about 2.4 N per lobe with 3 x 2 N52 pairs); the head's release tips push
-    # it off at PushPadAngles. The lobe variant drops the weak magnets.
+    # held by the head itself (about 2.4 N per lobe with 3 x 2 N52 pairs). Three stepped push pins on the
+    # head (agreed with the head's designer, 2026-11-19) push it off: each pin's tip lands on the push
+    # flange and pushes the mask down by the stage 1 travel before the pin's shoulder reaches the
+    # cartridge plate and pushes it off. The flange runs all the way round, so the pins can sit at any
+    # angle clear of the ears; it is cut away around +Y, where the pile seat's slide scale has to stay
+    # visible, and its underside is lifted so it never touches the layer. The lobe variant drops the
+    # weak magnets.
     MaskHold="plate",
     LobeMagD=3.0,
     LobeMagT=2.0,
@@ -118,9 +125,10 @@ P = dict(
     LobeGap=0.33,          # ear magnet top to the head lobe magnet face
     LobeBossWall=1.2,      # boss wall around the ear magnet pocket
     LobeEarOuterR=66.5,    # ears grow from EarOuterR to carry the magnet
-    PushPadAngles=(41.14, 221.14),  # Gripper-B v33 release tips, r 54.11
-    PushPadR1=62.0,        # the head's mask finger lands at r 58.6..61.1, outside the plate ring (r 54.5)
-    PushPadW=10.0,
+    PushFlangeR=58.8,      # flange at the frame top out to here; a pin tip lands at r 55..58.3, outside the plate (r 54.5)
+    PushFlangeGap=(78.0, 102.0),   # cut away around +Y for the pile seat's slide scale (r 56..66, x 2.5..9.5)
+    PushFlangeLift=0.3,    # the flange's underside starts this high at the frame wall and rises at 45 deg: it never
+                           # touches the layer and prints stencil-down without support
     # Head floating ring (reference only, not a design of the head)
     BallD=4.0,
     BallR=58.5,
@@ -353,10 +361,14 @@ def Build(p):
         for a in EarAngles:
             boss = Part.makeCylinder(rBoss, zBossTop - zFrameTop + 0.01, V(p["LobeMagR"], 0, zFrameTop - 0.01))
             frame = frame.fuse(Rotated(boss, a))
-        for a in p["PushPadAngles"]:
-            r0 = p["FrameOD"] / 2 - 1.0
-            pad = Part.makeBox(p["PushPadR1"] - r0, p["PushPadW"], zFrameTop, V(r0, -p["PushPadW"] / 2, 0))
-            frame = frame.fuse(Rotated(pad, a))
+        g0, g1 = p["PushFlangeGap"]
+        r0 = p["FrameOD"] / 2 - 0.01            # fused to the frame wall, lifted off the layer
+        r1, z0 = p["PushFlangeR"], p["PushFlangeLift"]
+        prof = Part.Face(Part.makePolygon([V(r0, 0, z0), V(r1, 0, z0 + (r1 - r0)), V(r1, 0, zFrameTop),
+                                           V(r0, 0, zFrameTop), V(r0, 0, z0)]))
+        flange = prof.revolve(V(0, 0, 0), V(0, 0, 1), 360.0 - (g1 - g0))
+        flange.rotate(V(0, 0, 0), V(0, 0, 1), g1)
+        frame = frame.fuse(flange)
     mask = stencil.fuse(frame)
     # 45 deg lead-in on the frame bore, where the cartridge drops in
     rb0, cb = p["FrameID"] / 2, p["FrameBoreChamfer"]
