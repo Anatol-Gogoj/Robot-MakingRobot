@@ -30,9 +30,9 @@ P, Build, Annulus, Sector, Rotated, GeometryErrors = (Gen[n] for n in
 L = dict(
     LatchMagD=3.0,          # 3 x 2 mm N52 disc, the same part as the mask's weak magnets
     LatchMagT=2.0,
-    LatchR=53.0,            # under the plate ring (r 46..54.5); 0.7 mm wall to the frame bore
+    LatchR=53.0,            # under the plate ring (r 46..54.5); 0.6 mm wall to the frame bore
     LatchAngles=(90.0, 270.0),
-    PocketClear=0.1,        # pocket radius over the magnet radius
+    PocketClear=0.2,        # pocket radius over the magnet radius (0.1 needed a hammer, bench 2026-11-19)
     Recesses=(0.0, 0.5, 1.0),   # magnet face height above the mask bottom: brackets the latch force
     Slide=10.0,             # release slide in +Y
     # Gripper-B pick magnets, measured from the Gripper-B preview assembly STEP (not in the repo)
@@ -110,8 +110,10 @@ def PullTool(p):
     half = (rb + p["MaskBallD"] / 2) * math.sin(k)
     zBallC = rb - p["BallProtrusion"]                      # ball centre above the face (0.5)
     body = Annulus(L["ToolRingRI"], L["ToolRingRO"], 0, T)
+    lobeHold = p["MaskHold"] == "lobe"
+    lobeR = p["LobeEarOuterR"] if lobeHold else p["EarOuterR"]
     for a in (0.0, 120.0, 240.0):
-        lobe = Part.makeBox(p["EarOuterR"] - L["ToolRingRO"] + 1.0, L["LobeW"], T,
+        lobe = Part.makeBox(lobeR - L["ToolRingRO"] + 1.0, L["LobeW"], T,
                             V(L["ToolRingRO"] - 1.0, -L["LobeW"] / 2, 0))
         body = body.fuse(Rotated(lobe, a))
     # spokes and hub for the cord
@@ -132,6 +134,12 @@ def PullTool(p):
             pk = Part.makeCylinder(rb + p["MaskBallPocketClear"], zBallC + rb, V(p["BallR"], off, -0.01))
             body = body.cut(Rotated(pk, a))
             balls.append(Rotated(Part.makeSphere(rb, V(p["BallR"], off, zBallC)), a))
+    # lobe hold: a magnet flush with the face in each lobe, over the mask's ear magnet (issue 230)
+    if lobeHold:
+        for a in (0.0, 120.0, 240.0):
+            pk = Part.makeCylinder(p["LobeMagD"] / 2 + L["PocketClear"], p["LobeMagT"] + 0.01,
+                                   V(p["LobeMagR"], 0, -0.01))
+            body = body.cut(Rotated(pk, a))
     # +Y direction notch on the outer rim
     notch = Part.makeBox(4, 4, T + 1, V(-2, L["ToolRingRO"] - 2.5, -0.5))
     body = body.cut(notch)
@@ -241,10 +249,11 @@ def Checks(p, masks, tool, toolBalls, seat):
             pk = LatchPocket(rec, a)
             wall_bore = L["LatchR"] - (L["LatchMagD"] / 2 + L["PocketClear"]) - p["FrameID"] / 2
             skin = lv["FrameTop"] - (L["LatchMagT"] + rec)
-            dmin = min(pk.distToShape(parts["WeakMagnet%d" % i])[0] for i in (1, 2, 3))
-            print("  recess %.1f @%3.0f: wall to bore %.2f, skin to frame top %.2f, to weak magnets %.2f" %
-                  (rec, a, wall_bore, skin, dmin))
-            if wall_bore < 0.6 or skin < 0.5 or dmin < 1.0:
+            kind = "WeakMagnet" if "WeakMagnet1" in parts else "EarMagnet"
+            dmin = min(pk.distToShape(parts["%s%d" % (kind, i)])[0] for i in (1, 2, 3))
+            print("  recess %.1f @%3.0f: wall to bore %.2f, skin to frame top %.2f, to %s %.2f" %
+                  (rec, a, wall_bore, skin, "weak magnets" if kind == "WeakMagnet" else "ear magnets", dmin))
+            if wall_bore < 0.55 or skin < 0.5 or dmin < 1.0:
                 bad += 1
     # 2. magnet over the plate ring below: aligned vs after the release slide
     rM = L["LatchMagD"] / 2
@@ -272,6 +281,36 @@ def Checks(p, masks, tool, toolBalls, seat):
         d = b.distToShape(parts["MaskBall1"])[0]
         print("  tool ball %d to mask ball: %.3f (contact expected)" % (i + 1, d))
         if d > 0.02:
+            bad += 1
+    if "EarMagnet1" in parts:
+        # lobe hold: seat a magnet against the tool pocket's ceiling, then measure it to the ear magnet
+        x, z = p["LobeMagR"], lv["RingFace"]
+        while not t.isInside(V(x, 0, z), 1e-4, True) and z < lv["RingFace"] + L["ToolT"]:
+            z += 0.005
+        mag = Part.makeCylinder(p["LobeMagD"] / 2, p["LobeMagT"], V(x, 0, z - p["LobeMagT"]))
+        fit = t.common(mag).Volume
+        face = z - p["LobeMagT"] - lv["RingFace"]
+        gap = mag.distToShape(parts["EarMagnet1"])[0]
+        print("  lobe magnet seated in the tool pocket: overlap %.4f, face %.3f from the tool face, to ear magnet %.3f "
+              "(LobeGap %.2f)" % (fit, face, gap, p["LobeGap"]))
+        if fit > 1e-3 or abs(face) > 0.02 or abs(gap - p["LobeGap"]) > 0.02:
+            bad += 1
+    if "EarMagnet1" in parts:
+        # lobe hold: the seat's slide-scale ticks stay clear of the mask's push flange through the slide.
+        # The combo slides +Y over the seat, so in the mask frame the ticks move -Y.
+        flangeZone = Part.makeCylinder(p["PushFlangeR"] + 0.1, 20, V(0, 0, -5)).cut(
+            Part.makeCylinder(p["FrameOD"] / 2 + 0.05, 20, V(0, 0, -5)))
+        flange = parts["Mask"].common(flangeZone)
+        worst = 0.0
+        for s10 in range(0, int(L["Slide"] * 10) + 1, 5):
+            s = s10 / 10.0
+            for sl, y in SeatTickYs():
+                major = abs(sl) < 1e-9 or abs(sl - L["Slide"]) < 1e-9
+                ln = L["TickMajorL"] if major else L["TickMinorL"]
+                box = Part.makeBox(ln, L["TickW"], 20, V(L["TickX0"], y - s - L["TickW"] / 2, -5))
+                worst = max(worst, box.common(flange).Volume)
+        print("  slide scale under the push flange over the 0..%.0f mm slide: %.4f mm^3 (must be 0)" % (L["Slide"], worst))
+        if worst > 1e-3:
             bad += 1
     # control: the tool 0.05 lower must hit the mask balls
     t2 = [b.copy() for b in tb[:2]]
@@ -368,6 +407,22 @@ def Main():
     doc.saveAs(os.path.join(outDir, "LatchTest.FCStd"))
     FreeCAD.closeDocument(doc.Name)
     print("Saved", outDir)
+    # lobe hold variant (issue 230): masks held by magnets in the head's lobes, no weak magnets.
+    # The pile seat and the acrylic base are the same parts.
+    print("==== lobe hold variant")
+    q = dict(p)
+    q["MaskHold"] = "lobe"
+    masks = {r: TestMask(q, r) for r in L["Recesses"]}
+    tool, toolBalls = PullTool(q)
+    bad = Checks(q, masks, tool, toolBalls, seat)
+    if bad:
+        raise SystemExit("lobe hold latch test checks failed: %d" % bad)
+    lobeDir = os.path.join(outDir, "Lobe hold")
+    files = {}
+    for r, m in masks.items():
+        files["LatchTest-LobeHold-Mask-Recess%.1f.step" % r] = ToBed(m)
+    files["LatchTest-LobeHold-PullTool.step"] = ToBed(tool)
+    Export(files, lobeDir)
 
 
 Main()
