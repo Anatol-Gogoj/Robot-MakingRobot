@@ -24,10 +24,39 @@ Forces (friction coefficients assumed: PETG/PETG 0.30, PETG/pad 0.20)
   retract load 34 N (study bound, not measured) goes through the slider into the base ramp;
     dispensing loads the carriage directly, not the slider
 
+Ratchet (positive lock)
+  8 lock positions, p = -4.0 .. 10.0 every 2.0 (0.210 mm of lift per tooth); nominal pad locks at p = 0
+  seats in every notch, blocks a 0.3 mm pull-back at every notch at either side of the +-0.4 guide float,
+    and rides over the notches on push-in
+  release tab pulled to its stop (pawl lifted 2.25): the slider pulls back freely from p -6 to 12,
+    checked with the slider at its +v side
+    and the rebate's end wall still stops it at p = 12 with the slider at its -v side: captive
+  margins at the tab stop, worst side of the float: clears the notches by 0.65; overlaps the end wall by 0.55
+  arm 51.5 long (pawl 28.0 from the root) x 2.0 thick x 9.5 high, E 2500 MPa assumed
+  tab pull to clear the notches: about 1.5 N; to the stop: about 2.2 N; the tab moves about 6.2 mm
+  the arm at the front face moves 4.9 in its 6.5 slot
+  the tab tilts 10.2 deg at the stop; its gap to the frame's front face closes from 6.0 to 2.8
+  root strain at the tab stop 0.70 % (18 MPa)
+  the 34 N retract load acts on the pad in z; along u the slider sees at most 34 x tan(alpha) = 3.6 N,
+    and none while friction holds. That load compresses the arm off-centre toward the slider, which
+    pushes the pawl deeper; buckling of the root-to-pawl span 50 N
+  bearing on one notch wall (0.8 x 2.6 mm): 1.7 MPa
+  friction still holds the preload; the ratchet stops creep beyond one tooth
+
+Use
+  lock: push the slider in by its lip until the pad is tight; it clicks past each tooth and stays
+  release: hook a fingertip behind the rib at the tab's outer end and pull it outward until it stops
+    (about 6 mm); with the other hand pull the slider back by its lip until it stops; let go of the tab;
+    slide the syringe out through the open side
+  cleaning: unscrew the frame's two screws; the slider lifts out upward
+
 Printing
   frame: base bottom on the bed, so the part sits tilted 6.0 deg and the ramp is a flat top face (iron it);
     the slider's stepped underside then rides a smooth ramp and cannot lock into matching layer steps
-  slider: flat top on the bed
+  slider: flat top on the bed; its notch walls are vertical, so the teeth print as drawn
+  the pawl tooth and the release tab stand on the bed plane with the arm; no supports; turn on
+    elephant-foot compensation (the arm gap and the tooth relief are 0.5 and 0.5 wide, 0.3 more at the bed)
+  PETG preferred for the frame (the flexure); PLA works at this strain but fatigues sooner
 
 Not modelled or not known
   the pad thickness (2.0 taken from the old clamp's spacer bosses), its diameter, and the rod width under it
@@ -38,7 +67,7 @@ Not modelled or not known
     pad-to-flange distance at full plunger insertion
   which way the channel must open (it must face the barrel clamp half that is unsnapped for a swap);
     the frame mounts in two orientations 180 deg apart on the same two holes
-  no captive stop when pulling back: with the syringe out the slider can leave through the back; a snap tab
-    at p = +12 would make it captive. During a dose the pad unloads the slider, so check for creep on the bench
+  the release tab, its hook and the arm extension sit in front of the frame's front face, u -33 to -30
+    and out to 50 in v: check the carriage, the C drive and the syringe's way out there
 
 0 check(s) failed
