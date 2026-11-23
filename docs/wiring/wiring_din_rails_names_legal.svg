@@ -84,347 +84,349 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="26" y="77.8" font-size="1.8" style="fill:#000">coil, loads</text>
 <text x="73" y="75.4" font-size="1.8" style="fill:#000">24 V rail</text>
 <text x="8" y="80.2" font-size="1.8" style="fill:#000" font-weight="bold">servo PSU</text>
-<text x="26" y="80.2" font-size="1.8" style="fill:#000">6 V DC-DC for the gripper and lid servos</text>
-<text x="73" y="80.2" font-size="1.8" style="fill:#000">beside 24 V rail</text>
-<text x="8" y="82.6" font-size="1.8" style="fill:#000" font-weight="bold">5 V PSU</text>
-<text x="26" y="82.6" font-size="1.8" style="fill:#000">feeds the Pi at the operator panel</text>
-<text x="73" y="82.6" font-size="1.8" style="fill:#000">24 V row, back</text>
-<text x="8" y="85" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
-<text x="26" y="85" font-size="1.8" style="fill:#000">lower PE bar on the base plate's PE stud</text>
-<text x="73" y="85" font-size="1.8" style="fill:#000">behind servo PSU</text>
-<text x="8" y="88.6" font-size="2.3" font-weight="bold">Upper deck: drives, logic, field terminals</text>
-<text x="8" y="91.6" font-size="1.8" style="fill:#000" font-weight="bold">X2</text>
-<text x="26" y="91.6" font-size="1.8" style="fill:#000">E-stop latch: the door cable from S2 and S3</text>
-<text x="73" y="91.6" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="94" font-size="1.8" style="fill:#000" font-weight="bold">X4</text>
-<text x="26" y="94" font-size="1.8" style="fill:#000">endstops: a signal and a common for each axis</text>
-<text x="73" y="94" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="96.4" font-size="1.8" style="fill:#000" font-weight="bold">X5</text>
-<text x="26" y="96.4" font-size="1.8" style="fill:#000">servos: 6 V, 0 V and signal for the gripper and</text>
-<text x="26" y="98.8" font-size="1.8" style="fill:#000">lid</text>
+<text x="26" y="80.2" font-size="1.8" style="fill:#000">Mean Well DDR-30G-5 at 5.4 V for the gripper and</text>
+<text x="26" y="82.6" font-size="1.8" style="fill:#000">lid servos, -Vo tied to -Vin</text>
+<text x="73" y="80.2" font-size="1.8" style="fill:#000">24 V row, back</text>
+<text x="8" y="85" font-size="1.8" style="fill:#000" font-weight="bold">5 V PSU</text>
+<text x="26" y="85" font-size="1.8" style="fill:#000">Mean Well DDR-30G-5, set for 5.1 V at the Pi:</text>
+<text x="26" y="87.4" font-size="1.8" style="fill:#000">feeds the Pi at the operator panel</text>
+<text x="73" y="85" font-size="1.8" style="fill:#000">24 V row, back</text>
+<text x="8" y="89.8" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
+<text x="26" y="89.8" font-size="1.8" style="fill:#000">lower PE bar on the base plate's PE stud</text>
+<text x="73" y="89.8" font-size="1.8" style="fill:#000">beside cable slot 2</text>
+<text x="8" y="93.4" font-size="2.3" font-weight="bold">Upper deck: drives, logic, field terminals</text>
+<text x="8" y="96.4" font-size="1.8" style="fill:#000" font-weight="bold">X2</text>
+<text x="26" y="96.4" font-size="1.8" style="fill:#000">E-stop latch: the door cable from S2 and S3</text>
 <text x="73" y="96.4" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="101.2" font-size="1.8" style="fill:#000" font-weight="bold">X6</text>
-<text x="26" y="101.2" font-size="1.8" style="fill:#000">lid (UV array, switch S5) and the argon valve</text>
+<text x="8" y="98.8" font-size="1.8" style="fill:#000" font-weight="bold">X4</text>
+<text x="26" y="98.8" font-size="1.8" style="fill:#000">endstops: a signal and a common for each axis</text>
+<text x="73" y="98.8" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="101.2" font-size="1.8" style="fill:#000" font-weight="bold">X5</text>
+<text x="26" y="101.2" font-size="1.8" style="fill:#000">servos: V+ (5.4 V), 0 V and signal for the</text>
+<text x="26" y="103.6" font-size="1.8" style="fill:#000">gripper and lid</text>
 <text x="73" y="101.2" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="103.6" font-size="1.8" style="fill:#000" font-weight="bold">X7</text>
-<text x="26" y="103.6" font-size="1.8" style="fill:#000">status tower: red, amber, green, buzzer, common</text>
-<text x="73" y="103.6" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="106" font-size="1.8" style="fill:#000" font-weight="bold">X8</text>
-<text x="26" y="106" font-size="1.8" style="fill:#000">spare (was the screen supply and the home</text>
-<text x="26" y="108.4" font-size="1.8" style="fill:#000">button)</text>
+<text x="8" y="106" font-size="1.8" style="fill:#000" font-weight="bold">X6</text>
+<text x="26" y="106" font-size="1.8" style="fill:#000">lid (UV array, switch S5) and the argon valve</text>
 <text x="73" y="106" font-size="1.8" style="fill:#000">field rail</text>
-<text x="8" y="110.8" font-size="1.8" style="fill:#000" font-weight="bold">Mega</text>
-<text x="26" y="110.8" font-size="1.8" style="fill:#000">Arduino Mega 2560 on a screw shield; runs on the</text>
-<text x="26" y="113.2" font-size="1.8" style="fill:#000">Pi's USB</text>
-<text x="73" y="110.8" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="115.6" font-size="1.8" style="fill:#000" font-weight="bold">0V-S</text>
-<text x="26" y="115.6" font-size="1.8" style="fill:#000">signal 0 V bus, 9 linked: driver COMs, Mega GND,</text>
-<text x="26" y="118" font-size="1.8" style="fill:#000">endstops</text>
+<text x="8" y="108.4" font-size="1.8" style="fill:#000" font-weight="bold">X7</text>
+<text x="26" y="108.4" font-size="1.8" style="fill:#000">status tower: red, amber, green, buzzer, common</text>
+<text x="73" y="108.4" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="110.8" font-size="1.8" style="fill:#000" font-weight="bold">X8</text>
+<text x="26" y="110.8" font-size="1.8" style="fill:#000">spare (was the screen supply and the home</text>
+<text x="26" y="113.2" font-size="1.8" style="fill:#000">button)</text>
+<text x="73" y="110.8" font-size="1.8" style="fill:#000">field rail</text>
+<text x="8" y="115.6" font-size="1.8" style="fill:#000" font-weight="bold">Mega</text>
+<text x="26" y="115.6" font-size="1.8" style="fill:#000">Arduino Mega 2560 on a screw shield; runs on the</text>
+<text x="26" y="118" font-size="1.8" style="fill:#000">Pi's USB</text>
 <text x="73" y="115.6" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="120.4" font-size="1.8" style="fill:#000" font-weight="bold">0V-S2</text>
-<text x="26" y="120.4" font-size="1.8" style="fill:#000">second 0V-S group: SSR input returns, S5 return</text>
+<text x="8" y="120.4" font-size="1.8" style="fill:#000" font-weight="bold">0V-S</text>
+<text x="26" y="120.4" font-size="1.8" style="fill:#000">signal 0 V bus, 9 linked: driver COMs, Mega GND,</text>
+<text x="26" y="122.8" font-size="1.8" style="fill:#000">endstops</text>
 <text x="73" y="120.4" font-size="1.8" style="fill:#000">logic rail</text>
-<text x="8" y="122.8" font-size="1.8" style="fill:#000" font-weight="bold">SSR-UV</text>
-<text x="26" y="122.8" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 4 switches the UV</text>
-<text x="26" y="125.2" font-size="1.8" style="fill:#000">array</text>
-<text x="73" y="122.8" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="127.6" font-size="1.8" style="fill:#000" font-weight="bold">SSR-valve</text>
-<text x="26" y="127.6" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 42 switches the</text>
-<text x="26" y="130" font-size="1.8" style="fill:#000">argon valve</text>
+<text x="8" y="125.2" font-size="1.8" style="fill:#000" font-weight="bold">0V-S2</text>
+<text x="26" y="125.2" font-size="1.8" style="fill:#000">second 0V-S group: SSR input returns, S5 return</text>
+<text x="73" y="125.2" font-size="1.8" style="fill:#000">logic rail</text>
+<text x="8" y="127.6" font-size="1.8" style="fill:#000" font-weight="bold">SSR-UV</text>
+<text x="26" y="127.6" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 4 switches the UV</text>
+<text x="26" y="130" font-size="1.8" style="fill:#000">array</text>
 <text x="73" y="127.6" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="132.4" font-size="1.8" style="fill:#000" font-weight="bold">tower R A G</text>
-<text x="26" y="132.4" font-size="1.8" style="fill:#000">DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber,</text>
-<text x="26" y="134.8" font-size="1.8" style="fill:#000">green lamps</text>
+<text x="8" y="132.4" font-size="1.8" style="fill:#000" font-weight="bold">SSR-valve</text>
+<text x="26" y="132.4" font-size="1.8" style="fill:#000">DC solid-state relay: Mega pin 42 switches the</text>
+<text x="26" y="134.8" font-size="1.8" style="fill:#000">argon valve</text>
 <text x="73" y="132.4" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="137.2" font-size="1.8" style="fill:#000" font-weight="bold">buzzer</text>
-<text x="26" y="137.2" font-size="1.8" style="fill:#000">DC SSR: Pi GPIO 26 switches the tower's buzzer</text>
+<text x="8" y="137.2" font-size="1.8" style="fill:#000" font-weight="bold">tower R A G</text>
+<text x="26" y="137.2" font-size="1.8" style="fill:#000">DC SSRs: Pi GPIO 5, 6, 13 switch the red, amber,</text>
+<text x="26" y="139.6" font-size="1.8" style="fill:#000">green lamps</text>
 <text x="73" y="137.2" font-size="1.8" style="fill:#000">SSR rail</text>
-<text x="8" y="139.6" font-size="1.8" style="fill:#000" font-weight="bold">X ... C</text>
-<text x="26" y="139.6" font-size="1.8" style="fill:#000">TB6600 drivers: X, Y1, Y2 (follows Y), Z, A</text>
-<text x="26" y="142" font-size="1.8" style="fill:#000">(filter feed), B (syringe height), C (syringe)</text>
-<text x="73" y="139.6" font-size="1.8" style="fill:#000">drivers rail</text>
-<text x="8" y="144.4" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
-<text x="26" y="144.4" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
-<text x="73" y="144.4" font-size="1.8" style="fill:#000">past the drivers</text>
-<text x="8" y="146.8" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
-<text x="26" y="146.8" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
-<text x="73" y="146.8" font-size="1.8" style="fill:#000">behind back run</text>
-<text x="8" y="149.2" font-size="1.8" style="fill:#000" font-weight="bold">12 V DC-DC</text>
-<text x="26" y="149.2" font-size="1.8" style="fill:#000">Mean Well DDR-60G-12, isolated: 12 V for the</text>
-<text x="26" y="151.6" font-size="1.8" style="fill:#000">screen, fed by F1-3</text>
-<text x="73" y="149.2" font-size="1.8" style="fill:#000">behind slot 2</text>
-<text x="8" y="155.2" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
-<text x="8" y="158.2" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
-<text x="26" y="158.2" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
-<text x="26" y="160.6" font-size="1.8" style="fill:#000">while K1 is in</text>
-<text x="73" y="158.2" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="163" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
-<text x="26" y="163" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
-<text x="26" y="165.4" font-size="1.8" style="fill:#000">(GPIO 20)</text>
+<text x="8" y="142" font-size="1.8" style="fill:#000" font-weight="bold">buzzer</text>
+<text x="26" y="142" font-size="1.8" style="fill:#000">DC SSR: Pi GPIO 26 switches the tower's buzzer</text>
+<text x="73" y="142" font-size="1.8" style="fill:#000">SSR rail</text>
+<text x="8" y="144.4" font-size="1.8" style="fill:#000" font-weight="bold">X ... C</text>
+<text x="26" y="144.4" font-size="1.8" style="fill:#000">TB6600 drivers: X, Y1, Y2 (follows Y), Z, A</text>
+<text x="26" y="146.8" font-size="1.8" style="fill:#000">(filter feed), B (syringe height), C (syringe)</text>
+<text x="73" y="144.4" font-size="1.8" style="fill:#000">drivers rail</text>
+<text x="8" y="149.2" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
+<text x="26" y="149.2" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
+<text x="73" y="149.2" font-size="1.8" style="fill:#000">past the drivers</text>
+<text x="8" y="151.6" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
+<text x="26" y="151.6" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
+<text x="73" y="151.6" font-size="1.8" style="fill:#000">behind back run</text>
+<text x="8" y="154" font-size="1.8" style="fill:#000" font-weight="bold">12 V DC-DC</text>
+<text x="26" y="154" font-size="1.8" style="fill:#000">Mean Well DDR-60G-12, isolated: 12 V for the</text>
+<text x="26" y="156.4" font-size="1.8" style="fill:#000">screen, fed by F1-3</text>
+<text x="73" y="154" font-size="1.8" style="fill:#000">behind slot 2</text>
+<text x="8" y="160" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
+<text x="8" y="163" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
+<text x="26" y="163" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
+<text x="26" y="165.4" font-size="1.8" style="fill:#000">while K1 is in</text>
 <text x="73" y="163" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="167.8" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
-<text x="26" y="167.8" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
-<text x="26" y="170.2" font-size="1.8" style="fill:#000">E-stop</text>
+<text x="8" y="167.8" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
+<text x="26" y="167.8" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
+<text x="26" y="170.2" font-size="1.8" style="fill:#000">(GPIO 20)</text>
 <text x="73" y="167.8" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="172.6" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
-<text x="26" y="172.6" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
-<text x="26" y="175" font-size="1.8" style="fill:#000">lid shut</text>
-<text x="73" y="172.6" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
-<text x="26" y="177.4" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
-<text x="26" y="179.8" font-size="1.8" style="fill:#000">for now)</text>
+<text x="8" y="172.6" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
+<text x="26" y="172.6" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
+<text x="26" y="175" font-size="1.8" style="fill:#000">E-stop</text>
+<text x="73" y="172.6" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
+<text x="26" y="177.4" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
+<text x="26" y="179.8" font-size="1.8" style="fill:#000">lid shut</text>
 <text x="73" y="177.4" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="182.2" font-size="1.8" style="fill:#000" font-weight="bold">S6</text>
-<text x="26" y="182.2" font-size="1.8" style="fill:#000">Start / Resume push button (NO, green): Pi GPIO</text>
-<text x="26" y="184.6" font-size="1.8" style="fill:#000">16, Run All or resume a hold</text>
-<text x="73" y="182.2" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">S7</text>
-<text x="26" y="187" font-size="1.8" style="fill:#000">Stop push button (NO, red): Pi GPIO 25, M410 and</text>
-<text x="26" y="189.4" font-size="1.8" style="fill:#000">a soft stop of the run</text>
+<text x="8" y="182.2" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
+<text x="26" y="182.2" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
+<text x="26" y="184.6" font-size="1.8" style="fill:#000">for now)</text>
+<text x="73" y="182.2" font-size="1.8" style="fill:#000">lid</text>
+<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">S6</text>
+<text x="26" y="187" font-size="1.8" style="fill:#000">Start / Resume push button (NO, green): Pi GPIO</text>
+<text x="26" y="189.4" font-size="1.8" style="fill:#000">16, Run All or resume a hold</text>
 <text x="73" y="187" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="191.8" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
-<text x="26" y="191.8" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
-<text x="73" y="191.8" font-size="1.8" style="fill:#000">at the valve</text>
-<text x="8" y="194.2" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
-<text x="26" y="194.2" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
-<text x="26" y="196.6" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
-<text x="73" y="194.2" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="199" font-size="1.8" style="fill:#000" font-weight="bold">screen</text>
-<text x="26" y="199" font-size="1.8" style="fill:#000">10.1 in touch screen: HDMI and USB from the Pi,</text>
-<text x="26" y="201.4" font-size="1.8" style="fill:#000">12 V from the DC-DC</text>
+<text x="8" y="191.8" font-size="1.8" style="fill:#000" font-weight="bold">S7</text>
+<text x="26" y="191.8" font-size="1.8" style="fill:#000">Stop push button (NO, red): Pi GPIO 25, M410 and</text>
+<text x="26" y="194.2" font-size="1.8" style="fill:#000">a soft stop of the run</text>
+<text x="73" y="191.8" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="196.6" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
+<text x="26" y="196.6" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
+<text x="73" y="196.6" font-size="1.8" style="fill:#000">at the valve</text>
+<text x="8" y="199" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
+<text x="26" y="199" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
+<text x="26" y="201.4" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
 <text x="73" y="199" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="203.8" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
-<text x="26" y="203.8" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
-<text x="73" y="203.8" font-size="1.8" style="fill:#000">spin coater base</text>
-<text x="95" y="22" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
-<text x="113" y="22" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
-<text x="113" y="24.4" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
-<text x="160" y="22" font-size="1.8" style="fill:#000"></text>
-<text x="95" y="28" font-size="2.3" font-weight="bold">Terminal plan</text>
-<text x="95" y="31" font-size="1.8" style="fill:#555" font-weight="bold">No.</text>
-<text x="100" y="31" font-size="1.8" style="fill:#555">label</text>
-<text x="107.5" y="31" font-size="1.8" style="fill:#555">in the box (by)</text>
-<text x="147" y="31" font-size="1.8" style="fill:#555">field side (by)</text>
-<text x="95" y="34.6" font-size="2.3" font-weight="bold">X2  (upper deck)</text>
-<text x="95" y="37.6" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="37.6" font-size="1.8" style="fill:#000">1</text>
-<text x="107.5" y="37.6" font-size="1.8" style="fill:#000">door cable, LL (slot 3); F1-5 (slot 3)</text>
-<text x="147" y="37.6" font-size="1.8" style="fill:#000">+24 V to S2 NC1</text>
-<text x="95" y="40" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="40" font-size="1.8" style="fill:#000">2</text>
-<text x="107.5" y="40" font-size="1.8" style="fill:#000">door cable, LL (slot 3)</text>
-<text x="147" y="40" font-size="1.8" style="fill:#000">NC1 out, S3 in (node X)</text>
-<text x="95" y="42.4" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="42.4" font-size="1.8" style="fill:#000">2b</text>
-<text x="107.5" y="42.4" font-size="1.8" style="fill:#000">K2 5 (slot 3)</text>
-<text x="147" y="42.4" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="44.8" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="44.8" font-size="1.8" style="fill:#000">3</text>
-<text x="107.5" y="44.8" font-size="1.8" style="fill:#000">door cable, LL (slot 3); K2 6 (slot 3)</text>
-<text x="147" y="44.8" font-size="1.8" style="fill:#000">S3 out (node Y)</text>
-<text x="95" y="47.2" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="47.2" font-size="1.8" style="fill:#000">3b</text>
-<text x="107.5" y="47.2" font-size="1.8" style="fill:#000">K2 A1 (slot 3)</text>
-<text x="147" y="47.2" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="49.6" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
-<text x="100" y="49.6" font-size="1.8" style="fill:#000">4</text>
-<text x="107.5" y="49.6" font-size="1.8" style="fill:#000">-</text>
-<text x="147" y="49.6" font-size="1.8" style="fill:#000">spare: NC2 is wired at the panel</text>
-<text x="95" y="52" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
-<text x="100" y="52" font-size="1.8" style="fill:#000">5</text>
-<text x="107.5" y="52" font-size="1.8" style="fill:#000">-</text>
-<text x="147" y="52" font-size="1.8" style="fill:#000">spare</text>
-<text x="95" y="55.6" font-size="2.3" font-weight="bold">X4  (upper deck)</text>
-<text x="95" y="58.6" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="58.6" font-size="1.8" style="fill:#000">3</text>
-<text x="107.5" y="58.6" font-size="1.8" style="fill:#000">Mega 3</text>
-<text x="147" y="58.6" font-size="1.8" style="fill:#000">endstop X signal (UL)</text>
-<text x="95" y="61" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="61" font-size="1.8" style="fill:#000">14</text>
-<text x="107.5" y="61" font-size="1.8" style="fill:#000">Mega 14</text>
-<text x="147" y="61" font-size="1.8" style="fill:#000">endstop Y signal (UL)</text>
-<text x="95" y="63.4" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="63.4" font-size="1.8" style="fill:#000">40</text>
-<text x="107.5" y="63.4" font-size="1.8" style="fill:#000">Mega 40</text>
-<text x="147" y="63.4" font-size="1.8" style="fill:#000">endstop Z signal (UL)</text>
-<text x="95" y="65.8" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="65.8" font-size="1.8" style="fill:#000">15</text>
-<text x="107.5" y="65.8" font-size="1.8" style="fill:#000">Mega 15</text>
-<text x="147" y="65.8" font-size="1.8" style="fill:#000">endstop A signal (UL)</text>
-<text x="95" y="68.2" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="68.2" font-size="1.8" style="fill:#000">23</text>
-<text x="107.5" y="68.2" font-size="1.8" style="fill:#000">Mega 23</text>
-<text x="147" y="68.2" font-size="1.8" style="fill:#000">endstop B signal (UL)</text>
-<text x="95" y="70.6" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
-<text x="100" y="70.6" font-size="1.8" style="fill:#000">A9</text>
-<text x="107.5" y="70.6" font-size="1.8" style="fill:#000">Mega A9</text>
-<text x="147" y="70.6" font-size="1.8" style="fill:#000">endstop C signal (UL)</text>
-<text x="95" y="73" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
-<text x="100" y="73" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="73" font-size="1.8" style="fill:#000">0V-S</text>
-<text x="147" y="73" font-size="1.8" style="fill:#000">endstop X common (UL)</text>
-<text x="95" y="75.4" font-size="1.8" style="fill:#000" font-weight="bold">8</text>
-<text x="100" y="75.4" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="75.4" font-size="1.8" style="fill:#000">bridged to 7</text>
-<text x="147" y="75.4" font-size="1.8" style="fill:#000">endstop Y common (UL)</text>
-<text x="95" y="77.8" font-size="1.8" style="fill:#000" font-weight="bold">9</text>
-<text x="100" y="77.8" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="77.8" font-size="1.8" style="fill:#000">bridged to 7</text>
-<text x="147" y="77.8" font-size="1.8" style="fill:#000">endstop Z common (UL)</text>
-<text x="95" y="80.2" font-size="1.8" style="fill:#000" font-weight="bold">10</text>
+<text x="95" y="22" font-size="1.8" style="fill:#000" font-weight="bold">screen</text>
+<text x="113" y="22" font-size="1.8" style="fill:#000">10.1 in touch screen: HDMI and USB from the Pi,</text>
+<text x="113" y="24.4" font-size="1.8" style="fill:#000">12 V from the DC-DC</text>
+<text x="160" y="22" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="95" y="26.8" font-size="1.8" style="fill:#000" font-weight="bold">ODrive</text>
+<text x="113" y="26.8" font-size="1.8" style="fill:#000">ODrive S1 spin coater drive; J11 is its UART</text>
+<text x="160" y="26.8" font-size="1.8" style="fill:#000">spin coater base</text>
+<text x="95" y="29.2" font-size="1.8" style="fill:#000" font-weight="bold">X, Y (nodes)</text>
+<text x="113" y="29.2" font-size="1.8" style="fill:#000">E-stop latch nodes: X after NC1, Y after S3</text>
+<text x="113" y="31.6" font-size="1.8" style="fill:#000">(sheet 1, rung B)</text>
+<text x="160" y="29.2" font-size="1.8" style="fill:#000"></text>
+<text x="95" y="35.2" font-size="2.3" font-weight="bold">Terminal plan</text>
+<text x="95" y="38.2" font-size="1.8" style="fill:#555" font-weight="bold">No.</text>
+<text x="100" y="38.2" font-size="1.8" style="fill:#555">label</text>
+<text x="107.5" y="38.2" font-size="1.8" style="fill:#555">in the box (by)</text>
+<text x="147" y="38.2" font-size="1.8" style="fill:#555">field side (by)</text>
+<text x="95" y="41.8" font-size="2.3" font-weight="bold">X2  (upper deck)</text>
+<text x="95" y="44.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="44.8" font-size="1.8" style="fill:#000">1</text>
+<text x="107.5" y="44.8" font-size="1.8" style="fill:#000">door cable, LL (slot 3); F1-5 (slot 3)</text>
+<text x="147" y="44.8" font-size="1.8" style="fill:#000">+24 V to S2 NC1</text>
+<text x="95" y="47.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="47.2" font-size="1.8" style="fill:#000">2</text>
+<text x="107.5" y="47.2" font-size="1.8" style="fill:#000">door cable, LL (slot 3)</text>
+<text x="147" y="47.2" font-size="1.8" style="fill:#000">NC1 out, S3 in (node X)</text>
+<text x="95" y="49.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="49.6" font-size="1.8" style="fill:#000">2b</text>
+<text x="107.5" y="49.6" font-size="1.8" style="fill:#000">K2 5 (slot 3)</text>
+<text x="147" y="49.6" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="52" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="52" font-size="1.8" style="fill:#000">3</text>
+<text x="107.5" y="52" font-size="1.8" style="fill:#000">door cable, LL (slot 3); K2 6 (slot 3)</text>
+<text x="147" y="52" font-size="1.8" style="fill:#000">S3 out (node Y)</text>
+<text x="95" y="54.4" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="54.4" font-size="1.8" style="fill:#000">3b</text>
+<text x="107.5" y="54.4" font-size="1.8" style="fill:#000">K2 A1 (slot 3)</text>
+<text x="147" y="54.4" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="56.8" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
+<text x="100" y="56.8" font-size="1.8" style="fill:#000">4</text>
+<text x="107.5" y="56.8" font-size="1.8" style="fill:#000">-</text>
+<text x="147" y="56.8" font-size="1.8" style="fill:#000">spare: NC2 is wired at the panel</text>
+<text x="95" y="59.2" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
+<text x="100" y="59.2" font-size="1.8" style="fill:#000">5</text>
+<text x="107.5" y="59.2" font-size="1.8" style="fill:#000">-</text>
+<text x="147" y="59.2" font-size="1.8" style="fill:#000">spare</text>
+<text x="95" y="62.8" font-size="2.3" font-weight="bold">X4  (upper deck)</text>
+<text x="95" y="65.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="65.8" font-size="1.8" style="fill:#000">3</text>
+<text x="107.5" y="65.8" font-size="1.8" style="fill:#000">Mega 3</text>
+<text x="147" y="65.8" font-size="1.8" style="fill:#000">endstop X signal (UL)</text>
+<text x="95" y="68.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="68.2" font-size="1.8" style="fill:#000">14</text>
+<text x="107.5" y="68.2" font-size="1.8" style="fill:#000">Mega 14</text>
+<text x="147" y="68.2" font-size="1.8" style="fill:#000">endstop Y signal (UL)</text>
+<text x="95" y="70.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="70.6" font-size="1.8" style="fill:#000">40</text>
+<text x="107.5" y="70.6" font-size="1.8" style="fill:#000">Mega 40</text>
+<text x="147" y="70.6" font-size="1.8" style="fill:#000">endstop Z signal (UL)</text>
+<text x="95" y="73" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="73" font-size="1.8" style="fill:#000">15</text>
+<text x="107.5" y="73" font-size="1.8" style="fill:#000">Mega 15</text>
+<text x="147" y="73" font-size="1.8" style="fill:#000">endstop A signal (UL)</text>
+<text x="95" y="75.4" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="75.4" font-size="1.8" style="fill:#000">23</text>
+<text x="107.5" y="75.4" font-size="1.8" style="fill:#000">Mega 23</text>
+<text x="147" y="75.4" font-size="1.8" style="fill:#000">endstop B signal (UL)</text>
+<text x="95" y="77.8" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
+<text x="100" y="77.8" font-size="1.8" style="fill:#000">A9</text>
+<text x="107.5" y="77.8" font-size="1.8" style="fill:#000">Mega A9</text>
+<text x="147" y="77.8" font-size="1.8" style="fill:#000">endstop C signal (UL)</text>
+<text x="95" y="80.2" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
 <text x="100" y="80.2" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="80.2" font-size="1.8" style="fill:#000">bridged to 7</text>
-<text x="147" y="80.2" font-size="1.8" style="fill:#000">endstop A common (UL)</text>
-<text x="95" y="82.6" font-size="1.8" style="fill:#000" font-weight="bold">11</text>
+<text x="107.5" y="80.2" font-size="1.8" style="fill:#000">0V-S</text>
+<text x="147" y="80.2" font-size="1.8" style="fill:#000">endstop X common (UL)</text>
+<text x="95" y="82.6" font-size="1.8" style="fill:#000" font-weight="bold">8</text>
 <text x="100" y="82.6" font-size="1.8" style="fill:#000">C</text>
 <text x="107.5" y="82.6" font-size="1.8" style="fill:#000">bridged to 7</text>
-<text x="147" y="82.6" font-size="1.8" style="fill:#000">endstop B common (UL)</text>
-<text x="95" y="85" font-size="1.8" style="fill:#000" font-weight="bold">12</text>
+<text x="147" y="82.6" font-size="1.8" style="fill:#000">endstop Y common (UL)</text>
+<text x="95" y="85" font-size="1.8" style="fill:#000" font-weight="bold">9</text>
 <text x="100" y="85" font-size="1.8" style="fill:#000">C</text>
 <text x="107.5" y="85" font-size="1.8" style="fill:#000">bridged to 7</text>
-<text x="147" y="85" font-size="1.8" style="fill:#000">endstop C common (UL)</text>
-<text x="95" y="88.6" font-size="2.3" font-weight="bold">X5  (upper deck)</text>
-<text x="95" y="91.6" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="91.6" font-size="1.8" style="fill:#000">6V</text>
-<text x="107.5" y="91.6" font-size="1.8" style="fill:#000">servo PSU OUT+ (slot 2)</text>
-<text x="147" y="91.6" font-size="1.8" style="fill:#000">gripper servo +6 V (UL)</text>
-<text x="95" y="94" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="94" font-size="1.8" style="fill:#000">6V</text>
-<text x="107.5" y="94" font-size="1.8" style="fill:#000">bridged to 1</text>
-<text x="147" y="94" font-size="1.8" style="fill:#000">lid servo +6 V (UL)</text>
-<text x="95" y="96.4" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="96.4" font-size="1.8" style="fill:#000">0V</text>
-<text x="107.5" y="96.4" font-size="1.8" style="fill:#000">servo PSU OUT- (slot 2)</text>
-<text x="147" y="96.4" font-size="1.8" style="fill:#000">gripper servo 0 V (UL)</text>
-<text x="95" y="98.8" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="98.8" font-size="1.8" style="fill:#000">0V</text>
-<text x="107.5" y="98.8" font-size="1.8" style="fill:#000">bridged to 3</text>
-<text x="147" y="98.8" font-size="1.8" style="fill:#000">lid servo 0 V (UL)</text>
-<text x="95" y="101.2" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="101.2" font-size="1.8" style="fill:#000">P0</text>
-<text x="107.5" y="101.2" font-size="1.8" style="fill:#000">Mega 5</text>
-<text x="147" y="101.2" font-size="1.8" style="fill:#000">gripper servo signal (UL)</text>
-<text x="95" y="103.6" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
-<text x="100" y="103.6" font-size="1.8" style="fill:#000">P1</text>
-<text x="107.5" y="103.6" font-size="1.8" style="fill:#000">Mega 6</text>
-<text x="147" y="103.6" font-size="1.8" style="fill:#000">lid servo signal (UL)</text>
-<text x="95" y="107.2" font-size="2.3" font-weight="bold">X6  (upper deck)</text>
-<text x="95" y="110.2" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="110.2" font-size="1.8" style="fill:#000">UV+</text>
-<text x="107.5" y="110.2" font-size="1.8" style="fill:#000">SSR-UV out -</text>
-<text x="147" y="110.2" font-size="1.8" style="fill:#000">S4, then the UV array + (UL)</text>
-<text x="95" y="112.6" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="112.6" font-size="1.8" style="fill:#000">UV-</text>
-<text x="107.5" y="112.6" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
-<text x="147" y="112.6" font-size="1.8" style="fill:#000">UV array - (UL)</text>
-<text x="95" y="115" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="115" font-size="1.8" style="fill:#000">S5</text>
-<text x="107.5" y="115" font-size="1.8" style="fill:#000">Mega 39</text>
-<text x="147" y="115" font-size="1.8" style="fill:#000">lid switch S5 (UL)</text>
-<text x="95" y="117.4" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="117.4" font-size="1.8" style="fill:#000">S5c</text>
-<text x="107.5" y="117.4" font-size="1.8" style="fill:#000">0V-S2</text>
-<text x="147" y="117.4" font-size="1.8" style="fill:#000">S5's other side (UL)</text>
-<text x="95" y="119.8" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="119.8" font-size="1.8" style="fill:#000">V+</text>
-<text x="107.5" y="119.8" font-size="1.8" style="fill:#000">SSR-valve out -</text>
-<text x="147" y="119.8" font-size="1.8" style="fill:#000">argon valve + (D1 across) (UL)</text>
-<text x="95" y="122.2" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
-<text x="100" y="122.2" font-size="1.8" style="fill:#000">V-</text>
-<text x="107.5" y="122.2" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
-<text x="147" y="122.2" font-size="1.8" style="fill:#000">argon valve - (UL)</text>
-<text x="95" y="125.8" font-size="2.3" font-weight="bold">X7  (upper deck)</text>
-<text x="95" y="128.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="128.8" font-size="1.8" style="fill:#000">R</text>
-<text x="107.5" y="128.8" font-size="1.8" style="fill:#000">tower R out -</text>
-<text x="147" y="128.8" font-size="1.8" style="fill:#000">tower red (UR)</text>
-<text x="95" y="131.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="131.2" font-size="1.8" style="fill:#000">A</text>
-<text x="107.5" y="131.2" font-size="1.8" style="fill:#000">tower A out -</text>
-<text x="147" y="131.2" font-size="1.8" style="fill:#000">tower amber (UR)</text>
-<text x="95" y="133.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="133.6" font-size="1.8" style="fill:#000">G</text>
-<text x="107.5" y="133.6" font-size="1.8" style="fill:#000">tower G out -</text>
-<text x="147" y="133.6" font-size="1.8" style="fill:#000">tower green (UR)</text>
-<text x="95" y="136" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="136" font-size="1.8" style="fill:#000">Bz</text>
-<text x="107.5" y="136" font-size="1.8" style="fill:#000">buzzer out -</text>
-<text x="147" y="136" font-size="1.8" style="fill:#000">tower buzzer (UR)</text>
-<text x="95" y="138.4" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="138.4" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="138.4" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
-<text x="147" y="138.4" font-size="1.8" style="fill:#000">tower common (UR)</text>
-<text x="95" y="142" font-size="2.3" font-weight="bold">X8  (upper deck)</text>
-<text x="95" y="145" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="145" font-size="1.8" style="fill:#000">-</text>
-<text x="107.5" y="145" font-size="1.8" style="fill:#000">-</text>
-<text x="147" y="145" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="147.4" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="147.4" font-size="1.8" style="fill:#000">-</text>
-<text x="107.5" y="147.4" font-size="1.8" style="fill:#000">-</text>
-<text x="147" y="147.4" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="149.8" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="149.8" font-size="1.8" style="fill:#000">-</text>
-<text x="107.5" y="149.8" font-size="1.8" style="fill:#000">-</text>
-<text x="147" y="149.8" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="152.2" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="147" y="85" font-size="1.8" style="fill:#000">endstop Z common (UL)</text>
+<text x="95" y="87.4" font-size="1.8" style="fill:#000" font-weight="bold">10</text>
+<text x="100" y="87.4" font-size="1.8" style="fill:#000">C</text>
+<text x="107.5" y="87.4" font-size="1.8" style="fill:#000">bridged to 7</text>
+<text x="147" y="87.4" font-size="1.8" style="fill:#000">endstop A common (UL)</text>
+<text x="95" y="89.8" font-size="1.8" style="fill:#000" font-weight="bold">11</text>
+<text x="100" y="89.8" font-size="1.8" style="fill:#000">C</text>
+<text x="107.5" y="89.8" font-size="1.8" style="fill:#000">bridged to 7</text>
+<text x="147" y="89.8" font-size="1.8" style="fill:#000">endstop B common (UL)</text>
+<text x="95" y="92.2" font-size="1.8" style="fill:#000" font-weight="bold">12</text>
+<text x="100" y="92.2" font-size="1.8" style="fill:#000">C</text>
+<text x="107.5" y="92.2" font-size="1.8" style="fill:#000">bridged to 7</text>
+<text x="147" y="92.2" font-size="1.8" style="fill:#000">endstop C common (UL)</text>
+<text x="95" y="95.8" font-size="2.3" font-weight="bold">X5  (upper deck)</text>
+<text x="95" y="98.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="98.8" font-size="1.8" style="fill:#000">V+</text>
+<text x="107.5" y="98.8" font-size="1.8" style="fill:#000">servo PSU OUT+ (slot 2)</text>
+<text x="147" y="98.8" font-size="1.8" style="fill:#000">gripper servo +5.4 V (UL)</text>
+<text x="95" y="101.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="101.2" font-size="1.8" style="fill:#000">V+</text>
+<text x="107.5" y="101.2" font-size="1.8" style="fill:#000">bridged to 1</text>
+<text x="147" y="101.2" font-size="1.8" style="fill:#000">lid servo +5.4 V (UL)</text>
+<text x="95" y="103.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="103.6" font-size="1.8" style="fill:#000">0V</text>
+<text x="107.5" y="103.6" font-size="1.8" style="fill:#000">servo PSU OUT- (slot 2)</text>
+<text x="147" y="103.6" font-size="1.8" style="fill:#000">gripper servo 0 V (UL)</text>
+<text x="95" y="106" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="106" font-size="1.8" style="fill:#000">0V</text>
+<text x="107.5" y="106" font-size="1.8" style="fill:#000">bridged to 3</text>
+<text x="147" y="106" font-size="1.8" style="fill:#000">lid servo 0 V (UL)</text>
+<text x="95" y="108.4" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="108.4" font-size="1.8" style="fill:#000">P0</text>
+<text x="107.5" y="108.4" font-size="1.8" style="fill:#000">Mega 5</text>
+<text x="147" y="108.4" font-size="1.8" style="fill:#000">gripper servo signal (UL)</text>
+<text x="95" y="110.8" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
+<text x="100" y="110.8" font-size="1.8" style="fill:#000">P1</text>
+<text x="107.5" y="110.8" font-size="1.8" style="fill:#000">Mega 6</text>
+<text x="147" y="110.8" font-size="1.8" style="fill:#000">lid servo signal (UL)</text>
+<text x="95" y="114.4" font-size="2.3" font-weight="bold">X6  (upper deck)</text>
+<text x="95" y="117.4" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="117.4" font-size="1.8" style="fill:#000">UV+</text>
+<text x="107.5" y="117.4" font-size="1.8" style="fill:#000">SSR-UV out -</text>
+<text x="147" y="117.4" font-size="1.8" style="fill:#000">S4, then the UV array + (UL)</text>
+<text x="95" y="119.8" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="119.8" font-size="1.8" style="fill:#000">UV-</text>
+<text x="107.5" y="119.8" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
+<text x="147" y="119.8" font-size="1.8" style="fill:#000">UV array - (UL)</text>
+<text x="95" y="122.2" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="122.2" font-size="1.8" style="fill:#000">S5</text>
+<text x="107.5" y="122.2" font-size="1.8" style="fill:#000">Mega 39</text>
+<text x="147" y="122.2" font-size="1.8" style="fill:#000">lid switch S5 (UL)</text>
+<text x="95" y="124.6" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="124.6" font-size="1.8" style="fill:#000">S5c</text>
+<text x="107.5" y="124.6" font-size="1.8" style="fill:#000">0V-S2</text>
+<text x="147" y="124.6" font-size="1.8" style="fill:#000">S5's other side (UL)</text>
+<text x="95" y="127" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="127" font-size="1.8" style="fill:#000">V+</text>
+<text x="107.5" y="127" font-size="1.8" style="fill:#000">SSR-valve out -</text>
+<text x="147" y="127" font-size="1.8" style="fill:#000">argon valve + (D1 across) (UL)</text>
+<text x="95" y="129.4" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
+<text x="100" y="129.4" font-size="1.8" style="fill:#000">V-</text>
+<text x="107.5" y="129.4" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
+<text x="147" y="129.4" font-size="1.8" style="fill:#000">argon valve - (UL)</text>
+<text x="95" y="133" font-size="2.3" font-weight="bold">X7  (upper deck)</text>
+<text x="95" y="136" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="136" font-size="1.8" style="fill:#000">R</text>
+<text x="107.5" y="136" font-size="1.8" style="fill:#000">tower R out -</text>
+<text x="147" y="136" font-size="1.8" style="fill:#000">tower red (UR)</text>
+<text x="95" y="138.4" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="138.4" font-size="1.8" style="fill:#000">A</text>
+<text x="107.5" y="138.4" font-size="1.8" style="fill:#000">tower A out -</text>
+<text x="147" y="138.4" font-size="1.8" style="fill:#000">tower amber (UR)</text>
+<text x="95" y="140.8" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="140.8" font-size="1.8" style="fill:#000">G</text>
+<text x="107.5" y="140.8" font-size="1.8" style="fill:#000">tower G out -</text>
+<text x="147" y="140.8" font-size="1.8" style="fill:#000">tower green (UR)</text>
+<text x="95" y="143.2" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="143.2" font-size="1.8" style="fill:#000">Bz</text>
+<text x="107.5" y="143.2" font-size="1.8" style="fill:#000">buzzer out -</text>
+<text x="147" y="143.2" font-size="1.8" style="fill:#000">tower buzzer (UR)</text>
+<text x="95" y="145.6" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="145.6" font-size="1.8" style="fill:#000">C</text>
+<text x="107.5" y="145.6" font-size="1.8" style="fill:#000">0V-P 2 (slot 2)</text>
+<text x="147" y="145.6" font-size="1.8" style="fill:#000">tower common (UR)</text>
+<text x="95" y="149.2" font-size="2.3" font-weight="bold">X8  (upper deck)</text>
+<text x="95" y="152.2" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
 <text x="100" y="152.2" font-size="1.8" style="fill:#000">-</text>
 <text x="107.5" y="152.2" font-size="1.8" style="fill:#000">-</text>
 <text x="147" y="152.2" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="155.8" font-size="2.3" font-weight="bold">0V-S  (upper deck)</text>
-<text x="95" y="158.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="158.8" font-size="1.8" style="fill:#000">X</text>
-<text x="107.5" y="158.8" font-size="1.8" style="fill:#000">K2 8 (slot 3); driver X COM</text>
-<text x="147" y="158.8" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="161.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="161.2" font-size="1.8" style="fill:#000">Y1</text>
-<text x="107.5" y="161.2" font-size="1.8" style="fill:#000">Mega GND; driver Y1 COM</text>
-<text x="147" y="161.2" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="163.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="163.6" font-size="1.8" style="fill:#000">Y2</text>
-<text x="107.5" y="163.6" font-size="1.8" style="fill:#000">X4 7; driver Y2 COM</text>
-<text x="147" y="163.6" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="166" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="166" font-size="1.8" style="fill:#000">Z</text>
-<text x="107.5" y="166" font-size="1.8" style="fill:#000">driver Z COM</text>
+<text x="95" y="154.6" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="154.6" font-size="1.8" style="fill:#000">-</text>
+<text x="107.5" y="154.6" font-size="1.8" style="fill:#000">-</text>
+<text x="147" y="154.6" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="157" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="157" font-size="1.8" style="fill:#000">-</text>
+<text x="107.5" y="157" font-size="1.8" style="fill:#000">-</text>
+<text x="147" y="157" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="159.4" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="159.4" font-size="1.8" style="fill:#000">-</text>
+<text x="107.5" y="159.4" font-size="1.8" style="fill:#000">-</text>
+<text x="147" y="159.4" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="163" font-size="2.3" font-weight="bold">0V-S  (upper deck)</text>
+<text x="95" y="166" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="166" font-size="1.8" style="fill:#000">X</text>
+<text x="107.5" y="166" font-size="1.8" style="fill:#000">K2 8 (slot 3); driver X COM</text>
 <text x="147" y="166" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="168.4" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
-<text x="100" y="168.4" font-size="1.8" style="fill:#000">A</text>
-<text x="107.5" y="168.4" font-size="1.8" style="fill:#000">driver A COM</text>
+<text x="95" y="168.4" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="168.4" font-size="1.8" style="fill:#000">Y1</text>
+<text x="107.5" y="168.4" font-size="1.8" style="fill:#000">Mega GND; driver Y1 COM</text>
 <text x="147" y="168.4" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="170.8" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
-<text x="100" y="170.8" font-size="1.8" style="fill:#000">B</text>
-<text x="107.5" y="170.8" font-size="1.8" style="fill:#000">driver B COM</text>
+<text x="95" y="170.8" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="170.8" font-size="1.8" style="fill:#000">Y2</text>
+<text x="107.5" y="170.8" font-size="1.8" style="fill:#000">X4 7; driver Y2 COM</text>
 <text x="147" y="170.8" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="173.2" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
-<text x="100" y="173.2" font-size="1.8" style="fill:#000">C</text>
-<text x="107.5" y="173.2" font-size="1.8" style="fill:#000">driver C COM</text>
+<text x="95" y="173.2" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="173.2" font-size="1.8" style="fill:#000">Z</text>
+<text x="107.5" y="173.2" font-size="1.8" style="fill:#000">star S (slot 3); driver Z COM</text>
 <text x="147" y="173.2" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="175.6" font-size="1.8" style="fill:#000" font-weight="bold">8</text>
-<text x="100" y="175.6" font-size="1.8" style="fill:#000">J</text>
-<text x="107.5" y="175.6" font-size="1.8" style="fill:#000">bridged to 1</text>
-<text x="147" y="175.6" font-size="1.8" style="fill:#000">ODrive J11 GND (UF)</text>
-<text x="95" y="178" font-size="1.8" style="fill:#000" font-weight="bold">9</text>
-<text x="100" y="178" font-size="1.8" style="fill:#000">lk</text>
-<text x="107.5" y="178" font-size="1.8" style="fill:#000">0V-S2</text>
+<text x="95" y="175.6" font-size="1.8" style="fill:#000" font-weight="bold">5</text>
+<text x="100" y="175.6" font-size="1.8" style="fill:#000">A</text>
+<text x="107.5" y="175.6" font-size="1.8" style="fill:#000">driver A COM</text>
+<text x="147" y="175.6" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="178" font-size="1.8" style="fill:#000" font-weight="bold">6</text>
+<text x="100" y="178" font-size="1.8" style="fill:#000">B</text>
+<text x="107.5" y="178" font-size="1.8" style="fill:#000">driver B COM</text>
 <text x="147" y="178" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="181.6" font-size="2.3" font-weight="bold">0V-S2  (upper deck)</text>
-<text x="95" y="184.6" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
-<text x="100" y="184.6" font-size="1.8" style="fill:#000">1</text>
-<text x="107.5" y="184.6" font-size="1.8" style="fill:#000">SSR-UV in -</text>
-<text x="147" y="184.6" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="187" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
-<text x="100" y="187" font-size="1.8" style="fill:#000">2</text>
-<text x="107.5" y="187" font-size="1.8" style="fill:#000">SSR-valve in -</text>
-<text x="147" y="187" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="189.4" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
-<text x="100" y="189.4" font-size="1.8" style="fill:#000">3</text>
-<text x="107.5" y="189.4" font-size="1.8" style="fill:#000">X6 4</text>
-<text x="147" y="189.4" font-size="1.8" style="fill:#000">-</text>
-<text x="95" y="191.8" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
-<text x="100" y="191.8" font-size="1.8" style="fill:#000">lk</text>
-<text x="107.5" y="191.8" font-size="1.8" style="fill:#000">0V-S</text>
+<text x="95" y="180.4" font-size="1.8" style="fill:#000" font-weight="bold">7</text>
+<text x="100" y="180.4" font-size="1.8" style="fill:#000">C</text>
+<text x="107.5" y="180.4" font-size="1.8" style="fill:#000">driver C COM</text>
+<text x="147" y="180.4" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="182.8" font-size="1.8" style="fill:#000" font-weight="bold">8</text>
+<text x="100" y="182.8" font-size="1.8" style="fill:#000">J</text>
+<text x="107.5" y="182.8" font-size="1.8" style="fill:#000">bridged to 1</text>
+<text x="147" y="182.8" font-size="1.8" style="fill:#000">ODrive J11 GND (UF)</text>
+<text x="95" y="185.2" font-size="1.8" style="fill:#000" font-weight="bold">9</text>
+<text x="100" y="185.2" font-size="1.8" style="fill:#000">lk</text>
+<text x="107.5" y="185.2" font-size="1.8" style="fill:#000">0V-S2</text>
+<text x="147" y="185.2" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="188.8" font-size="2.3" font-weight="bold">0V-S2  (upper deck)</text>
+<text x="95" y="191.8" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
+<text x="100" y="191.8" font-size="1.8" style="fill:#000">1</text>
+<text x="107.5" y="191.8" font-size="1.8" style="fill:#000">SSR-UV in -</text>
 <text x="147" y="191.8" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="194.2" font-size="1.8" style="fill:#000" font-weight="bold">2</text>
+<text x="100" y="194.2" font-size="1.8" style="fill:#000">2</text>
+<text x="107.5" y="194.2" font-size="1.8" style="fill:#000">SSR-valve in -</text>
+<text x="147" y="194.2" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="196.6" font-size="1.8" style="fill:#000" font-weight="bold">3</text>
+<text x="100" y="196.6" font-size="1.8" style="fill:#000">3</text>
+<text x="107.5" y="196.6" font-size="1.8" style="fill:#000">X6 4</text>
+<text x="147" y="196.6" font-size="1.8" style="fill:#000">-</text>
+<text x="95" y="199" font-size="1.8" style="fill:#000" font-weight="bold">4</text>
+<text x="100" y="199" font-size="1.8" style="fill:#000">lk</text>
+<text x="107.5" y="199" font-size="1.8" style="fill:#000">0V-S</text>
+<text x="147" y="199" font-size="1.8" style="fill:#000">-</text>
 <text x="182" y="22" font-size="2.3" font-weight="bold">X0  (lower deck)</text>
 <text x="182" y="25" font-size="1.8" style="fill:#000" font-weight="bold">1</text>
 <text x="187" y="25" font-size="1.8" style="fill:#000">L</text>
@@ -478,8 +480,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="234" y="59.8" font-size="1.8" style="fill:#000">-</text>
 <text x="182" y="63.4" font-size="2.3" font-weight="bold">Buses on the lower deck</text>
 <text x="182" y="66.4" font-size="1.8" style="fill:#000" font-weight="bold">star S</text>
-<text x="194.5" y="66.4" font-size="1.8" style="fill:#000">0V-P 1; PSU -V; 12 V DC-DC -Vin (slot 2); 5 V PSU IN-; ground bar; servo</text>
-<text x="194.5" y="68.8" font-size="1.8" style="fill:#000">PSU IN-</text>
+<text x="194.5" y="66.4" font-size="1.8" style="fill:#000">0V-P 1; 0V-S (slot 3); PSU -V; 12 V DC-DC -Vin (slot 2); 5 V PSU IN-;</text>
+<text x="194.5" y="68.8" font-size="1.8" style="fill:#000">ground bar; servo PSU IN-</text>
 <text x="182" y="71.2" font-size="1.8" style="fill:#000" font-weight="bold">0V-P 1</text>
 <text x="194.5" y="71.2" font-size="1.8" style="fill:#000">driver A 0V (slot 1); driver B 0V (slot 1); driver C 0V (slot 1); star S;</text>
 <text x="194.5" y="73.6" font-size="1.8" style="fill:#000">K2 A2; 0V-P 2; driver X 0V (slot 1); driver Y1 0V (slot 1); driver Y2 0V</text>
@@ -518,7 +520,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="268" y="41.8" font-size="1.8" style="fill:#000" font-weight="bold">slot 1</text>
 <text x="278" y="41.8" font-size="1.8" style="fill:#000">upper plate: driver +V and 0 V</text>
 <text x="268" y="44.2" font-size="1.8" style="fill:#000" font-weight="bold">slot 2</text>
-<text x="278" y="44.2" font-size="1.8" style="fill:#000">upper plate: SSR feeds, returns, servo 6 V, PE link, 12 V DC-DC</text>
+<text x="278" y="44.2" font-size="1.8" style="fill:#000">upper plate: SSR feeds, returns, servo 5.4 V, PE link, 12 V DC-DC</text>
 <text x="268" y="46.6" font-size="1.8" style="fill:#000" font-weight="bold">slot 3</text>
 <text x="278" y="46.6" font-size="1.8" style="fill:#000">upper plate: E-stop latch, pin 43, door cable</text>
 <text x="268" y="50.2" font-size="2.3" font-weight="bold">Abbreviations</text>

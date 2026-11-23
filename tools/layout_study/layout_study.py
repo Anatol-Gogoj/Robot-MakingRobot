@@ -31,8 +31,8 @@ Blocks = {
     "PSU": (240.0, 65.0, 143.5, "mains", True),    # 24 V 1200 W standing on a 240 x 65 face
     "R24": (180.1, 85.1, 75.6, "dc", True),        # F3 (issue #205), K2, Star S, two 0V-P bars
     "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
-    "PS6": (63.0, 58.0, 40.5, "dc", True),         # servo PSU
-    "PS5": (76.0, 76.0, 49.5, "dc", True),         # 5 V PSU for the Pi
+    "PS6": (41.5, 90.0, 62.0, "dc", True),         # servo supply, DDR-30G-5 (ADR-0021, issue #244)
+    "PS5": (41.5, 90.0, 62.0, "dc", True),         # Pi supply, DDR-30G-5 (ADR-0021, issue #244)
     "PS12": (66.5, 90.0, 62.0, "dc", True),        # 12 V DC-DC for the screen (ADR-0020, issue #220)
     "DRV": (242.0, 124.4, 85.5, "drv", True),      # 7 TB6600 + motor duct
     "SSR": (46.6, 88.1, 78.4, "drv", True),        # 6 SSR sockets
