@@ -12,19 +12,21 @@
 # How it works. The arm swings in the vertical plane through the syringe axis, about a pivot beside
 # the catheter tip, below the barrel's shoulder. Closed, the stopper's big end presses up on the tip
 # end; open, the arm has swung 170 deg and stands up beside the syringe with the stopper face
-# pointing down, high enough to clear the spin coater bowl's rim during a dose. A tension spring from
-# a tail on the arm to an anchor on the yoke goes over centre half way, so it holds the arm closed
-# (the tip itself is the stop) and open (a stop block on the yoke) with the servo limp
-# (DEACTIVATE_SERVOS_AFTER_MOVE). The servo drives the arm through a lost-motion slot: a pin on the
-# servo horn rides in an arc slot in the arm, so the servo only has to push the arm past dead
-# centre, and at either rest pose the pin sits near the middle of the slot, never loading the servo.
+# pointing down, high enough to clear the spin coater bowl's rim during a dose. A coilover strut
+# (a compression spring on a guide rod, from the owner's spring kit) pushes from an anchor on the
+# yoke against a crank on the arm. It passes dead centre at 60 deg, near closed, so it presses the
+# arm shut (the tip itself is the stop) and holds it open (a stop block on the yoke) with the servo
+# limp (DEACTIVATE_SERVOS_AFTER_MOVE). The rod is fixed in the strut's eye on the crank and slides in
+# a blind bore in the strut's body on the anchor, inside the spring, so the spring cannot buckle.
+# The servo drives the arm through a lost-motion slot: a pin on the servo horn rides in an arc slot
+# in the arm, so the servo only has to push the arm past dead centre, and at either rest pose the pin
+# sits near the middle of the slot, never loading the servo.
 #
-# The spring's line crosses the pivot axis at dead centre, so nothing may sit on that axis in the
-# spring's plane. The pivot dowel therefore comes from one side (the yoke's cheek) and ends at the
-# arm, and the servo shaft comes from the other side and ends beyond the spring. The horn pin sits
-# on the tail's ray beyond the spring's tail post, a region the spring never reaches. The pin is a
-# metal sleeve clamped between the horn's spacer tube and a washer, 0.3 longer than the arm is
-# thick, so it holds the arm on the dowel axially without clamping it.
+# The arm's pivot dowel comes from the yoke's cheek and ends at the arm; the servo shaft comes from
+# the other side. The strut runs between the arm and the horn and never crosses the pivot axis. The
+# horn pin sits on a ray of the arm the strut never sweeps. The pin is a metal sleeve clamped between
+# the horn's spacer tube and a washer, 0.3 longer than the arm is thick, so it holds the arm on the
+# dowel axially without clamping it.
 #
 # Frame (cap frame): origin at the nominal tip end centre; z up along the syringe axis; x horizontal
 # toward the pivot (along the shelf, toward the B post, away from the side the syringe leaves by);
@@ -75,31 +77,48 @@ P = dict(
     NutRelief=(10.5, 19.5, 1.5),   # annular groove in the cheek face under the pin's nut: r0, r1, depth
     Swing=170.0,           # closed to open
     OverTravel=8.0,        # closed stop without a syringe, past the nominal closed pose
-    # Over-centre spring (tension spring with initial tension; REQUIRED values, not a chosen part)
-    TailR=8.0,             # tail post on the arm, on the ray opposite the stopper face
-    AnchorDs=(21.0, 22.0, 23.0),   # three anchor holes on the anchor ray; the middle one is nominal
-    SpringL0=25.5,         # free length inside the hooks
-    PostD=3.0,             # both hooks sit on M3 shanks: inside-hook length = centre distance + PostD
-    SpringFi=4.0,          # initial tension, N
-    SpringK=2.6,           # rate, N/mm
-    SpringOD=5.0,
-    HookLen=5.0,           # hook pin centre to the first coil, each end
-    SpringY=6.65,          # the spring's plane: the hooks sit in 1.7 gaps at both posts
-    HookGap=(5.8, 7.5),
-    # Tail post: an M3 x 10 button head screw threaded into the arm from +y, jammed by a thin nut and two
-    # washers; the hook sits between the washers and the head
-    TailNutY=(3.0, 4.8), TailWasherY=(4.8, 5.8), TailHeadY=(7.5, 9.15), TailHeadR=2.85,
-    # Anchor: an M3 x 16 from the plate's +y face through the boss; hook between two thin nuts
-    AnchorNut1Y=(4.0, 5.8), AnchorNut2Y=(7.5, 9.3), AnchorBossY0=10.0,   # boss face clear of the coils
+    # Over-centre strut (coilover). Spring from the owner's Pianrui K-P-051-300 kit (304 stainless):
+    # 0.7 wire x 7 OD x 25 free, 12 laps (the box label)
+    WireD=0.7, SpringOD=7.0, SpringLf=25.0, SpringLaps=12,
+    GMod=69000.0,          # MPa, 302/304 stainless spring wire (SMI handbook, 10.0e6 psi). The rate is an
+                           # ESTIMATE with active coils = laps - 2 (closed ends assumed): measure it
+    TauAllow=650.0,        # MPa, ASSUMED allowable shear at dead centre, about a third of the tensile strength
+                           # typical of 302/304 spring wire this size; the kit does not state its wire grade
+    SolidMargin=1.0,
+    DCAngle=60.0,          # arm angle at which the strut passes dead centre: near closed, so the closed end gets
+                           # the force and the open end, which only holds the arm's own weight, gets the stroke
+    AnchorDir=75.0,        # direction of the anchor from the pivot: up beside the barrel, above the arm and clear of
+                           # the parked cup (at 55 deg the open cup ran into it), and beside the bridge
+    CrankR=8.0,            # crank screw on the arm (an M3 heat-set insert), on the ray that points at the anchor at
+                           # dead centre
+    SpringDCLen=11.9,      # spring length at dead centre with no seat shim: stays 1.4 off solid even if the box's
+                           # "laps" are active coils with unground ends (solid 10.5); a printed shim on the eye's
+                           # seat then raises the preload once the spring is measured
+    SeatShim=0.0,          # shim thickness on the eye's seat, set after measuring the spring
+    AltSpring=dict(Na=12, Solid=10.5),   # the other reading of the box label: 12 active coils, unground ends
+    StrutY=7.5,            # the strut's axis plane
+    SeatD=7.6, BodyD=7.6, RodD=4.0, RodPress=4.5,   # seats just over the 7.0 spring OD
+    EyeCT=8.6,             # crank pivot to the eye's spring seat: leaves a 2 mm web between the rod's press bore and
+                           # the pivot hole
+    PinClr=4.5,            # anchor pivot centre to the bottom of the body's rod bore: a 2.45 web
+    RodEngage=4.0,         # least rod engagement in the body's bore, at the longest strut
+    BoreSpare=2.0,         # extra bore depth past the rod's deepest point, for the rod's cut length and press depth
+    RodTol=0.3,            # cut the rod to length +0 / -RodTol
+    # Both strut ends turn on a 4 mm OD brass sleeve (3.3 ID, 6.3 long) clamped by the M3 screw, so tightening
+    # never clamps the eye or the body; each rides on its sleeve with 0.3 of axial play
+    SleeveOD=4.0, PivotHoleD=4.1,
+    CrankWasherY=(3.0, 4.5), CrankSleeveY=(4.5, 10.8), CrankHeadY=(10.8, 12.45), CrankHeadR=2.85,
+    AnchorBossY0=10.8, AnchorSleeveY=(4.5, 10.8), AnchorWasherY=(4.0, 4.5), AnchorNutY=(2.2, 4.0),
+    InsertD=4.0,           # M3 heat-set insert hole in the arm for the crank screw
     # Servo: MG90S class micro servo, typical catalogue dimensions, NOT measured. Its ears sit on the
     # plate's +y face; it goes in from +y through the plate's window
     ServoL=22.8, ServoW=12.2, ServoH=22.7, ShaftFromEnd=5.9,
     EarSpan=32.3, EarT=2.5, EarOff=4.0, EarHoleSpacing=27.8,
-    CaseTopY=16.0,         # servo case top (shaft side) faces -y here
-    HornY=(11.0, 13.0),    # horn arm
-    HornCentreScrew=(10.0, 11.0, 2.25),   # the horn's centre screw head below the horn hub: y0, y1, radius
+    CaseTopY=17.0,         # servo case top (shaft side) faces -y here
+    HornY=(12.0, 14.0),    # horn arm
+    HornCentreScrew=(11.0, 12.0, 2.25),   # the horn's centre screw head below the horn hub: y0, y1, radius
     HornHoleR=15.0,        # horn hole used for the pin; bench-check on the real horn
-    PinRayOff=-50.0,       # the pin's ray from the tail's ray
+    PinRel=-60.0,          # the pin's ray from the stopper face's ray: a part of the arm the strut never sweeps
     HornW=5.0,
     StallNm=0.18,          # MG90S class stall torque from seller listings at 4.8 V, as in the concept
     ServoTravel=180.0,     # nominal; Marlin's default pulse range; bench-check
@@ -113,18 +132,20 @@ P = dict(
     StopY1=2.5,            # stop blocks reach into the arm plane to here
     ColumnX=(27.0, 33.0),  # the cheek's column up to the bridge: straight above the pivot, between the open
                            # arm (its edge at about 79 deg) and the barrel; the arm never sweeps there
-    BridgeZ=(60.0, 66.0),
-    PlateY=(16.0, 20.0), PlateX=(26.0, 62.0), PlateZ0=-8.0,
+    BridgeZ=(71.0, 77.0),  # level with the plate top, so the yoke prints upside down on both
+    PlateY=(17.0, 21.0), PlateX=(26.0, 66.0), PlateZ0=6.0, PlateTopZ=77.0,   # bottom above the chuck during a dose;
+                           # the top carries the strut's anchor boss
     AnchorBossR=4.5,
-    StrapScrewX=54.0, StrapScrewZ=(9.0, 19.0),
+    StrapScrewX=54.0, StrapScrewZ=(25.0, 35.0),
     # Strap to the shelf rail (2020, bottom T-slot at y 33; rail bottom z 151 above the tip end, photo)
-    StrapX=(46.0, 62.0), StrapY=(20.0, 28.0),
+    StrapX=(46.0, 62.0), StrapY=(21.0, 29.0),
     RailY=(23.0, 43.0), RailBottomZ=151.0, RailSlotY=33.0, TabT=6.0, RailScrewX=(50.0, 58.0),
     AdjustZ=12.0,          # +-12 of height adjustment in the strap slot
     AdjustY=3.0,           # +-3 across the shelf: the tab's M5 holes are slots in y
     TipZUnc=7.0,           # photo uncertainty of the tip end height below the rail
     # Bowl and chuck (photo estimates) for the envelope check
     BowlRimR=95.0, BowlRimUnc=12.5, RimAboveChuck=52.0, DispenseAboveChuck=10.0,
+    ChuckClear=5.0,        # least clearance of anything on the syringe above the chuck top during a dose
 )
 
 Px, Pz = P["Pivot"]
@@ -148,10 +169,39 @@ def Cross(a, b):
 
 FaceDir0 = Deg(math.atan2(0.0 - Pz, 0.0 - Px))      # pivot to the face centre, closed
 ArmR = math.hypot(Px, Pz)
-TailAng0 = FaceDir0 + 180.0
-EarAng0 = TailAng0 + P["PinRayOff"]                    # the pin's ray: off the tail's ray, so the tail screw is not
-                                                    # under the horn bar, and outside the spring's sweep
-AnchorAng = TailAng0 + P["Swing"] / 2 - 180.0       # opposite the tail's mid-sweep
+CrankRel = P["AnchorDir"] - FaceDir0 - P["DCAngle"]   # the crank's ray points at the anchor at dead centre
+CrankAng0 = FaceDir0 + CrankRel
+CrankPt0 = (Px + P["CrankR"] * math.cos(math.radians(CrankAng0)), Pz + P["CrankR"] * math.sin(math.radians(CrankAng0)))
+EarAng0 = FaceDir0 + P["PinRel"]
+SpringDm = P["SpringOD"] - P["WireD"]
+SpringNa = P["SpringLaps"] - 2
+SpringK = P["GMod"] * P["WireD"] ** 4 / (8 * SpringDm ** 3 * SpringNa)
+SpringSolid = P["SpringLaps"] * P["WireD"]
+
+
+def StrutLen(phi, D):
+    a = Rot2(CrankPt0, phi)
+    A = (Px + D * math.cos(math.radians(P["AnchorDir"])), Pz + D * math.sin(math.radians(P["AnchorDir"])))
+    return math.hypot(a[0] - A[0], a[1] - A[1])
+
+
+def StrutRange(D):
+    Ls = [StrutLen(-P["OverTravel"] + (P["Swing"] + P["OverTravel"]) * k / 356, D) for k in range(357)]
+    return min(Ls), max(Ls)
+
+
+# The body's length follows from the rod's travel over the swing; the anchor distance follows from the
+# spring length wanted at dead centre (fixed point, a few passes). One anchor hole: the seal is tuned with a
+# printed shim on the eye's seat (it shortens the spring), not by moving the anchor
+BodyCA = 25.0
+for _ in range(8):
+    DNom = P["CrankR"] + P["EyeCT"] + P["SpringDCLen"] + BodyCA
+    lo_, hi_ = StrutRange(DNom)
+    BodyCA = P["PinClr"] + P["BoreSpare"] + P["RodEngage"] + (hi_ - lo_)
+DNom = P["CrankR"] + P["EyeCT"] + P["SpringDCLen"] + BodyCA
+AnchorDs = (DNom,)
+# rod length out of the eye's seat: the gap to the body's seat at the longest strut, plus the engagement
+RodOut = StrutRange(DNom)[1] - P["EyeCT"] - BodyCA + P["RodEngage"]
 
 
 def StopDia(d):
@@ -240,7 +290,6 @@ def Cup():
 
 TangRect = [(CupOutR - 1.3, CupBotZ + 2.2), (CupOutR + P["LugX"] + 3.0, CupBotZ + 2.2),
             (CupOutR + P["LugX"] + 3.0, MouthZ - 0.5), (CupOutR - 1.3, MouthZ - 0.5)]
-TailPt0 = Polar(P["TailR"], TailAng0)
 EarEnds0 = [Polar(P["HornHoleR"], EarAng0 + s * P["LostMotion"] / 2) for s in (-1, 1)]
 SlotW = P["SleeveD"] + P["SlotClear"]
 
@@ -248,7 +297,7 @@ SlotW = P["SleeveD"] + P["SlotClear"]
 def ArmProfile():
     hub = CirclePts((Px, Pz), P["HubR"])
     link = Hull(hub + TangRect)
-    tail = Hull(hub + CirclePts(TailPt0, 4.5))
+    tail = Hull(hub + CirclePts(CrankPt0, 4.5))      # crank lobe
     ear = Hull(hub + CirclePts(EarEnds0[0], SlotW / 2 + 2.0) + CirclePts(EarEnds0[1], SlotW / 2 + 2.0))
     return link, tail, ear
 
@@ -267,16 +316,15 @@ def Arm():
         arm = arm.cut(CylY(e, w, y0 - 1, y1 + 1))
     for x, z in LugScrews:
         arm = arm.cut(CylY((x, z), 1.6, y0 - 1, y1 + 1))
-    arm = arm.cut(CylY(TailPt0, 1.25, y0 - 1, y1 + 1))                     # M3 tail screw pilot
+    arm = arm.cut(CylY(CrankPt0, P["InsertD"] / 2, y0 - 1, y1 + 1))        # M3 heat-set insert for the crank screw
     return arm.removeSplitter()
 
 
 def ArmHardware():
-    """Tail screw stack, moving with the arm."""
-    t = TailPt0
-    hw = CylY(t, 1.5, -2.5, P["TailHeadY"][1]).fuse(CylY(t, 3.2, *P["TailNutY"])).fuse(
-        CylY(t, 3.5, *P["TailWasherY"])).fuse(CylY(t, P["TailHeadR"], *P["TailHeadY"]))
-    return hw
+    """Crank screw with its washers, moving with the arm (the strut's eye sits between them)."""
+    t = CrankPt0
+    return CylY(t, 1.5, -2.5, P["CrankHeadY"][1]).fuse(CylY(t, 3.5, *P["CrankWasherY"])).fuse(
+        CylY(t, P["SleeveOD"] / 2, *P["CrankSleeveY"])).fuse(CylY(t, P["CrankHeadR"], *P["CrankHeadY"]))
 
 
 def StopAngles():
@@ -303,8 +351,8 @@ def StopAngles():
 
 
 StopOpenA, StopClosedA = StopAngles()
-AnchorPts = [Polar(d, AnchorAng) for d in P["AnchorDs"]]
-AnchorPt = AnchorPts[1]
+AnchorPts = [Polar(d, P["AnchorDir"]) for d in AnchorDs]
+AnchorPt = AnchorPts[0]
 
 
 def Teardrop(c, r):
@@ -335,7 +383,7 @@ def Yoke():
     yoke = yoke.fuse(Box(cx0, cx1, cy0, P["PlateY"][1], P["BridgeZ"][0], P["BridgeZ"][1]))
     # servo plate: the body goes through the window from +y, the ears sit on the +y face
     px0, px1 = P["PlateX"]
-    plate = Box(px0, px1, P["PlateY"][0], P["PlateY"][1], P["PlateZ0"], P["BridgeZ"][1])
+    plate = Box(px0, px1, P["PlateY"][0], P["PlateY"][1], P["PlateZ0"], P["PlateTopZ"])
     sz0 = Pz - P["ShaftFromEnd"]
     plate = plate.cut(Box(Px - P["ServoW"] / 2 - 0.4, Px + P["ServoW"] / 2 + 0.4, P["PlateY"][0] - 1, P["PlateY"][1] + 1,
                           sz0 - 0.4, sz0 + P["ServoL"] + 0.4))
@@ -417,33 +465,101 @@ def HornStack(psi):
 
 
 def AnchorHardware(a):
-    screw = CylY(a, 1.5, P["AnchorNut1Y"][0], P["PlateY"][1] + 2.0)
-    return screw.fuse(CylY(a, 3.2, *P["AnchorNut1Y"])).fuse(CylY(a, 3.2, *P["AnchorNut2Y"]))
+    screw = CylY(a, 1.5, P["AnchorNutY"][0], P["PlateY"][1] + 2.0)
+    return screw.fuse(CylY(a, 3.2, *P["AnchorNutY"])).fuse(CylY(a, 3.5, *P["AnchorWasherY"])).fuse(
+        CylY(a, P["SleeveOD"] / 2, *P["AnchorSleeveY"]))
 
 
-def SpringBody(phi, anchor=None):
-    a = AnchorPt if anchor is None else anchor
-    t = Rot2(TailPt0, phi)
-    d = (a[0] - t[0], a[1] - t[1])
+def CylX(x0, x1, r):
+    """Cylinder along the strut's local x, on the strut's axis plane."""
+    return Part.makeCylinder(r, x1 - x0, V(x0, P["StrutY"], 0), V(1, 0, 0))
+
+
+def PinHoleY(x, r=None):
+    r = P["PivotHoleD"] / 2 if r is None else r
+    return Part.makeCylinder(r, 20, V(x, P["StrutY"] - 10, 0), V(0, 1, 0))
+
+
+def SlabCut(x0, x1):
+    """Removes material outside y 4.5..10.5 between x0 and x1, around a pivot."""
+    y0, y1 = P["StrutY"] - 3.0, P["StrutY"] + 3.0
+    return Box(x0, x1, y0 - 10, y0, -10, 10).fuse(Box(x0, x1, y1, y1 + 10, -10, 10))
+
+
+def StrutEye():
+    """The eye on the crank, in the strut's local frame: crank pivot at x 0, the strut along +x."""
+    rs = P["SeatD"] / 2
+    e = CylX(-4.0, P["EyeCT"], rs).cut(PinHoleY(0.0)).cut(SlabCut(-5.0, 4.0))
+    e = e.cut(CylX(P["EyeCT"] - P["RodPress"], P["EyeCT"] + 1, P["RodD"] / 2 - 0.05))   # rod press bore
+    return e.removeSplitter()
+
+
+def StrutBody():
+    """The guide body on the anchor, local frame: anchor pivot at x 0, the strut along -x."""
+    b = CylX(-BodyCA, 4.0, P["BodyD"] / 2).cut(PinHoleY(0.0)).cut(SlabCut(-6.5, 5.0))   # flat under the boss
+    b = b.cut(CylX(-BodyCA - 1, -P["PinClr"], P["RodD"] / 2 + 0.1))                     # blind rod bore
+    return b.removeSplitter()
+
+
+def PlaceStrut(shape, origin, u):
+    s = shape.copy()
+    s.rotate(V(0, 0, 0), V(0, -1, 0), Deg(math.atan2(u[1], u[0])))
+    s.translate(V(origin[0], 0, origin[1]))
+    return s
+
+
+def StrutAt(phi, anchor=None, parts=("eye", "rod", "spring", "body")):
+    """The strut at arm angle phi, in the cap frame."""
+    A = AnchorPt if anchor is None else anchor
+    T = Rot2(CrankPt0, phi)
+    d = (A[0] - T[0], A[1] - T[1])
     L = math.hypot(*d)
     u = (d[0] / L, d[1] / L)
-    hl = P["HookLen"]
-    s0 = (t[0] + u[0] * hl, t[1] + u[1] * hl)
-    ln = L - 2 * hl
-    return Part.makeCylinder(P["SpringOD"] / 2, ln, V(s0[0], P["SpringY"], s0[1]), V(u[0], 0, u[1]))
+    out = []
+    if "eye" in parts:
+        out.append(PlaceStrut(StrutEye(), T, u))
+    if "rod" in parts:
+        out.append(PlaceStrut(CylX(P["EyeCT"] - P["RodPress"], P["EyeCT"] + RodOut, P["RodD"] / 2), T, u))
+    if "spring" in parts:
+        s0, s1 = P["EyeCT"], L - BodyCA
+        sp = CylX(s0, s1, P["SpringOD"] / 2).cut(CylX(s0 - 1, s1 + 1, P["SpringOD"] / 2 - P["WireD"]))
+        out.append(PlaceStrut(sp, T, u))
+    if "body" in parts:
+        b = StrutBody()
+        b.translate(V(L, 0, 0))
+        out.append(PlaceStrut(b, T, u))
+    sh = out[0]
+    for o in out[1:]:
+        sh = sh.fuse(o)
+    return sh
 
 
 # ---------------------------------------------------------------- mechanics
 
-def SpringState(phi, anchor=None):
+ArmGravity = {}   # filled once by Checks: mass (g) and centre of mass (x, z) of arm, cup and stopper, closed
+
+
+def GravityM(phi):
+    """Moment of the arm's own weight about the pivot (counter-clockwise positive)."""
+    if not ArmGravity:
+        return 0.0
+    c = Rot2(ArmGravity["cog"], phi)
+    return -ArmGravity["m"] / 1000 * 9.81 * (c[0] - Px)
+
+
+def SpringState(phi, anchor=None, k=None, shim=None):
+    """Spring length, its force and its moment on the arm plus the arm's weight (counter-clockwise,
+    opening, positive)."""
     a = AnchorPt if anchor is None else anchor
-    t = Rot2(TailPt0, phi)
-    d = (a[0] - t[0], a[1] - t[1])
-    c = math.hypot(*d)
-    L = c + P["PostD"]                  # the spring's length inside its hooks
-    F = P["SpringFi"] + P["SpringK"] * (L - P["SpringL0"]) if L > P["SpringL0"] else 0.0
-    M = Cross((t[0] - Px, t[1] - Pz), (F * d[0] / c, F * d[1] / c))   # counter-clockwise (opening) positive
-    return L, F, M
+    k = SpringK if k is None else k
+    shim = P["SeatShim"] if shim is None else shim
+    t = Rot2(CrankPt0, phi)
+    d = (t[0] - a[0], t[1] - a[1])              # the strut pushes the crank away from the anchor
+    L = math.hypot(*d)
+    s = L - P["EyeCT"] - BodyCA - shim
+    F = k * (P["SpringLf"] - s) if s < P["SpringLf"] else 0.0
+    M = Cross((t[0] - Px, t[1] - Pz), (F * d[0] / L, F * d[1] / L)) + GravityM(phi)
+    return s, F, M
 
 
 def FaceState(phi):
@@ -457,7 +573,7 @@ def ContactGap(phi, tip):
     return min(n[0] * (tip[0] + s * P["TipR"] - c[0]) + n[1] * (tip[1] - c[1]) for s in (-1, 1))
 
 
-def SolveContact(tip, anchor=None):
+def SolveContact(tip, anchor=None, k=None, shim=None):
     """Arm angle where the face meets the tip end; the tip force with the load at the touching edge
     and at the ring's centre (the two ends of its range as the silicone takes up the tilt); the
     offset of the tip centre from the face centre. None if the arm reaches its over-travel stop first."""
@@ -472,7 +588,7 @@ def SolveContact(tip, anchor=None):
             lo = mid
     phi = 0.5 * (lo + hi)
     c, n = FaceState(phi)
-    _, _, Ms = SpringState(phi, anchor)
+    _, _, Ms = SpringState(phi, anchor, k, shim)
     Fs = []
     for q in ((tip[0] + (1 if n[0] < 0 else -1) * P["TipR"], tip[1]), tip):
         Fs.append(Ms / Cross((q[0] - Px, q[1] - Pz), n))
@@ -519,6 +635,10 @@ def Checks(parts):
 
     arm, cup, yoke, strap = parts["CapArm"], parts["StopperCup"], parts["CapYoke"], parts["CapStrap"]
     stopper, syr, servo = Stopper(), Syringe(), Servo()
+    pieces = [(arm, 1.27e-3), (cup, 1.27e-3), (stopper, 1.15e-3)]      # PETG; silicone about 1.15 g/cm3
+    m_ = sum(sh.Volume * rho for sh, rho in pieces)
+    ArmGravity.update(m=m_, cog=(sum(sh.Solids[0].CenterOfMass.x * sh.Volume * rho for sh, rho in pieces) / m_,
+                                 sum(sh.Solids[0].CenterOfMass.z * sh.Volume * rho for sh, rho in pieces) / m_))
     out.append("Tip cap (issue 243): pivot (%.1f, %.1f) from the tip end, arm %.1f to the face, swing %.0f deg" % (Px, Pz, ArmR, P["Swing"]))
     out.append("All syringe and machine dimensions are photo estimates; servo and spring are typical or required values.")
     out.append("")
@@ -535,8 +655,8 @@ def Checks(parts):
     out.append("  the seal force pushes the stopper deeper into its taper; uncapping pulls the tip away and")
     out.append("    puts no load on the fit")
     out.append("")
-    out.append("Seal force on the tip (spring: L0 %.1f, initial tension %.1f N, %.2f N/mm; anchor hole %.0f of %s)" % (
-        P["SpringL0"], P["SpringFi"], P["SpringK"], P["AnchorDs"][1], "/".join("%.0f" % d for d in P["AnchorDs"])))
+    out.append("Seal force on the tip (strut spring %.1f x %.0f x %.0f, %d laps, seat shim %.1f; the arm's own %.0f g included)" % (
+        P["WireD"], P["SpringOD"], P["SpringLf"], P["SpringLaps"], P["SeatShim"], ArmGravity["m"]))
     rows = []
     fLo, fHi, worstOff, worstPhi = 9e9, -9e9, 0.0, 0.0
     for dz in (-P["TipZTol"], 0.0, P["TipZTol"]):
@@ -572,26 +692,57 @@ def Checks(parts):
     out.append("    the seal needs the tip height to repeat within about +-%.1f from one syringe to the next, or a" % (
         math.degrees(math.atan(indent / (2 * P["TipR"]))) / abs(perMm)))
     out.append("    self-aligning cup; bench T4 decides")
-    per = []
-    for d, a_ in zip(P["AnchorDs"], AnchorPts):
-        r_ = SolveContact((0.0, 0.0), a_)
-        slack = SpringState(0.0, a_)[0] <= P["SpringL0"] or SpringState(P["Swing"], a_)[0] <= P["SpringL0"]
-        per.append("%.0f: %s" % (d, "slack, the spring cannot be hooked" if slack else "%.2f..%.2f N" % (r_[1], r_[2])))
-    out.append("  per anchor hole, nominal: " + "; ".join(per) + Flag(all("slack" not in x for x in per)))
+    kAlt = P["GMod"] * P["WireD"] ** 4 / (8 * SpringDm ** 3 * P["AltSpring"]["Na"])
+    shims = (0.0, 0.5, 1.0, 1.5)
+    out.append("  seal by seat shim (ring centre to edge), as estimated (k %.3f) / if 12 coils are active (k %.3f):" % (SpringK, kAlt))
+    out.append("    " + "; ".join("%.1f: %.2f..%.2f / %.2f..%.2f N" % (
+        t, SolveContact((0.0, 0.0), shim=t)[1], SolveContact((0.0, 0.0), shim=t)[2],
+        SolveContact((0.0, 0.0), k=kAlt, shim=t)[1], SolveContact((0.0, 0.0), k=kAlt, shim=t)[2]) for t in shims))
     out.append("")
-    out.append("Over-centre spring (required part: tension spring, OD up to %.1f, hooks in one plane)" % P["SpringOD"])
+    out.append("Coilover strut (the spring rides on a %.0f mm steel rod that slides in the body's blind bore)" % P["RodD"])
     phis = [P["Swing"] * k / 340 for k in range(341)]
     states = [SpringState(f) for f in phis]
-    Ls = [s[0] for s in states]
-    kdc = max(range(len(phis)), key=lambda k: Ls[k])
+    Ls = [s_[0] for s_ in states]
+    kdc = min(range(len(phis)), key=lambda k: Ls[k])
     phiDC = phis[kdc]
-    out.append("  length %.1f closed, %.1f at dead centre (phi %.1f), %.1f open; force %.1f / %.1f / %.1f N" % (
+    out.append("  spring rate %.3f N/mm from G %.0f GPa and %d active coils: an ESTIMATE, measure it (a 500 g mass should" % (
+        SpringK, P["GMod"] / 1000, SpringNa))
+    out.append("    compress it about %.1f mm); solid length %.1f" % (0.5 * 9.81 / SpringK, SpringSolid))
+    out.append("  spring length %.1f closed, %.1f at dead centre (phi %.1f), %.1f open; force %.1f / %.1f / %.1f N" % (
         Ls[0], Ls[kdc], phiDC, Ls[-1], states[0][1], states[kdc][1], states[-1][1]))
-    out.append("  so the spring must stretch to %.1f (%.1f past its free length) without setting" % (Ls[kdc], Ls[kdc] - P["SpringL0"]))
+    allF = phis + [-P["OverTravel"]]
+    sMin = min(SpringState(f)[0] for f in allF)
+    sMax = max(SpringState(f)[0] for f in allF)
+    ok = sMin >= SpringSolid + P["SolidMargin"] and sMin >= P["AltSpring"]["Solid"] + 0.5 and sMax <= P["SpringLf"] - 0.5
+    out.append("  shortest %.1f: %.1f off solid as estimated (%.1f), %.1f if 12 coils are active with unground ends (%.1f);" % (
+        sMin, sMin - SpringSolid, SpringSolid, sMin - P["AltSpring"]["Solid"], P["AltSpring"]["Solid"]))
+    out.append("    longest %.1f against %.1f free: always preloaded%s" % (sMax, P["SpringLf"], Flag(ok)))
+    Cs = SpringDm / P["WireD"]
+    Kw = (4 * Cs - 1) / (4 * Cs - 4) + 0.615 / Cs
+    Ks = 1 + 0.5 / Cs
+    Fmax = SpringK * (P["SpringLf"] - sMin)
+    tau = 8 * Fmax * SpringDm * Kw / (math.pi * P["WireD"] ** 3)
+    ok = tau <= P["TauAllow"]
+    out.append("  shear at the shortest: %.0f MPa static (Ks %.2f), %.0f with the Wahl factor (%.2f, %.1f N) against %.0f" % (
+        tau * Ks / Kw, Ks, tau, Kw, Fmax, P["TauAllow"]))
+    out.append("    assumed; every cap cycle loads it, so it has a finite life: a wear part, swap it if it loses over 0.5 of")
+    out.append("    free length%s" % Flag(ok))
+    insMin, insMax, bore = RodOut - sMax, RodOut - sMin, BodyCA - P["PinClr"]
+    ok = insMin >= P["RodEngage"] - P["RodTol"] - 1e-6 and insMax <= bore - P["BoreSpare"] + 1e-6
+    out.append("  rod %.0f x %.1f +0/-%.1f (%.1f pressed into the eye; cut to length) runs %.1f to %.1f deep in the body's" % (
+        P["RodD"], P["RodPress"] + RodOut, P["RodTol"], P["RodPress"], insMin, insMax))
+    out.append("    %.1f bore: %.1f spare at the bottom%s" % (bore, bore - insMax, Flag(ok)))
+    webE = P["EyeCT"] - P["RodPress"] - P["PivotHoleD"] / 2
+    webB = P["PinClr"] - P["PivotHoleD"] / 2
+    ok = webE >= 1.9 and webB >= 1.9
+    out.append("  webs between the rod bores and the pivot holes: eye %.2f, body %.2f%s" % (webE, webB, Flag(ok)))
     mOpen, mClosed, mOver = states[-1][2], states[0][2], SpringState(-P["OverTravel"])[2]
-    ok = mOpen > 30.0 and mClosed < -30.0 and mOver < -30.0
-    out.append("  holds open with %.0f N mm, closed with %.0f, and at the over-travel stop (no syringe) with %.0f%s" % (
-        mOpen, -mClosed, -mOver, Flag(ok)))
+    gM = abs(GravityM(P["Swing"]))
+    mOpenAlt = SpringState(P["Swing"], k=kAlt)[2]
+    ok = mOpen > 2 * gM and mOpenAlt > 1.5 * gM and mClosed < -30.0 and mOver < -30.0
+    out.append("  net of the arm's weight (%.1f N mm open): holds open with %.1f N mm (%.1f if 12 coils are active), closed with" % (
+        gM, mOpen, mOpenAlt))
+    out.append("    %.0f, and at the over-travel stop (no syringe) with %.0f%s" % (-mClosed, -mOver, Flag(ok)))
     peelM = P["PeelN"] * ArmR
     need = max(abs(s[2]) + (peelM if f < 10 else 0.0) for f, s in zip(phis, states))
     springOnly = max(abs(s[2]) for s in states)
@@ -620,8 +771,9 @@ def Checks(parts):
     armHW = ArmHardware()
     moving = arm.fuse(cup).fuse(stopper).fuse(armHW)
     fixedHW = yoke.fuse(servo).fuse(AnchorHardware(AnchorPt)).fuse(strap)
-    yokeNoAnchor = yoke.cut(CylY(AnchorPt, 6.0, -1, 30))
     worst = {"yoke": 9e9, "syringe": 9e9, "spring": 9e9, "horn": 9e9}
+    # the body bears on the boss face by design (0.3 of axial play on its sleeve); check the rest of the yoke
+    yokeNoBoss = yoke.cut(CylY(AnchorPt, P["AnchorBossR"] + 2.5, P["AnchorBossY0"] - 0.5, P["PlateY"][0] + 0.5))
     contactOpen = contactClosed = None
     n = int((P["Swing"] + P["OverTravel"]) / 2.5)
     for k in range(n + 1):
@@ -636,9 +788,10 @@ def Checks(parts):
             worst["yoke"] = min(worst["yoke"], dy)
         if f >= 3.0:
             worst["syringe"] = min(worst["syringe"], MinDist(m, syr))
-        sp = SpringBody(f)
-        others = RotY(cup.fuse(stopper).fuse(arm), f).fuse(yokeNoAnchor).fuse(servo).fuse(syr)
+        sp = StrutAt(f)
+        others = RotY(cup.fuse(stopper).fuse(arm), f).fuse(servo).fuse(syr)
         worst["spring"] = min(worst["spring"], MinDist(sp, others))
+        worst["strutYoke"] = min(worst.get("strutYoke", 9e9), MinDist(sp, yokeNoBoss))
         # pin offset d from mid-slot: before dead centre the pin leads (it pushes the arm there opening; the
         # spring snaps the arm ahead of it closing), past dead centre it trails; at a rest pose it sits where
         # the servo stopped (servo angle 0 closed, Swing open), so near closed d >= -phi and near open
@@ -653,7 +806,7 @@ def Checks(parts):
             hs = HornStack(EarAng0 + f + d)
             worst["horn"] = min(worst["horn"], MinDist(hs, yoke.fuse(sp).fuse(syr).fuse(RotY(armHW, f))))
     ok = worst["yoke"] >= 0.5
-    out.append("  arm, cup, stopper and tail screw to the yoke, servo, anchor and strap, more than 3 deg from either stop: %.2f%s" % (
+    out.append("  arm, cup, stopper and crank screw to the yoke, servo, anchor and strap, more than 3 deg from either stop: %.2f%s" % (
         worst["yoke"], Flag(ok)))
     so = MinDist(RotY(moving, P["Swing"]), yoke)
     sc = MinDist(RotY(moving, -P["OverTravel"]), yoke)
@@ -663,18 +816,18 @@ def Checks(parts):
     ok = worst["syringe"] >= 1.0
     out.append("  arm, cup and stopper to the syringe once 3 deg open: %.2f%s" % (worst["syringe"], Flag(ok)))
     ok = worst["spring"] >= 0.5
-    out.append("  spring coils to everything but its own hooks: %.2f%s" % (worst["spring"], Flag(ok)))
+    out.append("  strut (eye, rod, spring, body) to the arm, cup, stopper, servo and syringe: %.2f%s" % (worst["spring"], Flag(ok)))
+    ok = worst["strutYoke"] >= 0.5
+    out.append("  strut to the yoke away from the anchor boss: %.2f (at the boss the body has 0.3 of axial play by design)%s" % (
+        worst["strutYoke"], Flag(ok)))
+    out.append("  the spring has 0.8 of radial play on the rod, so it may brush the arm's face near open (rub only)")
     ok = worst["horn"] >= 0.5
-    out.append("  horn stack (pin where the motion puts it in its slot) to the yoke, spring, tail screw, syringe: %.2f%s" % (
+    out.append("  horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank screw, syringe: %.2f%s" % (
         worst["horn"], Flag(ok)))
     for nm, shp in (("yoke", yoke), ("strap", strap), ("servo", servo)):
         d = MinDist(shp, syr)
         ok = d >= 1.5
         out.append("  %s to the syringe: %.2f%s" % (nm, d, Flag(ok)))
-    # the pivot axis in the spring's plane must be free: the spring crosses it at dead centre
-    d = MinDist(SpringBody(phiDC), RotY(arm.fuse(armHW), phiDC).fuse(yoke).fuse(HornStack(EarAng0 + phiDC)))
-    ok = d >= 0.5
-    out.append("  at dead centre the spring passes over the pivot axis %.2f from the nearest part%s" % (d, Flag(ok)))
     out.append("")
     out.append("Envelope (relative to the tip end)")
     lowest = min(RotY(moving, P["Swing"] * k / 68).BoundBox.ZMin for k in range(69))
@@ -705,6 +858,12 @@ def Checks(parts):
     out.append("  parked open, its lowest point is %.1f above the chuck during a dose%s" % (obb.ZMin + P["DispenseAboveChuck"], Flag(ok)))
     out.append("  open, the stopper face points down (%.0f deg), so a drop from it falls into the bowl beside the chuck" % (
         90 + P["Swing"] - 360 if 90 + P["Swing"] > 180 else 90 + P["Swing"]))
+    onSyringe = {"yoke": yoke, "strap": strap, "servo": servo, "anchor screw": AnchorHardware(AnchorPt),
+                 "horn": HornStack(EarAng0 + P["Swing"]), "arm, cup and stopper": ob, "strut": StrutAt(P["Swing"])}
+    lowName, lowZ = min(((k_, v.BoundBox.ZMin) for k_, v in onSyringe.items()), key=lambda t: t[1])
+    ok = lowZ >= -P["DispenseAboveChuck"] + P["ChuckClear"]
+    out.append("  during a dose nothing on the syringe comes closer than %.1f to the chuck top (lowest: the %s)%s" % (
+        lowZ + P["DispenseAboveChuck"], lowName, Flag(ok)))
     out.append("")
     out.append("Strap and adjustment")
     ok = P["AdjustZ"] >= P["TipZUnc"] + 3
@@ -714,45 +873,51 @@ def Checks(parts):
     out.append("    slotted holes; set all three by closing the arm by hand on a fitted syringe and centring the face")
     out.append("")
     out.append("Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed")
-    for nm in ("CapArm", "StopperCup", "CapYoke", "CapStrap"):
+    for nm in ("CapArm", "StopperCup", "CapYoke", "CapStrap", "StrutEye", "StrutBody"):
         s = PrintPose(nm, parts[nm])
         ba, oh = BedArea(s), Overhang(s)
-        ok = ba >= 0.8 * max(f.Area for f in s.Faces if f.Surface.__class__.__name__ == "Plane") or ba >= 300.0
+        down = [f.Area for f in s.Faces if f.Surface.__class__.__name__ == "Plane" and f.BoundBox.ZMin >= 1e-3
+                and f.normalAt(*f.ParameterRange[0::2]).z < -0.99]
+        ok = ba >= max([0.0] + down) and oh <= 600.0   # the part stands on its largest downward face
         out.append("  %-10s bed %5.0f mm2, overhang %4.0f mm2 (steeper than 45 deg)%s" % (nm, ba, oh, Flag(ok)))
     out.append("  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge top; its")
     out.append("    overhangs are the stop blocks' faces; it is tall on a small bed, so print it with a brim. CapStrap:")
-    out.append("    inner face down, the tab stands up. PETG.")
+    out.append("    inner face down, the tab stands up. StrutEye and StrutBody: standing on their spring seats, with a")
+    out.append("    brim (small beds). PETG; the yoke with a brim too.")
     out.append("")
     out.append("Parts and hardware")
     out.append("  stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)")
     out.append("  servo: MG90S class micro servo with its single-arm horn, on a third servo output (NUM_SERVOS 3);")
     out.append("    it goes in from +y through the plate's window, ears on the plate's +y face, 2 x M2 self-tapping")
-    out.append("  spring: tension spring, free length %.1f inside the hooks, about %.0f N initial tension, %.1f N/mm," % (
-        P["SpringL0"], P["SpringFi"], P["SpringK"]))
-    out.append("    stretched to %.1f at dead centre (%.0f N), OD up to %.0f, hook ID over 3.2; NOT chosen yet" % (
-        Ls[kdc], states[kdc][1], P["SpringOD"]))
+    out.append("  strut: spring %.1f x %.0f x %.0f (%d laps) from the Pianrui K-P-051-300 kit; a %.0f mm steel rod cut to %.1f" % (
+        P["WireD"], P["SpringOD"], P["SpringLf"], P["SpringLaps"], P["RodD"], P["RodPress"] + RodOut))
+    out.append("    +0/-%.1f, pressed fully into the printed StrutEye; the printed StrutBody guides it. Drill the body's rod" % P["RodTol"])
+    out.append("    bore to %.1f and both pivot holes to %.1f after printing (they print undersize)" % (P["RodD"] + 0.2, P["PivotHoleD"]))
     out.append("  pivot: dowel pin %.0f x 16, a slip fit through the cheek into the arm's hub, held by an M3 x 6 grub screw" % P["DowelD"])
     out.append("    from below")
     out.append("  horn pin: M2 x 20 through the horn, a printed spacer tube %.0f OD, a %.0f x %.1f metal sleeve (it rides in" % (
         P["TubeD"], P["SleeveD"], P["ArmT"] + 0.3))
     out.append("    the slot; the stack clamps on it, not on the arm), a %.0f mm washer and a nut with thread locker; the" % P["WasherD"])
     out.append("    screw's end runs in a relief groove in the cheek face")
-    out.append("  tail post: M3 x 10 button head into the arm, a thin M3 nut and two washers under the hook")
-    out.append("  anchor: M3 x 16 from the plate's +y face, two thin M3 nuts around the hook (thread locker)")
+    out.append("  crank: M3 x 12 button head, a 4 x 6.3 brass sleeve (3.3 ID) through the eye, three M3 washers under it,")
+    out.append("    into an M3 heat-set insert in the arm; anchor: M3 x 20 from the plate's +y face through the boss and a 4 x 6.3 sleeve in")
+    out.append("    the body, an M3 washer and a thin nut (thread locker). The screws clamp the sleeves, never the strut")
     out.append("  cup to arm: 2 x M3 x 18 and nuts; yoke to strap: 2 x M3 x 16 and nuts; strap to the rail: 2 x M5 x 10")
     out.append("    and T-nuts")
-    out.append("  assembly: (1) servo into the plate from +y, ears screwed on the +y face; (2) tail screw, nut, washers")
-    out.append("    and the spring's tail hook on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,")
+    out.append("  assembly: (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod")
+    out.append("    pressed in) on the crank screw on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,")
     out.append("    sleeve in the slot, spacer tube on it; (4) M2 pin screw through the horn, horn onto the spline and")
     out.append("    the screw through tube and sleeve; centre screw through the cheek hole and the hub bore; (5) washer")
-    out.append("    and nut on the pin screw, thread locker; (6) dowel in, grub screw; (7) spring's hook onto the anchor")
-    out.append("    between its nuts; (8) stopper cup on the arm, stopper in")
+    out.append("    and nut on the pin screw, thread locker; (6) dowel in, grub screw; (7) arm to the open pose (the spring is")
+    out.append("    softest there): spring and shim over the rod, body over rod and spring with its sleeve in, line the sleeve")
+    out.append("    up with the boss, drive the M3 x 20 from the plate's +y face, washer and nut from -y; (8) stopper cup on")
+    out.append("    the arm, stopper in. Measure the spring first (free length, coils, end type, rate) and set the seat shim")
     out.append("")
     out.append("Not known (bench, before printing)")
     out.append("  the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the")
     out.append("  shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it")
     out.append("  before printing; the tip end below the rail; the barrel's place in the rail gap; what else is")
-    out.append("  under the rail at x %.0f..%.0f; the servo's sizes, its real travel and its horn's holes; the spring;" % P["StrapX"])
+    out.append("  under the rail at x %.0f..%.0f; the servo's sizes, its real travel and its horn's holes; the spring's rate;" % P["StrapX"])
     out.append("  the bowl rim's radius and height and the chuck against the dispense pose")
     return out, bad
 
@@ -785,8 +950,7 @@ def Draw(parts, checks, path):
         Sect(ax, RotY(arm, phi), (0, 1, 0), 0.0, "x", "z", tol["arm"])
         Sect(ax, RotY(cup, phi), (0, 1, 0), 0.0, "x", "z", tol["cup"])
         Sect(ax, RotY(Stopper(), phi), (0, 1, 0), 0.0, "x", "z", tol["stop"])
-        t = Rot2(TailPt0, phi)
-        ax.plot([t[0], AnchorPt[0]], [t[1], AnchorPt[1]], color=tol["spring"], lw=3)
+        Sect(ax, StrutAt(phi), (0, 1, 0), P["StrutY"], "x", "z", tol["spring"], 0.45)
         fp = [Rot2((0.0, 0.0), P["Swing"] * k / 60) for k in range(61)]
         ax.plot([p[0] for p in fp], [p[1] for p in fp], ls="--", color=tol["note"], lw=0.8)
         ax.plot([Px], [Pz], "o", color="k", ms=4)
@@ -795,7 +959,7 @@ def Draw(parts, checks, path):
         ax.set_xlim(-45, 100)
         ax.set_ylim(-50, 85)
     ax1.annotate("stopper face on the tip end", xy=(0, 0), xytext=(-43, 25), fontsize=8, arrowprops=dict(arrowstyle="->"))
-    ax1.annotate("spring (y %.2f)" % P["SpringY"], xy=AnchorPt, xytext=(55, -25), fontsize=8, arrowprops=dict(arrowstyle="->"))
+    ax1.annotate("coilover strut (section y %.1f)" % P["StrutY"], xy=AnchorPt, xytext=(48, -25), fontsize=8, arrowprops=dict(arrowstyle="->"))
     ax2.annotate("face path", xy=Rot2((0, 0), 80), xytext=(55, -40), fontsize=8, arrowprops=dict(arrowstyle="->", color=tol["note"]))
     ax2.text(P["BowlRimR"] - P["BowlRimUnc"] - 1, 78, "smallest photo\nrim radius", fontsize=7, ha="right", color=tol["note"])
     phis = [P["Swing"] * k / 170 for k in range(171)]
@@ -807,11 +971,12 @@ def Draw(parts, checks, path):
     ax3.set_xlabel("arm angle from closed, deg")
     ax3.legend(fontsize=8)
     ax3.grid(alpha=0.3)
-    ax3.set_title("Spring over the swing", fontsize=10)
+    ax3.set_title("Strut over the swing", fontsize=10)
     for shp, col in ((yoke, tol["yoke"]), (arm, tol["arm"]), (Servo(), tol["servo"]), (HornStack(EarAng0), tol["note"]),
                      (ArmHardware(), tol["note"]), (strap, tol["yoke"]), (syr, tol["syr"])):
         Sect(ax4, shp, (0, 0, 1), Pz + 0.3, "x", "y", col, 0.5)
-    ax4.set_title("Plan at the pivot height (z %.0f): cheek, hub, arm, horn stack, servo, plate, strap" % Pz, fontsize=10)
+    Sect(ax4, StrutAt(0.0), (0, 0, 1), Pz + 0.3, "x", "y", tol["spring"], 0.5)
+    ax4.set_title("Plan at the pivot height (z %.0f): cheek, hub, arm, strut, horn stack, servo, plate, strap" % Pz, fontsize=10)
     ax4.set_xlim(-30, 70)
     ax4.set_ylim(-20, 45)
     for a in (ax1, ax2, ax4):
@@ -834,13 +999,18 @@ def PrintPose(name, shp):
         s.rotate(V(0, 0, 0), V(1, 0, 0), 180)          # upside down, the bridge top on the bed
     elif name == "CapStrap":
         s.rotate(V(0, 0, 0), V(1, 0, 0), 90)           # inner face (smallest y) down, the tab stands up
+    elif name == "StrutEye":
+        s.rotate(V(0, 0, 0), V(0, 1, 0), 90)           # spring seat down, the pivot end up
+    elif name == "StrutBody":
+        s.rotate(V(0, 0, 0), V(0, 1, 0), -90)          # spring seat down, the pivot end up
     b = s.optimalBoundingBox()
     s.translate(V(-b.XMin, -b.YMin, -b.ZMin))
     return s
 
 
 def Main():
-    parts = {"CapArm": Arm(), "StopperCup": Cup(), "CapYoke": Yoke(), "CapStrap": Strap()}
+    parts = {"CapArm": Arm(), "StopperCup": Cup(), "CapYoke": Yoke(), "CapStrap": Strap(), "StrutEye": StrutEye(),
+             "StrutBody": StrutBody()}
     for k, s in parts.items():
         assert s.isValid() and len(s.Solids) == 1, "%s is not one valid solid (%d)" % (k, len(s.Solids))
     checks, bad = Checks(parts)
@@ -851,11 +1021,13 @@ def Main():
     Draw(parts, checks, os.path.join(OutDir, Stem + "_Sketch.png"))
     doc = FreeCAD.newDocument("TipCap")
     refs = {"StopperRef": Stopper(), "SyringeRef": Syringe(), "ServoRef": Servo(), "HornRef": HornStack(EarAng0),
-            "TailHardwareRef": ArmHardware(), "AnchorRef": AnchorHardware(AnchorPt), "SpringRef": SpringBody(0.0)}
+            "CrankHardwareRef": ArmHardware(), "AnchorRef": AnchorHardware(AnchorPt), "StrutClosedRef": StrutAt(0.0)}
     for name, shp in list(parts.items()) + list(refs.items()):
         o = doc.addObject("Part::Feature", name)
         o.Shape = shp
         if name in parts:
+            if name in ("StrutEye", "StrutBody"):
+                o.Shape = StrutAt(0.0, parts=("eye",)) if name == "StrutEye" else StrutAt(0.0, parts=("body",))
             PrintPose(name, shp).exportStep(os.path.join(OutDir, "%s-%s.step" % (Stem, name)))
     doc.recompute()
     doc.saveAs(os.path.join(OutDir, Stem + ".FCStd"))
