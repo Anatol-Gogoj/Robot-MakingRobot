@@ -28,6 +28,7 @@ ID | title | status | scope
 0018 | The control box is 13.5 in wide, for the measured 24 V PSU (240 x 126 x 65) | Accepted (owner, issue #202) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 2A, 2B and 3 to 5, plate and panel DXFs, `bom_frame.csv`, `CAD/Control Box`
 0019 | Lab-grade power wiring now: copper on every power branch and trunk fuses F3 at the PSU, with an NFPA 79 version on record | Accepted (owner, issue #205) | `tools/draw_wiring.py`, `tools/layout_study/`, `docs/wiring` sheets 1, 2A to 2C and 3, `bom_frame.csv`, `CAD/Control Box`
 0020 | The operator panel's screen runs on 12 V from an isolated DC-DC on F1-3, standing on the upper deck behind cable slot 2 | Proposed (issue #220); amends 0016 | `tools/draw_wiring.py` sheets 1, 2A to 2D, 3 and 4, `tools/layout_study/`, `bom_frame.csv`, `CAD/Control Box`
+0021 | The Pi's 5 V and the servos' supply are two isolated Mean Well DDR-30G-5 DIN-rail converters at the back of the 24 V row, the servos' set to 5.4 V, with 0V-S tied to star S | Proposed (issue #244); amends 0016 | `tools/draw_wiring.py` sheets 1, 2A to 2E, 3 and 4, `tools/layout_study/`, `bom_frame.csv`, `CAD/Control Box`
 
 Format: a title line, then `Status; Date; Scope`, then `Context`, `Decision`, `Rejected`,
 `Consequences` and `Revisit if`, one line each. Add a new file for a new decision; do not edit an

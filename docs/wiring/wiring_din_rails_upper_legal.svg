@@ -408,7 +408,7 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <path class="sg" d="M80.86 94.91 L80.86 96.79 L34.35 96.79 L34.35 90.89 L20 90.89"/>
 <path class="zs" d="M119.32 92.54 L119.32 101.79 L34.85 101.79 L34.85 86.75 L20 86.75"/>
 <path class="sg" d="M152.57 79.72 L148.41 79.72 L148.41 68.2 L34.35 68.2 L34.35 74.32 L20 74.32"/>
-<path class="sg" d="M152.57 82.43 L148.91 82.43 L148.91 61.7 L36.35 61.7 L36.35 78.46 L20 78.46"/>
+<path class="sg" d="M152.57 82.43 L148.91 82.43 L148.91 61.7 L31.85 61.7 L31.85 78.46 L20 78.46"/>
 <path class="sg" d="M152.57 85.14 L147.41 85.14 L147.41 102.29 L35.35 102.29 L35.35 82.61 L20 82.61"/>
 <path class="sg" d="M152.57 87.85 L147.91 87.85 L147.91 102.79 L33.35 102.79 L33.35 84.68 L20 84.68"/>
 <path class="sg" d="M152.57 80.94 L146.91 80.94 L146.91 61.2 L33.85 61.2 L33.85 76.39 L20 76.39"/>
@@ -476,9 +476,10 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <path class="ve" d="M32.85 77.78 L32.85 63.7 L60.08 63.7 L60.08 59.07"/>
 <path class="sg" d="M35.85 77.78 L35.85 66.7 L77.9 66.7 L77.9 71.35"/>
 <path class="zs" d="M32.35 77.78 L32.35 62.7 L97.83 62.7 L97.83 73.68"/>
-<path class="va" d="M31.85 77.78 L31.85 35.34 L47.79 35.34 L47.79 40.21"/>
-<path class="ve" d="M36.85 77.78 L36.85 34.84 L50.86 34.84 L50.86 40.21"/>
-<path class="ve" d="M31.35 77.78 L31.35 35.84 L57.01 35.84 L57.01 40.21"/>
+<path class="zs" d="M36.35 77.78 L36.35 67.7 L107.04 67.7 L107.04 73.68"/>
+<path class="va" d="M36.85 77.78 L36.85 35.34 L47.79 35.34 L47.79 40.21"/>
+<path class="ve" d="M31.35 77.78 L31.35 34.84 L50.86 34.84 L50.86 40.21"/>
+<path class="ve" d="M37.35 77.78 L37.35 35.84 L57.01 35.84 L57.01 40.21"/>
 <circle class="dot" cx="161.8" cy="159.14" r="0.17" fill="#000"/>
 <circle class="dot" cx="161.8" cy="153.14" r="0.17" fill="#000"/>
 <circle class="dot" cx="161.8" cy="158.14" r="0.17" fill="#000"/>
@@ -523,9 +524,10 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <circle class="dot" cx="32.85" cy="77.78" r="0.17" fill="#EE3377"/>
 <circle class="dot" cx="35.85" cy="77.78" r="0.17" fill="#000"/>
 <circle class="dot" cx="32.35" cy="77.78" r="0.17" fill="#33BBEE"/>
-<circle class="dot" cx="31.85" cy="77.78" r="0.17" fill="#0077BB"/>
-<circle class="dot" cx="36.85" cy="77.78" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="36.35" cy="77.78" r="0.17" fill="#33BBEE"/>
+<circle class="dot" cx="36.85" cy="77.78" r="0.17" fill="#0077BB"/>
 <circle class="dot" cx="31.35" cy="77.78" r="0.17" fill="#EE3377"/>
+<circle class="dot" cx="37.35" cy="77.78" r="0.17" fill="#EE3377"/>
 <rect class="frame" x="4.5" y="4.5" width="346.6" height="206.9"/>
 <rect x="97.78" y="29.1" width="24.77" height="0.9" fill="#000" stroke="none"/>
 <rect x="202.42" y="29.1" width="24.77" height="0.9" fill="#000" stroke="none"/>
@@ -581,9 +583,10 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <path class="ve" d="M256.4 110.75 L259.4 110.75"/>
 <path class="sg" d="M256.4 112.3 L259.4 112.3"/>
 <path class="zs" d="M256.4 113.85 L259.4 113.85"/>
-<path class="va" d="M256.4 115.4 L259.4 115.4"/>
-<path class="ve" d="M256.4 116.95 L259.4 116.95"/>
+<path class="zs" d="M256.4 115.4 L259.4 115.4"/>
+<path class="va" d="M256.4 116.95 L259.4 116.95"/>
 <path class="ve" d="M256.4 118.5 L259.4 118.5"/>
+<path class="ve" d="M256.4 120.05 L259.4 120.05"/>
 <rect class="bx" x="256" y="186" width="92" height="21.5"/>
 <text x="161.36" y="106.77" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 1</text>
 <text x="195.79" y="96.25" font-size="1.2" style="fill:#CC3311" stroke="#fff" stroke-width="0.54" paint-order="stroke" font-weight="bold">slot 2</text>
@@ -635,9 +638,9 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="104.07" y="42.31" font-size="0.8" style="fill:#555" text-anchor="middle">12</text>
 <text x="87.17" y="55.86" font-size="1.25" stroke="#fff" stroke-width="0.56" paint-order="stroke" text-anchor="middle" font-weight="bold">X4</text>
 <text x="87.17" y="44.55" font-size="0.95" stroke="#fff" stroke-width="0.43" paint-order="stroke" text-anchor="middle">endstops</text>
-<text x="108.13" y="49.99" font-size="1" text-anchor="middle" font-weight="bold">6V</text>
+<text x="108.13" y="49.99" font-size="1" text-anchor="middle" font-weight="bold">V+</text>
 <text x="108.13" y="42.31" font-size="0.8" style="fill:#555" text-anchor="middle">1</text>
-<text x="111.2" y="49.99" font-size="1" text-anchor="middle" font-weight="bold">6V</text>
+<text x="111.2" y="49.99" font-size="1" text-anchor="middle" font-weight="bold">V+</text>
 <text x="111.2" y="42.31" font-size="0.8" style="fill:#555" text-anchor="middle">2</text>
 <text x="114.27" y="49.99" font-size="1" text-anchor="middle" font-weight="bold">0V</text>
 <text x="114.27" y="42.31" font-size="0.8" style="fill:#555" text-anchor="middle">3</text>
@@ -848,7 +851,7 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="309" y="35.5" font-size="1.3">0 V power (0V-P, star S)</text>
 <text x="262" y="37.8" font-size="1.3">0V-S signal 0 V</text>
 <text x="309" y="37.8" font-size="1.3">PE</text>
-<text x="262" y="40.1" font-size="1.3">+6 V servo, +5 V Pi, +12 V screen</text>
+<text x="262" y="40.1" font-size="1.3">+5.4 V servo, +5 V Pi, +12 V screen</text>
 <text x="309" y="40.1" font-size="1.3">their 0 V</text>
 <text x="262" y="42.4" font-size="1.3">signal</text>
 <text x="309" y="42.4" font-size="1.3">multi-core signal cable</text>
@@ -882,7 +885,7 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="260.2" y="89.25" font-size="1.2">0V-P 2 to X6 UV-</text>
 <text x="260.2" y="90.8" font-size="1.2">0V-P 2 to X6 V-</text>
 <text x="260.2" y="92.35" font-size="1.2">0V-P 2 to X7 C (tower common)</text>
-<text x="260.2" y="93.9" font-size="1.2">servo PSU +6 V to X5 6V</text>
+<text x="260.2" y="93.9" font-size="1.2">servo PSU +5.4 V to X5 V+</text>
 <text x="260.2" y="95.45" font-size="1.2">servo PSU 0 V to X5 0V</text>
 <text x="260.2" y="97" font-size="1.2">lower ground bar to upper ground bar</text>
 <text x="260.2" y="98.55" font-size="1.2">F1-3 to the 12 V DC-DC +Vin (screen supply)</text>
@@ -896,29 +899,30 @@ svg.deck .ac{stroke-width:0.33}svg.deck .sgc{stroke-width:0.3}svg.deck .zp{strok
 <text x="260.2" y="111.2" font-size="1.2">K2 A1 to X2 3b (coil, node Y)</text>
 <text x="260.2" y="112.75" font-size="1.2">K2 7 to Mega 43 (motor power sense)</text>
 <text x="260.2" y="114.3" font-size="1.2">K2 8 to 0V-S</text>
-<text x="260.2" y="115.85" font-size="1.2">door cable: X2 1 to S2 NC1, via the lower left grommet</text>
-<text x="260.2" y="117.4" font-size="1.2">door cable: NC1 and S3 (node X) to X2 2</text>
-<text x="260.2" y="118.95" font-size="1.2">door cable: S3 (node Y) to X2 3</text>
-<text x="256" y="123.1" font-size="2" font-weight="bold">Notes</text>
-<text x="256" y="125.9" font-size="1.2">Seen from above, front at the left, so the left wall is at the top. Each part sits where sheet 3</text>
-<text x="256" y="127.65" font-size="1.2">puts it; ducts and channels are drawn wider than scale so that every wire shows: measure from sheet 3.</text>
-<text x="256" y="129.4" font-size="1.2">Terminals are drawn on the face their wires leave from; read the real order off each part.</text>
-<text x="256" y="131.15" font-size="1.2">Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU and the Mega runs on the Pi's USB:</text>
-<text x="256" y="132.9" font-size="1.2">F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in</text>
-<text x="256" y="134.65" font-size="1.2">the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).</text>
-<text x="256" y="136.4" font-size="1.2">Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to</text>
-<text x="256" y="138.15" font-size="1.2">0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V</text>
-<text x="256" y="139.9" font-size="1.2">pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG</text>
-<text x="256" y="141.65" font-size="1.2">pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.</text>
-<text x="256" y="143.4" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
-<text x="256" y="145.15" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
-<text x="256" y="146.9" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the</text>
-<text x="256" y="148.65" font-size="1.2">5 V PSU's current for the Pi 5 (5.1 V, 5 A).</text>
-<text x="256" y="150.4" font-size="1.2">Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper</text>
-<text x="256" y="152.15" font-size="1.2">right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.</text>
-<text x="256" y="153.9" font-size="1.2">The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck</text>
-<text x="256" y="155.65" font-size="1.2">behind every rail; the upper left grommet, beside X7, would save most of that run.</text>
-<text x="256" y="157.4" font-size="1.2">1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield.</text>
+<text x="260.2" y="115.85" font-size="1.2">star S to 0V-S: the Mega's 0 V reference (ADR-0021)</text>
+<text x="260.2" y="117.4" font-size="1.2">door cable: X2 1 to S2 NC1, via the lower left grommet</text>
+<text x="260.2" y="118.95" font-size="1.2">door cable: NC1 and S3 (node X) to X2 2</text>
+<text x="260.2" y="120.5" font-size="1.2">door cable: S3 (node Y) to X2 3</text>
+<text x="256" y="124.65" font-size="2" font-weight="bold">Notes</text>
+<text x="256" y="127.45" font-size="1.2">Seen from above, front at the left, so the left wall is at the top. Each part sits where sheet 3</text>
+<text x="256" y="129.2" font-size="1.2">puts it; ducts and channels are drawn wider than scale so that every wire shows: measure from sheet 3.</text>
+<text x="256" y="130.95" font-size="1.2">Terminals are drawn on the face their wires leave from; read the real order off each part.</text>
+<text x="256" y="132.7" font-size="1.2">Since 2026-10-15 the Pi sits at the operator panel on the 5 V PSU and the Mega runs on the Pi's USB:</text>
+<text x="256" y="134.45" font-size="1.2">F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in</text>
+<text x="256" y="136.2" font-size="1.2">the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).</text>
+<text x="256" y="137.95" font-size="1.2">Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to</text>
+<text x="256" y="139.7" font-size="1.2">0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 5.4 V and Pi 5 V</text>
+<text x="256" y="141.45" font-size="1.2">pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG</text>
+<text x="256" y="143.2" font-size="1.2">pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.</text>
+<text x="256" y="144.95" font-size="1.2">PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).</text>
+<text x="256" y="146.7" font-size="1.2">0 V meets PE only at star S, by its one wire to the lower ground bar.</text>
+<text x="256" y="148.45" font-size="1.2">Open: tower common polarity, lid feed, valve coil, servo torque at 5.4 V, J11 logic supply.</text>
+<text x="256" y="150.2" font-size="1.2">The 5 V and servo supplies are DDR-30G-5 converters (ADR-0021); set each one's output on the bench.</text>
+<text x="256" y="151.95" font-size="1.2">Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper</text>
+<text x="256" y="153.7" font-size="1.2">right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.</text>
+<text x="256" y="155.45" font-size="1.2">The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck</text>
+<text x="256" y="157.2" font-size="1.2">behind every rail; the upper left grommet, beside X7, would save most of that run.</text>
+<text x="256" y="158.95" font-size="1.2">1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield.</text>
 <text x="258" y="190.6" font-size="3" font-weight="bold">RMR control panel: upper deck wiring</text>
 <text x="258" y="194.4" font-size="2">Sheet 2B (2A: lower deck). Legal 14 x 8.5 in, landscape, 100 %.</text>
 <text x="258" y="197.15" font-size="2">Robot-MakingRobot, docs/wiring. Drawn 2026-10-19 (issue #164), revised 2026-11-12 (#220).</text>

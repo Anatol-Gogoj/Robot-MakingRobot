@@ -269,7 +269,7 @@ def LegendBlock(sh, x, y, w):
              ("zp", "0 V power, returns to star S"),
              ("zs", "0 V signal bus 0V-S (Mega GND only)"),
              ("pe", "Protective earth PE"),
-             ("lv", "Logic supply: 5 V, 5.1 V, 6 V, 3V3"),
+             ("lv", "Logic supply: 5 V, 5.1 V, 5.4 V, 3V3"),
              ("sg", "Signal")]
     col = w / 2
     for i, (cls, label) in enumerate(items):
@@ -426,7 +426,7 @@ def BuildSchematic():
         sh.Text(x + 1.6, 24.4, amp, size=1.7)
     # since 2026-10-15 one 5 V PSU feeds the Pi at the operator panel and the Mega runs on the Pi's USB,
     # so F1-1 (the Mega buck) is spare; since 2026-11-12 F1-3 feeds the screen's 12 V DC-DC (ADR-0020)
-    bucks = [(142, "5 V PSU", "Pi at the panel", "5 V to Pi 5 (note 4)"),
+    bucks = [(142, "5 V PSU", "DDR-30G-5, Pi", "5 V to Pi 5 (note 4)"),
              (166, "12 V DC-DC", "DDR-60G-12", "12 V to screen (note 6)")]
     for x, l1, l2, outLabel in bucks:
         sh.Wire([(x, 26.0), (x, 28.0)], "va")
@@ -562,6 +562,9 @@ def BuildSchematic():
     sh.Text(246.5, zpY + 0.6, "0V-P", size=1.7, weight="bold")
     zsY = 140.0
     sh.Wire([(8, zsY), (346, zsY)], "zs")
+    # 0V-S meets star S on its own wire (ADR-0021): the Mega's 0 V, and with it the servo PWM, is
+    # referenced to the servo supply's 0 V there, since both DDR-30G-5 converters are isolated
+    Tag(sh, 346, zsY, "S", "zp", side="right", size=1.6, bold=True)
     sh.Text(281, zsY - 1.0, "0V-S signal bus", size=1.8, fill=TolBrightBlue, weight="bold", halo=True,
             anchor="end")
 
@@ -664,15 +667,18 @@ def BuildSchematic():
     sh.Wire([(f9, 90.0), (f9, 94.0)], "ve")
     sh.Rect(256, 94.0, 16, 8.0, "bx")
     sh.Text(264, 97.4, "Servo PSU", size=1.8, anchor="middle", weight="bold")
-    sh.Text(264, 100.4, "6 V (DC-DC)", size=1.5, anchor="middle")
+    sh.Text(264, 100.4, "DDR-30G-5, 5.4 V", size=1.3, anchor="middle")
     sh.Wire([(256, 98.0), (250.5, 98.0)], "zp")
     Tag(sh, 250.5, 98.0, "S", "zp", side="left", bold=True)
     sh.Text(253.2, 97.2, "IN-", size=1.2, anchor="middle")
-    # servo 0 V (OUT-) and +6 V rails
+    # servo 0 V (OUT-) and +5.4 V rails
     sh.Wire([(272, 96.5), (279, 96.5), (279, 122.0)], "zp")
     sh.Wire([(272, 100.0), (276, 100.0), (276, 119.0)], "lv")
     sh.Text(279.6, 95.8, "OUT-", size=1.3)
-    sh.Text(279.6, 100.6, "+6 V", size=1.3)
+    sh.Text(279.6, 100.6, "+5.4 V", size=1.15)
+    # the isolated converter's -Vo is jumpered to its -Vin (ADR-0021): the servo 0 V meets S there
+    sh.Wire([(279, 96.5), (279, 93.2)], "zp")
+    Tag(sh, 277.9, 91.9, "S", "zp", size=1.6, bold=True)
     servos = [(105.0, "Gripper", "M280 P0", 252.0, 151.8), (117.0, "Lid", "M280 P1", 254.5, 153.8)]
     for sy, l1, l2, px, py in servos:
         sh.Rect(257, sy, 13, 8.0, "bx")
@@ -900,9 +906,9 @@ def BuildSchematic():
         ("2", ["E-stop: NC1 drops K2, so FB2 loses every actuator (drivers, ODrive, servos,",
                "UV, valve). FB1 keeps Mega, Pi, screen and tower alive to report it."]),
         ("3", ["Read off the parts before wiring: tower common polarity, lid feed voltage,",
-               "valve coil, servo 6 V rating, and which side powers ODrive J11 logic."]),
-        ("4", ["5 V PSU (2026-10-15): it feeds the Pi 5 at the operator panel, which wants 5.1 V at",
-               "5 A; check its rating and the drop along the cable. The Mega runs on the Pi's USB."]),
+               "valve coil, servo torque at 5.4 V, and which side powers ODrive J11 logic."]),
+        ("4", ["Isolated DDR-30G-5 (ADR-0021): the Pi's set so the Pi 5 reads 5.1 V at 5 A, -Vo untied; the",
+               "servos' at 5.4 V, -Vo to -Vin. 0V-S meets S on its own wire, so the servo PWM has a 0 V."]),
         ("5", ["Firmware (issue #131): setup(), kill() and a motor-power loss drive pins 4 and 42 to",
                "their OFF level. The bootloader's seconds before setup() are not covered."]),
         ("6", ["12 V DC-DC (ADR-0020), isolated: the screen's DC-12V jack (12 V 2 A; adapter 3 A).",
@@ -1373,7 +1379,7 @@ def SlotWires():
             (2, "zp", "0V-P 2.UV", "X6.2b", "0V-P 2 to X6 UV-"),
             (2, "zp", "0V-P 2.V", "X6.6b", "0V-P 2 to X6 V-"),
             (2, "zp", "0V-P 2.T", "X7.5b", "0V-P 2 to X7 C (tower common)"),
-            (2, "lv", "servo PSU.OUT+", "X5.1b", "servo PSU +6 V to X5 6V"),
+            (2, "lv", "servo PSU.OUT+", "X5.1b", "servo PSU +5.4 V to X5 V+"),
             (2, "zl", "servo PSU.OUT-", "X5.3b", "servo PSU 0 V to X5 0V"),
             (2, "pe", "bar.3", "bar.2", "lower ground bar to upper ground bar"),
             (2, "va", "FB1.3", "12 V DC-DC.+Vin", "F1-3 to the 12 V DC-DC +Vin (screen supply)"),
@@ -1386,6 +1392,7 @@ def SlotWires():
             (3, "ve", "K2.A1", "X2.5b", "K2 A1 to X2 3b (coil, node Y)"),
             (3, "sg", "K2.7", "MEGA.43", "K2 7 to Mega 43 (motor power sense)"),
             (3, "zs", "K2.8", "0V-S.1a", "K2 8 to 0V-S"),
+            (3, "zs", "Star S.0VS", "0V-S.4a", "star S to 0V-S: the Mega's 0 V reference (ADR-0021)"),
             (3, "va", "LL", "X2.1a", "door cable: X2 1 to S2 NC1, via the lower left grommet"),
             (3, "ve", "LL", "X2.2a", "door cable: NC1 and S3 (node X) to X2 2"),
             (3, "ve", "LL", "X2.4a", "door cable: S3 (node Y) to X2 3")]
@@ -1399,6 +1406,9 @@ def LowerWiring(d):
     mains = DuctBox("lower", "duct 1/2 x 1 in: mains")
     lo = LowerRails()
     r24, sp, k2, k1 = lo["24 V"], B["servo PSU"], B["K2"], B["K1"]
+    # the lanes keep the bounds they had round the old servo PSU (58 x 63, one channel past the 24 V
+    # rail); since ADR-0021 that floor is free, and the servo converter stands at the back of the row
+    bay = (r24["a1"] + Chan, k2[1], r24["a1"] + Chan + 58.0, k2[1] + 63.0)
     bar = GroundBar("base")
     s1, s2, s3 = CableSlots
     llu = [u for _, u, _, k in CableEntries if k == "LL"][0]
@@ -1409,11 +1419,11 @@ def LowerWiring(d):
     d.AddLane("front", (In, low[3], r24["a0"], MainsZoneY), "y")
     d.AddLane("slot 3", (In, s3[1], r24["a0"], s3[3]), "x")
     d.AddLane("top", (In, k2[3], r24["a1"], MainsZoneY), "x")
-    d.AddLane("channel", (r24["a1"], low[3], sp[0], MainsZoneY), "y")
-    d.AddLane("over servo", (r24["a1"], sp[3], bar[0] - 2.0, MainsZoneY), "x")
-    d.AddLane("behind servo", (sp[2], low[3], bar[0] - 2.0, MainsZoneY), "y")
-    d.AddLane("slot 2", (sp[2], s2[1], bar[0] - 2.0, s2[3]), "x")
-    d.AddLane("mains duct", (mains[0], sp[3], mains[2], mains[3]), "y")
+    d.AddLane("channel", (r24["a1"], low[3], bay[0], MainsZoneY), "y")
+    d.AddLane("over servo", (r24["a1"], bay[3], bar[0] - 2.0, MainsZoneY), "x")
+    d.AddLane("behind servo", (bay[2], low[3], bar[0] - 2.0, MainsZoneY), "y")
+    d.AddLane("slot 2", (bay[2], s2[1], bar[0] - 2.0, s2[3]), "x")
+    d.AddLane("mains duct", (mains[0], bay[3], mains[2], mains[3]), "y")
     d.AddLane("mains front", (mains[2], PsuY0, Out, k1[1]), "x")
     d.AddLane("mains back", (mains[2], k1[3], Out, PsuY1), "x")
     d.AddLane("back", (Out, PsuY0, BoxD, PsuY1), "y")
@@ -1439,7 +1449,7 @@ def LowerWiring(d):
     d.Face("F3", "y0", "duct", ["out1", "out2", "out3"], ["1", "2", "3"])
     d.Face("F3", "y1", "top", ["in1", "in2", "in3"], ["1", "2", "3"])
     d.Part("Star S", B["Star S"], ["Star S", "uxcell"], size=1.35, rot=-90)
-    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP", "P12"], ["", "", "", ""])
+    d.Face("Star S", "y0", "duct", ["0VP", "P5", "SP", "P12", "0VS"], ["", "", "", "", ""])
     d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
     d.Part("0V-P", B["0V-P"], ["0V-P 1", "linked to 0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P", "y0", "duct", ["IN", "K2", "LK"], ["in", "", ""])
@@ -1447,10 +1457,9 @@ def LowerWiring(d):
     d.Part("0V-P 2", B["0V-P 2"], ["0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P 2", "y0", "duct", ["IN", "OD"], ["in", ""])
     d.Face("0V-P 2", "y1", "top", ["UV", "V", "T"], [""] * 3)
-    d.Part("servo PSU", sp, ["Servo PSU", "6 V, DC-DC"], size=1.5)
-    d.Face("servo PSU", "y0", "duct", ["IN+", "IN-"], ["+24", "0V"])
-    d.Face("servo PSU", "x1", "behind servo", ["OUT+", "OUT-"], ["+6V", "0V"])
-    d.Part("5 V PSU", B["5 V PSU"], ["5 V PSU", "feeds the Pi", "at the panel"], size=1.5, at=(0.5, 0.6))
+    d.Part("servo PSU", sp, ["Servo PSU", "DDR-30G-5", "5.4 V"], size=1.3)
+    d.Face("servo PSU", "y0", "duct", ["IN+", "IN-", "OUT+", "OUT-"], ["+24", "0V", "+5.4V", "0V"])
+    d.Part("5 V PSU", B["5 V PSU"], ["5 V PSU", "DDR-30G-5", "for the Pi"], size=1.3, at=(0.5, 0.6))
     d.Face("5 V PSU", "y0", "duct", ["IN+", "IN-", "OUT+", "OUT-"], ["+24", "0V", "+5V", "0V"])
     d.Part("PSU", B["24 V PSU"], ["24 V PSU 1200 W, lying flat", "terminals toward the mains duct,",
                                   "fan toward the right wall"], size=1.7, dashed=not PartSize["PSU24"][3])
@@ -1505,6 +1514,7 @@ def LowerWiring(d):
     W("zp", "5 V PSU.IN-", "Star S.P5")
     W("ve", "FB2.9", "servo PSU.IN+")
     W("zp", "servo PSU.IN-", "Star S.SP")
+    W("zl", "servo PSU.OUT-", "servo PSU.IN-")   # isolated DDR-30G-5: the servos' 0 V meets 0 V here
     W("ve", "FB2.8", "LL")
     W("zp", "0V-P 2.OD", "LL")
     W("lv", "5 V PSU.OUT+", "LL")
@@ -1561,7 +1571,7 @@ def UpperWiring(d):
     # field rail
     blocks = [("X2", ["1", "2", "2b", "3", "3b", "4", "5"], [(1, 2), (3, 4)], "E-stop"),
               ("X4", ["3", "14", "40", "15", "23", "A9"] + ["C"] * 6, [(6, 11)], "endstops"),
-              ("X5", ["6V", "6V", "0V", "0V", "P0", "P1"], [(0, 1), (2, 3)], "servos"),
+              ("X5", ["V+", "V+", "0V", "0V", "P0", "P1"], [(0, 1), (2, 3)], "servos"),
               ("X6", ["UV+", "UV-", "S5", "S5c", "V+", "V-"], [], "lid, valve"),
               ("X7", ["R", "A", "G", "Bz", "C"], [], "tower"),
               ("X8", ["-", "-", "-", "-"], [], "spare")]
@@ -1777,7 +1787,7 @@ def WireLegend(sh, x, y, w):
     sh.Text(x, y, "Legend", size=2.0, weight="bold")
     items = [("ac", "110 VAC"), ("va", "+24 V always on (FB1)"), ("ve", "+24 V behind K2 (FB2)"),
              ("zp", "0 V power (0V-P, star S)"), ("zs", "0V-S signal 0 V"), ("pe", "PE"),
-             ("lv", "+6 V servo, +5 V Pi, +12 V screen"), ("zl", "their 0 V"), ("sg", "signal"),
+             ("lv", "+5.4 V servo, +5 V Pi, +12 V screen"), ("zl", "their 0 V"), ("sg", "signal"),
              ("sgc", "multi-core signal cable"), ("cb", "motor cable")]
     col = w / 2
     for i, (cls, lab) in enumerate(items):
@@ -1935,13 +1945,13 @@ def WireNotes(deck):
         "F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in",
         "the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).",
         "Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to",
-        "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 6 V and Pi 5 V",
+        "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 5.4 V and Pi 5 V",
         "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG",
         "pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.",
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
         "0 V meets PE only at star S, by its one wire to the lower ground bar.",
-        "Open: tower common polarity, lid feed, valve coil, servo 6 V rating, J11 logic supply, and the",
-        "5 V PSU's current for the Pi 5 (5.1 V, 5 A)."]
+        "Open: tower common polarity, lid feed, valve coil, servo torque at 5.4 V, J11 logic supply.",
+        "The 5 V and servo supplies are DDR-30G-5 converters (ADR-0021); set each one's output on the bench."]
     if deck == "lower":
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
@@ -2014,14 +2024,14 @@ NameParts = [
                "that motor power is on", "24 V rail"),
         ("star S", "the 0 V star at the PSU's -V; the only 0 V to PE bond", "24 V rail"),
         ("0V-P 1, 2", "0 V power buses, linked: drivers, ODrive, K2 coil, loads", "24 V rail"),
-        ("servo PSU", "6 V DC-DC for the gripper and lid servos", "beside 24 V rail"),
-        ("5 V PSU", "feeds the Pi at the operator panel", "24 V row, back"),
-        ("ground bar", "lower PE bar on the base plate's PE stud", "behind servo PSU"),
+        ("servo PSU", "Mean Well DDR-30G-5 at 5.4 V for the gripper and lid servos, -Vo tied to -Vin", "24 V row, back"),
+        ("5 V PSU", "Mean Well DDR-30G-5, set for 5.1 V at the Pi: feeds the Pi at the operator panel", "24 V row, back"),
+        ("ground bar", "lower PE bar on the base plate's PE stud", "beside cable slot 2"),
     ]),
     ("Upper deck: drives, logic, field terminals", [
         ("X2", "E-stop latch: the door cable from S2 and S3", "field rail"),
         ("X4", "endstops: a signal and a common for each axis", "field rail"),
-        ("X5", "servos: 6 V, 0 V and signal for the gripper and lid", "field rail"),
+        ("X5", "servos: V+ (5.4 V), 0 V and signal for the gripper and lid", "field rail"),
         ("X6", "lid (UV array, switch S5) and the argon valve", "field rail"),
         ("X7", "status tower: red, amber, green, buzzer, common", "field rail"),
         ("X8", "spare (was the screen supply and the home button)", "field rail"),
@@ -2063,7 +2073,7 @@ NameEntries = [
     ("inlet", "IEC inlet with switch Q0, back panel"),
     ("gland", "M20 gland, back panel: door 110 V cable"),
     ("slot 1", "upper plate: driver +V and 0 V"),
-    ("slot 2", "upper plate: SSR feeds, returns, servo 6 V, PE link, 12 V DC-DC"),
+    ("slot 2", "upper plate: SSR feeds, returns, servo 5.4 V, PE link, 12 V DC-DC"),
     ("slot 3", "upper plate: E-stop latch, pin 43, door cable"),
 ]
 
@@ -2084,7 +2094,7 @@ for _i, (_ax, _pin) in enumerate(EndstopPins):
     FieldUse[("X4", _i + 1)] = "endstop %s signal" % _ax
     FieldUse[("X4", _i + 7)] = "endstop %s common" % _ax
 FieldUse.update({
-    ("X5", 1): "gripper servo +6 V", ("X5", 2): "lid servo +6 V", ("X5", 3): "gripper servo 0 V",
+    ("X5", 1): "gripper servo +5.4 V", ("X5", 2): "lid servo +5.4 V", ("X5", 3): "gripper servo 0 V",
     ("X5", 4): "lid servo 0 V", ("X5", 5): "gripper servo signal", ("X5", 6): "lid servo signal",
     ("X6", 1): "S4, then the UV array +", ("X6", 2): "UV array -", ("X6", 3): "lid switch S5",
     ("X6", 4): "S5's other side", ("X6", 5): "argon valve + (D1 across)", ("X6", 6): "argon valve -",
@@ -2693,7 +2703,7 @@ def BuildOperatorPanel():
 # in six colors, the split not listed, and no white. The PE blocks are the green-yellow grounding blocks
 # (USLKG 5, BomRows), which bond to their rail. A block takes the color of the wire class that lands on
 # it, so the colors follow the terminal plan. Two exceptions: the mains neutral is grey, for want of white
-# blocks, and the +6 V servo supply is yellow (its wire is red), so that it is never taken for +24 V. The
+# blocks, and the +5.4 V servo supply is yellow (its wire is red), so that it is never taken for +24 V. The
 # kits' plain green blocks look like PE and do not bond to the rail, so no block is green.
 KitColors = ("red", "yellow", "blue", "black", "green", "grey")
 KitEach = 20                       # blocks of each color in the two kits: the listing's photos show 10 of
@@ -2707,7 +2717,7 @@ BlockUse = {"blue": "every 0 V terminal: 0V-P, 0V-S and the supplies' own (sheet
 BlockColorOf = {"ac": "black", "va": "red", "ve": "red", "lv": "yellow", "zp": "blue", "zs": "blue",
                 "zl": "blue", "sg": "grey", "pe": "green-yellow"}
 BlockRole = {"ac": "110 VAC line", "N": "110 VAC neutral", "va": "+24 V always on (FB1)",
-             "ve": "+24 V behind K2 (FB2)", "lv": "+6 V servo, +5 V Pi", "zp": "0 V power (0V-P)",
+             "ve": "+24 V behind K2 (FB2)", "lv": "+5.4 V servo, +5 V Pi", "zp": "0 V power (0V-P)",
              "zs": "0V-S signal 0 V", "zl": "0 V of the servo and Pi supplies", "sg": "signal",
              "pe": "PE", "": "spare"}
 BlockFill = {"black": "#222222", "grey": TolGrey, "red": TolRed, "blue": TolBlue, "yellow": "#EECC66",
@@ -2867,7 +2877,7 @@ def BuildTerminalColors():
             ("grey", "110 VAC neutral (the kits have no white), signals and spares"),
             ("red", "+24 V, always on and behind K2"),
             ("blue", "every 0 V: 0V-P, 0V-S and the supplies' own (blue wire, white bands)"),
-            ("yellow", "+6 V servo supply: its wire is red, the block says it is not 24 V"),
+            ("yellow", "+5.4 V servo supply: its wire is red, the block says it is not 24 V"),
             ("green-yellow", "PE: grounding blocks, which bond to their rail")]
     for i, (c, text) in enumerate(rule):
         BlockChip(sh, x, y + 2.0 + i * 3.4, c)
@@ -2970,7 +2980,7 @@ PanelT = 3.175                     # 1/8 in cast acrylic side and top panels, no
 # Every part stands on a 35 mm top-hat DIN rail screwed to its deck. EN 60715 makes that rail 7.5 or
 # 15 mm tall; the rails on hand measure 7.5 (owner, 2026-10-17): five 18 in slotted aluminum rails
 # from the 2026-09-14 order (B0BFFSMBC7, "7.5mm High"; issue #158). Parts without
-# DIN feet (TB6600s, the PSUs, the Mega) sit on a printed clip that adds Clip over the rail's top
+# DIN feet (TB6600s, the 24 V PSU, the Mega) sit on a printed clip that adds Clip over the rail's top
 # face (the 2026-10-15 assumption; measure the first printed clip).
 DinRailH = 7.5
 Clip = 10.0
@@ -3012,8 +3022,11 @@ PartSize = {
                                                  # 2026-10-21, issue #202), lying flat on its
                                                  # 240 x 126 face (ADR-0010); fan, holes and
                                                  # terminal order not measured yet
-    "PSU6": (58.0, 63.0, 23.0, True, "clip"),    # servo PSU 63 x 58 x 23, the 63 across its rail
-    "PSU5": (76.0, 76.0, 32.0, True, "clip"),    # 5 V PSU 76 x 76 x 32
+    "PSU6": (35.0, 90.0, 54.5, True, "rail"),    # servo supply: Mean Well DDR-30G-5 set to 5.4 V
+                                                 # (ADR-0021, issue #244): 35 W x 90 H x 54.5 D on
+                                                 # TS35 (DDR-30-SPEC, 2026-03-31)
+    "PSU5": (35.0, 90.0, 54.5, True, "rail"),    # Pi supply: Mean Well DDR-30G-5 set so the Pi 5
+                                                 # reads 5.1 V at 5 A (ADR-0021); the same size
     "DDR12": (52.5, 90.0, 54.5, True, "rail"),   # Mean Well DDR-60G-12, the screen's 12 V (ADR-0020):
                                                  # 52.5 W x 90 H x 54.5 D on TS35 (DDR-60-SPEC,
                                                  # 2026-03-31, mechanical page)
@@ -3327,6 +3340,8 @@ LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB
 # block (6.2 mm), and stops 1 mm short of the clamp; it gets its input up slot 2 and sends its 12 V down it.
 Dc12X0 = 313.0                     # front end of the DC-DC itself
 Dc12RailEnd = 7.0                  # rail past each end of it
+DcDcBlockEnd = 6.5                 # rail past one end of each DDR-30G-5 for its USLKG 5 (6.2 wide), ADR-0021
+DcDcGap = 0.5                      # between the servo converter's rail and the Pi converter's
 R24Rail0 = 32.0                    # front end of the 24 V rail: F3, K2, Star S, the 0V-P bars. F3
                                    # (issue #205) clears cable slot 3 by 1 mm; the study had 87
 # The front face of the 24 V PSU, RingClear from the front ring. The study put it at 46.5 for a 215 mm
@@ -3352,7 +3367,7 @@ BackRunX = [u for _, u, _, k in CableEntries if k == "ULM"][0]   # the motor cab
 # over the 110 VAC compartment (RunChecks()): 1 rises between the drivers' rail end and the shield
 # clamp to the 24 V duct, 2 behind the SSR rail, 3 in front of the Mega, beside X2 and K2.
 CableSlots = [(267.5, 156.0, 280.5, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0, 90.0, 36.0, 106.0)]
-SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 6 V",
+SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 5.4 V",
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
 # plate's stands outside the 110 VAC compartment, in front of the 5 V PSU; the upper plate's behind the
@@ -4438,9 +4453,8 @@ def UpperRails():
 
 def LowerRails():
     """{rail: DinRun()} on the lower deck, every rail along x: the fuse rail along the left wall,
-    the 24 V rail one channel behind it, F3 at its front end, with the servo PSU one channel past its
-    end, the 5 V PSU in
-    the same row against the back ring, past cable slot 2 and the base PE stud (the fuse rail, with FB1
+    the 24 V rail one channel behind it, F3 at its front end, the servo and 5 V DDR-30G-5 converters
+    (ADR-0021) side by side in the same row against the back ring, past cable slot 2 and the base PE stud (the fuse rail, with FB1
     a 12-way, leaves no room for it at its end: issue #158), and the mains strip along the right wall:
     the 24 V PSU lying flat, then one channel behind it the 110 V rail, X0 at its back end by the
     inlet."""
@@ -4455,15 +4469,23 @@ def LowerRails():
     mains = [("PETerm", "PE", PeBarTerms), 4.0, ("Term", "X1", 3), 4.0, ("K1", "K1"), 4.0, ("F0", "F0"), 4.0,
              ("Term", "X0", 5)]
     yM = (PsuY0 + PsuY1) / 2
-    servo = DinRun(True, yK + PartSize["PSU6"][1] / 2,
-                   RailRun(k2["a1"] + Chan, [("PSU6", "servo PSU")]), "PS6", ZoneFill["24"], 0.0)
+    # The two DDR-30G-5 (ADR-0021) stand side by side in the 24 V row against the back ring, each on its
+    # own short rail that reaches DcDcBlockEnd past its outer end for its USLKG 5 ground block. They are
+    # 90 mm deep, so the old servo PSU's spot one channel past the 24 V rail would leave 5 mm to the
+    # 110 VAC compartment for the PSU's trunk and the 0V-P returns; that floor is left free instead.
+    # The servo rail starts 0.5 mm past cable slot 2 (x 350).
+    pi0 = BoxD - Frame - RingClear - DcDcBlockEnd - PartSize["PSU5"][0]
+    sv0 = pi0 - DcDcGap - PartSize["PSU6"][0]
+    servo = DinRun(True, yK + PartSize["PSU6"][1] / 2, RailRun(sv0, [("PSU6", "servo PSU")]), "PS6",
+                   ZoneFill["24"], 0.0)
+    servo["a0"] -= DcDcBlockEnd
+    pi = DinRun(True, yK + PartSize["PSU5"][1] / 2, RailRun(pi0, [("PSU5", "5 V PSU")]), "PS5", ZoneFill["24"], 0.0)
+    pi["a1"] += DcDcBlockEnd
     return {
         "fuses": fuses,
         "24 V": k2,
         "servo PSU": servo,
-        "5 V PSU": DinRun(True, yK + PartSize["PSU5"][1] / 2,
-                          RailRun(BoxD - Frame - RingClear - PartSize["PSU5"][0], [("PSU5", "5 V PSU")]),
-                          "PS5", ZoneFill["24"], 0.0),
+        "5 V PSU": pi,
         "24 V PSU": DinRun(True, yM, RailRun(PsuX0, [("PSU24", "24 V PSU")]), "PSU", ZoneFill["110"], 0.0),
         "110 V": DinRun(True, yM, RailRun(BoxD - Frame - RingClear - 5.0 - RailRun(0.0, mains)[1], mains),
                         "R110", ZoneFill["110"]),
@@ -4566,7 +4588,7 @@ def StudyBlocks():
             e[:] = [min(e[0], s["box"][0]), min(e[1], s["box"][1]), max(e[2], s["box"][2]),
                     max(e[3], s["box"][3])]
     ext["DRV"][3] = UpRows["motor duct"][1]
-    rot = {"SSR": 1, "PS6": 1, "SHIELD": 1}
+    rot = {"SSR": 1, "SHIELD": 1}
     return {b: ((e[0] + e[2]) / 2, (e[1] + e[3]) / 2, rot.get(b, 0)) for b, e in ext.items()}
 
 
@@ -4733,8 +4755,8 @@ def PlanLabel(s):
                         % tuple(Mm(v) for v in PartSize["PSU24"][:3]),
                         "%s tall on clip and rail;" % Mm(MountedH("PSU24")), "fan face to the right wall"],
                        1.2, 0),
-             "PSU6": (["Servo PSU", "6 V, 58 x 63"], 1.1, 0),
-             "PSU5": (["5 V PSU", "76 x 76", "Pi at the panel"], 1.2, 0),
+             "PSU6": (["Servo", "DDR-30G-5", "5.4 V"], 1.0, 0),
+             "PSU5": (["5 V", "DDR-30G-5", "Pi"], 1.0, 0),
              "DDR12": (["12 V DC-DC", "52.5 x 90", "screen"], 1.1, 0),
              "Clamp": (["shield clamp"], 1.1, -90)}
     if key in fixed:
@@ -4997,8 +5019,8 @@ def BuildPacking():
             "36 x 82 x 65; K2 BMC7-25U 36 x 85 x 68; FB1",
             "and FB2 153 x 48 x 43; uxcell bar 20 x 78 x",
             "53; SSR 6.1 x 88 x 71 (41F-1Z socket);",
-            "UK 2.5 B 6.2 x 42.5 x 42; 5 V PSU 76 x 76 x",
-            "32; 6 V 63 x 58 x 23; Mega 99 x 53 (A000067);",
+            "UK 2.5 B 6.2 x 42.5 x 42; 5 V and servo DDR-30G-5",
+            "35 x 90 x 54.5 (datasheet); Mega 99 x 53 (A000067);",
             "12 V DC-DC 52.5 x 90 x 54.5 (datasheet).",
             "Assumed (dashed): F0, F3, PE blocks, end and",
             "shield clamps, Mega height. Heights add the rail."]),
@@ -6260,6 +6282,8 @@ Amz, Mc = "Amazon", "McMaster"
 Trc = "TRC Electronics"            # Mean Well distributor: the 12 V DC-DC (issue #220)
 Dk = "Digi-Key"                    # the screen's plug pigtail (issue #220)
 Dc12Date = "2026-11-12"            # its price, read at TRC; Amazon refused automated reads that day
+DdrDate = "2026-11-23"             # the two DDR-30G-5 (ADR-0021, issue #244), read at TRC
+DdrEff = 0.85                      # DDR-30G-5 efficiency, typical (DDR-30-SPEC, 2026-03-31)
 # The screen's 12 V (ADR-0020): the screen is rated 12 V 2 A and its adapter 12.0 V 3.0 A (the owner's photos
 # of both labels, 2026-11-12); the supply is sized for the adapter.
 # The plug's pigtail is taken as 6 ft of 18 AWG stranded copper, 7.95 ohm per 1000 ft at 75 C (NEC
@@ -6562,7 +6586,7 @@ def BomRows():
         ("Power wiring", Amz, Buy, "14 AWG stranded THHN, red, 50 ft", "B0G13N5WGX",
          "YDDECW THHN/THWN-2 14 AWG stranded copper, 600 V, 90 C, UL 83, nylon over PVC, 50 ft, red",
          "the 14 AWG runs of sheet 2", "50 ft roll", 1, 19.99,
-         "+ of F2-1 to F2-8 (drivers, ODrive), the servo 6 V and the Pi 5 V",
+         "+ of F2-1 to F2-8 (drivers, ODrive), the servo 5.4 V and the Pi 5 V",
          "Copper (issue #205): the 20 AWG on hand is copper-clad aluminum and conducts like 22 AWG copper, 3 A "
          "(NFPA 79 Table 12.5.1), under these 5 and 10 A fuses. If a 2.5 mm2 ferrule does not fit the TB6600 "
          "and SSR terminals, buy 16 AWG. About 32 ft needed, 42 for the NFPA 79 version (ADR-0019). " + wread),
@@ -6603,6 +6627,17 @@ def BomRows():
          "%.2f A from %s V, 60 %% of F1-3's 3 A, which also opens before its own current limit on an overload. "
          "Its 0 V out is not tied in the box; the Pi's HDMI references it. Mean Well DDR-60-SPEC (2026-03-31). "
          "Price read %s" % (ScreenDrop()[1], Mm(Dc12InMin), Dc12Date)),
+        ("Power supplies", Trc, Buy, "DC-DC converter, DIN rail, 24 to 5 V, 30 W, isolated", "DDR-30G-5",
+         "Mean Well DDR-30G-5: 9 to 36 V DC in, 5 V 6 A out (adjustable 4.5 to 5.5 V), 30 W, 4 kV DC input to "
+         "output isolation, 35 x 90 x 54.5 mm on TS35", 2, "each", 2, 35.36,
+         "the Pi's 5 V (F1-2) and the servos' 5.4 V (F2-9), side by side against the back ring in the 24 V row, "
+         "each on its own 41.5 mm rail (ADR-0021), in place of the two supplies on printed clips",
+         "Pi: set so the Pi 5 reads 5.1 V at 5 A, its -Vo untied; at the trim's 5.5 V top that allows 80 mOhm of "
+         "loop, about 4.7 m of 14 AWG each way. Servos: 5.4 V, 0.35 V under the over-voltage latch (5.75 to 7 V; a power cycle resets it), -Vo jumpered "
+         "to -Vin; 0V-S meets star S on its own wire, so the PWM has a 0 V. At 30 W one draws %.2f A from %s V at "
+         "%d %% efficiency, under the 3 A of F1-2 and F2-9, and its 110 to 150 %% overload limit acts before the "
+         "fuse; inrush 15 A typical at 24 V, duration not given. Mean Well DDR-30-SPEC (2026-03-31). Price read %s"
+         % (30.0 / (DdrEff * Dc12InMin), Mm(Dc12InMin), round(100 * DdrEff), DdrDate)),
         ("Power supplies", Dk, Buy, "DC plug pigtail, 5.5 x 2.5 mm, right angle, 18 AWG, 6 ft", "10-02226",
          "Tensility 10-02226 (Digi-Key 839-10-02226-ND): 1830 mm of 2-conductor 18 AWG UL 2464, 300 V, 80 C, "
          "from a 5.5 x 2.5 mm right-angle DC plug (center red, sleeve black) to stripped, tinned leads; rated "
@@ -6709,7 +6744,7 @@ def BomRows():
          "Iron Forge Cable 20 AWG automotive primary wire, 10 x 100 ft, copper-clad aluminum, PVC, 105 C "
          "(ordered 2026-09-14)", "", "-", 0, None, "signals, and loads fused at 3 A or less",
          "It conducts like 22 AWG copper (3 A, NFPA 79 Table 12.5.1) and its listing rules out 110/220 VAC: "
-         "never on F2-1 to F2-8, the servo 6 V or Pi 5 V pairs, the PSU trunks or the F0 rung (issue #205)"),
+         "never on F2-1 to F2-8, the servo 5.4 V or Pi 5 V pairs, the PSU trunks or the F0 rung (issue #205)"),
         ("Not in this BoM", "not chosen", NotBought, "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]
@@ -6759,8 +6794,8 @@ def BomCsv():
           "Amazon prices read on %s (the cutting tools, the M5 x 8 and M4 screw packs, the nut pack, the "
           "cable gland, the gantry PE wire, the acrylic cement and the issue #158 lines on %s; the issue #205 "
           "wire and fuse lines and the issue #209 terminal block packs on %s), McMaster on 2026-10-15 (the "
-          "acrylic on 2026-10-18), TRC Electronics and Digi-Key on %s (the 12 V DC-DC and its pigtail); shipping and tax extra"
-          % (BomDate, ToolDate, WireDate, Dc12Date))
+          "acrylic on 2026-10-18), TRC Electronics and Digi-Key on %s (the 12 V DC-DC and its pigtail), TRC on %s (the two "
+          "DDR-30G-5); shipping and tax extra" % (BomDate, ToolDate, WireDate, Dc12Date, DdrDate))
     return out.getvalue()
 
 
