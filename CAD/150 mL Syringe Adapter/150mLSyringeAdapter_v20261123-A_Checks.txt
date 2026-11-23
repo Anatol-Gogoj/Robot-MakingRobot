@@ -1,0 +1,87 @@
+Screwless plunger clamp (issues 241, 246), alpha 6.0 deg, pad 36.75 x 2.00 (thickness assumed)
+
+Slider against the frame over the stroke (slider lifted 0.05 to ignore the sliding contact; tooth checked below)
+  ok (largest overlap 0.0000 mm3 over 13 positions, each side of the float)
+  push-in stop: lip and ear front faces meet the frame's back face at p = -6.0 (gaps 0.000, 0.000);
+    the trigger clears that face by 4.5; the push block and the ear stand 2.0 behind the arm's end, so a
+    push lands on rigid parts, and the squeezed arm clears the push block by 1.5
+
+Pad gap and preload range
+  pulled back (p = 12): slider top 1.26 below the pad, so the pad slides out freely
+  locks pads from 1.37 (slider fully in) to 2.96 thick (0.3 left for sliding in); nominal 2.00 locks at p = 0
+    the ratchet backs up pads from 1.58 (p -4) to 3.05 (p 10); thinner pads, down to 1.37, are held by friction alone
+  rise per mm of slider travel 0.105 mm; 0.1 mm of pad tolerance is 1.0 mm of travel
+
+Rod and pad clearances
+  slots 29.50 wide against today's 29.00 channel (+0.25 per side); the rod itself is not measured
+  pad ledge on the slider beside the slot: 3.62 per side
+  pad edge to the guide walls: 4.52 per side (the pad slides out between them)
+  slider to the guide walls: 0.40 per side
+  pad rim to the arm's slot, worst over the stroke: +0.23 with the pad centred, -0.22 with it 0.45 off centre
+    (the rod's play); negative is a rim overhang, harmless at this size
+
+Forces (friction coefficients assumed: PETG/PETG 0.30, PETG/pad 0.20)
+  self-locking: alpha 6.0 deg against friction angles 16.7 + 11.3 deg; margin 22.0 deg
+    if the pad slid along with the slider, only the bottom face would hold it: margin 10.7 deg
+    a pull-back load presses the slider down; with no friction it would push the slider out with only
+    1.1 N per 10 N of load (tan alpha)
+  hand force to reach 20 N of preload: about 12 N push; to release: about 8 N pull
+  retract load 34 N (study bound, not measured) goes through the slider into the base ramp;
+    dispensing loads the carriage directly, not the slider
+
+Ratchet (positive lock), tooth on the slider, notches in the frame
+  8 lock positions, p = -4.0 .. 10.0 every 2.0 (0.210 mm of lift per tooth); nominal pad locks at p = 0
+  seats in every notch, blocks a 0.3 mm pull-back at every notch at either side of the +-0.4 guide float,
+    and rides over the notches on push-in
+  trigger squeezed to the stop (tooth lifted 2.30): the slider pulls back freely from p -6 to 12,
+    checked with the slider at its +v side
+    and the rebate's end wall still stops it by p = 13.0 with the slider at its -v side: captive
+  margins at the stop, worst side of the float, with the tooth's 7.7 deg tilt: clears the notches by 0.45;
+    overlaps the end wall by 0.67; the tilt leads the tip by 0.51, so a squeezed slider meets the wall at p 12.49
+  arm 57 long from its root (u' -20) to the trigger, 1.7 thick, 2.9 to 8.9 high (the slider's taper),
+    tooth 28 from the root; E 2500 MPa assumed
+  squeeze to clear the notches: about 0.4 N; to the stop: about 0.5 N; the trigger moves about 6.8 mm
+  tooth spring: 0.50 N/mm at the tooth; it holds the tooth on a notch floor with 0.10 N (slider at its -v wall)
+    to 0.50 N (+v wall), and rides a crest at up to 0.89 N
+  largest bending strain at the stop 0.76 % (19 MPa), 0 from the root
+  a harder squeeze lays the arm on the curved stop wall, so the strain cannot grow past this
+  a hard 20 N pinch past the stop bends the arm's free end over the body's back edge: strain 0.63 %
+  the 34 N retract load acts on the pad in z; along u the slider sees at most 34 x tan(alpha) = 3.6 N,
+    and none while friction holds. That load reaches the tooth from the notch wall and compresses the arm
+    off-centre toward its outer side, which pushes the tooth deeper; buckling of the root-to-tooth span,
+    as a free cantilever on its real taper (Rayleigh): 12 N
+  bearing on one notch wall (0.8 x 5.8 mm): 0.8 MPa
+  friction still holds the preload; the ratchet stops creep beyond one tooth
+  wall between the notches and the +v screw counterbore: 2.51 at least
+
+Use
+  lock: push the slider in by the push block and the ear (its rearmost faces, never the trigger) until the
+    pad is tight; it clicks past each tooth and stays
+  release, one hand: pinch the thumb trigger (+v side, behind the frame) toward the finger ear (-v side);
+    the pinch span is 60 mm outside to outside, 53 mm when squeezed to the stop; keep pinching and pull
+    the slider back, the finger pads against the ridges on the front edges, until it stops; stop pulling
+    there (a yank loads the squeezed arm in compression); slide the syringe out through the open side
+  cleaning: unscrew the frame's two screws; the slider lifts out upward
+
+Printing
+  frame: base bottom on the bed, so the part sits tilted 6.0 deg and the ramp is a flat top face (iron it);
+    the slider's stepped underside then rides a smooth ramp and cannot lock into matching layer steps;
+    the ratchet rebate is a slot open at the top, so it needs no support; the counterbore ceilings
+    print as short bridges
+  slider: flat top on the bed; the arm, its tooth and the notch-facing walls are vertical, so they print
+    as drawn; the arm's slot is 0.8 wide at its narrowest; turn on elephant-foot compensation
+  PETG preferred for the slider (the flexure); PLA works at this strain but fatigues sooner
+
+Not modelled or not known
+  the pad thickness (2.0 taken from the old clamp's spacer bosses), its diameter, and the rod width under it
+  the screw thread into the carriage: today's holes are 5.3 mm (M5 clearance, or an M4 insert hole)
+  the carriage underside: the frame's side blocks rise to it (z 0) at |v| 22.9..39.5, including the channel's
+    open side, where today's plate has no material; check carriage hardware and the barrel clamp's swing there
+  depth below the carriage: frame bottom -12.5 and the push block down to -18.7 (today's clamp: -9.0); check the
+    pad-to-flange distance at full plunger insertion
+  which way the channel must open (it must face the barrel clamp half that is unsnapped for a swap);
+    the frame mounts in two orientations 180 deg apart on the same two holes
+  behind the frame: the trigger, the ear, the push block and the lip reach u 24..36 (slider in) to 54
+    (pulled back) and v -31.8..31.8; check the carriage, the C drive and a hand's way in there
+
+0 check(s) failed
