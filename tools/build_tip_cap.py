@@ -1,7 +1,8 @@
 # Builds the servo-driven, bistable tip cap for the 150 mL syringe (issue 243): an arm that presses
 # a standard size 00 solid silicone stopper onto the syringe tip between doses, a yoke that carries
-# the arm's pivot, the micro servo and the over-centre spring, and a strap that hangs the yoke from
-# the dispenser shelf rail. Concept and owner decisions: the 2026-11-21 B-driven flip study,
+# the arm's pivot, the micro servo and the over-centre strut, and a bracket that hangs the yoke
+# from the dispenser shelf rail: a 2020 aluminium drop post on two corner brackets, the yoke bolted
+# to its slot. The machine carries the cap; every run uses one syringe type, so it is set up once. Concept and owner decisions: the 2026-11-21 B-driven flip study,
 # section 9 (cap chosen over any flip, a common silicone stopper as the seal, tool-less swap).
 # Owner 2026-11-23: the stopper's big end faces the tip; its small end sits in a tapered socket.
 #
@@ -30,10 +31,11 @@
 #
 # Frame (cap frame): origin at the nominal tip end centre; z up along the syringe axis; x horizontal
 # toward the pivot (along the shelf, toward the B post, away from the side the syringe leaves by);
-# y toward the shelf rail the strap hangs from. Angles in the x-z plane are measured from +x toward
+# y toward the shelf rail the bracket hangs from. Angles in the x-z plane are measured from +x toward
 # +z. The arm angle phi is 0 closed and Swing open (counter-clockwise in x-z). Dimensions in mm.
 # Every machine and syringe dimension here is a photo estimate (2026-11-20 flip study, dims.md) or a
-# typical catalogue value; nothing is measured. The strap has slots so the cap is set on the bench.
+# typical catalogue value; nothing is measured. The bracket slides in x and z, and shims set y,
+# so the cap is set on the bench with a syringe fitted.
 
 import math
 import os
@@ -52,9 +54,9 @@ P = dict(
     # plausible outline: tip end r 4.0, catheter tip to r 4.5, a cone from z ConeZ0 up to the shoulder,
     # barrel r 21.5 + 2.0 (Kapton and photo uncertainty).
     TipR=4.0, TipBaseR=4.5, ConeZ0=30.0, ShoulderZ=40.7, BarrelR=23.5, BarrelTopZ=151.0,
-    # Tip end errors left after the bench set-up (height in the strap slot, x by sliding the strap along
-    # the rail, y in the tab's slotted holes), from one syringe to the next: the barrel clamp and the
-    # flange seat locate each syringe; these allow for that and for the set-up itself
+    # Tip end errors left after the bench set-up (height by sliding the yoke along the post, x by sliding the
+    # post along the rail, y by the yoke's land thickness), from one syringe to the next: one syringe type
+    # for every run, located by the barrel clamp and the flange seat; these allow for that and the set-up
     TipXYTol=1.5, TipZTol=1.5, TipXTol=1.0,
     # Stopper: size 00 solid silicone, PUL FACTORY listing 15 / 11 x 21 mm (Amazon B074RHKP62); the big
     # end is the face on the tip, the small end goes into the socket. Re-run with the delivered sizes.
@@ -132,16 +134,27 @@ P = dict(
     StopY1=2.5,            # stop blocks reach into the arm plane to here
     ColumnX=(27.0, 33.0),  # the cheek's column up to the bridge: straight above the pivot, between the open
                            # arm (its edge at about 79 deg) and the barrel; the arm never sweeps there
-    BridgeZ=(71.0, 77.0),  # level with the plate top, so the yoke prints upside down on both
-    PlateY=(17.0, 21.0), PlateX=(26.0, 66.0), PlateZ0=6.0, PlateTopZ=77.0,   # bottom above the chuck during a dose;
+    BridgeZ=(59.0, 77.0),  # 18 deep (its deflection goes as 1/depth^3), its top level with the plate top, so the
+                           # yoke prints upside down on both
+    PlateY=(17.0, 21.0), PlateX=(26.0, 71.0), PlateZ0=6.0, PlateTopZ=77.0,   # bottom above the chuck during a dose;
                            # the top carries the strut's anchor boss
     AnchorBossR=4.5,
-    StrapScrewX=54.0, StrapScrewZ=(25.0, 35.0),
-    # Strap to the shelf rail (2020, bottom T-slot at y 33; rail bottom z 151 above the tip end, photo)
-    StrapX=(46.0, 62.0), StrapY=(21.0, 29.0),
-    RailY=(23.0, 43.0), RailBottomZ=151.0, RailSlotY=33.0, TabT=6.0, RailScrewX=(50.0, 58.0),
-    AdjustZ=12.0,          # +-12 of height adjustment in the strap slot
-    AdjustY=3.0,           # +-3 across the shelf: the tab's M5 holes are slots in y
+    # Bracket: a 2020 aluminium post hung under the +v shelf rail (2020, rail bottom z 151 above the tip end,
+    # photo) on two 2020 corner brackets, one on each x face. The yoke's land bolts to the post's -y slot with
+    # two M5 drop-in T-nuts, and its key runs in that slot: x slides along the rail, z slides along the post
+    PostX=(48.5, 68.5),    # clear of the anchor screw's head and washer (x up to 47.0) and of the servo
+    PostY=(23.0, 43.0),    # under the rail's footprint
+    PostBottomZ=48.0,      # above the bowl rim during a dose (photo: the rim 42 above the tip end then)
+    YokeBoltZ=(60.0, 71.0),  # the land then runs z 54..77: about 6 of height adjustment each way
+    LandT=1.0, ShimNom=1.0,  # land on the plate, then printed 0.5 shims (two nominally) to the post face:
+                             # y is set with the arm closed on a fitted syringe, by adding or removing shims
+    LipT=2.0, LipDepth=3.0, LipGap=0.15,   # side lips on the land hug the post's outer x faces: they keep the
+                             # yoke square to the post (the T-nuts' slot is left to the T-nuts)
+    LipMinusZ=(54.0, 63.0),  # the -x lip stops below the anchor screw's head
+    RailY=(23.0, 43.0), RailBottomZ=151.0,
+    PostI=6982.0,          # mm4, 2020 profile (Misumi HFS5-2020 catalogue, 0.70 cm4)
+    AluE=69000.0,
+    PetgE=1800.0,          # MPa, PETG for long-term (creep) deflection; assumed
     TipZUnc=7.0,           # photo uncertainty of the tip end height below the rail
     # Bowl and chuck (photo estimates) for the envelope check
     BowlRimR=95.0, BowlRimUnc=12.5, RimAboveChuck=52.0, DispenseAboveChuck=10.0,
@@ -200,6 +213,7 @@ for _ in range(8):
     BodyCA = P["PinClr"] + P["BoreSpare"] + P["RodEngage"] + (hi_ - lo_)
 DNom = P["CrankR"] + P["EyeCT"] + P["SpringDCLen"] + BodyCA
 AnchorDs = (DNom,)
+LandZ = (min(P["YokeBoltZ"]) - 6.0, P["PlateTopZ"])   # the land reaches the plate top, so it prints on the bed
 # rod length out of the eye's seat: the gap to the body's seat at the longest strut, plus the engagement
 RodOut = StrutRange(DNom)[1] - P["EyeCT"] - BodyCA + P["RodEngage"]
 
@@ -390,9 +404,20 @@ def Yoke():
     zc = sz0 + P["ServoL"] / 2
     for s in (-1, 1):
         plate = plate.cut(CylY((Px, zc + s * P["EarHoleSpacing"] / 2), 0.85, P["PlateY"][0] - 1, P["PlateY"][1] + 1))
-    for z in P["StrapScrewZ"]:
-        plate = plate.cut(CylY((P["StrapScrewX"], z), 1.7, P["PlateY"][0] - 1, P["PlateY"][1] + 1))
     yoke = yoke.fuse(plate)
+    # mounting land on the plate's +y face (shims go between it and the post), and side lips that hug the
+    # post's outer x faces
+    x0, x1 = P["PostX"]
+    sx = 0.5 * (x0 + x1)
+    z0, z1 = LandZ
+    yl = P["PlateY"][1] + P["LandT"]
+    yoke = yoke.fuse(Box(x0, x1, P["PlateY"][1] - 0.01, yl, z0, z1))
+    ly1 = P["PostY"][0] + P["LipDepth"]
+    g, t = P["LipGap"], P["LipT"]
+    yoke = yoke.fuse(Box(x1 + g, x1 + g + t, P["PlateY"][1] - 0.01, ly1, z0, z1))
+    yoke = yoke.fuse(Box(x0 - g - t, x0 - g, P["PlateY"][1] - 0.01, ly1, P["LipMinusZ"][0], P["LipMinusZ"][1]))
+    for z in P["YokeBoltZ"]:
+        yoke = yoke.cut(CylY((sx, z), 2.75, P["PlateY"][0] - 1, ly1 + 1))
     # anchor boss: three holes on the anchor ray, teardrop outline
     boss = XZSolid(Hull(sum((Teardrop(a, P["AnchorBossR"]) for a in AnchorPts), [])), P["AnchorBossY0"], P["PlateY"][0] + 0.01)
     yoke = yoke.fuse(boss)
@@ -401,29 +426,41 @@ def Yoke():
     return yoke.removeSplitter()
 
 
-def Strap():
-    x0, x1 = P["StrapX"]
-    y0, y1 = P["StrapY"]
-    zmin, zmax = min(P["StrapScrewZ"]) - P["AdjustZ"], max(P["StrapScrewZ"]) + P["AdjustZ"]
-    z1 = P["RailBottomZ"]
-    strap = Box(x0, x1, y0, y1, zmin - 5.0, z1)
-    strap = strap.fuse(Box(x0, x1, y0, P["RailY"][1], z1 - P["TabT"], z1))
-    # gusset under the tab
-    g = Part.Face(Part.makePolygon([V(x0 + 4, y1 - 0.01, z1 - P["TabT"] + 0.01), V(x0 + 4, y1 + 10, z1 - P["TabT"] + 0.01),
-                                    V(x0 + 4, y1 - 0.01, z1 - P["TabT"] - 10), V(x0 + 4, y1 - 0.01, z1 - P["TabT"] + 0.01)]))
-    strap = strap.fuse(g.extrude(V(x1 - x0 - 8, 0, 0)))
-    sx = P["StrapScrewX"]
-    slot = Box(sx - 1.7, sx + 1.7, y0 - 1, y1 + 1, zmin, zmax).fuse(CylY((sx, zmin), 1.7, y0 - 1, y1 + 1)).fuse(
-        CylY((sx, zmax), 1.7, y0 - 1, y1 + 1))
-    strap = strap.cut(slot)
-    ay = P["AdjustY"]
-    for x in P["RailScrewX"]:
-        zb = z1 - P["TabT"] - 1
-        hole = Part.makeCylinder(2.75, P["TabT"] + 2, V(x, P["RailSlotY"] - ay, zb)).fuse(
-            Part.makeCylinder(2.75, P["TabT"] + 2, V(x, P["RailSlotY"] + ay, zb))).fuse(
-            Box(x - 2.75, x + 2.75, P["RailSlotY"] - ay, P["RailSlotY"] + ay, zb, zb + P["TabT"] + 2))
-        strap = strap.cut(hole)
-    return strap.removeSplitter()
+def Shim():
+    """Printed 0.5 shim between the land and the post (print several; the stack sets y)."""
+    x0, x1 = P["PostX"]
+    z0, z1 = LandZ
+    sh = Box(x0 + 0.3, x1 - 0.3, 0.0, 0.5, z0 + 0.3, z1 - 0.3)
+    for z in P["YokeBoltZ"]:
+        sh = sh.cut(CylY((0.5 * (x0 + x1), z), 2.75, -1, 2))
+    return sh
+
+
+def Post():
+    """2020 aluminium post (bought, cut to length), simplified: four 6.2 x 6 slots and the centre bore."""
+    x0, x1 = P["PostX"]
+    y0, y1 = P["PostY"]
+    z0, z1 = P["PostBottomZ"], P["RailBottomZ"]
+    p = Box(x0, x1, y0, y1, z0, z1)
+    sx, sy = 0.5 * (x0 + x1), 0.5 * (y0 + y1)
+    for bx0, bx1, by0, by1 in ((sx - 3.1, sx + 3.1, y0 - 1, y0 + 6), (sx - 3.1, sx + 3.1, y1 - 6, y1 + 1),
+                               (x0 - 1, x0 + 6, sy - 3.1, sy + 3.1), (x1 - 6, x1 + 1, sy - 3.1, sy + 3.1)):
+        p = p.cut(Box(bx0, bx1, by0, by1, z0 - 1, z1 + 1))
+    return p.cut(Part.makeCylinder(2.1, z1 - z0 + 2, V(sx, sy, z0 - 1)))
+
+
+def Brackets():
+    """Two 2020 corner brackets (bought), on the post's x faces, their other legs under the rail."""
+    x0, x1 = P["PostX"]
+    y0, y1 = P["PostY"]
+    zt = P["RailBottomZ"]
+    out = None
+    for xf, sd in ((x0, -1), (x1, 1)):
+        a, b = sorted((xf, xf + sd * 3.0))
+        c, d = sorted((xf, xf + sd * 20.0))
+        br = Box(a, b, y0 + 1, y1 - 1, zt - 20.0, zt).fuse(Box(c, d, y0 + 1, y1 - 1, zt - 3.0, zt))
+        out = br if out is None else out.fuse(br)
+    return out
 
 
 # ---------------------------------------------------------------- reference parts (not printed)
@@ -465,8 +502,9 @@ def HornStack(psi):
 
 
 def AnchorHardware(a):
-    screw = CylY(a, 1.5, P["AnchorNutY"][0], P["PlateY"][1] + 2.0)
-    return screw.fuse(CylY(a, 3.2, *P["AnchorNutY"])).fuse(CylY(a, 3.5, *P["AnchorWasherY"])).fuse(
+    screw = CylY(a, 1.5, P["AnchorNutY"][0], P["PlateY"][1])
+    head = CylY(a, 3.5, P["PlateY"][1], P["PlateY"][1] + 0.5).fuse(CylY(a, 2.75, P["PlateY"][1] + 0.5, P["PlateY"][1] + 3.5))
+    return screw.fuse(head).fuse(CylY(a, 3.2, *P["AnchorNutY"])).fuse(CylY(a, 3.5, *P["AnchorWasherY"])).fuse(
         CylY(a, P["SleeveOD"] / 2, *P["AnchorSleeveY"]))
 
 
@@ -633,8 +671,9 @@ def Checks(parts):
         bad += 0 if ok else 1
         return "" if ok else "  FAIL"
 
-    arm, cup, yoke, strap = parts["CapArm"], parts["StopperCup"], parts["CapYoke"], parts["CapStrap"]
+    arm, cup, yoke = parts["CapArm"], parts["StopperCup"], parts["CapYoke"]
     stopper, syr, servo = Stopper(), Syringe(), Servo()
+    post, brk = Post(), Brackets()
     pieces = [(arm, 1.27e-3), (cup, 1.27e-3), (stopper, 1.15e-3)]      # PETG; silicone about 1.15 g/cm3
     m_ = sum(sh.Volume * rho for sh, rho in pieces)
     ArmGravity.update(m=m_, cog=(sum(sh.Solids[0].CenterOfMass.x * sh.Volume * rho for sh, rho in pieces) / m_,
@@ -770,7 +809,7 @@ def Checks(parts):
     out.append("Clearances over the swing (sampled every 2.5 deg from -%.0f to %.0f)" % (P["OverTravel"], P["Swing"]))
     armHW = ArmHardware()
     moving = arm.fuse(cup).fuse(stopper).fuse(armHW)
-    fixedHW = yoke.fuse(servo).fuse(AnchorHardware(AnchorPt)).fuse(strap)
+    fixedHW = yoke.fuse(servo).fuse(AnchorHardware(AnchorPt)).fuse(post).fuse(brk)
     worst = {"yoke": 9e9, "syringe": 9e9, "spring": 9e9, "horn": 9e9}
     # the body bears on the boss face by design (0.3 of axial play on its sleeve); check the rest of the yoke
     yokeNoBoss = yoke.cut(CylY(AnchorPt, P["AnchorBossR"] + 2.5, P["AnchorBossY0"] - 0.5, P["PlateY"][0] + 0.5))
@@ -806,7 +845,7 @@ def Checks(parts):
             hs = HornStack(EarAng0 + f + d)
             worst["horn"] = min(worst["horn"], MinDist(hs, yoke.fuse(sp).fuse(syr).fuse(RotY(armHW, f))))
     ok = worst["yoke"] >= 0.5
-    out.append("  arm, cup, stopper and crank screw to the yoke, servo, anchor and strap, more than 3 deg from either stop: %.2f%s" % (
+    out.append("  arm, cup, stopper and crank screw to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: %.2f%s" % (
         worst["yoke"], Flag(ok)))
     so = MinDist(RotY(moving, P["Swing"]), yoke)
     sc = MinDist(RotY(moving, -P["OverTravel"]), yoke)
@@ -824,7 +863,7 @@ def Checks(parts):
     ok = worst["horn"] >= 0.5
     out.append("  horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank screw, syringe: %.2f%s" % (
         worst["horn"], Flag(ok)))
-    for nm, shp in (("yoke", yoke), ("strap", strap), ("servo", servo)):
+    for nm, shp in (("yoke", yoke), ("post and brackets", post.fuse(brk)), ("servo", servo)):
         d = MinDist(shp, syr)
         ok = d >= 1.5
         out.append("  %s to the syringe: %.2f%s" % (nm, d, Flag(ok)))
@@ -858,32 +897,81 @@ def Checks(parts):
     out.append("  parked open, its lowest point is %.1f above the chuck during a dose%s" % (obb.ZMin + P["DispenseAboveChuck"], Flag(ok)))
     out.append("  open, the stopper face points down (%.0f deg), so a drop from it falls into the bowl beside the chuck" % (
         90 + P["Swing"] - 360 if 90 + P["Swing"] > 180 else 90 + P["Swing"]))
-    onSyringe = {"yoke": yoke, "strap": strap, "servo": servo, "anchor screw": AnchorHardware(AnchorPt),
+    onSyringe = {"yoke": yoke, "post": post, "servo": servo, "anchor screw": AnchorHardware(AnchorPt),
                  "horn": HornStack(EarAng0 + P["Swing"]), "arm, cup and stopper": ob, "strut": StrutAt(P["Swing"])}
     lowName, lowZ = min(((k_, v.BoundBox.ZMin) for k_, v in onSyringe.items()), key=lambda t: t[1])
     ok = lowZ >= -P["DispenseAboveChuck"] + P["ChuckClear"]
     out.append("  during a dose nothing on the syringe comes closer than %.1f to the chuck top (lowest: the %s)%s" % (
         lowZ + P["DispenseAboveChuck"], lowName, Flag(ok)))
     out.append("")
-    out.append("Strap and adjustment")
-    ok = P["AdjustZ"] >= P["TipZUnc"] + 3
-    out.append("  height: +-%.0f in the strap slot against +-%.0f of photo uncertainty of the tip end below the rail%s" % (
-        P["AdjustZ"], P["TipZUnc"], Flag(ok)))
-    out.append("  along the shelf: slide the strap's T-nuts in the rail's bottom slot; across: +-%.0f in the tab's" % P["AdjustY"])
-    out.append("    slotted holes; set all three by closing the arm by hand on a fitted syringe and centring the face")
+    # below the rim's height during a dose, everything must sit inside the rim's smallest radius
+    rimTop = P["RimAboveChuck"] - P["DispenseAboveChuck"]
+    rOut, who = 0.0, ""
+    for k_, v in onSyringe.items():
+        pts, _ = v.tessellate(0.3)
+        for q in pts:
+            if q.z < rimTop + P["ChuckClear"]:
+                r_ = math.hypot(q.x, q.y)
+                if r_ > rOut:
+                    rOut, who = r_, k_
+    ok = rOut <= rimR - 2.0
+    pr = max(math.hypot(x, y) for x in P["PostX"] for y in P["PostY"])
+    out.append("  during a dose, below the rim's height (+%.0f) nothing reaches past r %.1f (the %s), inside the rim's" % (
+        P["ChuckClear"], rOut, who))
+    out.append("    smallest photo radius %.1f; the post ends %.1f above the rim (photo) and reaches r %.1f%s" % (
+        rimR, P["PostBottomZ"] - rimTop, pr, Flag(ok and P["PostBottomZ"] - rimTop >= P["ChuckClear"])))
     out.append("")
+    out.append("Bracket (2020 post on two corner brackets under the +v shelf rail; the yoke bolted to the post's slot)")
+    L = P["RailBottomZ"] - P["PostBottomZ"]
+    sx = 0.5 * sum(P["PostX"])
+    zb = 0.5 * sum(P["YokeBoltZ"])
+    F = 2.0
+    My, Mx = F * sx, F * 0.5 * sum(P["PostY"])
+    th = math.hypot(Mx, My) * L / (P["AluE"] * P["PostI"])
+    dPost = th * math.hypot(sx, zb)
+    # the compliant part is the PETG yoke: its bridge carries the strut's closed force plus the seal from the cheek
+    # (the pivot) to the plate, as a cantilever across y
+    Fb = SpringState(0.0)[1] + 2.0
+    Lb = P["PlateY"][0] - P["CheekY"][1]
+    hb = P["BridgeZ"][1] - P["BridgeZ"][0]
+    bb = P["ColumnX"][1] - P["ColumnX"][0]
+    dB = Fb * Lb ** 3 / (3 * P["PetgE"] * bb * hb ** 3 / 12)
+    sB = Fb * Lb * (hb / 2) / (bb * hb ** 3 / 12)
+    ok = dB <= 0.05 and dPost <= 0.01
+    out.append("  under the closed load (%.1f N from the strut and the seal) the PETG bridge, %.0f deep over %.0f, deflects about" % (
+        Fb, hb, Lb))
+    out.append("    %.3f mm at %.1f MPa (E %.0f MPa, long-term, assumed); the aluminium post adds %.4f; the bolted joints, with" % (
+        dB, sB, P["PetgE"], dPost))
+    out.append("    M5 preload far above these loads, are taken as rigid%s" % Flag(ok))
+    up = (P["RailBottomZ"] - 20.0) - LandZ[1]
+    down = LandZ[0] - P["PostBottomZ"]
+    ok = down >= 3.0 and up >= 3.0
+    out.append("  height: the post's bottom must stay above the rim during a dose, a fixed height above the tip end, so the")
+    out.append("    post's cut length is the set-up: measure the rail's bottom face to the tip end (photo %.0f +-%.0f), cut the" % (
+        P["RailBottomZ"], P["TipZUnc"]))
+    out.append("    post square to that less %.0f; then the yoke's T-nuts slide %.0f down and %.0f up in the slot for the fine" % (
+        P["PostBottomZ"], down, up))
+    out.append("    setting, against about +-1.5 of measuring and cutting error%s" % Flag(ok))
+    out.append("  square: the land's side lips hug the post's outer faces (%.2f clearance a side), so the yoke cannot turn on" % P["LipGap"])
+    out.append("    the post; along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot")
+    out.append("  across (y): the land is %.1f; %.1f of 0.5 printed shims sits between it and the post nominally, so y moves" % (
+        P["LandT"], P["ShimNom"]))
+    out.append("    -%.1f (fewer) or + (more); set it with the arm closed on a fitted syringe, face centred on the tip" % P["ShimNom"])
+    grip = P["PlateY"][1] - P["PlateY"][0] + P["LandT"] + P["ShimNom"] + 1.0
+    out.append("  M5 bolt length: washer + plate + land + shims (%.0f nominally) + 5, so M5 x %.0f; its tip stays above the" % (
+        grip, grip + 5))
+    out.append("    slot floor")
     out.append("Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed")
-    for nm in ("CapArm", "StopperCup", "CapYoke", "CapStrap", "StrutEye", "StrutBody"):
+    for nm in ("CapArm", "StopperCup", "CapYoke", "StrutEye", "StrutBody", "CapShim"):
         s = PrintPose(nm, parts[nm])
         ba, oh = BedArea(s), Overhang(s)
         down = [f.Area for f in s.Faces if f.Surface.__class__.__name__ == "Plane" and f.BoundBox.ZMin >= 1e-3
                 and f.normalAt(*f.ParameterRange[0::2]).z < -0.99]
         ok = ba >= max([0.0] + down) and oh <= 600.0   # the part stands on its largest downward face
         out.append("  %-10s bed %5.0f mm2, overhang %4.0f mm2 (steeper than 45 deg)%s" % (nm, ba, oh, Flag(ok)))
-    out.append("  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge top; its")
-    out.append("    overhangs are the stop blocks' faces; it is tall on a small bed, so print it with a brim. CapStrap:")
-    out.append("    inner face down, the tab stands up. StrutEye and StrutBody: standing on their spring seats, with a")
-    out.append("    brim (small beds). PETG; the yoke with a brim too.")
+    out.append("  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge and plate top,")
+    out.append("    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). CapShim:")
+    out.append("    flat, print four. PETG.")
     out.append("")
     out.append("Parts and hardware")
     out.append("  stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)")
@@ -902,9 +990,13 @@ def Checks(parts):
     out.append("  crank: M3 x 12 button head, a 4 x 6.3 brass sleeve (3.3 ID) through the eye, three M3 washers under it,")
     out.append("    into an M3 heat-set insert in the arm; anchor: M3 x 20 from the plate's +y face through the boss and a 4 x 6.3 sleeve in")
     out.append("    the body, an M3 washer and a thin nut (thread locker). The screws clamp the sleeves, never the strut")
-    out.append("  cup to arm: 2 x M3 x 18 and nuts; yoke to strap: 2 x M3 x 16 and nuts; strap to the rail: 2 x M5 x 10")
-    out.append("    and T-nuts")
-    out.append("  assembly: (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod")
+    out.append("  cup to arm: 2 x M3 x 18 and nuts")
+    out.append("  bracket: 2020 aluminium extrusion cut square to %.0f nominally (see height); 2 x 2020 corner brackets with" % (
+        P["RailBottomZ"] - P["PostBottomZ"]))
+    out.append("    4 x M5 x 10 and drop-in T-nuts (two in the rail's bottom slot, one in each of the post's x slots); yoke")
+    out.append("    to post: 2 x M5 x 12 with washers into spring-loaded drop-in T-nuts in the post's -y slot; CapShim x 4")
+    out.append("  assembly: (0) post and corner brackets on the rail; yoke on the post (bolts reachable before the arm is")
+    out.append("    in, or with it closed); (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod")
     out.append("    pressed in) on the crank screw on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,")
     out.append("    sleeve in the slot, spacer tube on it; (4) M2 pin screw through the horn, horn onto the spline and")
     out.append("    the screw through tube and sleeve; centre screw through the cheek hole and the hub bore; (5) washer")
@@ -917,7 +1009,9 @@ def Checks(parts):
     out.append("  the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the")
     out.append("  shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it")
     out.append("  before printing; the tip end below the rail; the barrel's place in the rail gap; what else is")
-    out.append("  under the rail at x %.0f..%.0f; the servo's sizes, its real travel and its horn's holes; the spring's rate;" % P["StrapX"])
+    out.append("  under the rail at x %.0f..%.0f (and whether the barrel clamp wraps under it there); the servo's sizes, its" % (
+        P["PostX"][0] - 20, P["PostX"][1] + 20))
+    out.append("  real travel and its horn's holes; the spring's rate;")
     out.append("  the bowl rim's radius and height and the chuck against the dispense pose")
     return out, bad
 
@@ -942,10 +1036,12 @@ def Draw(parts, checks, path):
             ax.fill(xs, ys, color=color, alpha=alpha, lw=0)
             ax.plot(xs, ys, color="#222222", lw=lw)
 
-    arm, cup, yoke, strap = parts["CapArm"], parts["StopperCup"], parts["CapYoke"], parts["CapStrap"]
+    arm, cup, yoke = parts["CapArm"], parts["StopperCup"], parts["CapYoke"]
+    post = Post().fuse(Brackets())
     syr = Syringe()
     for ax, phi, title in ((ax1, 0.0, "Closed (phi 0): section y 0"), (ax2, P["Swing"], "Open (phi %.0f): section y 0" % P["Swing"])):
         Sect(ax, syr, (0, 1, 0), 0.0, "x", "z", tol["syr"], 1.0)
+        Sect(ax, post, (0, 1, 0), 0.5 * sum(P["PostY"]), "x", "z", tol["yoke"], 0.25, 0.4)
         Sect(ax, yoke, (0, 1, 0), -10.0, "x", "z", tol["yoke"], 0.35, 0.4)
         Sect(ax, RotY(arm, phi), (0, 1, 0), 0.0, "x", "z", tol["arm"])
         Sect(ax, RotY(cup, phi), (0, 1, 0), 0.0, "x", "z", tol["cup"])
@@ -957,7 +1053,7 @@ def Draw(parts, checks, path):
         ax.axvline(P["BowlRimR"] - P["BowlRimUnc"], color=tol["note"], ls=":", lw=0.8)
         ax.set_title(title + " (cheek at y -10 shaded)", fontsize=10)
         ax.set_xlim(-45, 100)
-        ax.set_ylim(-50, 85)
+        ax.set_ylim(-50, 160)
     ax1.annotate("stopper face on the tip end", xy=(0, 0), xytext=(-43, 25), fontsize=8, arrowprops=dict(arrowstyle="->"))
     ax1.annotate("coilover strut (section y %.1f)" % P["StrutY"], xy=AnchorPt, xytext=(48, -25), fontsize=8, arrowprops=dict(arrowstyle="->"))
     ax2.annotate("face path", xy=Rot2((0, 0), 80), xytext=(55, -40), fontsize=8, arrowprops=dict(arrowstyle="->", color=tol["note"]))
@@ -973,12 +1069,15 @@ def Draw(parts, checks, path):
     ax3.grid(alpha=0.3)
     ax3.set_title("Strut over the swing", fontsize=10)
     for shp, col in ((yoke, tol["yoke"]), (arm, tol["arm"]), (Servo(), tol["servo"]), (HornStack(EarAng0), tol["note"]),
-                     (ArmHardware(), tol["note"]), (strap, tol["yoke"]), (syr, tol["syr"])):
+                     (ArmHardware(), tol["note"]), (syr, tol["syr"])):
         Sect(ax4, shp, (0, 0, 1), Pz + 0.3, "x", "y", col, 0.5)
     Sect(ax4, StrutAt(0.0), (0, 0, 1), Pz + 0.3, "x", "y", tol["spring"], 0.5)
-    ax4.set_title("Plan at the pivot height (z %.0f): cheek, hub, arm, strut, horn stack, servo, plate, strap" % Pz, fontsize=10)
-    ax4.set_xlim(-30, 70)
-    ax4.set_ylim(-20, 45)
+    for shp, col in ((yoke, tol["yoke"]), (post, tol["yoke"])):
+        Sect(ax4, shp, (0, 0, 1), 0.5 * sum(P["YokeBoltZ"]), "x", "y", col, 0.25, 0.3)
+    ax4.set_title("Plan at the pivot (z %.0f), with the post, land and key at the bolts (z %.0f) faint" % (
+        Pz, 0.5 * sum(P["YokeBoltZ"])), fontsize=10)
+    ax4.set_xlim(-30, 75)
+    ax4.set_ylim(-20, 48)
     for a in (ax1, ax2, ax4):
         a.set_aspect("equal")
         a.grid(alpha=0.25)
@@ -997,8 +1096,8 @@ def PrintPose(name, shp):
         s.rotate(V(0, 0, 0), V(1, 0, 0), -90)          # +y face (y 3) down, the hub up
     elif name == "CapYoke":
         s.rotate(V(0, 0, 0), V(1, 0, 0), 180)          # upside down, the bridge top on the bed
-    elif name == "CapStrap":
-        s.rotate(V(0, 0, 0), V(1, 0, 0), 90)           # inner face (smallest y) down, the tab stands up
+    elif name == "CapShim":
+        s.rotate(V(0, 0, 0), V(1, 0, 0), -90)          # flat
     elif name == "StrutEye":
         s.rotate(V(0, 0, 0), V(0, 1, 0), 90)           # spring seat down, the pivot end up
     elif name == "StrutBody":
@@ -1009,8 +1108,8 @@ def PrintPose(name, shp):
 
 
 def Main():
-    parts = {"CapArm": Arm(), "StopperCup": Cup(), "CapYoke": Yoke(), "CapStrap": Strap(), "StrutEye": StrutEye(),
-             "StrutBody": StrutBody()}
+    parts = {"CapArm": Arm(), "StopperCup": Cup(), "CapYoke": Yoke(), "StrutEye": StrutEye(), "StrutBody": StrutBody(),
+             "CapShim": Shim()}
     for k, s in parts.items():
         assert s.isValid() and len(s.Solids) == 1, "%s is not one valid solid (%d)" % (k, len(s.Solids))
     checks, bad = Checks(parts)
@@ -1021,11 +1120,16 @@ def Main():
     Draw(parts, checks, os.path.join(OutDir, Stem + "_Sketch.png"))
     doc = FreeCAD.newDocument("TipCap")
     refs = {"StopperRef": Stopper(), "SyringeRef": Syringe(), "ServoRef": Servo(), "HornRef": HornStack(EarAng0),
-            "CrankHardwareRef": ArmHardware(), "AnchorRef": AnchorHardware(AnchorPt), "StrutClosedRef": StrutAt(0.0)}
+            "CrankHardwareRef": ArmHardware(), "AnchorRef": AnchorHardware(AnchorPt), "StrutClosedRef": StrutAt(0.0),
+            "PostRef": Post(), "CornerBracketsRef": Brackets()}
     for name, shp in list(parts.items()) + list(refs.items()):
         o = doc.addObject("Part::Feature", name)
         o.Shape = shp
         if name in parts:
+            if name == "CapShim":
+                sh_ = shp.copy()
+                sh_.translate(V(0, P["PlateY"][1] + P["LandT"], 0))
+                o.Shape = sh_
             if name in ("StrutEye", "StrutBody"):
                 o.Shape = StrutAt(0.0, parts=("eye",)) if name == "StrutEye" else StrutAt(0.0, parts=("body",))
             PrintPose(name, shp).exportStep(os.path.join(OutDir, "%s-%s.step" % (Stem, name)))

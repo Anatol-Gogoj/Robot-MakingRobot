@@ -48,15 +48,15 @@ Servo (MG90S class, 0.18 N m stall from seller listings)
     the shortfall off mid-slot
 
 Clearances over the swing (sampled every 2.5 deg from -8 to 170)
-  arm, cup, stopper and crank screw to the yoke, servo, anchor and strap, more than 3 deg from either stop: 1.00
+  arm, cup, stopper and crank screw to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: 1.00
   the arm meets the open stop at 170 deg (gap 0.00) and the closed stop at -8 deg (gap 0.00)
   arm, cup and stopper to the syringe once 3 deg open: 2.12
   strut (eye, rod, spring, body) to the arm, cup, stopper, servo and syringe: 0.70
-  strut to the yoke away from the anchor boss: 1.50 (at the boss the body has 0.3 of axial play by design)
+  strut to the yoke away from the anchor boss: 1.42 (at the boss the body has 0.3 of axial play by design)
   the spring has 0.8 of radial play on the rod, so it may brush the arm's face near open (rub only)
   horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank screw, syringe: 1.21
   yoke to the syringe: 3.50
-  strap to the syringe: 27.07
+  post and brackets to the syringe: 13.76
   servo to the syringe: 6.96
 
 Envelope (relative to the tip end)
@@ -70,22 +70,33 @@ Envelope (relative to the tip end)
   open, the stopper face points down (-100 deg), so a drop from it falls into the bowl beside the chuck
   during a dose nothing on the syringe comes closer than 15.5 to the chuck top (lowest: the arm, cup and stopper)
 
-Strap and adjustment
-  height: +-12 in the strap slot against +-7 of photo uncertainty of the tip end below the rail
-  along the shelf: slide the strap's T-nuts in the rail's bottom slot; across: +-3 in the tab's
-    slotted holes; set all three by closing the arm by hand on a fitted syringe and centring the face
+  during a dose, below the rim's height (+5) nothing reaches past r 74.0 (the yoke), inside the rim's
+    smallest photo radius 82.5; the post ends 6.0 above the rim (photo) and reaches r 80.9
 
+Bracket (2020 post on two corner brackets under the +v shelf rail; the yoke bolted to the post's slot)
+  under the closed load (9.1 N from the strut and the seal) the PETG bridge, 18 deep over 23, deflects about
+    0.007 mm at 0.6 MPa (E 1800 MPa, long-term, assumed); the aluminium post adds 0.0025; the bolted joints, with
+    M5 preload far above these loads, are taken as rigid
+  height: the post's bottom must stay above the rim during a dose, a fixed height above the tip end, so the
+    post's cut length is the set-up: measure the rail's bottom face to the tip end (photo 151 +-7), cut the
+    post square to that less 48; then the yoke's T-nuts slide 6 down and 54 up in the slot for the fine
+    setting, against about +-1.5 of measuring and cutting error
+  square: the land's side lips hug the post's outer faces (0.15 clearance a side), so the yoke cannot turn on
+    the post; along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot
+  across (y): the land is 1.0; 1.0 of 0.5 printed shims sits between it and the post nominally, so y moves
+    -1.0 (fewer) or + (more); set it with the arm closed on a fitted syringe, face centred on the tip
+  M5 bolt length: washer + plate + land + shims (7 nominally) + 5, so M5 x 12; its tip stays above the
+    slot floor
 Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed
   CapArm     bed   908 mm2, overhang    2 mm2 (steeper than 45 deg)
   StopperCup bed   388 mm2, overhang    0 mm2 (steeper than 45 deg)
-  CapYoke    bed   346 mm2, overhang  337 mm2 (steeper than 45 deg)
-  CapStrap   bed  2163 mm2, overhang    0 mm2 (steeper than 45 deg)
+  CapYoke    bed   396 mm2, overhang  347 mm2 (steeper than 45 deg)
   StrutEye   bed    33 mm2, overhang   12 mm2 (steeper than 45 deg)
   StrutBody  bed    32 mm2, overhang   14 mm2 (steeper than 45 deg)
-  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge top; its
-    overhangs are the stop blocks' faces; it is tall on a small bed, so print it with a brim. CapStrap:
-    inner face down, the tab stands up. StrutEye and StrutBody: standing on their spring seats, with a
-    brim (small beds). PETG; the yoke with a brim too.
+  CapShim    bed   387 mm2, overhang    0 mm2 (steeper than 45 deg)
+  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge and plate top,
+    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). CapShim:
+    flat, print four. PETG.
 
 Parts and hardware
   stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)
@@ -102,9 +113,12 @@ Parts and hardware
   crank: M3 x 12 button head, a 4 x 6.3 brass sleeve (3.3 ID) through the eye, three M3 washers under it,
     into an M3 heat-set insert in the arm; anchor: M3 x 20 from the plate's +y face through the boss and a 4 x 6.3 sleeve in
     the body, an M3 washer and a thin nut (thread locker). The screws clamp the sleeves, never the strut
-  cup to arm: 2 x M3 x 18 and nuts; yoke to strap: 2 x M3 x 16 and nuts; strap to the rail: 2 x M5 x 10
-    and T-nuts
-  assembly: (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod
+  cup to arm: 2 x M3 x 18 and nuts
+  bracket: 2020 aluminium extrusion cut square to 103 nominally (see height); 2 x 2020 corner brackets with
+    4 x M5 x 10 and drop-in T-nuts (two in the rail's bottom slot, one in each of the post's x slots); yoke
+    to post: 2 x M5 x 12 with washers into spring-loaded drop-in T-nuts in the post's -y slot; CapShim x 4
+  assembly: (0) post and corner brackets on the rail; yoke on the post (bolts reachable before the arm is
+    in, or with it closed); (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod
     pressed in) on the crank screw on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,
     sleeve in the slot, spacer tube on it; (4) M2 pin screw through the horn, horn onto the spline and
     the screw through tube and sleeve; centre screw through the cheek hole and the hub bore; (5) washer
@@ -117,7 +131,8 @@ Not known (bench, before printing)
   the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the
   shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it
   before printing; the tip end below the rail; the barrel's place in the rail gap; what else is
-  under the rail at x 46..62; the servo's sizes, its real travel and its horn's holes; the spring's rate;
+  under the rail at x 28..88 (and whether the barrel clamp wraps under it there); the servo's sizes, its
+  real travel and its horn's holes; the spring's rate;
   the bowl rim's radius and height and the chuck against the dispense pose
 
 0 check(s) failed
