@@ -131,7 +131,9 @@ def PullTool(p):
     balls = []
     for a in (0.0, 120.0, 240.0):
         for off in (-half, half):
-            pk = Part.makeCylinder(rb + p["MaskBallPocketClear"], zBallC + rb, V(p["BallR"], off, -0.01))
+            # the pull tool keeps its press-fit pockets (0.075 over the ball radius) as printed for the latch test;
+            # the generator's MaskBallPocketClear now belongs to the seated pockets of the masks and the head ring
+            pk = Part.makeCylinder(rb + 0.075, zBallC + rb, V(p["BallR"], off, -0.01))
             body = body.cut(Rotated(pk, a))
             balls.append(Rotated(Part.makeSphere(rb, V(p["BallR"], off, zBallC)), a))
     # lobe hold: a magnet flush with the face in each lobe, over the mask's ear magnet (issue 230)

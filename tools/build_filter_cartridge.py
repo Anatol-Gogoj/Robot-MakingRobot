@@ -100,7 +100,13 @@ P = dict(
     # and each pair leaves only the radial direction free, like a radial V-groove.
     MaskBallD=4.0,
     ContactDeg=45.0,       # contact normal from vertical: a 90 deg "V"
-    MaskBallPocketClear=0.075,  # pocket radius over the ball radius (press fit)
+    MaskBallPocketClear=0.2,  # pocket radius over the ball radius, as the magnet pockets. At 0.075 (a press fit) the
+                           # CA had nowhere to go: the balls stood proud and the mask frame top hung about 3 mm under
+                           # the ring face instead of 1.93 (bench, 2026-11-23)
+    BallSeatDeg=120.0,     # included angle of the conical seat at the bottom of every mask ball pocket. The cone, not
+                           # the floor, sets the ball's height and centres it in the looser bore. Seat the ball first,
+                           # then glue at the rim. The head ring's pockets use the same BallPocket() with a 90 deg seat
+                           # (build_head_proposal.py); 90 here would leave only 0.31 mm of floor under the cone tip
     MaskBallSink=0.4,      # mask ball centre below the ear top
     WeakMagD=3.0,
     WeakMagT=2.0,
@@ -222,6 +228,23 @@ def Sector(ri, ro, z0, z1, a0, a1):
 
 def ArcDeg(length, r):
     return math.degrees(length / r)
+
+
+def BallPocket(p, cx, cy, cz, opensUp, openZ):
+    """Pocket for a ball of radius MaskBallD/2 centred at (cx, cy, cz): a bore MaskBallPocketClear over the ball
+    radius, ending in a conical seat of BallSeatDeg that the ball rests on. opensUp: the bore runs up from the seat to
+    openZ (a mask pocket); otherwise it runs down from the seat to openZ (a head ring pocket, open at its face)."""
+    r = p["MaskBallD"] / 2
+    rp = r + p["MaskBallPocketClear"]
+    half = math.radians(p["BallSeatDeg"] / 2)
+    s = 1.0 if opensUp else -1.0                       # from the seat towards the opening
+    apex = cz - s * r / math.sin(half)                 # cone tip; the ball touches the cone on a circle r cos(half)
+                                                       # from the axis and r sin(half) from cz along it
+    coneH = rp / math.tan(half)
+    cone = Part.makeCone(0.0, rp, coneH, V(cx, cy, apex), V(0, 0, s))
+    zBase = apex + s * coneH                           # where the cone meets the bore
+    z0, z1 = sorted((zBase - s * 0.01, openZ))
+    return cone.fuse(Part.makeCylinder(rp, z1 - z0, V(cx, cy, z0))).removeSplitter()
 
 
 def Rotated(shape, deg):
@@ -374,11 +397,9 @@ def Build(p):
     rb0, cb = p["FrameID"] / 2, p["FrameBoreChamfer"]
     mask = mask.cut(Part.makeCone(rb0, rb0 + cb, cb, V(0, 0, zFrameTop - cb)))
     maskBalls = []
-    rPocket = rs + p["MaskBallPocketClear"]
     for a in EarAngles:
-        # pocket floor sets the ball height; the ball presses in from the top
-        pocket = Part.makeCylinder(rPocket, zFrameTop - (zMaskBall - rs) + 0.1,
-                                   V(p["BallR"], 0, zMaskBall - rs))
+        # the ball drops in from the top and rests on the pocket's conical seat
+        pocket = BallPocket(p, p["BallR"], 0.0, zMaskBall, True, zFrameTop + 0.01)   # +0.01: clear of the ear boss
         mask = mask.cut(Rotated(pocket, a))
         maskBalls.append(Rotated(Part.makeSphere(rs, V(p["BallR"], 0, zMaskBall)), a))
     weak, earMags = [], []
@@ -534,6 +555,15 @@ def Check(parts, levels, p):
         if rmax > p["CntD"] / 2:
             raise ValueError("stencil openings reach r %.2f, outside the CNT area r %.1f" % (rmax, p["CntD"] / 2))
     print("  %-24s %.3f" % ("CNT film to stencil", parts["CntFilm"].distToShape(parts["Mask"])[0]))
+    # the mask ball rests on its seat: it touches the cone, overlaps nothing, and the bore clears it
+    seatGap = parts["MaskBall1"].distToShape(parts["Mask"])[0]
+    seatOv = parts["MaskBall1"].common(parts["Mask"]).Volume
+    dropped = parts["MaskBall1"].copy()
+    dropped.translate(V(0, 0, -0.05))
+    print("  %-24s gap %.3f, overlap %.4f; 0.05 lower: overlap %.4f (must be > 0)" % (
+        "mask ball on its seat", seatGap, seatOv, dropped.common(parts["Mask"]).Volume))
+    if seatGap > 0.01 or seatOv > 1e-3 or dropped.common(parts["Mask"]).Volume <= 0:
+        raise ValueError("mask ball is not resting on its conical seat")
     # control: a mask ball 0.05 mm too high must run into both head balls
     mb = parts["MaskBall1"].copy()
     mb.translate(V(0, 0, 0.05))
