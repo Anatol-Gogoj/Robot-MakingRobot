@@ -1,0 +1,103 @@
+Tip cap (issue 243): pivot (30.0, 20.0) from the tip end, arm 36.1 to the face, swing 170 deg
+All syringe and machine dimensions are photo estimates; servo and spring are typical or required values.
+
+Stopper and cup (size 00 silicone 15 / 11 x 21, big end on the tip)
+  bore: 1:5.2 taper on diameter, 13.09 at the mouth to 10.80 at the small end (0.2 under the stopper),
+    so a pushed-in stopper stands about 10.1 proud (9 nominal + 1.1 from the press fit); 1.0 clear below its
+    small end, so the taper, not the floor, locates it; vent hole 3 in the floor
+  face 15 over a tip end of at most 8: 3.5 of overlap all round when centred
+  the seal force pushes the stopper deeper into its taper; uncapping pulls the tip away and
+    puts no load on the fit
+
+Seal force on the tip (spring: L0 25.5, initial tension 4.0 N, 2.60 N/mm; anchor hole 22 of 21/22/23)
+  nominal: closes at phi 0.00 deg with 1.95 to 2.26 N on the tip (load at the ring edge or centre)
+  tip end +-1.5 in z and +-1.0 in x: 1.56 to 2.48 N, closing within +-3.4 deg
+  worst offset of the tip centre from the face centre (with +-1.5 in y): 2.60; the ring stays on
+    the face up to 3.5, less 0.3 for the stopper's moulded edge
+  face tilt: 1.7 deg per mm of tip height error, so +-3.4 deg over the tolerance: a 0.47 wedge across the
+    ring, against about 0.11 of indentation at 2 N (E 2.5 MPa, flat punch, rough). RISK, not checked:
+    the seal needs the tip height to repeat within about +-0.5 from one syringe to the next, or a
+    self-aligning cup; bench T4 decides
+  per anchor hole, nominal: 21: 1.35..1.56 N; 22: 1.95..2.26 N; 23: 2.57..2.96 N
+
+Over-centre spring (required part: tension spring, OD up to 5.0, hooks in one plane)
+  length 27.1 closed, 33.0 at dead centre (phi 85.0), 27.1 open; force 8.0 / 23.5 / 8.0 N
+  so the spring must stretch to 33.0 (7.5 past its free length) without setting
+  holds open with 59 N mm, closed with 59, and at the over-travel stop (no syringe) with 41
+Servo (MG90S class, 0.18 N m stall from seller listings)
+  largest spring moment over the swing 88 N mm; with 1.0 N of peel at the face near closed 111 N mm;
+    stall margin 1.6
+  lost motion +-10 deg: opening, the pin drags the arm past dead centre at a horn angle of 95; closing
+    at 75; at rest the pin sits within 3.4 deg of mid-slot (tip tolerance), 8 deg with no syringe;
+    the servo turns 170 of its nominal 180 deg
+  the servo must really travel at least 164 deg between S-closed and S-open, or at rest the pin reaches
+    a slot end and the servo holds the arm against the spring; MEASURE it on the bench
+  M280 P2: closed S5, open S175; which way S grows turns the arm, and the real travel, are to be
+    bench-checked: with less travel the spring still snaps the arm home, but the pin then rests up to
+    the shortfall off mid-slot
+
+Clearances over the swing (sampled every 2.5 deg from -8 to 170)
+  arm, cup, stopper and tail screw to the yoke, servo, anchor and strap, more than 3 deg from either stop: 1.00
+  the arm meets the open stop at 170 deg (gap 0.00) and the closed stop at -8 deg (gap 0.00)
+  arm, cup and stopper to the syringe once 3 deg open: 2.12
+  spring coils to everything but its own hooks: 0.85
+  horn stack (pin where the motion puts it in its slot) to the yoke, spring, tail screw, syringe: 0.85
+  yoke to the syringe: 3.50
+  strap to the syringe: 26.66
+  servo to the syringe: 6.49
+  at dead centre the spring passes over the pivot axis 0.85 from the nearest part
+
+Envelope (relative to the tip end)
+  the swing reaches 39.2 below the tip end, and beyond the rim's smallest photo radius 82.5 it reaches
+    6.2 below the tip end; so uncap and recap with the tip at least 63 above the chuck top (rim 52 above it,
+    photo, and 5 to spare); the uncap height is a B value, set on the bench from the measured rim
+  parked open: cap at x 12..76, z 12..62, at most 76.2 from the syringe axis (tessellated)
+  during a dose (tip 10 above the chuck, rim about 42 above the tip, photo) the parked cap stays inside
+    the rim's smallest photo radius 82.5
+  parked open, its lowest point is 22.3 above the chuck during a dose
+  open, the stopper face points down (-100 deg), so a drop from it falls into the bowl beside the chuck
+
+Strap and adjustment
+  height: +-12 in the strap slot against +-7 of photo uncertainty of the tip end below the rail
+  along the shelf: slide the strap's T-nuts in the rail's bottom slot; across: +-3 in the tab's
+    slotted holes; set all three by closing the arm by hand on a fitted syringe and centring the face
+
+Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed
+  CapArm     bed   896 mm2, overhang    0 mm2 (steeper than 45 deg)
+  StopperCup bed   388 mm2, overhang    0 mm2 (steeper than 45 deg)
+  CapYoke    bed   324 mm2, overhang  335 mm2 (steeper than 45 deg)
+  CapStrap   bed  2419 mm2, overhang    0 mm2 (steeper than 45 deg)
+  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge top; its
+    overhangs are the stop blocks' faces; it is tall on a small bed, so print it with a brim. CapStrap:
+    inner face down, the tab stands up. PETG.
+
+Parts and hardware
+  stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)
+  servo: MG90S class micro servo with its single-arm horn, on a third servo output (NUM_SERVOS 3);
+    it goes in from +y through the plate's window, ears on the plate's +y face, 2 x M2 self-tapping
+  spring: tension spring, free length 25.5 inside the hooks, about 4 N initial tension, 2.6 N/mm,
+    stretched to 33.0 at dead centre (24 N), OD up to 5, hook ID over 3.2; NOT chosen yet
+  pivot: dowel pin 4 x 16, a slip fit through the cheek into the arm's hub, held by an M3 x 6 grub screw
+    from below
+  horn pin: M2 x 20 through the horn, a printed spacer tube 5 OD, a 3 x 6.3 metal sleeve (it rides in
+    the slot; the stack clamps on it, not on the arm), a 7 mm washer and a nut with thread locker; the
+    screw's end runs in a relief groove in the cheek face
+  tail post: M3 x 10 button head into the arm, a thin M3 nut and two washers under the hook
+  anchor: M3 x 16 from the plate's +y face, two thin M3 nuts around the hook (thread locker)
+  cup to arm: 2 x M3 x 18 and nuts; yoke to strap: 2 x M3 x 16 and nuts; strap to the rail: 2 x M5 x 10
+    and T-nuts
+  assembly: (1) servo into the plate from +y, ears screwed on the +y face; (2) tail screw, nut, washers
+    and the spring's tail hook on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,
+    sleeve in the slot, spacer tube on it; (4) M2 pin screw through the horn, horn onto the spline and
+    the screw through tube and sleeve; centre screw through the cheek hole and the hub bore; (5) washer
+    and nut on the pin screw, thread locker; (6) dowel in, grub screw; (7) spring's hook onto the anchor
+    between its nuts; (8) stopper cup on the arm, stopper in
+
+Not known (bench, before printing)
+  the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the
+  shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it
+  before printing; the tip end below the rail; the barrel's place in the rail gap; what else is
+  under the rail at x 46..62; the servo's sizes, its real travel and its horn's holes; the spring;
+  the bowl rim's radius and height and the chuck against the dispense pose
+
+0 check(s) failed
