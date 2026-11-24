@@ -1,0 +1,36 @@
+242mmCatchBasinSpincoater: argon channel removed (issue 251); profile from the half-plane at 225 deg, revolved 360 deg, 4 pockets 10 x 2.5 at r 65 cut again
+Source: CAD/Spincoater/242mmCatchBasinSpincoater.STEP at 4fa124f446
+  1 solid(s), 1 shell(s), 124 faces, volume 530530.3 mm^3, box x -130.97..130.97 y -130.97..130.97 z -5.00..95.00
+Result: 1 solid(s), 1 shell(s), 25 faces, volume 516352.1 mm^3, box x -130.97..130.97 y -130.97..130.97 z -5.00..95.00
+Checks
+  [ok] one valid closed solid
+  [ok] one shell, so no internal void anywhere
+  [ok] source section at 135 deg turned onto the profile at 225 deg: differs by 0.0000 mm^2 of 825.904 mm^2
+  [ok] source section at 200 deg turned onto the profile at 225 deg: differs by 0.0000 mm^2 of 825.904 mm^2
+  [ok] source section at 250 deg turned onto the profile at 225 deg: differs by 0.0000 mm^2 of 825.904 mm^2
+  [ok] source section at 315 deg turned onto the profile at 225 deg: differs by 0.0000 mm^2 of 825.904 mm^2
+  removed (source minus result): 2 solid(s), 14677.5 mm^3; added (result minus source): 2 solid(s), 505.3 mm^3
+  slivers below 1e-03 mm^3: 0 removed, 0 added
+  [ok] every difference lies inside the argon path's box x -1..131 y 28..57 z -6..50
+  [ok] volumes: source 530530.3 - removed 14677.5 + added 505.3 = 516358.1, result 516352.1; by common: removed 14678.8, added 500.6 (agree within 14.7 mm^3)
+  bore centreline: 180 probe points, x 2.37..129.44, z 1.00..35.98, y 43.000..43.000, polyline length about 148 mm
+  [ok] probe points found, all on the plane y 43
+  [ok] source: 0 of 180 probe points in material (the bore is void there)
+  result: 20 probe points in material, 26 in the air beyond the wall (where the stub was), 134 in the open bowl (where the rib stood above the floor and funnel)
+  [ok] the old bore is filled where it ran inside the floor and the wall
+  bore volume for comparison: pi x 2.5^2 x 148 mm = 2907 mm^3; the added 505.3 mm^3 is the part of it inside the floor and wall
+  [ok] no face other than surfaces of revolution about z and the pockets (0 odd)
+  [ok] four pocket walls kept
+  [ok] outer surface: no stub (26 bore probe points beyond r 126 are all in open air)
+Line probes, start + length of each material span along the line (source | result | source turned 180 deg):
+  floor, vertical at x 41.8: 15.00+3.73, 23.90+5.03 | 15.00+5.00 | 15.00+5.00
+  [ok] floor, vertical at x 41.8: result matches the source turned 180 deg (same spans)
+  floor, vertical at x 60: 15.00+3.50, 23.50+4.50 | 15.00+5.00 | 15.00+5.00
+  [ok] floor, vertical at x 60: result matches the source turned 180 deg (same spans)
+  funnel, vertical at x 90: 18.38+3.85, 30.64+7.85 | 18.38+7.64 | 18.38+7.64
+  [ok] funnel, vertical at x 90: result matches the source turned 180 deg (same spans)
+  outlet boss axis, horizontal at z 18.4: 26.39+9.00 | none | none
+  [ok] outlet boss axis, horizontal at z 18.4: result matches the source turned 180 deg (no material on this line in either)
+  wall at the stub, horizontal at z 35.98: 2.25+6.25 | 13.09+5.35 | 13.09+5.35
+  [ok] wall at the stub, horizontal at z 35.98: result matches the source turned 180 deg (same spans)
+STEP round trip: 1 solid, volume 516352.1 mm^3
