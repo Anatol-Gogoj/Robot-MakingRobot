@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1485" height="1050" viewBox="0 0 297 210" font-family="Arial, Helvetica, sans-serif">
+<defs><marker id="flow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#AA3377"/></marker></defs>
+<rect x="0" y="0" width="297" height="210" fill="#FFFFFF"/>
+<text x="10.000" y="11.000" font-size="5.00" text-anchor="start" fill="#222222" font-weight="bold">Spin coater UV lid: argon diffuser, concept (issue #251)</text>
+<polygon points="51.000,102.000 20.000,102.000 20.000,96.000 51.000,96.000" fill="#DDDDDD" stroke="#222222" stroke-width="0.25"/>
+<polygon points="141.000,102.000 172.000,102.000 172.000,96.000 141.000,96.000" fill="#DDDDDD" stroke="#222222" stroke-width="0.25"/>
+<polygon points="87.000,74.000 80.000,74.000 80.000,90.000 36.000,90.000 36.000,96.000 52.000,96.000 52.000,106.000 62.000,106.000 62.000,94.000 93.500,94.000 93.500,86.000 87.000,86.000" fill="#77AADD" stroke="#222222" stroke-width="0.25"/>
+<polygon points="105.000,74.000 112.000,74.000 112.000,90.000 156.000,90.000 156.000,96.000 140.000,96.000 140.000,106.000 130.000,106.000 130.000,94.000 98.500,94.000 98.500,86.000 105.000,86.000" fill="#77AADD" stroke="#222222" stroke-width="0.25"/>
+<polygon points="52.000,110.000 71.000,110.000 71.000,106.000 52.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="73.000,110.000 79.000,110.000 79.000,106.000 73.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="81.000,110.000 87.000,110.000 87.000,106.000 81.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="89.000,110.000 95.000,110.000 95.000,106.000 89.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="97.000,110.000 111.000,110.000 111.000,106.000 97.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="113.000,110.000 119.000,110.000 119.000,106.000 113.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="121.000,110.000 140.000,110.000 140.000,106.000 121.000,106.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="104.000,106.000 108.000,106.000 108.000,98.400 104.000,98.400" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="82.000,98.400 110.000,98.400 110.000,96.000 82.000,96.000" fill="#44BB99" stroke="#222222" stroke-width="0.25"/>
+<polygon points="53.200,110.000 60.800,110.000 59.000,108.000 59.000,98.000 55.000,98.000 55.000,108.000" fill="#BBBBBB" stroke="#222222" stroke-width="0.25"/>
+<polygon points="142.500,90.000 153.500,90.000 153.500,86.000 142.500,86.000" fill="#BBBBBB" stroke="#222222" stroke-width="0.25"/>
+<polygon points="145.000,106.800 151.000,106.800 151.000,90.000 145.000,90.000" fill="#BBBBBB" stroke="#222222" stroke-width="0.25"/>
+<polygon points="142.500,106.800 153.500,106.800 153.500,102.000 142.500,102.000" fill="#BBBBBB" stroke="#222222" stroke-width="0.25"/>
+<polygon points="86.200,86.000 105.800,86.000 105.800,74.000 86.200,74.000" fill="#EEDD88" stroke="#555555" stroke-width="0.20" stroke-dasharray="0.8,0.5"/>
+<polygon points="84.000,74.000 108.000,74.000 108.000,62.000 84.000,62.000" fill="#EEDD88" stroke="#222222" stroke-width="0.25"/>
+<polygon points="87.000,62.000 105.000,62.000 105.000,56.000 87.000,56.000" fill="#EEDD88" stroke="#222222" stroke-width="0.25"/>
+<polygon points="92.000,56.000 100.000,56.000 100.000,36.000 92.000,36.000" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<line x1="94.000" y1="56.000" x2="94.000" y2="36.000" stroke="#555555" stroke-width="0.15" stroke-dasharray="0.6,0.4"/>
+<line x1="98.000" y1="56.000" x2="98.000" y2="36.000" stroke="#555555" stroke-width="0.15" stroke-dasharray="0.6,0.4"/>
+<line x1="20.000" y1="140.000" x2="172.000" y2="140.000" stroke="#222222" stroke-width="0.35" stroke-dasharray="2,1"/>
+<text x="20.000" y="144.000" font-size="2.40" text-anchor="start" fill="#222222" font-weight="normal">substrate (up to about &#216;220), wet film on top</text>
+<polyline points="96.000,38.000 96.000,95.400" fill="none" stroke="#AA3377" stroke-width="0.45" marker-end="url(#flow)"/>
+<polyline points="93.000,95.000 75.000,95.000 73.000,104.800" fill="none" stroke="#AA3377" stroke-width="0.40" marker-end="url(#flow)"/>
+<polyline points="80.000,110.800 80.000,120.000" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<polyline points="72.000,110.800 72.000,120.000" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<polyline points="68.000,137.600 28.000,137.600" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<polyline points="99.000,95.000 117.000,95.000 119.000,104.800" fill="none" stroke="#AA3377" stroke-width="0.40" marker-end="url(#flow)"/>
+<polyline points="112.000,110.800 112.000,120.000" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<polyline points="120.000,110.800 120.000,120.000" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<polyline points="124.000,137.600 164.000,137.600" fill="none" stroke="#AA3377" stroke-width="0.35" marker-end="url(#flow)"/>
+<text x="124.000" y="136.300" font-size="2.30" text-anchor="start" fill="#AA3377" font-weight="normal">out over the edge to the lid gaps</text>
+<line x1="74.376" y1="40.339" x2="100.000" y2="44.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="100.000" cy="44.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="72.000" cy="40.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="72.000" y="41.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">1</text>
+<line x1="64.107" y1="57.149" x2="84.000" y2="68.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="84.000" cy="68.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="62.000" cy="56.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="62.000" y="57.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">2</text>
+<line x1="58.336" y1="72.550" x2="90.000" y2="80.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="90.000" cy="80.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="56.000" cy="72.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="56.000" y="73.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">3</text>
+<line x1="26.035" y1="78.272" x2="48.000" y2="92.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="48.000" cy="92.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="24.000" cy="77.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="24.000" y="78.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">4</text>
+<line x1="26.377" y1="89.330" x2="83.000" y2="97.200" stroke="#222222" stroke-width="0.18"/>
+<circle cx="83.000" cy="97.200" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="24.000" cy="89.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="24.000" y="90.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">5</text>
+<line x1="37.953" y1="122.605" x2="57.000" y2="109.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="57.000" cy="109.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="36.000" cy="124.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="36.000" y="125.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">6</text>
+<line x1="37.982" y1="132.646" x2="72.000" y2="109.400" stroke="#222222" stroke-width="0.18"/>
+<circle cx="72.000" cy="109.400" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="36.000" cy="134.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="36.000" y="135.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">7</text>
+<line x1="162.080" y1="79.440" x2="152.000" y2="87.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="152.000" cy="87.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="164.000" cy="78.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="164.000" y="79.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">8</text>
+<line x1="167.109" y1="111.772" x2="162.000" y2="99.000" stroke="#222222" stroke-width="0.18"/>
+<circle cx="162.000" cy="99.000" r="0.450" fill="#222222" stroke="#222222" stroke-width="0.10"/>
+<circle cx="168.000" cy="114.000" r="2.400" fill="#FFFFFF" stroke="#222222" stroke-width="0.25"/>
+<text x="168.000" y="115.050" font-size="2.90" text-anchor="middle" fill="#222222" font-weight="bold">9</text>
+<line x1="36.000" y1="90.000" x2="36.000" y2="29.200" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="156.000" y1="90.000" x2="156.000" y2="29.200" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="36.000" y1="30.000" x2="156.000" y2="30.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="36.000,30.000 37.600,30.500 37.600,29.500" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="156.000,30.000 154.400,29.500 154.400,30.500" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="96.000" y="29.200" font-size="2.50" text-anchor="middle" fill="#4477AA" font-weight="normal">&#216;60 flange</text>
+<line x1="52.000" y1="110.000" x2="52.000" y2="120.800" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="140.000" y1="110.000" x2="140.000" y2="120.800" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="52.000" y1="120.000" x2="140.000" y2="120.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="52.000,120.000 53.600,120.500 53.600,119.500" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="140.000,120.000 138.400,119.500 138.400,120.500" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="96.000" y="119.200" font-size="2.50" text-anchor="middle" fill="#4477AA" font-weight="normal">&#216;44 body</text>
+<line x1="112.000" y1="74.000" x2="180.800" y2="74.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="112.000" y1="110.000" x2="180.800" y2="110.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="180.000" y1="74.000" x2="180.000" y2="110.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="180.000,74.000 179.500,75.600 180.500,75.600" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="180.000,110.000 180.500,108.400 179.500,108.400" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="181.200" y="92.900" font-size="2.50" text-anchor="start" fill="#4477AA" font-weight="normal">18</text>
+<line x1="140.000" y1="110.000" x2="180.800" y2="110.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="140.000" y1="140.000" x2="180.800" y2="140.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="180.000" y1="110.000" x2="180.000" y2="140.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="180.000,110.000 179.500,111.600 180.500,111.600" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="180.000,140.000 180.500,138.400 179.500,138.400" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="181.200" y="125.900" font-size="2.50" text-anchor="start" fill="#4477AA" font-weight="normal">gap 15 (assumed)</text>
+<line x1="52.000" y1="102.000" x2="45.200" y2="102.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="52.000" y1="110.000" x2="45.200" y2="110.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="46.000" y1="102.000" x2="46.000" y2="110.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="46.000,102.000 45.500,103.600 46.500,103.600" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="46.000,110.000 46.500,108.400 45.500,108.400" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="44.800" y="106.900" font-size="2.50" text-anchor="end" fill="#4477AA" font-weight="normal">4</text>
+<line x1="62.000" y1="94.000" x2="66.800" y2="94.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="62.000" y1="106.000" x2="66.800" y2="106.000" stroke="#4477AA" stroke-width="0.18"/>
+<line x1="66.000" y1="94.000" x2="66.000" y2="106.000" stroke="#4477AA" stroke-width="0.18"/>
+<polygon points="66.000,94.000 65.500,95.600 66.500,95.600" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<polygon points="66.000,106.000 66.500,104.400 65.500,104.400" fill="#4477AA" stroke="#4477AA" stroke-width="0.10"/>
+<text x="67.200" y="100.900" font-size="2.50" text-anchor="start" fill="#4477AA" font-weight="normal">6</text>
+<text x="20.000" y="22.000" font-size="3.20" text-anchor="start" fill="#222222" font-weight="bold">SECTION THROUGH THE AXIS (scale 2:1)</text>
+<circle cx="238.000" cy="72.000" r="45.000" fill="none" stroke="#555555" stroke-width="0.20" stroke-dasharray="1,0.6"/>
+<circle cx="238.000" cy="72.000" r="33.750" fill="#DDDDDD" stroke="#222222" stroke-width="0.20"/>
+<circle cx="238.000" cy="72.000" r="33.000" fill="#44BB99" stroke="#222222" stroke-width="0.30"/>
+<circle cx="238.000" cy="72.000" r="25.500" fill="none" stroke="#555555" stroke-width="0.18" stroke-dasharray="1,0.6"/>
+<circle cx="238.000" cy="72.000" r="10.500" fill="none" stroke="#555555" stroke-width="0.18" stroke-dasharray="1,0.6"/>
+<circle cx="245.500" cy="72.000" r="1.500" fill="none" stroke="#555555" stroke-width="0.18" stroke-dasharray="0.6,0.4"/>
+<circle cx="234.250" cy="78.495" r="1.500" fill="none" stroke="#555555" stroke-width="0.18" stroke-dasharray="0.6,0.4"/>
+<circle cx="234.250" cy="65.505" r="1.500" fill="none" stroke="#555555" stroke-width="0.18" stroke-dasharray="0.6,0.4"/>
+<circle cx="232.000" cy="51.215" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="238.000" cy="51.215" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="244.000" cy="51.215" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="223.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="229.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="235.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="241.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="247.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="253.000" cy="56.412" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="220.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="226.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="232.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="238.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="244.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="250.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="256.000" cy="61.608" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="217.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="223.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="229.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="241.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="247.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="253.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="259.000" cy="66.804" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="220.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="226.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="232.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="238.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="250.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="256.000" cy="72.000" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="217.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="223.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="229.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="241.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="247.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="253.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="259.000" cy="77.196" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="220.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="226.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="232.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="238.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="244.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="250.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="256.000" cy="82.392" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="223.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="229.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="235.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="241.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="247.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="253.000" cy="87.588" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="232.000" cy="92.785" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="238.000" cy="92.785" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="244.000" cy="92.785" r="0.750" fill="#FFFFFF" stroke="#222222" stroke-width="0.15"/>
+<circle cx="252.625" cy="97.331" r="2.850" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="252.625" cy="97.331" r="0.750" fill="none" stroke="#222222" stroke-width="0.15"/>
+<circle cx="208.750" cy="72.000" r="2.850" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="208.750" cy="72.000" r="0.750" fill="none" stroke="#222222" stroke-width="0.15"/>
+<circle cx="252.625" cy="46.669" r="2.850" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="252.625" cy="46.669" r="0.750" fill="none" stroke="#222222" stroke-width="0.15"/>
+<polygon points="281.125,74.382 277.000,76.763 272.875,74.382 272.875,69.618 277.000,67.237 281.125,69.618" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="277.000" cy="72.000" r="2.250" fill="none" stroke="#222222" stroke-width="0.15"/>
+<polygon points="222.625,108.157 218.500,110.538 214.375,108.157 214.375,103.393 218.500,101.012 222.625,103.393" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="218.500" cy="105.775" r="2.250" fill="none" stroke="#222222" stroke-width="0.15"/>
+<polygon points="222.625,40.607 218.500,42.988 214.375,40.607 214.375,35.843 218.500,33.462 222.625,35.843" fill="#BBBBBB" stroke="#222222" stroke-width="0.20"/>
+<circle cx="218.500" cy="38.225" r="2.250" fill="none" stroke="#222222" stroke-width="0.15"/>
+<text x="238.000" y="15.000" font-size="3.20" text-anchor="middle" fill="#222222" font-weight="bold">VIEW FROM BELOW (scale 1.5:1)</text>
+<text x="238.000" y="126.000" font-size="2.40" text-anchor="middle" fill="#222222" font-weight="normal">52 holes &#216;1 on a 4 mm hex pitch inside &#216;30</text>
+<text x="238.000" y="129.500" font-size="2.40" text-anchor="middle" fill="#555555" font-weight="normal">dashed: flange, plenum, baffle and posts (hidden)</text>
+<text x="190.000" y="139.000" font-size="3.20" text-anchor="start" fill="#222222" font-weight="bold">CALLOUTS</text>
+<text x="190.000" y="144.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">1   PTFE tube 4 x 2, argon in</text>
+<text x="190.000" y="148.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">2   PC4-M10 push-in fitting (M10 x 1; check the fitting)</text>
+<text x="190.000" y="152.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">3   M10 x 1 tapped 6 deep, &#216;2.5 inlet to the plenum</text>
+<text x="190.000" y="156.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">4   Cup, ASA by FFF, printed boss up; plenum &#216;34 x 6</text>
+<text x="190.000" y="160.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">5   Baffle &#216;14 on 3 posts &#216;2, 1.0 below the roof</text>
+<text x="190.000" y="164.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">6   3 x M2 countersunk: the face plate comes off for cleaning</text>
+<text x="190.000" y="168.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">7   Face plate, ASA, &#216;1 holes drilled after printing</text>
+<text x="190.000" y="172.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">8   3 x M3 on &#216;52, nuts under the LED plate</text>
+<text x="190.000" y="176.000" font-size="2.55" text-anchor="start" fill="#222222" font-weight="normal">9   LED plate, acrylic t 3 (assumed), centre hole opened to &#216;45</text>
+<text x="10.000" y="158.000" font-size="3.20" text-anchor="start" fill="#222222" font-weight="bold">NOTES</text>
+<text x="10.000" y="163.000" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">1. Concept sketch, not a shop drawing. Assumed until measured: LED plate thickness, the lid-to-substrate gap,</text>
+<text x="10.000" y="166.700" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">    the LED ring (keep the puck nearly flush so it shades no LED) and the push-in fitting's thread.</text>
+<text x="10.000" y="170.400" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">2. Two ASA parts by FFF: the cup boss up, with support under the flange (8 mm overhang); the plenum roof bridges &#216;34,</text>
+<text x="10.000" y="174.100" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">    where sag is harmless. The face plate prints flat with its posts and baffle.</text>
+<text x="10.000" y="177.800" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">    ASA is UV stable next to the 365 to 405 nm LEDs. Clean with IPA: acetone dissolves ASA.</text>
+<text x="10.000" y="181.500" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">3. The baffle turns the inlet jet before the face, so the holes in line with the inlet do not take most of the flow.</text>
+<text x="10.000" y="185.200" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">4. At 2 L/min: inlet 6.8 m/s, each hole 0.8 m/s, mean over the hole field 47 mm/s;</text>
+<text x="10.000" y="188.900" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">    hole drop about 2 Pa against 0.5 Pa dynamic pressure at the baffle exit.</text>
+<text x="10.000" y="192.600" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">5. At 5 L/min: inlet 17.0 m/s, each hole 2.0 m/s, mean over the hole field 118 mm/s;</text>
+<text x="10.000" y="196.300" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">    hole drop about 10 Pa against 3.0 Pa dynamic pressure at the baffle exit.</text>
+<text x="10.000" y="200.000" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">6. If the face flows unevenly on the bench, lay a fine stainless mesh on the face plate inside the plenum.</text>
+<text x="10.000" y="203.700" font-size="2.45" text-anchor="start" fill="#222222" font-weight="normal">7. Argon 1.66 kg/m^3 (20 C, 1 atm); hole discharge coefficient 0.6 assumed.</text>
+</svg>
