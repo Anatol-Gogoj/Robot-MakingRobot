@@ -243,20 +243,29 @@ def Teeth(p, zTop):
 
 
 def JigMarks(p, zTop):
-    """Black inlays on the base top: per bayonet position an OPEN and a LOCK tick, an arrow from OPEN to LOCK,
-    the words and the twist angle; in the gaps, CNT DOWN and PLATE UP alternately."""
+    """Black inlays on the base top: per bayonet position an OPEN and a LOCK tick and an arrow from OPEN to LOCK.
+    Text only on two opposite sets (owner, 2026-11-24: six of each was too busy): OPEN, LOCK and the twist angle on
+    the pair nearest the top and the one opposite it; CNT DOWN and PLATE UP twice each, in opposite gaps beside
+    those pairs. The other gaps stay blank."""
     out = []
     pairs = MarkAngles(p)
+    n = len(pairs)
+    half = n // 2
+    top = min(range(n), key=lambda i: abs((sum(pairs[i]) / 2 - 90.0 + 180.0) % 360.0 - 180.0))
+    labelled = {top, (top + half) % n}
+    hints = {(top - 1) % n: "CNT DOWN", (top - 1 + half) % n: "CNT DOWN", top: "PLATE UP", (top + half) % n: "PLATE UP"}
     for i, (lock, opn) in enumerate(pairs):
         out += Bar(J["TickR"][0], J["TickR"][1], J["TickW"], lock, zTop)
         out += Bar(J["TickR"][0], J["TickR"][1], J["TickW"], opn, zTop)
         # the arrow ends 2 deg short of each tick: 1.4 mm of white at r 63.75, more than three 0.4 mm lines
         out += ArcArrow(J["ArcR"], J["ArcW"], opn - 2.0, lock + 2.0, zTop)
-        out += Text("LOCK", J["LabelCap"], lock, J["LabelR"], zTop)
-        out += Text("OPEN", J["LabelCap"], opn, J["LabelR"], zTop)
-        out += Text("%.0f%s" % (p["TwistDeg"], DEG), J["AngleCap"], lock + p["TwistDeg"] / 2, J["AngleR"], zTop)
-        gap = lock + p["TwistDeg"] + (360.0 / len(pairs) - p["TwistDeg"]) / 2
-        out += Text("CNT DOWN" if i % 2 == 0 else "PLATE UP", J["HintCap"], gap, J["HintR"], zTop)
+        if i in labelled:
+            out += Text("LOCK", J["LabelCap"], lock, J["LabelR"], zTop)
+            out += Text("OPEN", J["LabelCap"], opn, J["LabelR"], zTop)
+            out += Text("%.0f%s" % (p["TwistDeg"], DEG), J["AngleCap"], lock + p["TwistDeg"] / 2, J["AngleR"], zTop)
+        if i in hints:                                 # the gap after pair i (anticlockwise of its OPEN)
+            gap = lock + p["TwistDeg"] + (360.0 / n - p["TwistDeg"]) / 2
+            out += Text(hints[i], J["HintCap"], gap, J["HintR"], zTop)
     return out
 
 

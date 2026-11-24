@@ -21,12 +21,13 @@ Bodies printed before issue #257 have no roof notches. The knob cannot drive the
 
 - **Knob pointer:** the black line along the grip rib, with an arrowhead at each end. The two ends point the same
   way, 180 deg apart.
-- **OPEN (jig):** six marks, one for each bayonet lug. With the pointer at an OPEN mark, the body's bayonet legs are
-  over the collar's lugs, and the body drops onto the filter.
-- **LOCK (jig):** 22 deg clockwise of each OPEN mark, seen from above. The arrow between the two marks shows the
-  direction.
+- **OPEN (jig):** six tick marks, one for each bayonet lug, each at the tail of an arrow. With the pointer at an OPEN
+  tick, the body's bayonet legs are over the collar's lugs, and the body drops onto the filter.
+- **LOCK (jig):** a tick 22 deg clockwise of each OPEN tick, seen from above, at the arrow's head.
+- **Words (jig):** only the top and bottom pairs are labelled OPEN, LOCK and 22 deg, so the ring stays readable. Every
+  pair works the same way: the arrow always runs from OPEN to LOCK.
 - **Knob top:** LOCK with a clockwise arrow, and OPEN with an anticlockwise arrow, for taking a cartridge apart.
-- **CNT DOWN and PLATE UP:** reminders on the jig, between the mark pairs.
+- **CNT DOWN and PLATE UP:** reminders on the jig, twice each, opposite each other, between the mark pairs.
 
 ## Print (Bambu P1S with AMS)
 
