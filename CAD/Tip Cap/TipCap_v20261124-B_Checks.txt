@@ -1,25 +1,27 @@
 Tip cap (issue 243): pivot (30.0, 20.0) from the tip end, arm 36.1 to the face, swing 170 deg
-All syringe and machine dimensions are photo estimates; servo and spring are typical or required values.
+The syringe is measured (owner, 2026-11-24); machine dimensions are photo estimates; servo and spring are typical
+or required values.
 
 Stopper and cup (size 00 silicone 15 / 11 x 21, big end on the tip)
   bore: 1:5.2 taper on diameter, 13.09 at the mouth to 10.80 at the small end (0.2 under the stopper),
     so a pushed-in stopper stands about 10.1 proud (9 nominal + 1.1 from the press fit); 1.0 clear below its
     small end, so the taper, not the floor, locates it; vent hole 3 in the floor
-  face 15 over a tip end of at most 8: 3.5 of overlap all round when centred
+  face 15 over the 6.60 tip end (measured; bore 3.89): 4.2 of overlap all round when centred
   the seal force pushes the stopper deeper into its taper; uncapping pulls the tip away and
     puts no load on the fit
 
-Seal force on the tip (strut spring 0.7 x 7 x 25, 12 laps, seat shim 0.0; the arm's own 15 g included)
-  nominal: closes at phi 0.00 deg with 1.68 to 1.93 N on the tip (load at the ring edge or centre)
-  tip end +-1.5 in z and +-1.0 in x: 1.43 to 2.01 N, closing within +-3.4 deg
-  worst offset of the tip centre from the face centre (with +-1.5 in y): 2.60; the ring stays on
-    the face up to 3.5, less 0.3 for the stopper's moulded edge
-  face tilt: 1.7 deg per mm of tip height error, so +-3.4 deg over the tolerance: a 0.47 wedge across the
-    ring, against about 0.10 of indentation at 2 N (E 2.5 MPa, flat punch, rough). RISK, not checked:
-    the seal needs the tip height to repeat within about +-0.4 from one syringe to the next, or a
+Seal force on the tip (strut spring 0.7 x 7 x 25, 12 laps, seat washers 0.0; the arm's own 15 g included)
+  nominal: closes at phi 0.00 deg with 1.68 to 1.88 N on the tip (load at the ring edge or centre)
+  tip end +-1.5 in z and +-1.0 in x: 1.46 to 1.96 N, closing within +-3.3 deg
+  worst offset of the tip centre from the face centre (with +-1.5 in y): 2.58; the ring stays on
+    the face up to 4.2, less 0.3 for the stopper's moulded edge
+  face tilt: 1.7 deg per mm of tip height error, so +-3.3 deg over the tolerance: a 0.38 wedge across the
+    ring, against about 0.11 of indentation at 2 N (E 2.5 MPa, flat punch, rough). RISK, not checked:
+    the seal needs the tip height to repeat within about +-0.6 from one syringe to the next, or a
     self-aligning cup; bench T4 decides
-  seal by seat shim (ring centre to edge), as estimated (k 0.828) / if 12 coils are active (k 0.690):
-    0.0: 1.68..1.93 / 1.38..1.59 N; 0.5: 1.78..2.05 / 1.47..1.69 N; 1.0: 1.88..2.17 / 1.55..1.79 N; 1.5: 1.98..2.29 / 1.64..1.89 N
+  seal by seat washers (0.5 each; ring centre to edge), as estimated (k 0.828) / if 12 coils are active (k 0.690):
+    0.0: 1.68..1.88 / 1.38..1.55 N; 0.5: 1.78..2.00 / 1.47..1.65 N; 1.0: 1.88..2.11 / 1.55..1.75 N (NOT allowed); 1.5: 1.98..2.23 / 1.64..1.84 N (NOT allowed)
+    use at most 0.5 of washers: more puts the spring near solid or over the allowable shear
 
 Coilover strut (the spring rides on a 4 mm steel rod that slides in the body's blind bore)
   spring rate 0.828 N/mm from G 69 GPa and 10 active coils: an ESTIMATE, measure it (a 500 g mass should
@@ -36,15 +38,15 @@ Coilover strut (the spring rides on a 4 mm steel rod that slides in the body's b
   webs between the rod bores and the pivot holes: eye 2.72, body 2.45
   crank pin pressed into the arm: 4.00 to the dowel bore, 2.55 to the crank lobe's edge
   anchor pin's M3 x 6 grub screw from the block's top: its top sits 0.4 below the top face
-  horn tube: 1.55 wall round the pin's press bore, 1.00 floor between the bore and the screw's pilot, the
-    M2 x 5's tip 0.50 off the pilot's bottom; the pin rides 3.50 deep in the arm's 6 slot
+  horn tube: 1.55 wall round the pin's press bore, 1.20 floor between the bore and the screw's pilot, the
+    M2 x 5's tip 0.50 off the pilot's bottom; the pin rides 3.70 deep in the arm's 6 slot
   net of the arm's weight (3.2 N mm open): holds open with 7.5 N mm (5.7 if 12 coils are active), closed with
     50, and at the over-travel stop (no syringe) with 45
 Servo (MG90S class, 0.18 N m stall from seller listings)
   largest spring moment over the swing 53 N mm; with 1.0 N of peel at the face near closed 89 N mm;
     stall margin 2.0
   lost motion +-10 deg: opening, the pin drags the arm past dead centre at a horn angle of 70; closing
-    at 50; at rest the pin sits within 3.4 deg of mid-slot (tip tolerance), 8 deg with no syringe;
+    at 50; at rest the pin sits within 3.3 deg of mid-slot (tip tolerance), 8 deg with no syringe;
     the servo turns 170 of its nominal 180 deg
   the servo must really travel at least 164 deg between S-closed and S-open, or at rest the pin reaches
     a slot end and the servo holds the arm against the spring; MEASURE it on the bench
@@ -53,22 +55,24 @@ Servo (MG90S class, 0.18 N m stall from seller listings)
     the shortfall off mid-slot
 
 Clearances over the swing (sampled every 2.5 deg from -8 to 170)
-  arm, cup, stopper and crank pin to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: 1.40
+  arm, cup, stopper and crank pin to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: 1.58
   y hold of the arm (left out of the line above): its hub's end runs 0.15 off the cheek face (the crank
     pin's end 0.65 off the relief under it), and the other way the eye's boss, rod and body stop it
     0.45 out at the anchor boss;
     the horn tube's end stays 1.00 off the arm's face, so the servo's seat height never touches it
   the arm meets the open stop at 170 deg (gap 0.00) and the closed stop at -8 deg (gap 0.00)
-  arm, cup and stopper to the syringe once 3 deg open: 2.12
+  arm, cup and stopper to the syringe once 3 deg open: 2.17
   strut (eye, rod, spring, body) to the arm, cup, stopper, servo and syringe: 0.70
+    with seat washers (8 OD against the seat's 7.6) at least 0.50
   strut to the yoke away from the anchor boss: 1.42 (at the boss the body has 0.3 of axial play by design)
+  strut body to the whole yoke, the boss included: 0.30
   the spring has 0.8 of radial play on the rod, so it may brush the arm's face near open (rub only)
   horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank pin, syringe: 1.21
   assembly path: the servo with horn, tube and pin goes in last from +y, the pin pointing at 180 deg into
     the slot of the arm waiting at 26.3 deg (strut not yet in): at least 0.20 clear over the last 26 mm
-  yoke to the syringe: 3.50
-  post and brackets to the syringe: 13.76
-  servo to the syringe: 6.96
+  yoke to the syringe: 4.35
+  post and brackets to the syringe: 15.38
+  servo to the syringe: 7.74
 
 Envelope (relative to the tip end)
   the swing reaches 39.2 below the tip end, and beyond the rim's smallest photo radius 82.5 it reaches
@@ -79,7 +83,7 @@ Envelope (relative to the tip end)
     the rim's smallest photo radius 82.5
   parked open, its lowest point is 15.5 above the chuck during a dose
   open, the stopper face points down (-100 deg), so a drop from it falls into the bowl beside the chuck
-  during a dose nothing on the syringe comes closer than 15.5 to the chuck top (lowest: the arm, cup and stopper)
+  during a dose nothing on the syringe comes closer than 15.1 to the chuck top (lowest: the yoke)
 
   during a dose, below the rim's height (+5) nothing reaches past r 74.0 (the yoke), inside the rim's
     smallest photo radius 82.5; the post ends 6.0 above the rim (photo) and reaches r 80.9
@@ -90,25 +94,53 @@ Bracket (2020 post on two corner brackets under the +v shelf rail; the yoke bolt
     M5 preload far above these loads, are taken as rigid
   height: the post's bottom must stay above the rim during a dose, a fixed height above the tip end, so the
     post's cut length is the set-up: measure the rail's bottom face to the tip end (photo 151 +-7), cut the
-    post square to that less 48; then the yoke's T-nuts slide 6 down and 54 up in the slot for the fine
+    post square to that less 48; then the yoke's T-nuts slide 7 down and 54 up in the slot for the fine
     setting, against about +-1.5 of measuring and cutting error
-  square: the land's side lips hug the post's outer faces (0.15 clearance a side), so the yoke cannot turn on
-    the post; along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot
-  across (y): the land is 1.0; 1.0 of 0.5 printed shims sits between it and the post nominally, so y moves
-    -1.0 (fewer) or + (more); set it with the arm closed on a fitted syringe, face centred on the tip
-  M5 bolt length: washer + plate + land + shims (7 nominally) + 5, so M5 x 12; its tip stays above the
-    slot floor
+  square: the plate sits flat on the washers, with no key; the two bolts 11 apart hold it by friction:
+    1100 N mm (mu 0.2 and 500 N a bolt, both ASSUMED, the preload after the PETG creeps) against 438 N mm
+    from 5.0 N at the tip end, 88 from the bolts (the servo at stall with wrong S values; the seal and the
+    peel give 3.0 N); tighten to 0.8 N m (about 800 N, 15 MPa on the PETG under a DIN 125 washer, against 20
+    assumed); set the angle on the bench with the arm closed on a fitted syringe, then tighten; it is not
+    keyed, so set it again after the yoke comes off; re-tighten after the first week
+  along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot
+  across (y): 2 M5 washers (1.0 thick, DIN 125) between the plate and the post on each bolt nominally; 1 or 3
+    move the yoke +-1.0; set it with the arm closed on a fitted syringe, face centred on the tip
+  bolts: M5 x 12, three washers on each in all (four with 3 in the gap), at least one under the head:
+    its tip reaches 5.0, 5.0, 4.0 into the post with 1, 2, 3 in the gap, so at least 2.2 of
+    thread in the T-nut and 1.0 clear of the slot's floor (T-nut and slot simplified)
+
+Walls round the holes (in a section through each, to the nearest other edge; at least 1.2, three
+perimeters of a 0.4 nozzle)
+  arm: cup screws                                  1.58
+  arm: crank pin                                   2.54
+  arm: pivot dowel                                 4.00
+  cup lug: screws                                  2.08
+  cup: stopper bore to the tang slot, at the mouth 2.50
+  yoke: servo ear pilots                           1.25
+  yoke: M5 bolt holes                              3.25
+  yoke: anchor pin                                 6.40
+  yoke: pivot dowel in the cheek                   5.96
+  strut eye: pivot hole (y 4.6)                    1.35
+  strut body: pivot hole (y 4.6)                   1.35
+  strut eye: pivot hole (y 7.5)                    1.75
+  strut body: pivot hole (y 7.5)                   1.75
+  strut eye: pivot hole (y 10.4)                   1.35
+  strut body: pivot hole (y 10.4)                  1.35
+  strut body: rod bore (x -4.6)                    1.70
+  strut body: rod bore (x -5.5)                    1.70
+  strut body: rod bore (x -20.8)                   1.70
+  cup screws 6.45 apart: room for two M3 nuts (6.35 across corners) side by side
+
 Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed
-  CapArm     bed   908 mm2, overhang    0 mm2 (steeper than 45 deg)
-  StopperCup bed   388 mm2, overhang    0 mm2 (steeper than 45 deg)
-  CapYoke    bed   447 mm2, overhang  305 mm2 (steeper than 45 deg)
+  CapArm     bed   866 mm2, overhang    0 mm2 (steeper than 45 deg)
+  StopperCup bed   389 mm2, overhang    0 mm2 (steeper than 45 deg)
+  CapYoke    bed   417 mm2, overhang  303 mm2 (steeper than 45 deg)
   StrutEye   bed    33 mm2, overhang   12 mm2 (steeper than 45 deg)
   StrutBody  bed    32 mm2, overhang   14 mm2 (steeper than 45 deg)
-  CapShim    bed   387 mm2, overhang    0 mm2 (steeper than 45 deg)
   HornTube   bed    26 mm2, overhang    2 mm2 (steeper than 45 deg)
   CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge and plate top,
-    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). CapShim:
-    flat, print four. HornTube: standing on its horn end, with a brim. PETG.
+    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). HornTube:
+    standing on its horn end, with a brim. PETG.
 
 Parts and hardware (every pin is a dowel pin from the owner's 1.5 to 6 mm pin kit; no sleeves or bushings)
   stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)
@@ -129,7 +161,9 @@ Parts and hardware (every pin is a dowel pin from the owner's 1.5 to 6 mm pin ki
   cup to arm: 2 x M3 x 18 and nuts
   bracket: 2020 aluminium extrusion cut square to 103 nominally (see height); 2 x 2020 corner brackets with
     4 x M5 x 10 and drop-in T-nuts (two in the rail's bottom slot, one in each of the post's x slots); yoke
-    to post: 2 x M5 x 12 with washers into spring-loaded drop-in T-nuts in the post's -y slot; CapShim x 4
+    to post: 2 x M5 x 12 at 0.8 N m into spring-loaded drop-in T-nuts in the post's -y slot, with 6 x M5 washers (DIN 125,
+    5.3 x 10 x 1.0): 2 in the gap and 1 under the head on each bolt (8 to set 3 in the gap)
+  seat washers (only if the measured spring needs more preload): small M4 washers, DIN 433, 4.3 x 8 x 0.5
   assembly: on the bench, press the crank pin into the arm, the rod into the eye and the horn pin into the
     tube (a vise, each to its stop); screw the tube to the horn. Find which way the servo turns: send
     M280 P2 S5, then S175, and watch the spline (seen from +y, the side the servo goes in from, the arm
@@ -142,15 +176,13 @@ Parts and hardware (every pin is a dowel pin from the owner's 1.5 to 6 mm pin ki
     pointing at the syringe, its cable kept on the +y side; turn the arm (about 26 deg open) to meet the
     pin with its slot, and hold the rod pointing at the anchor or hanging down, clear of the horn; ears
     screwed on the plate's +y face; (5) power the servo and send the open S value (no spring yet, so no
-    load; do not back-drive the servo by hand): spring and shim over the rod, body over rod and spring,
+    load; do not back-drive the servo by hand): seat washers and spring over the rod, body over both,
     line its hole up with the boss, push the anchor pin in from the plate's +y face until flush, grub
     screw from the top; (6) stopper cup on the arm, stopper in. Measure the spring first (free length,
-    coils, end type, rate) and set the seat shim
+    coils, end type, rate) and pick the seat washers
 
 Not known (bench, before printing)
-  the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the
-  shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it
-  before printing; the tip end below the rail; the barrel's place in the rail gap; what else is
+  the stopper sizes as delivered; the tip end below the rail; the barrel's place in the rail gap; what else is
   under the rail at x 28..88 (and whether the barrel clamp wraps under it there); the servo's sizes, its
   real travel, its horn's holes and how high the horn seats on the spline; the spring's rate;
   the bowl rim's radius and height and the chuck against the dispense pose
@@ -160,16 +192,16 @@ Assembly: the printed parts, stopper, servo, horn, strut, pivot and fasteners, b
   closed: CapArm / CrankPin_4x16 share 4.2 mm3 by design (the crank pin is pressed into the arm)
   closed: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
   closed: StrutEye / GuideRod_4x30 share 2.4 mm3 by design (the rod is pressed into the eye)
-  closed: Servo_MG90S / Horn_and_M2x6 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
-  closed: Horn_and_M2x6 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
-  closed: HornTube / HornPin_3x8 share 1.6 mm3 by design (the pin is pressed into the tube)
-  closed: 25 solids, no other two share volume
+  closed: Servo_MG90S / Horn_and_M2x5 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  closed: Horn_and_M2x5 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
+  closed: HornTube / HornPin_3x8 share 1.5 mm3 by design (the pin is pressed into the tube)
+  closed: 24 solids, no other two share volume
   open at the dispense pose: CapArm / CrankPin_4x16 share 4.2 mm3 by design (the crank pin is pressed into the arm)
   open at the dispense pose: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
   open at the dispense pose: StrutEye / GuideRod_4x30 share 2.4 mm3 by design (the rod is pressed into the eye)
-  open at the dispense pose: Servo_MG90S / Horn_and_M2x6 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
-  open at the dispense pose: Horn_and_M2x6 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
-  open at the dispense pose: HornTube / HornPin_3x8 share 1.6 mm3 by design (the pin is pressed into the tube)
-  open at the dispense pose: 27 solids, no other two share volume
+  open at the dispense pose: Servo_MG90S / Horn_and_M2x5 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  open at the dispense pose: Horn_and_M2x5 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
+  open at the dispense pose: HornTube / HornPin_3x8 share 1.5 mm3 by design (the pin is pressed into the tube)
+  open at the dispense pose: 26 solids, no other two share volume
 
 0 check(s) failed
