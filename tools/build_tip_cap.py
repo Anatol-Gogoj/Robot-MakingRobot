@@ -8,7 +8,10 @@
 #
 # Run with FreeCAD's console:  freecadcmd tools/build_tip_cap.py
 # Writes CAD/Tip Cap/TipCap_v20261123-A.FCStd, one STEP per printed part (print orientation),
-# _Checks.txt and _Sketch.png.
+# _Checks.txt and _Sketch.png, and the whole assembly with its hardware, bracket and the machine's
+# reference parts: _Assembly.step (closed) and _AssemblyOpen.step (open, with the bowl at the dispense
+# pose). Run it in the FreeCAD GUI for the colours and the group tree in the STEP files (a headless run
+# writes them flat and grey); for example: freecad.exe with a macro that runs this file.
 #
 # How it works. The arm swings in the vertical plane through the syringe axis, about a pivot beside
 # the catheter tip, below the barrel's shoulder. Closed, the stopper's big end presses up on the tip
@@ -141,7 +144,7 @@ P = dict(
     AnchorBossR=4.5,
     # Bracket: a 2020 aluminium post hung under the +v shelf rail (2020, rail bottom z 151 above the tip end,
     # photo) on two 2020 corner brackets, one on each x face. The yoke's land bolts to the post's -y slot with
-    # two M5 drop-in T-nuts, and its key runs in that slot: x slides along the rail, z slides along the post
+    # two M5 drop-in T-nuts; side lips on its land hug the post: x slides along the rail, z slides along the post
     PostX=(48.5, 68.5),    # clear of the anchor screw's head and washer (x up to 47.0) and of the servo
     PostY=(23.0, 43.0),    # under the rail's footprint
     PostBottomZ=48.0,      # above the bowl rim during a dose (photo: the rim 42 above the tip end then)
@@ -418,7 +421,7 @@ def Yoke():
     yoke = yoke.fuse(Box(x0 - g - t, x0 - g, P["PlateY"][1] - 0.01, ly1, P["LipMinusZ"][0], P["LipMinusZ"][1]))
     for z in P["YokeBoltZ"]:
         yoke = yoke.cut(CylY((sx, z), 2.75, P["PlateY"][0] - 1, ly1 + 1))
-    # anchor boss: three holes on the anchor ray, teardrop outline
+    # anchor boss: the anchor hole (one per entry of AnchorDs), teardrop outline
     boss = XZSolid(Hull(sum((Teardrop(a, P["AnchorBossR"]) for a in AnchorPts), [])), P["AnchorBossY0"], P["PlateY"][0] + 0.01)
     yoke = yoke.fuse(boss)
     for a in AnchorPts:
@@ -1016,6 +1019,207 @@ def Checks(parts):
     return out, bad
 
 
+# ---------------------------------------------------------------- assembly
+
+# Paul Tol's bright scheme, plus its pale grey for the reference parts
+TolColor = dict(blue="#4477AA", cyan="#66CCEE", green="#228833", yellow="#CCBB44", red="#EE6677", purple="#AA3377",
+                grey="#BBBBBB", pale="#DDDDDD")
+
+
+def Rail2020X(x0, x1, y0, z0):
+    """A 2020 profile along x (the shelf rail), simplified like Post(): four 6.2 x 6 slots and the centre bore."""
+    y1, z1 = y0 + 20.0, z0 + 20.0
+    r = Box(x0, x1, y0, y1, z0, z1)
+    sy, sz = y0 + 10.0, z0 + 10.0
+    for by0, by1, bz0, bz1 in ((sy - 3.1, sy + 3.1, z0 - 1, z0 + 6), (sy - 3.1, sy + 3.1, z1 - 6, z1 + 1),
+                               (y0 - 1, y0 + 6, sz - 3.1, sz + 3.1), (y1 - 6, y1 + 1, sz - 3.1, sz + 3.1)):
+        r = r.cut(Box(x0 - 1, x1 + 1, by0, by1, bz0, bz1))
+    return r.cut(Part.makeCylinder(2.1, x1 - x0 + 2, V(x0 - 1, sy, sz), V(1, 0, 0)))
+
+
+def Dowel():
+    """4 x 16 dowel pin, from the cheek's outer face into the arm's hub."""
+    y0 = P["CheekY"][0]
+    return CylY((Px, Pz), P["DowelD"] / 2, y0, y0 + 16.0)
+
+
+def GrubScrew():
+    """M3 x 6 grub screw from below into the dowel hole (modelled at the tap drill size)."""
+    yc = 0.5 * sum(P["CheekY"])
+    return Part.makeCylinder(1.2, 6.0, V(Px, yc, Pz - P["DowelD"] / 2 - 6.0), V(0, 0, 1))
+
+
+def CrankInsert():
+    """M3 heat-set insert in the arm for the crank screw (simplified to a tube through the arm plate)."""
+    return CylY(CrankPt0, P["InsertD"] / 2, -P["ArmT"] / 2, P["ArmT"] / 2).cut(
+        CylY(CrankPt0, 1.5, -P["ArmT"] / 2 - 1, P["ArmT"] / 2 + 1))
+
+
+def CupScrews():
+    """2 x M3 x 18 through the cup's lug and the arm's tang, button heads on +y, nuts on -y."""
+    h = P["LugHalfY"]
+    out = None
+    for c in LugScrews:
+        s = CylY(c, 1.5, h - 18.0, h).fuse(CylY(c, 2.85, h, h + 1.65)).fuse(CylY(c, 3.2, -h - 2.4, -h))
+        out = s if out is None else out.fuse(s)
+    return out
+
+
+def YokeBolts():
+    """2 x M5 x 12 socket head with washers, from the plate's -y face into the post's -y slot."""
+    sx = 0.5 * sum(P["PostX"])
+    yb = P["PlateY"][0]
+    out = None
+    for z in P["YokeBoltZ"]:
+        s = CylY((sx, z), 2.5, yb - 1.0, yb - 1.0 + 12.0).fuse(CylY((sx, z), 5.0, yb - 1.0, yb)).fuse(
+            CylY((sx, z), 4.25, yb - 6.0, yb - 1.0))
+        out = s if out is None else out.fuse(s)
+    return out
+
+
+def YokeTNuts():
+    """2 x M5 drop-in T-nuts in the post's -y slot (simplified to a block with a clearance hole)."""
+    sx = 0.5 * sum(P["PostX"])
+    y0 = P["PostY"][0]
+    out = None
+    for z in P["YokeBoltZ"]:
+        n = Box(sx - 3.0, sx + 3.0, y0 + 1.8, y0 + 5.8, z - 5.0, z + 5.0).cut(CylY((sx, z), 2.55, y0, y0 + 7.0))
+        out = n if out is None else out.fuse(n)
+    return out
+
+
+def BowlRef():
+    """The spin coater bowl at the dispense pose (photo estimates): wall and rim, plus the chuck's level."""
+    rimZ = P["RimAboveChuck"] - P["DispenseAboveChuck"]
+    chuckZ = -P["DispenseAboveChuck"]
+    r = P["BowlRimR"]
+    wall = Part.makeCylinder(r + 2.0, rimZ - chuckZ + 5.0, V(0, 0, chuckZ - 5.0)).cut(
+        Part.makeCylinder(r, rimZ - chuckZ + 7.0, V(0, 0, chuckZ - 6.0)))
+    return wall, Part.makeCylinder(r, 1.0, V(0, 0, chuckZ - 1.0))
+
+
+def AssemblyParts(phi, parts, dispense):
+    """Every solid of the cap in place at arm angle phi, as (group, name, shape, colour, transparency).
+    dispense adds the bowl and the chuck's level at the dispense pose (only meaningful with the arm open)."""
+    out = []
+
+    def Add(group, name, shape, colour, transp=0):
+        out.append((group, name, shape, TolColor[colour], transp))
+
+    arm = "Arm (swings)"
+    Add(arm, "CapArm", RotY(parts["CapArm"], phi), "blue")
+    Add(arm, "StopperCup", RotY(parts["StopperCup"], phi), "cyan")
+    Add(arm, "Stopper_size00", RotY(Stopper(), phi), "pale")
+    Add(arm, "CupScrews_M3x18", RotY(CupScrews(), phi), "grey")
+    Add(arm, "CrankScrew_M3", RotY(ArmHardware(), phi), "grey")
+    Add(arm, "CrankInsert_M3", RotY(CrankInsert(), phi), "grey")
+    Add(arm, "StrutEye", StrutAt(phi, parts=("eye",)), "yellow")
+    Add(arm, "GuideRod_4mm", StrutAt(phi, parts=("rod",)), "grey")
+    Add(arm, "Spring_0p7x7x25", StrutAt(phi, parts=("spring",)), "red")
+    yoke = "Yoke"
+    Add(yoke, "CapYoke", parts["CapYoke"], "green")
+    Add(yoke, "StrutBody", StrutAt(phi, parts=("body",)), "yellow")
+    Add(yoke, "AnchorScrew_M3", AnchorHardware(AnchorPt), "grey")
+    Add(yoke, "Dowel_4x16", Dowel(), "grey")
+    Add(yoke, "GrubScrew_M3x6", GrubScrew(), "grey")
+    Add(yoke, "Servo_MG90S", Servo(), "purple")
+    Add(yoke, "HornAndPin", HornStack(EarAng0 + phi), "grey")
+    for k in range(int(round(P["ShimNom"] / 0.5))):
+        s = parts["CapShim"].copy()
+        s.translate(V(0, P["PlateY"][1] + P["LandT"] + 0.5 * k, 0))
+        Add(yoke, "CapShim_%d" % (k + 1), s, "red")
+    br = "Bracket"
+    Add(br, "Post_2020", Post(), "grey")
+    Add(br, "CornerBrackets_2020", Brackets(), "grey")
+    Add(br, "YokeBolts_M5x12", YokeBolts(), "grey")
+    Add(br, "TNuts_M5", YokeTNuts(), "grey")
+    mach = "Machine (photo estimates)"
+    Add(mach, "Syringe_150mL", Syringe(), "pale", 60)
+    rx0, rx1 = P["PostX"][0] - 110.0, P["PostX"][1] + 80.0
+    Add(mach, "ShelfRail_2020", Rail2020X(rx0, rx1, P["RailY"][0], P["RailBottomZ"]), "grey", 50)
+    if dispense:
+        wall, chuck = BowlRef()
+        Add(mach, "Bowl", wall, "pale", 70)
+        Add(mach, "ChuckLevel", chuck, "pale", 80)
+    return out
+
+
+# Pairs that overlap by design (a press or a thread, or a reference model that stands in for a fitted pair),
+# each with its expected volume in mm3 from the fit; more than 10 % over it is a clash and fails
+OverlapOK = {
+    frozenset(("Stopper_size00", "StopperCup")): (45.4, "the stopper is a press fit in the cup's taper"),
+    frozenset(("GuideRod_4mm", "StrutEye")): (2.8, "the rod is pressed into the eye"),
+    frozenset(("AnchorScrew_M3", "CapYoke")): (17.9, "the anchor screw cuts its thread in the boss's 2.6 mm hole"),
+    frozenset(("HornAndPin", "Servo_MG90S")): (53.9, "the horn's hub sits on the servo's spline"),
+}
+
+
+def Interferences(items):
+    """Volume shared by every pair of solids in the assembly, with the pairs allowed above."""
+    hits = []
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            a, b = items[i], items[j]
+            if not a[2].BoundBox.intersect(b[2].BoundBox):
+                continue
+            v = a[2].common(b[2]).Volume
+            if v > 0.05:
+                hits.append((a[1], b[1], v))
+    return hits
+
+
+def AssemblyChecks(asms):
+    out, bad = ["", "Assembly: the printed parts, stopper, servo, horn, strut, pivot and fasteners, bracket and machine",
+                 "  references in place. Not modelled: the corner brackets' M5 screws and T-nuts, the servo's M2 screws"], 0
+    for label, items in asms:
+        bad0 = bad
+        for a, b, v in Interferences(items):
+            ok = OverlapOK.get(frozenset((a, b)))
+            if ok and v <= 1.1 * ok[0]:
+                out.append("  %s: %s / %s share %.1f mm3 by design (%s)" % (label, a, b, v, ok[1]))
+            else:
+                bad += 1
+                out.append("  %s: %s / %s share %.1f mm3  <-- FAIL" % (label, a, b, v))
+        out.append("  %s: %d solids, no other two share volume" % (label, len(items)) if bad == bad0 else
+                   "  %s: %d solids" % (label, len(items)))
+    return out, bad
+
+
+def BuildAssembly(doc, title, items, visible=True, suffix=""):
+    """An App::Part tree of the items; labels get the suffix, since a document's labels are unique."""
+    import FreeCAD as App
+    root = doc.addObject("App::Part", title.replace(" ", "_"))
+    root.Label = title
+    groups, objs = {}, []
+    for g, name, shp, colour, transp in items:
+        if g not in groups:
+            grp = doc.addObject("App::Part", (title + "_" + g).replace(" ", "_").replace("(", "").replace(")", ""))
+            grp.Label = g + suffix
+            root.addObject(grp)
+            groups[g] = grp
+        o = doc.addObject("Part::Feature", name)
+        o.Label = name + suffix
+        o.Shape = shp
+        groups[g].addObject(o)
+        objs.append(o)
+        if App.GuiUp:
+            o.ViewObject.ShapeColor = tuple(int(colour[k:k + 2], 16) / 255.0 for k in (1, 3, 5))
+            o.ViewObject.Transparency = transp
+    if App.GuiUp and not visible:
+        root.ViewObject.Visibility = False
+    return root, objs
+
+
+def ExportAssembly(root, objs, path):
+    import FreeCAD as App
+    if App.GuiUp:
+        import ImportGui
+        ImportGui.export([root], path)         # the group tree, with the colours
+    else:
+        import Import
+        Import.export(objs, path)              # without the GUI the tree is written twice over: go flat
+
+
 # ---------------------------------------------------------------- drawing and output
 
 def Draw(parts, checks, path):
@@ -1074,7 +1278,7 @@ def Draw(parts, checks, path):
     Sect(ax4, StrutAt(0.0), (0, 0, 1), Pz + 0.3, "x", "y", tol["spring"], 0.5)
     for shp, col in ((yoke, tol["yoke"]), (post, tol["yoke"])):
         Sect(ax4, shp, (0, 0, 1), 0.5 * sum(P["YokeBoltZ"]), "x", "y", col, 0.25, 0.3)
-    ax4.set_title("Plan at the pivot (z %.0f), with the post, land and key at the bolts (z %.0f) faint" % (
+    ax4.set_title("Plan at the pivot (z %.0f), with the post, land and side lips at the bolts (z %.0f) faint" % (
         Pz, 0.5 * sum(P["YokeBoltZ"])), fontsize=10)
     ax4.set_xlim(-30, 75)
     ax4.set_ylim(-20, 48)
@@ -1113,29 +1317,27 @@ def Main():
     for k, s in parts.items():
         assert s.isValid() and len(s.Solids) == 1, "%s is not one valid solid (%d)" % (k, len(s.Solids))
     checks, bad = Checks(parts)
+    closed = AssemblyParts(0.0, parts, dispense=False)
+    opened = AssemblyParts(P["Swing"], parts, dispense=True)
+    more, bad2 = AssemblyChecks((("closed", closed), ("open at the dispense pose", opened)))
+    checks += more
+    bad += bad2
     print("\n".join(checks))
     os.makedirs(OutDir, exist_ok=True)
     open(os.path.join(OutDir, Stem + "_Checks.txt"), "w", encoding="ascii", newline="\n").write(
         "\n".join(checks) + "\n\n%d check(s) failed\n" % bad)
     Draw(parts, checks, os.path.join(OutDir, Stem + "_Sketch.png"))
+    for name, shp in parts.items():
+        PrintPose(name, shp).exportStep(os.path.join(OutDir, "%s-%s.step" % (Stem, name)))
     doc = FreeCAD.newDocument("TipCap")
-    refs = {"StopperRef": Stopper(), "SyringeRef": Syringe(), "ServoRef": Servo(), "HornRef": HornStack(EarAng0),
-            "CrankHardwareRef": ArmHardware(), "AnchorRef": AnchorHardware(AnchorPt), "StrutClosedRef": StrutAt(0.0),
-            "PostRef": Post(), "CornerBracketsRef": Brackets()}
-    for name, shp in list(parts.items()) + list(refs.items()):
-        o = doc.addObject("Part::Feature", name)
-        o.Shape = shp
-        if name in parts:
-            if name == "CapShim":
-                sh_ = shp.copy()
-                sh_.translate(V(0, P["PlateY"][1] + P["LandT"], 0))
-                o.Shape = sh_
-            if name in ("StrutEye", "StrutBody"):
-                o.Shape = StrutAt(0.0, parts=("eye",)) if name == "StrutEye" else StrutAt(0.0, parts=("body",))
-            PrintPose(name, shp).exportStep(os.path.join(OutDir, "%s-%s.step" % (Stem, name)))
+    rc, oc = BuildAssembly(doc, "Tip cap closed", closed)
+    ro, oo = BuildAssembly(doc, "Tip cap open at the dispense pose", opened, visible=False, suffix="_open")
     doc.recompute()
     doc.saveAs(os.path.join(OutDir, Stem + ".FCStd"))
-    FreeCAD.closeDocument(doc.Name)
+    ExportAssembly(rc, oc, os.path.join(OutDir, Stem + "_Assembly.step"))
+    ExportAssembly(ro, oo, os.path.join(OutDir, Stem + "_AssemblyOpen.step"))
+    if not FreeCAD.GuiUp:
+        FreeCAD.closeDocument(doc.Name)
     print("\n%d check(s) failed; wrote %s" % (bad, OutDir))
 
 

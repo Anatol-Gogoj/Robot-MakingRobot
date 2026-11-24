@@ -135,4 +135,17 @@ Not known (bench, before printing)
   real travel and its horn's holes; the spring's rate;
   the bowl rim's radius and height and the chuck against the dispense pose
 
+Assembly: the printed parts, stopper, servo, horn, strut, pivot and fasteners, bracket and machine
+  references in place. Not modelled: the corner brackets' M5 screws and T-nuts, the servo's M2 screws
+  closed: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
+  closed: StrutEye / GuideRod_4mm share 2.8 mm3 by design (the rod is pressed into the eye)
+  closed: CapYoke / AnchorScrew_M3 share 17.9 mm3 by design (the anchor screw cuts its thread in the boss's 2.6 mm hole)
+  closed: Servo_MG90S / HornAndPin share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  closed: 24 solids, no other two share volume
+  open at the dispense pose: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
+  open at the dispense pose: StrutEye / GuideRod_4mm share 2.8 mm3 by design (the rod is pressed into the eye)
+  open at the dispense pose: CapYoke / AnchorScrew_M3 share 17.9 mm3 by design (the anchor screw cuts its thread in the boss's 2.6 mm hole)
+  open at the dispense pose: Servo_MG90S / HornAndPin share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  open at the dispense pose: 26 solids, no other two share volume
+
 0 check(s) failed
