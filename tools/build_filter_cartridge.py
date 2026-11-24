@@ -78,6 +78,17 @@ P = dict(
     BodyOD=100.4,
     BodyTop=4.0,           # above the cartridge bottom
     CavityTop=3.0,         # collar pocket height: 0.3 mm over the collar at Squeeze +0.1
+    # Roof notches (issue 257): the assembly knob's pegs turn the body through these, so nobody twists the body by
+    # its bonded steel plate. They sit in the roof face left free inside the plate (r 39..46), in the solid sleeve:
+    # at their corners 1.0 mm to the bore, 0.78 mm to the collar pocket (for the 0.2 mm the notch floor sits below
+    # the pocket top) and 1.73 mm inside the plate's inner edge. Straight-sided pockets, open on the face the body
+    # prints on: the notch floor prints as a 4.2 mm bridge, which needs no support.
+    RoofNotchCount=6,
+    RoofNotchR=(40.0, 44.2),
+    RoofNotchWidth=5.0,
+    RoofNotchDepth=1.2,
+    RoofNotchAngle0=19.0,  # deg, body frame. With the body locked, a knob peg here points at the jig's LOCK mark;
+                           # TwistDeg further anticlockwise is the OPEN mark, where the body's legs are over the lugs
     BodyChamfer=0.8,       # 45 deg lead-in on the body's bottom outer edge
     GrooveOD=96.3,         # 0.3 mm radial clearance to the lugs
     GrooveClear=0.8,       # extra arc length of the vertical leg over the lug
@@ -321,6 +332,12 @@ def Build(p):
         k = Part.makeBox(p["KnurlDepth"] + 1.0, p["KnurlWidth"], p["BodyTop"] + 1.0,
                          V(p["BodyOD"] / 2 - p["KnurlDepth"], -p["KnurlWidth"] / 2, zc - 0.5))
         body = body.cut(Rotated(k, (i + 0.5) * 360.0 / p["KnurlCount"]))
+    # roof notches for the assembly knob
+    nr0, nr1 = p["RoofNotchR"]
+    for i in range(p["RoofNotchCount"]):
+        k = Part.makeBox(nr1 - nr0, p["RoofNotchWidth"], p["RoofNotchDepth"] + 1.0,
+                         V(nr0, -p["RoofNotchWidth"] / 2, zc + p["BodyTop"] - p["RoofNotchDepth"]))
+        body = body.cut(Rotated(k, p["RoofNotchAngle0"] + i * 360.0 / p["RoofNotchCount"]))
     # 45 deg lead-in on the bottom outer edge (into the magazine and the mask bore)
     R, c, z0 = p["BodyOD"] / 2, p["BodyChamfer"], zc + zb
     chamfer = Part.makeCylinder(R + 1.0, c, V(0, 0, z0)).cut(Part.makeCone(R - c, R, c, V(0, 0, z0)))
@@ -558,6 +575,17 @@ def Check(parts, levels, p):
     c.rotate(V(0, 0, 0), V(0, 0, 1), -p["TwistDeg"])
     c.translate(V(0, 0, -p["RampRise"] + 0.0))
     print("  %-24s %.4f (must be 0)" % ("control: entry, on floor", c.common(parts["Body"]).Volume))
+    # roof notches: walls left around them and sleeve left under them
+    # (walls measured at the notch corners, the outermost point of a straight-sided notch)
+    nr0, nr1 = p["RoofNotchR"]
+    rc = math.hypot(nr1, p["RoofNotchWidth"] / 2)
+    under = p["BodyTop"] - p["RoofNotchDepth"] - ((p["FlangeT"] if p["PrintedFlange"] else p["ShimT"]) + p["ClampGap"])
+    print("  %-24s r %.1f..%.1f x %.1f deep: %.2f to the bore, %.2f to the collar pocket and %.2f to the plate ID at "
+          "the corners, %.2f of sleeve under them" % ("roof notches", nr0, nr1, p["RoofNotchDepth"],
+                                                       nr0 - p["SleeveID"] / 2, p["SleeveOD"] / 2 - rc,
+                                                       p["PlateID"] / 2 - rc, under))
+    if nr0 - p["SleeveID"] / 2 < 0.8 or p["SleeveOD"] / 2 - rc < 0.7 or p["PlateID"] / 2 - rc < 1.0 or under < 2.0:
+        raise ValueError("roof notches leave too little wall or sleeve")
     # two cartridges stacked in the magazine
     pitch = levels["StackPitch"]
     upper = [parts[n].copy() for n in cartNames + ["CntFilm"]]
