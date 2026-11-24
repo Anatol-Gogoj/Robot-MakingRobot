@@ -5,6 +5,10 @@ a view from below of a two-part FFF ASA diffuser that sits in the free centre
 position of the lid's 8-LED acrylic plate. It is a concept sketch, not a shop
 drawing: values marked "assumed" wait for measurements.
 
+The printable parts are built by tools/build_lid_diffuser.py, which changes two
+things for printing: a flat top with the M10 tap in it instead of the boss, and a
+45 deg mushroom baffle on the face plate instead of the three posts.
+
 Run:   python tools/draw_lid_diffuser.py
 PNG:   render the SVG with headless Edge, for example
        msedge --headless=new --disable-gpu --hide-scrollbars
