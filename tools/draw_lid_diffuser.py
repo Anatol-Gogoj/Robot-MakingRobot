@@ -5,6 +5,10 @@ a view from below of a two-part FFF ASA diffuser that sits in the free centre
 position of the lid's 8-LED acrylic plate. It is a concept sketch, not a shop
 drawing: values marked "assumed" wait for measurements.
 
+The printable parts are built by tools/build_lid_diffuser.py. The plate
+measured on 2026-11-24 (LEDs on a 30 mm grid, 1/16 in acrylic) leaves no room for
+this sheet's flange, so that design clamps the plate with a printed thread instead.
+
 Run:   python tools/draw_lid_diffuser.py
 PNG:   render the SVG with headless Edge, for example
        msedge --headless=new --disable-gpu --hide-scrollbars
