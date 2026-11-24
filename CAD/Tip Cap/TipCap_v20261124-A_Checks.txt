@@ -30,9 +30,14 @@ Coilover strut (the spring rides on a 4 mm steel rod that slides in the body's b
   shear at the shortest: 536 MPa static (Ks 1.06), 590 with the Wahl factor (1.16, 10.8 N) against 650
     assumed; every cap cycle loads it, so it has a finite life: a wear part, swap it if it loses over 0.5 of
     free length
-  rod 4 x 31.7 +0/-0.3 (4.5 pressed into the eye; cut to length) runs 4.0 to 15.3 deep in the body's
-    17.3 bore: 2.0 spare at the bottom
-  webs between the rod bores and the pivot holes: eye 2.05, body 2.45
+  rod: a 4 x 30 dowel pin from the kit, 3.8 pressed into the eye; it runs 3.0 to 14.3 deep in the
+    body's 17.3 bore, 3.0 spare at the bottom; with 0.3 on its length, at least 2.7 engaged (2.5 needed)
+    and 2.7 spare (2.0 needed)
+  webs between the rod bores and the pivot holes: eye 2.72, body 2.45
+  crank pin pressed into the arm: 4.00 to the dowel bore, 2.55 to the crank lobe's edge
+  anchor pin's M3 x 6 grub screw from the block's top: its top sits 0.4 below the top face
+  horn tube: 1.55 wall round the pin's press bore, 1.00 floor between the bore and the screw's pilot, the
+    M2 x 5's tip 0.50 off the pilot's bottom; the pin rides 3.50 deep in the arm's 6 slot
   net of the arm's weight (3.2 N mm open): holds open with 7.5 N mm (5.7 if 12 coils are active), closed with
     50, and at the over-travel stop (no syringe) with 45
 Servo (MG90S class, 0.18 N m stall from seller listings)
@@ -48,13 +53,19 @@ Servo (MG90S class, 0.18 N m stall from seller listings)
     the shortfall off mid-slot
 
 Clearances over the swing (sampled every 2.5 deg from -8 to 170)
-  arm, cup, stopper and crank screw to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: 1.00
+  arm, cup, stopper and crank pin to the yoke, servo, anchor, post and brackets, more than 3 deg from a stop: 1.40
+  y hold of the arm (left out of the line above): its hub's end runs 0.15 off the cheek face (the crank
+    pin's end 0.65 off the relief under it), and the other way the eye's boss, rod and body stop it
+    0.45 out at the anchor boss;
+    the horn tube's end stays 1.00 off the arm's face, so the servo's seat height never touches it
   the arm meets the open stop at 170 deg (gap 0.00) and the closed stop at -8 deg (gap 0.00)
   arm, cup and stopper to the syringe once 3 deg open: 2.12
   strut (eye, rod, spring, body) to the arm, cup, stopper, servo and syringe: 0.70
   strut to the yoke away from the anchor boss: 1.42 (at the boss the body has 0.3 of axial play by design)
   the spring has 0.8 of radial play on the rod, so it may brush the arm's face near open (rub only)
-  horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank screw, syringe: 1.21
+  horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank pin, syringe: 1.21
+  assembly path: the servo with horn, tube and pin goes in last from +y, the pin pointing at 180 deg into
+    the slot of the arm waiting at 26.3 deg (strut not yet in): at least 0.20 clear over the last 26 mm
   yoke to the syringe: 3.50
   post and brackets to the syringe: 13.76
   servo to the syringe: 6.96
@@ -88,64 +99,77 @@ Bracket (2020 post on two corner brackets under the +v shelf rail; the yoke bolt
   M5 bolt length: washer + plate + land + shims (7 nominally) + 5, so M5 x 12; its tip stays above the
     slot floor
 Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed
-  CapArm     bed   908 mm2, overhang    2 mm2 (steeper than 45 deg)
+  CapArm     bed   908 mm2, overhang    0 mm2 (steeper than 45 deg)
   StopperCup bed   388 mm2, overhang    0 mm2 (steeper than 45 deg)
-  CapYoke    bed   396 mm2, overhang  347 mm2 (steeper than 45 deg)
+  CapYoke    bed   447 mm2, overhang  305 mm2 (steeper than 45 deg)
   StrutEye   bed    33 mm2, overhang   12 mm2 (steeper than 45 deg)
   StrutBody  bed    32 mm2, overhang   14 mm2 (steeper than 45 deg)
   CapShim    bed   387 mm2, overhang    0 mm2 (steeper than 45 deg)
+  HornTube   bed    26 mm2, overhang    2 mm2 (steeper than 45 deg)
   CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge and plate top,
     with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). CapShim:
-    flat, print four. PETG.
+    flat, print four. HornTube: standing on its horn end, with a brim. PETG.
 
-Parts and hardware
+Parts and hardware (every pin is a dowel pin from the owner's 1.5 to 6 mm pin kit; no sleeves or bushings)
   stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)
   servo: MG90S class micro servo with its single-arm horn, on a third servo output (NUM_SERVOS 3);
     it goes in from +y through the plate's window, ears on the plate's +y face, 2 x M2 self-tapping
-  strut: spring 0.7 x 7 x 25 (12 laps) from the Pianrui K-P-051-300 kit; a 4 mm steel rod cut to 31.7
-    +0/-0.3, pressed fully into the printed StrutEye; the printed StrutBody guides it. Drill the body's rod
-    bore to 4.2 and both pivot holes to 4.1 after printing (they print undersize)
-  pivot: dowel pin 4 x 16, a slip fit through the cheek into the arm's hub, held by an M3 x 6 grub screw
-    from below
-  horn pin: M2 x 20 through the horn, a printed spacer tube 5 OD, a 3 x 6.3 metal sleeve (it rides in
-    the slot; the stack clamps on it, not on the arm), a 7 mm washer and a nut with thread locker; the
-    screw's end runs in a relief groove in the cheek face
-  crank: M3 x 12 button head, a 4 x 6.3 brass sleeve (3.3 ID) through the eye, three M3 washers under it,
-    into an M3 heat-set insert in the arm; anchor: M3 x 20 from the plate's +y face through the boss and a 4 x 6.3 sleeve in
-    the body, an M3 washer and a thin nut (thread locker). The screws clamp the sleeves, never the strut
+  strut: spring 0.7 x 7 x 25 (12 laps) from the Pianrui K-P-051-300 kit; a 4 x 30 pin as the rod,
+    pressed to the bottom of the printed StrutEye's bore (3.8); the printed StrutBody guides it. Drill the
+    body's rod bore to 4.2, the eye's and the body's pivot holes and the yoke's anchor hole to 4.1 after
+    printing (they print undersize); leave the press holes as printed
+  pivot: 4 x 16 pin, a slip fit through the cheek into the arm's hub, held by an M3 x 6 grub screw
+    from below; the hub's end on the cheek and the strut hold the arm in y
+  crank: 4 x 16 pin pressed from the arm's +y face until flush with the hub's end (the hub on a flat
+    block); the eye turns on it, its boss on the arm's face
+  anchor: 4 x 16 pin pushed in from the plate's +y face through the boss into the body, flush with the
+    face, held by an M3 x 6 grub screw from the boss block's top. Tap both grub holes M3
+  horn pin: a 3 x 8 pin pressed to the bottom of the printed HornTube's bore; the tube is held to the
+    horn by an M2 x 5 through the horn's hole at r 15 (open it to 2.2) into the tube's pilot
   cup to arm: 2 x M3 x 18 and nuts
   bracket: 2020 aluminium extrusion cut square to 103 nominally (see height); 2 x 2020 corner brackets with
     4 x M5 x 10 and drop-in T-nuts (two in the rail's bottom slot, one in each of the post's x slots); yoke
     to post: 2 x M5 x 12 with washers into spring-loaded drop-in T-nuts in the post's -y slot; CapShim x 4
-  assembly: (0) post and corner brackets on the rail; yoke on the post (bolts reachable before the arm is
-    in, or with it closed); (1) servo into the plate from +y, ears screwed on the +y face; (2) the strut's eye (rod
-    pressed in) on the crank screw on the arm; (3) arm in at the closed pose, hub on the cheek's dowel hole,
-    sleeve in the slot, spacer tube on it; (4) M2 pin screw through the horn, horn onto the spline and
-    the screw through tube and sleeve; centre screw through the cheek hole and the hub bore; (5) washer
-    and nut on the pin screw, thread locker; (6) dowel in, grub screw; (7) arm to the open pose (the spring is
-    softest there): spring and shim over the rod, body over rod and spring with its sleeve in, line the sleeve
-    up with the boss, drive the M3 x 20 from the plate's +y face, washer and nut from -y; (8) stopper cup on
-    the arm, stopper in. Measure the spring first (free length, coils, end type, rate) and set the seat shim
+  assembly: on the bench, press the crank pin into the arm, the rod into the eye and the horn pin into the
+    tube (a vise, each to its stop); screw the tube to the horn. Find which way the servo turns: send
+    M280 P2 S5, then S175, and watch the spline (seen from +y, the side the servo goes in from, the arm
+    opens clockwise). Send S31 if S grows toward open (S149 if not), fit the horn on the nearest spline
+    tooth square to the servo's long side, pointing at the side that faces the syringe, and drive its
+    centre screw; the half-tooth error is trimmed later with the closed and open S values.
+    (0) post and corner brackets on the rail; yoke on the post (bolts reachable before the arm is in, or
+    with it closed); (1) the eye (rod in) on the crank pin, boss to the arm; (2) arm in, hub on the cheek's
+    dowel hole; (3) dowel in, grub screw; (4) the servo in from +y through the plate's notch, the horn
+    pointing at the syringe, its cable kept on the +y side; turn the arm (about 26 deg open) to meet the
+    pin with its slot, and hold the rod pointing at the anchor or hanging down, clear of the horn; ears
+    screwed on the plate's +y face; (5) power the servo and send the open S value (no spring yet, so no
+    load; do not back-drive the servo by hand): spring and shim over the rod, body over rod and spring,
+    line its hole up with the boss, push the anchor pin in from the plate's +y face until flush, grub
+    screw from the top; (6) stopper cup on the arm, stopper in. Measure the spring first (free length,
+    coils, end type, rate) and set the seat shim
 
 Not known (bench, before printing)
   the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the
   shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it
   before printing; the tip end below the rail; the barrel's place in the rail gap; what else is
   under the rail at x 28..88 (and whether the barrel clamp wraps under it there); the servo's sizes, its
-  real travel and its horn's holes; the spring's rate;
+  real travel, its horn's holes and how high the horn seats on the spline; the spring's rate;
   the bowl rim's radius and height and the chuck against the dispense pose
 
 Assembly: the printed parts, stopper, servo, horn, strut, pivot and fasteners, bracket and machine
   references in place. Not modelled: the corner brackets' M5 screws and T-nuts, the servo's M2 screws
+  closed: CapArm / CrankPin_4x16 share 4.2 mm3 by design (the crank pin is pressed into the arm)
   closed: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
-  closed: StrutEye / GuideRod_4mm share 2.8 mm3 by design (the rod is pressed into the eye)
-  closed: CapYoke / AnchorScrew_M3 share 17.9 mm3 by design (the anchor screw cuts its thread in the boss's 2.6 mm hole)
-  closed: Servo_MG90S / HornAndPin share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
-  closed: 24 solids, no other two share volume
+  closed: StrutEye / GuideRod_4x30 share 2.4 mm3 by design (the rod is pressed into the eye)
+  closed: Servo_MG90S / Horn_and_M2x6 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  closed: Horn_and_M2x6 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
+  closed: HornTube / HornPin_3x8 share 1.6 mm3 by design (the pin is pressed into the tube)
+  closed: 25 solids, no other two share volume
+  open at the dispense pose: CapArm / CrankPin_4x16 share 4.2 mm3 by design (the crank pin is pressed into the arm)
   open at the dispense pose: StopperCup / Stopper_size00 share 45.4 mm3 by design (the stopper is a press fit in the cup's taper)
-  open at the dispense pose: StrutEye / GuideRod_4mm share 2.8 mm3 by design (the rod is pressed into the eye)
-  open at the dispense pose: CapYoke / AnchorScrew_M3 share 17.9 mm3 by design (the anchor screw cuts its thread in the boss's 2.6 mm hole)
-  open at the dispense pose: Servo_MG90S / HornAndPin share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
-  open at the dispense pose: 26 solids, no other two share volume
+  open at the dispense pose: StrutEye / GuideRod_4x30 share 2.4 mm3 by design (the rod is pressed into the eye)
+  open at the dispense pose: Servo_MG90S / Horn_and_M2x6 share 53.9 mm3 by design (the horn's hub sits on the servo's spline)
+  open at the dispense pose: Horn_and_M2x6 / HornTube share 3.4 mm3 by design (the M2 screw cuts its thread in the tube's pilot)
+  open at the dispense pose: HornTube / HornPin_3x8 share 1.6 mm3 by design (the pin is pressed into the tube)
+  open at the dispense pose: 27 solids, no other two share volume
 
 0 check(s) failed
