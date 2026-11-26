@@ -5,18 +5,18 @@ Head clearance at every pick pose (envelope grown by 2 mm vs everything not on t
   L1, 32 masks, slide +0     face  344.6  ok    min plan gap   10.8 mm (ColumnTube)
   L1, 32 masks, slide +10    face  344.6  ok    min plan gap   14.6 mm (ElevatorRod1)
   L1, 32 masks, slide -10    face  344.6  ok    min plan gap    6.3 mm (ColumnTube)
-  L2, 1 mask, slide +0       face  185.5  ok    min plan gap   30.2 mm (ColumnTube)
-  L2, 1 mask, slide +10      face  185.5  ok    min plan gap   22.5 mm (L1Full)
-  L2, 1 mask, slide -10      face  185.5  ok    min plan gap   36.8 mm (ColumnTube)
-  L2, 32 masks, slide +0     face  344.6  ok    min plan gap   33.7 mm (ColumnTube)
-  L2, 32 masks, slide +10    face  344.6  ok    min plan gap   26.0 mm (L1Full)
-  L2, 32 masks, slide -10    face  344.6  ok    min plan gap   40.3 mm (ColumnTube)
+  L2, 1 mask, slide +0       face  185.5  ok    min plan gap   26.5 mm (L1FullLabelEars1)
+  L2, 1 mask, slide +10      face  185.5  ok    min plan gap   16.5 mm (L1FullLabelEars1)
+  L2, 1 mask, slide -10      face  185.5  ok    min plan gap   36.5 mm (L1FullLabelEars1)
+  L2, 32 masks, slide +0     face  344.6  ok    min plan gap   30.0 mm (L1FullLabelEars1)
+  L2, 32 masks, slide +10    face  344.6  ok    min plan gap   20.0 mm (L1FullLabelEars1)
+  L2, 32 masks, slide -10    face  344.6  ok    min plan gap   40.0 mm (L1FullLabelEars1)
   T1, mask, slide +0         face  308.0  ok    min plan gap   25.6 mm (ColumnTube)
   T1, mask, slide +10        face  308.0  ok    min plan gap   30.1 mm (ColumnTube)
   T1, mask, slide -10        face  308.0  ok    min plan gap   21.6 mm (ColumnTube)
-  T2, mask, slide +0         face  308.0  ok    min plan gap   36.0 mm (T1Armed)
-  T2, mask, slide +10        face  308.0  ok    min plan gap   26.0 mm (T1Armed)
-  T2, mask, slide -10        face  308.0  ok    min plan gap   46.0 mm (T1Armed)
+  T2, mask, slide +0         face  308.0  ok    min plan gap   30.0 mm (T1ArmedLabelEar1)
+  T2, mask, slide +10        face  308.0  ok    min plan gap   20.0 mm (T1ArmedLabelEar1)
+  T2, mask, slide -10        face  308.0  ok    min plan gap   40.0 mm (T1ArmedLabelEar1)
   C, pick top cartridge      face  350.0  ok    min plan gap   13.5 mm (ElevatorScrew)
   D, eject spent cartridge   face  355.0  ok    min plan gap  133.5 mm (ElevatorScrew)
 
@@ -30,20 +30,21 @@ Transit between stacks
   ring face at least 377.0 for straight moves between stacks: highest item ElevatorScrew at 365.0, legs 1.5 below the face, a carried combo 5.462, margin 5
 
 Footprints (plan)
-  L1 at (67.5, 283.7) r 66.5: x 1.0..134.0, y 217.2..350.2  inside the strip, clear of the box, centre in reach
-  L2 at (67.5, 103.7) r 66.5: x 1.0..134.0, y 37.2..170.2  inside the strip, clear of the box, centre in reach
+  L1 at (67.5, 283.7) r 66.5 + label ear (3 seatings): x 1.0..134.0, y 211.2..350.2  inside the strip, clear of the box, centre in reach
+  L2 at (67.5, 103.7) r 66.5 + label ear (3 seatings): x 1.0..134.0, y 31.2..170.2  inside the strip, clear of the box, centre in reach
   C  at (196.0, 213.7) r 58.0: x 138.0..254.0, y 155.7..271.7  inside the strip, clear of the box, centre in reach
   D  at (196.0, 93.7) r 60.5: x 135.5..256.5, y 33.2..154.2  inside the strip, clear of the box, centre in reach
-  T1 at (345.0, 283.7) r 66.5: x 278.5..411.5, y 217.2..350.2  on the box lid, centre in reach
-  T2 at (345.0, 103.7) r 66.5: x 278.5..411.5, y 37.2..170.2  on the box lid, centre in reach
-  L1 to L2: 47.0 mm apart in plan
+  T1 at (345.0, 283.7) r 66.5 + label ear (3 seatings): x 278.5..411.5, y 211.2..350.2  on the box lid, centre in reach
+  T2 at (345.0, 103.7) r 66.5 + label ear (3 seatings): x 278.5..411.5, y 31.2..170.2  on the box lid, centre in reach
+  L1 to L2: 41.0 mm apart in plan
   L1 to C: 21.8 mm apart in plan
-  L2 to C: 44.7 mm apart in plan
+  L2 to C: 33.7 mm apart in plan
   L2 to D: 1.9 mm apart in plan
   C to D: 1.5 mm apart in plan
   C to T1: 40.1 mm apart in plan
+  C to T2: 48.6 mm apart in plan
   D to T2: 22.3 mm apart in plan
-  T1 to T2: 47.0 mm apart in plan
+  T1 to T2: 41.0 mm apart in plan
 
 Heights
   combo pitch 5.462, bare mask pitch 5.134, cartridge pitch 4.762
