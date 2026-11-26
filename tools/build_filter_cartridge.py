@@ -140,6 +140,20 @@ P = dict(
     PushFlangeGap=(78.0, 102.0),   # cut away around +Y for the pile seat's slide scale (r 56..66, x 2.5..9.5)
     PushFlangeLift=0.3,    # the flange's underside starts this high at the frame wall and rises at 45 deg: it never
                            # touches the layer and prints stencil-down without support
+    # Label ear (issue 240): the mask's lab ID on a code-only tag (12 mm TZe tape cut 12 mm long, a 16x16 Data
+    # Matrix at 4 dots per module, 9.03 mm), pressed into a pocket on a fourth ear and read by a camera over the
+    # prep towers. Lobe hold only. The pocket starts outside the push flange, so the pushers' lower step
+    # (r 55..58.3) lands on plain frame and never on the tag. The ear points at -y, toward the front wall in
+    # build_mask_stowage.py's frame, where the layout has room; that script checks its footprint.
+    LabelEar=False,
+    LabelAngle=270.0,
+    LabelTag=12.0,         # tag side
+    LabelTagT=0.15,        # laminated TZe tag thickness: ASSUMED, not measured
+    LabelPocketClear=0.25, # per side
+    LabelPocketDepth=0.3,
+    LabelPocketR0=59.0,    # pocket inner edge, 0.2 outside PushFlangeR
+    LabelWall=1.0,         # around the pocket
+    LabelFillet=1.0,       # the ear's outer corners, in plan; equal to LabelWall so the wall stays 1.0 round the corners
     # Head floating ring (reference only, not a design of the head)
     BallD=4.0,
     BallR=58.5,
@@ -159,6 +173,8 @@ P = dict(
 )
 
 EarAngles = (0.0, 120.0, 240.0)
+# the lobe hold variant as Main() builds it; build_mask_stowage.py uses the same set
+LobeVariant = dict(PrintedFlange=True, MaskHold="lobe", LabelEar=True)
 MagAngles = (60.0, 180.0, 300.0)
 
 
@@ -270,6 +286,33 @@ def Stencil(p):
         return pat.fuse(Annulus(rim - 0.3, p["FrameID"] / 2, 0, zS)).removeSplitter()
     s = Part.makeCylinder(p["FrameID"] / 2, zS, V(0, 0, 0))
     return s.cut(Part.makeBox(p["OpenW"], p["OpenH"], zS + 1, V(-p["OpenW"] / 2, -p["OpenH"] / 2, -0.5)))
+
+
+def LabelEarDims(p):
+    """Plan dimensions of the label ear, in its own frame (radial from the mask axis, width across)."""
+    side = p["LabelTag"] + 2 * p["LabelPocketClear"]
+    r0 = p["LabelPocketR0"]
+    return dict(Side=side, PocketR0=r0, PocketR1=r0 + side, EarR0=p["FrameID"] / 2 + 1.0,
+                EarR1=r0 + side + p["LabelWall"], Width=side + 2 * p["LabelWall"])
+
+
+def LabelEarParts(p, zFrameTop):
+    """The ear solid (to fuse), its pocket (to cut) and the tag in the pocket, rotated to LabelAngle."""
+    e = LabelEarDims(p)
+    # like the other ears it starts inside the frame wall and runs the full frame height, so it prints
+    # stencil-down without support
+    ear = Part.makeBox(e["EarR1"] - e["EarR0"], e["Width"], zFrameTop, V(e["EarR0"], -e["Width"] / 2, 0))
+    outer = [g for g in ear.Edges if abs(g.Vertexes[0].Point.x - e["EarR1"]) < 1e-6
+             and abs(g.Vertexes[1].Point.x - e["EarR1"]) < 1e-6
+             and abs(g.Vertexes[0].Point.z - g.Vertexes[1].Point.z) > 1e-6]
+    ear = ear.makeFillet(p["LabelFillet"], outer)
+    z0 = zFrameTop - p["LabelPocketDepth"]
+    pocket = Part.makeBox(e["Side"], e["Side"], p["LabelPocketDepth"] + 1.0, V(e["PocketR0"], -e["Side"] / 2, z0))
+    rMid = (e["PocketR0"] + e["PocketR1"]) / 2
+    t = p["LabelTag"]
+    tag = Part.makeBox(t, t, p["LabelTagT"], V(rMid - t / 2, -t / 2, z0))
+    a = p["LabelAngle"]
+    return Rotated(ear, a), Rotated(pocket, a), Rotated(tag, a)
 
 
 def Build(p):
@@ -386,10 +429,17 @@ def Build(p):
         flange = prof.revolve(V(0, 0, 0), V(0, 0, 1), 360.0 - (g1 - g0))
         flange.rotate(V(0, 0, 0), V(0, 0, 1), g1)
         frame = frame.fuse(flange)
+    labelEar = lobe and p["LabelEar"]
+    if labelEar:
+        labelSolid, labelPocket, labelTag = LabelEarParts(p, zFrameTop)
+        frame = frame.fuse(labelSolid)
     mask = stencil.fuse(frame)
     # 45 deg lead-in on the frame bore, where the cartridge drops in
     rb0, cb = p["FrameID"] / 2, p["FrameBoreChamfer"]
     mask = mask.cut(Part.makeCone(rb0, rb0 + cb, cb, V(0, 0, zFrameTop - cb)))
+    if labelEar:
+        mask = mask.cut(labelPocket)
+        parts["LabelTag"] = labelTag
     maskBalls = []
     rPocket = rs + p["MaskBallPocketClear"]
     for a in EarAngles:
@@ -551,6 +601,38 @@ def Check(parts, levels, p):
         if rmax > p["CntD"] / 2:
             raise ValueError("stencil openings reach r %.2f, outside the CNT area r %.1f" % (rmax, p["CntD"] / 2))
     print("  %-24s %.3f" % ("CNT film to stencil", parts["CntFilm"].distToShape(parts["Mask"])[0]))
+    if "LabelTag" in parts:
+        e = LabelEarDims(p)
+        a = p["LabelAngle"] % 360.0
+        # angular room to the nearest ball-lobe ear, both measured where they leave the frame (r = FrameOD / 2)
+        rf = p["FrameOD"] / 2
+        half = math.degrees(math.asin(e["Width"] / 2 / rf)) + math.degrees(math.asin(p["EarWidth"] / 2 / rf))
+        room = min(abs((a - b + 180.0) % 360.0 - 180.0) for b in EarAngles) - half
+        g0, g1 = p["PushFlangeGap"]
+        # signed angle from the gap's centre, so a gap that straddles 0 deg works too
+        off = abs((a - (g0 + g1) / 2 + 180.0) % 360.0 - 180.0)
+        inGap = off < (g1 - g0) / 2 + math.degrees(math.asin(e["Width"] / 2 / rf))
+        ringGap = parts["HeadRingRef"].distToShape(parts["LabelTag"])[0]
+        flangeClear = e["PocketR0"] - p["PushFlangeR"]
+        tagTop = levels["FrameTop"] - p["LabelPocketDepth"] + p["LabelTagT"]
+        reach = math.hypot(e["EarR1"], e["Width"] / 2)
+        print("  label ear                at %.0f deg: r %.1f..%.1f x %.1f wide (plan corner r %.1f), pocket %.1f x %.1f x "
+              "%.1f from r %.1f (%.2f outside the push flange); %.1f deg to the nearest ball-lobe ear; tag top %.2f below "
+              "the frame top" % (a, e["EarR0"], e["EarR1"], e["Width"], reach, e["Side"], e["Side"],
+                                 p["LabelPocketDepth"], e["PocketR0"], flangeClear, room, levels["FrameTop"] - tagTop))
+        print("  %-24s %.3f" % ("head ring to label tag", ringGap))
+        if flangeClear < 0.2 - 1e-9:
+            raise ValueError("label pocket starts %.2f outside the push flange: the pushers would land on the tag"
+                             % flangeClear)
+        # a floor, not a measured limit: 5 deg is 4.9 mm of bare frame between the ears at r 56
+        if room < 5.0:
+            raise ValueError("label ear is only %.1f deg from a ball-lobe ear" % room)
+        if ringGap < 0.2:
+            raise ValueError("label tag is only %.3f from the head ring" % ringGap)
+        if inGap:
+            raise ValueError("label ear sits in the push flange gap, over the pile seat's slide scale")
+        if tagTop > levels["FrameTop"]:
+            raise ValueError("label tag stands %.2f proud of the frame top" % (tagTop - levels["FrameTop"]))
     # control: a mask ball 0.05 mm too high must run into both head balls
     mb = parts["MaskBall1"].copy()
     mb.translate(V(0, 0, 0.05))
@@ -762,7 +844,7 @@ def Main():
     PlateDxf(p, os.path.join(outDir, "FilterCartridge-Plate-G90-0.030in.dxf"))
     print("==== lobe hold variant (issue 230)")
     q = dict(P)
-    q.update(PrintedFlange=True, MaskHold="lobe")
+    q.update(LobeVariant)
     parts, levels = Build(q)
     Check(parts, levels, q)
     lobeDir = os.path.join(outDir, "Lobe hold")

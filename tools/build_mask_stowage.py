@@ -37,6 +37,8 @@ Cut = Src.rindex("\nMain()")
 Gen = {"__file__": os.path.join(Here, "build_filter_cartridge.py")}
 exec(compile(Src[:Cut], "build_filter_cartridge.py", "exec"), Gen)
 CartP, Build = Gen["P"], Gen["Build"]
+MaskP = dict(CartP)
+MaskP.update(Gen["LobeVariant"])     # the lobe hold mask as build_filter_cartridge.py exports it
 
 IN = 25.4
 
@@ -292,6 +294,51 @@ def Fixtures(d):
     return items
 
 
+MaskKeys = ("L1", "L2", "T1", "T2")
+
+
+def LabelEarBoxes(x, y):
+    """Plan bounding boxes (x0, x1, y0, y1) of the label ear of a mask centred at (x, y), one per way the mask
+    can seat: the coupling is three-fold symmetric, so a mask loaded 120 deg off seats as well, and a pile must
+    have room for it until the tower camera catches it. Each ear rectangle is rotated and boxed, so a box is exact
+    at a multiple of 90 deg and conservative otherwise. The mask's orientation in this frame is the one Draw()
+    uses for the ear magnets. Empty without a label ear."""
+    if not (MaskP["MaskHold"] == "lobe" and MaskP["LabelEar"]):
+        return []
+    e = Gen["LabelEarDims"](MaskP)
+    boxes = []
+    for k in range(3):
+        a = math.radians(MaskP["LabelAngle"] + 120.0 * k)
+        ca, sa = math.cos(a), math.sin(a)
+        pts = [(x + r * ca - w * sa, y + r * sa + w * ca) for r in (e["EarR0"], e["EarR1"])
+               for w in (-e["Width"] / 2, e["Width"] / 2)]
+        xs, ys = [q[0] for q in pts], [q[1] for q in pts]
+        boxes.append((min(xs), max(xs), min(ys), max(ys)))
+    return boxes
+
+
+def Footprint(d, k):
+    """A stack's plan footprint as ('cyl', (x, y, r)) and ('box', (x0, x1, y0, y1)) pieces."""
+    x, y = d[k]
+    pieces = [("cyl", (x, y, d["Radius"][k]))]
+    for box in (LabelEarBoxes(x, y) if k in MaskKeys else []):
+        pieces.append(("box", box))
+    return pieces
+
+
+def PieceGap(a, b):
+    """Plan distance between two footprint pieces; negative = overlap (exact for circles, -1 for boxes)."""
+    (ka, ga), (kb, gb) = a, b
+    if ka == "cyl" and kb == "cyl":
+        return math.hypot(ga[0] - gb[0], ga[1] - gb[1]) - ga[2] - gb[2]
+    if ka == "box" and kb == "box":
+        dx = max(ga[0] - gb[1], gb[0] - ga[1], 0.0)
+        dy = max(ga[2] - gb[3], gb[2] - ga[3], 0.0)
+        return math.hypot(dx, dy) if dx or dy else -1.0
+    (cx, cy, r), (x0, x1, y0, y1) = (ga, gb) if ka == "cyl" else (gb, ga)
+    return math.hypot(max(x0 - cx, 0, cx - x1), max(y0 - cy, 0, cy - y1)) - r
+
+
 def StackEnvelopes(d):
     """Worst-case stack contents for the clearance checks: each library pile holding the whole library,
     each tower holding an armed mask, the column full."""
@@ -300,10 +347,16 @@ def StackEnvelopes(d):
         x, y = d[key]
         env.append(CylItem("%sFull" % key, "Stack" + key, x, y, 0, CartP["LobeEarOuterR"], L["LibStandTop"],
                            d["LibFull"], TolCyan, 0.12, "--"))
+        for n, box in enumerate(LabelEarBoxes(x, y)):
+            env.append(BoxItem("%sFullLabelEars%d" % (key, n + 1), "Stack" + key, *box, L["LibStandTop"], d["LibFull"],
+                               TolCyan, 0.12))
     for key in ("T1", "T2"):
         x, y = d[key]
         env.append(CylItem("%sArmed" % key, "Stack" + key, x, y, 0, CartP["LobeEarOuterR"], d["TowerTop"],
                            d["TowerCombo"], TolCyan, 0.12, "--"))
+        for n, box in enumerate(LabelEarBoxes(x, y)):
+            env.append(BoxItem("%sArmedLabelEar%d" % (key, n + 1), "Stack" + key, *box, d["TowerTop"], d["TowerCombo"],
+                               TolCyan, 0.12))
     x, y = d["C"]
     env.append(CylItem("ColumnFull", "StackC", x, y, 0, CartP["PlateOD"] / 2, d["ColLow"], L["ColPick"], TolPurple,
                        0.12, "--"))
@@ -492,21 +545,26 @@ def Checks(d, fixtures, envelopes):
     for k in StackKeys:
         x, y = d[k]
         r = d["Radius"][k]
+        pieces = Footprint(d, k)
+        # extent of the whole footprint, the label ear included
+        xa = min(g[0] - g[2] if kind == "cyl" else g[0] for kind, g in pieces)
+        xb = max(g[0] + g[2] if kind == "cyl" else g[1] for kind, g in pieces)
+        ya = min(g[1] - g[2] if kind == "cyl" else g[2] for kind, g in pieces)
+        yb = max(g[1] + g[2] if kind == "cyl" else g[3] for kind, g in pieces)
         if k in ("T1", "T2"):
-            where = (x - r >= L["StripW"] and x + r <= L["StripW"] + L["BoxW"] and y - r >= y0 and
-                     y + r <= y0 + L["BoxDepth"])
+            where = (xa >= L["StripW"] and xb <= L["StripW"] + L["BoxW"] and ya >= y0 and yb <= y0 + L["BoxDepth"])
             whereText = "on the box lid" if where else "OFF THE BOX LID"
         else:
-            where = (x - r >= -1e-6 and x + r <= d["BoxLeft"] - L["PlanMargin"] and y - r >= 0 and y + r <= L["StripD"])
+            where = (xa >= -1e-6 and xb <= d["BoxLeft"] - L["PlanMargin"] and ya >= 0 and yb <= L["StripD"])
             whereText = "inside the strip, clear of the box" if where else "OUTSIDE THE STRIP OR INTO THE BOX"
         inReach = d["ReachFront"] <= y <= d["ReachBack"] and x <= L["HeadXMax"]
         bad += 0 if (where and inReach) else 1
-        out.append("  %-2s at (%.1f, %.1f) r %.1f: x %.1f..%.1f, y %.1f..%.1f  %s, %s" % (
-            k, x, y, r, x - r, x + r, y - r, y + r, whereText,
+        out.append("  %-2s at (%.1f, %.1f) r %.1f%s: x %.1f..%.1f, y %.1f..%.1f  %s, %s" % (
+            k, x, y, r, " + label ear (3 seatings)" if len(pieces) > 1 else "", xa, xb, ya, yb, whereText,
             "centre in reach" if inReach else "CENTRE OUT OF REACH"))
     for i, a in enumerate(StackKeys):
         for b in StackKeys[i + 1:]:
-            g = math.hypot(d[a][0] - d[b][0], d[a][1] - d[b][1]) - d["Radius"][a] - d["Radius"][b]
+            g = min(PieceGap(pa, pb) for pa in Footprint(d, a) for pb in Footprint(d, b))
             bad += 0 if g >= L["PlanMargin"] else 1
             if g < 60 or g < L["PlanMargin"]:
                 out.append("  %s to %s: %.1f mm apart in plan%s" % (a, b, g, "" if g >= L["PlanMargin"] else "  OVERLAP"))
@@ -582,7 +640,7 @@ def Checks(d, fixtures, envelopes):
 
 
 def Combo(parts, z, x, y, withCart=True):
-    names = ["Mask", "MaskBall1", "MaskBall2", "MaskBall3", "EarMagnet1", "EarMagnet2", "EarMagnet3"]
+    names = ["Mask", "MaskBall1", "MaskBall2", "MaskBall3", "EarMagnet1", "EarMagnet2", "EarMagnet3", "LabelTag"]
     if withCart:
         names += ["Collar", "Body", "Plate", "Filter", "CntFilm"]
     shapes = [parts[n].copy() for n in names if n in parts]
@@ -645,7 +703,8 @@ def Draw(d, c, fixtures, envelopes, checks, path):
     for key in StackKeys:
         ax.add_patch(Circle(d[key], L["HeadMidR"], fc="none", ec=TolBlue, lw=0.7, ls=":"))
     ax.text(5, -40, "dotted: head envelope (r %.0f) at each stack; red: ear magnets; dark ring: steel ring;\n"
-                    "dashed: full library pile (r %.1f ears) and full column" % (L["HeadMidR"], CartP["LobeEarOuterR"]),
+                    "dashed: full library pile (r %.1f ears) and full column; pale boxes: label ear, 3 seatings" % (
+                        L["HeadMidR"], CartP["LobeEarOuterR"]),
             fontsize=8, color=TolBlue)
     ax.set_xlim(-60, L["StripW"] + L["BoxW"] + 10)
     ax.set_ylim(-55, L["StripD"] + 10)
@@ -718,9 +777,7 @@ def Draw(d, c, fixtures, envelopes, checks, path):
 
 
 def Main():
-    q = dict(CartP)
-    q.update(PrintedFlange=True, MaskHold="lobe")
-    parts, c = Build(q)
+    parts, c = Build(MaskP)
     bare = max(parts[n].BoundBox.ZMax for n in ("Mask", "MaskBall1", "MaskBall2", "MaskBall3", "EarMagnet1",
                                                  "EarMagnet2", "EarMagnet3") if n in parts)
     d = Layout(c, bare)
