@@ -1,0 +1,32 @@
+LidDiffuser_v20261124-B: UV lid argon diffuser (issue 251), ASA by FFF, 0.4 mm nozzle
+  z: plate 1.5875 thick; spigot top 7.59, groove end 8.59, roof 11.99, baffle cap 9.79..10.99, tap 15.99..21.99
+  thread: pitch 2.0, 90 deg, spigot crest r 11.10 root r 10.30; cup bore r 10.55 groove r 11.35
+  ok   Cup: 1 solid, valid True, 9.2 cm^3
+  ok   FacePart: 1 solid, valid True, 2.2 cm^3
+  ok   cup r 14.5 inside the free centre square +-15.0 (heatsinks at most 30 wide on a 30 pitch), 0.5 to spare
+  ok   disc r 14.0 under the plate, 4.6 from the nearest LED cutout edge (r 18.6, cutout size assumed)
+  ok   spigot thread crest r 11.10 in the 22.8 plate hole: 0.30 radial play
+  ok   cup wall outside the thread groove 3.15
+  ok   spigot wall from the thread root to the bore 1.20
+  ok   baffle cap r 7.0 passes the spigot bore r 9.10 and the cup bore r 10.55 when screwed in
+  ok   assembled with the plate clamped: overlaps face/cup 0.0000, face/plate 0.0000, cup/plate 0.0000
+  ok   nearest face part to cup 0.176 (thread flank clearance 0.177 nominal)
+  ok   disc and cup both bear on the plate
+  ok   control: face part pulled 0.5 down without turning hits the cup's thread (16.9 mm^3): the thread holds it
+  ok   unscrewing the face part 30 to 270 deg (dz = -pitch x turn): worst overlap 0.0000
+  ok   spigot top z 7.59 below the groove's end z 8.59: the plate, not the thread, stops it
+  ok   gas path: one volume of 4.41 cm^3 joins the tap to 30 of 30 face holes
+  ok   baffle cap covers the inlet's projection with 1.0 to spare
+  ok   baffle edge to the plenum wall 3.55 (>= 3 x the baffle gap)
+  flow 2 L/min: inlet 6.8 m/s, baffle exit 0.76 m/s (0.5 Pa), each hole 1.41 m/s, hole drop 4.6 Pa, mean over the face 147 mm/s
+  ok     at 2 L/min the hole drop is 9.7 x the baffle exit's dynamic pressure (>= 2 spreads the flow)
+  flow 5 L/min: inlet 17.0 m/s, baffle exit 1.89 m/s (3.0 Pa), each hole 3.54 m/s, hole drop 28.8 Pa, mean over the face 367 mm/s
+  ok     at 5 L/min the hole drop is 9.7 x the baffle exit's dynamic pressure (>= 2 spreads the flow)
+  ok   shading: an LED at r 30.0 (plate 16.5 above the substrate) is shadowed by the disc only beyond 146 mm on the far side, outside a 220 mm substrate
+  ok   shading: an LED at r 42.4 (plate 16.5 above the substrate) is shadowed by the disc only beyond 270 mm on the far side, outside a 220 mm substrate
+  ok   control: the overhang test flags a flat ledge (0.0 deg, 20.0 mm^2)
+  ok   Cup prints top face down with no support: steepest down-facing surface 45.0 deg from straight down (limit 45), area beyond the limit 0.00 mm^2; 29.0 x 29.0 x 20.4 mm
+  ok   FacePart prints disc down with no support: steepest down-facing surface 45.0 deg from straight down (limit 45), area beyond the limit 0.00 mm^2; 28.0 x 28.0 x 12.5 mm
+  holes: 30 x 1.0 mm on a 2.5 mm hexagonal pitch, r 3.6 to 8.0
+  height: cup 20.4 above the plate top (fitting hex not included); disc 1.5 below the plate underside
+Checks failing: 0
