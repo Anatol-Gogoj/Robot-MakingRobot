@@ -1,6 +1,6 @@
 *.jpg
 *.jfif
-*.FCbak
+*.FCBak
 DemoProgram.txt
 
 # Exception: the ODrive S1 J11 pinout is a wiring reference cited by
