@@ -7,7 +7,7 @@
 # Owner 2026-11-23: the stopper's big end faces the tip; its small end sits in a tapered socket.
 #
 # Run with FreeCAD's console:  freecadcmd tools/build_tip_cap.py
-# Writes CAD/Tip Cap/TipCap_v20261124-A.FCStd, one STEP per printed part (print orientation),
+# Writes CAD/Tip Cap/TipCap_v20261124-B.FCStd, one STEP per printed part (print orientation),
 # _Checks.txt and _Sketch.png, and the whole assembly with its hardware, bracket and the machine's
 # reference parts: _Assembly.step (closed) and _AssemblyOpen.step (open, with the bowl at the dispense
 # pose). Run it in the FreeCAD GUI for the colours and the group tree in the STEP files (a headless run
@@ -38,9 +38,9 @@
 # toward the pivot (along the shelf, toward the B post, away from the side the syringe leaves by);
 # y toward the shelf rail the bracket hangs from. Angles in the x-z plane are measured from +x toward
 # +z. The arm angle phi is 0 closed and Swing open (counter-clockwise in x-z). Dimensions in mm.
-# Every machine and syringe dimension here is a photo estimate (2026-11-20 flip study, dims.md) or a
-# typical catalogue value; nothing is measured. The bracket slides in x and z, and shims set y,
-# so the cap is set on the bench with a syringe fitted.
+# The syringe is measured (owner, calipers, 2026-11-24). Every machine dimension here is a photo estimate
+# (2026-11-20 flip study, dims.md) or a typical catalogue value. The bracket slides in x and z, and M5
+# washers between the yoke and the post set y, so the cap is set on the bench with a syringe fitted.
 
 import math
 import os
@@ -52,15 +52,17 @@ V = FreeCAD.Vector
 Here = os.path.dirname(os.path.abspath(__file__))
 Root = os.path.dirname(Here)
 OutDir = os.path.join(Root, "CAD", "Tip Cap")
-Stem = "TipCap_v20261124-A"
+Stem = "TipCap_v20261124-B"
 
 P = dict(
-    # Syringe tip (photo estimates; owner: the tip end OD is under 8 mm). The checks use the largest
-    # plausible outline: tip end r 4.0, catheter tip to r 4.5, a cone from z ConeZ0 up to the shoulder,
-    # barrel r 21.5 + 2.0 (Kapton and photo uncertainty).
-    TipR=4.0, TipBaseR=4.5, ConeZ0=30.0, ShoulderZ=40.7, BarrelR=23.5, BarrelTopZ=151.0,
+    # Syringe, measured by the owner with calipers (2026-11-24): the catheter tip is 6.60 OD at its end and 10.15
+    # at its root, 34 long, bore 3.89; a 5 long shoulder up to the barrel, 42.75 OD (40 bore), 153 long with its
+    # finger flanges (2.75 thick, 60 tip to tip, 45 OD between them). The barrel gets 0.5 on its radius for Kapton
+    # tape and ovality.
+    TipR=3.30, TipBore=3.89, TipBaseR=5.075, ConeZ0=34.0, ShoulderZ=39.0, BarrelR=21.375 + 0.5,
+    BarrelTopZ=39.0 + 153.0, FlangeT=2.75, FlangeHubR=22.5,
     # Tip end errors left after the bench set-up (height by sliding the yoke along the post, x by sliding the
-    # post along the rail, y by the yoke's land thickness), from one syringe to the next: one syringe type
+    # post along the rail, y by the washers between the yoke and the post), from one syringe to the next: one syringe type
     # for every run, located by the barrel clamp and the flange seat; these allow for that and the set-up
     TipXYTol=1.5, TipZTol=1.5, TipXTol=1.0,
     # Stopper: size 00 solid silicone, PUL FACTORY listing 15 / 11 x 21 mm (Amazon B074RHKP62); the big
@@ -97,13 +99,15 @@ P = dict(
                            # the parked cup (at 55 deg the open cup ran into it), and beside the bridge
     CrankR=8.0,            # crank pin on the arm (a 4 mm dowel pin pressed in), on the ray that points at the anchor
                            # at dead centre
-    SpringDCLen=11.9,      # spring length at dead centre with no seat shim: stays 1.4 off solid even if the box's
-                           # "laps" are active coils with unground ends (solid 10.5); a printed shim on the eye's
-                           # seat then raises the preload once the spring is measured
-    SeatShim=0.0,          # shim thickness on the eye's seat, set after measuring the spring
+    SpringDCLen=11.9,      # spring length at dead centre with no seat washer: stays 1.4 off solid even if the box's
+                           # "laps" are active coils with unground ends (solid 10.5); small M4 washers on the rod
+                           # under the spring then raise the preload once the spring is measured
+    SeatShim=0.0,          # total thickness of small M4 washers on the eye's seat, set after measuring the spring
+    SeatWasherT=0.5, SeatWasherOD=8.0,   # DIN 433 M4: 4.3 x 8 x 0.5
     AltSpring=dict(Na=12, Solid=10.5),   # the other reading of the box label: 12 active coils, unground ends
     StrutY=7.5,            # the strut's axis plane
     SeatD=7.6, BodyD=7.6, RodD=4.0,   # seats just over the 7.0 spring OD
+    PivotDiscR=3.4,        # full-width disc round each strut end's pivot hole (the flats at +-3 would leave 0.3)
     RodL=30.0,             # the guide rod is a 4 x 30 dowel pin from the owner's pin kit, used as delivered; its
                            # press depth in the eye follows from the length the strut needs out of the eye
     EyeCT=8.6,             # crank pivot to the eye's spring seat: the rod's press bore and the pivot hole keep a web
@@ -143,11 +147,11 @@ P = dict(
     LostMotion=20.0,       # deg of free play of the pin in the arm's arc slot
     # Horn pin: a 3 x 8 dowel pin from the kit pressed into a printed tube that an M2 screw through the horn holds;
     # the pin rides in the arm's slot; the tube's end stays clear of the arm
-    HornPinD=3.0, SlotClear=0.4, TubeD=6.0, HornPinL=8.0, HornPinPress=3.5,
+    HornPinD=3.0, SlotClear=0.4, TubeD=6.0, HornPinL=8.0, HornPinPress=3.3,
     HornGap=1.0,           # the tube's end stays this far off the arm's +y face: the horn's seat height is a
                            # catalogue value, and the arm is held in y by the hub (-y) and the strut (+y), not by it
     HornPilotD=1.6, HornPilotDepth=3.5, HornScrewL=5.0,   # M2 x 5 self-tapping into the tube from the horn's side
-    HornFloor=1.0,         # least PETG between the pin's bore and the screw's pilot
+    HornFloor=1.2,         # least PETG between the pin's bore and the screw's pilot
     InsertPinRay=180.0,    # the servo goes in last from +y, horn, tube and pin fitted on the bench, with the pin
                            # pointing -x through the plate's open notch; the arm waits at the matching angle
     PeelN=1.0,             # allowance for the stopper sticking to the tip, N at the face, for the servo check
@@ -162,19 +166,24 @@ P = dict(
                            # yoke prints upside down on both
     PlateY=(17.0, 21.0), PlateX=(26.0, 71.0), PlateZ0=6.0, PlateTopZ=77.0,   # bottom above the chuck during a dose;
                            # the top carries the strut's anchor boss
-    AnchorBossR=4.5,
+    AnchorBossR=4.0,       # under the body's round part, which starts 4.5 from the anchor (past its rod bore's end)
     # Bracket: a 2020 aluminium post hung under the +v shelf rail (2020, rail bottom z 151 above the tip end,
-    # photo) on two 2020 corner brackets, one on each x face. The yoke's land bolts to the post's -y slot with
-    # two M5 drop-in T-nuts; side lips on its land hug the post: x slides along the rail, z slides along the post
+    # photo) on two 2020 corner brackets, one on each x face. The yoke's plate bolts flat to the post's -y slot
+    # with two M5 x 12 and drop-in T-nuts, M5 washers between the plate and the post: x slides along the rail,
+    # z slides along the post, the washers set y, and the bolts' friction holds the yoke square
     PostX=(48.5, 68.5),    # clear of the anchor pin's hole (x up to 45.4) and of the servo
     PostY=(23.0, 43.0),    # under the rail's footprint
     PostBottomZ=48.0,      # above the bowl rim during a dose (photo: the rim 42 above the tip end then)
-    YokeBoltZ=(60.0, 71.0),  # the land then runs z 54..77: about 6 of height adjustment each way
-    LandT=1.0, ShimNom=1.0,  # land on the plate, then printed 0.5 shims (two nominally) to the post face:
-                             # y is set with the arm closed on a fitted syringe, by adding or removing shims
-    LipT=2.0, LipDepth=3.0, LipGap=0.15,   # side lips on the land hug the post's outer x faces: they keep the
-                             # yoke square to the post (the T-nuts' slot is left to the T-nuts)
-    LipMinusZ=(54.0, 63.0),  # the -x lip (kept short of the anchor block)
+    YokeBoltZ=(60.0, 71.0),
+    WasherT=1.0, WasherOD=10.0, WasherID=5.3,   # M5 washer, DIN 125 (form A)
+    GapWashers=2,          # washers between the plate and the post on each bolt, nominally; 1 to 3 sets y +-1
+    BoltL=12.0,            # M5 x 12 socket head
+    TNutThread0=1.8, SlotFloor=6.0,   # drop-in T-nut thread starts this far into the slot (under the slot's
+                           # lips); the slot's floor; both simplified, as in Post()
+    BoltMu=0.2, BoltPreload=500.0,    # ASSUMED friction coefficient (steel washer on PETG) and the preload left per
+                           # bolt after the PETG creeps under the washers, for the squareness check
+    BoltTorque=0.8, NutFactor=0.2,    # N m to tighten the M5s to: a preload T / (K d) of about 800 N
+    PetgBearing=20.0,      # MPa, ASSUMED long-term limit for PETG under a washer
     RailY=(23.0, 43.0), RailBottomZ=151.0,
     PostI=6982.0,          # mm4, 2020 profile (Misumi HFS5-2020 catalogue, 0.70 cm4)
     AluE=69000.0,
@@ -229,7 +238,7 @@ def StrutRange(D):
 
 # The body's length follows from the rod's travel over the swing; the anchor distance follows from the
 # spring length wanted at dead centre (fixed point, a few passes). One anchor hole: the seal is tuned with a
-# printed shim on the eye's seat (it shortens the spring), not by moving the anchor
+# few small M4 washers on the eye's seat (they shorten the spring), not by moving the anchor
 BodyCA = 25.0
 for _ in range(8):
     DNom = P["CrankR"] + P["EyeCT"] + P["SpringDCLen"] + BodyCA
@@ -237,7 +246,6 @@ for _ in range(8):
     BodyCA = P["PinClr"] + P["BoreSpare"] + P["RodEngage"] + (hi_ - lo_)
 DNom = P["CrankR"] + P["EyeCT"] + P["SpringDCLen"] + BodyCA
 AnchorDs = (DNom,)
-LandZ = (min(P["YokeBoltZ"]) - 6.0, P["PlateTopZ"])   # the land reaches the plate top, so it prints on the bed
 # rod length out of the eye's seat: the gap to the body's seat at the longest strut, plus the engagement
 RodOut = StrutRange(DNom)[1] - P["EyeCT"] - BodyCA + P["RodEngage"]
 P["RodPress"] = P["RodL"] - RodOut   # the kit rod's length sets how deep it is pressed into the eye
@@ -252,7 +260,16 @@ def StopDia(d):
 MouthZ = -P["Proud"]
 CupOutR = StopDia(P["Proud"]) / 2 + P["CupWall"]
 CupBotZ = -P["StopL"] - P["FloorClear"] - P["CupFloor"]
-LugScrews = [(CupOutR + 4.5, CupBotZ + 4.0), (CupOutR + 4.5, CupBotZ + 11.5)]
+# The arm's tang sits in the cup lug's slot, outside the cup's wall; the two M3 screws through lug and tang are
+# placed so the tang keeps an equal wall above, below and between them
+TangX0 = CupOutR + 0.2
+TangZ = (CupBotZ + 2.2, MouthZ - 0.5)
+ScrewR = 1.6
+NutAcrossCorners = 6.35   # M3 hex nut (ISO 4032: 5.5 across flats); the button heads are 5.7 across
+_edge = 0.5 * (TangZ[1] - TangZ[0] - NutAcrossCorners - 0.1)   # screws as far apart as two nuts need
+LugScrews = [(CupOutR + 4.5, TangZ[0] + _edge), (CupOutR + 4.5, TangZ[1] - _edge)]
+LugFilletR = 2.0       # concave fillet where the lug's flat sides meet the cup's cylinder
+LugCornerR = 1.5       # the lug's outer corners
 
 
 # ---------------------------------------------------------------- geometry helpers
@@ -308,10 +325,39 @@ def Stopper():
     return Part.makeCone(P["StopSmallD"] / 2, P["StopBigD"] / 2, P["StopL"], V(0, 0, -P["StopL"]))
 
 
+def CupOutline():
+    """The cup and its lug in plan (x-y), as one wire of exact lines and arcs: the cylinder, a concave fillet
+    of LugFilletR into each flat side of the lug, and the lug's outer corners rounded by LugCornerR."""
+    R, h, rf, rc = CupOutR, P["LugHalfY"], LugFilletR, LugCornerR
+    xe = CupOutR + P["LugX"]
+    xf = math.sqrt((R + rf) ** 2 - (h + rf) ** 2)            # fillet centre (xf, +-(h + rf))
+    k = R / (R + rf)
+    segs = []
+    # the cylinder from its upper tangent point round the back to the lower one
+    tU = (xf * k, (h + rf) * k)
+    tL = (xf * k, -(h + rf) * k)
+    back = V(-R, 0, 0)
+    segs.append(Part.Arc(V(tU[0], tU[1], 0), back, V(tL[0], tL[1], 0)).toShape())
+    for s in (-1, 1):
+        # fillet from the cylinder to the flat side, then the side to the corner, the corner, and the end
+        c = (xf, s * (h + rf))
+        t0 = (tL if s < 0 else tU)
+        t1 = (xf, s * h)
+        mid = (c[0] - rf * math.cos(math.atan2(c[1] - 0.5 * (t0[1] + t1[1]), c[0] - 0.5 * (t0[0] + t1[0]))),
+               c[1] - rf * math.sin(math.atan2(c[1] - 0.5 * (t0[1] + t1[1]), c[0] - 0.5 * (t0[0] + t1[0]))))
+        segs.append(Part.Arc(V(t0[0], t0[1], 0), V(mid[0], mid[1], 0), V(t1[0], t1[1], 0)).toShape())
+        segs.append(Part.LineSegment(V(xf, s * h, 0), V(xe - rc, s * h, 0)).toShape())
+        cc = (xe - rc, s * (h - rc))
+        m = (cc[0] + rc * math.cos(math.radians(45)), cc[1] + s * rc * math.sin(math.radians(45)))
+        segs.append(Part.Arc(V(xe - rc, s * h, 0), V(m[0], m[1], 0), V(xe, s * (h - rc), 0)).toShape())
+    segs.append(Part.LineSegment(V(xe, -(h - rc), 0), V(xe, h - rc, 0)).toShape())
+    return Part.Wire(Part.__sortEdges__(segs))
+
+
 def Cup():
-    cup = Part.makeCylinder(CupOutR, MouthZ - CupBotZ, V(0, 0, CupBotZ))
-    lug = Box(CupOutR - 2.0, CupOutR + P["LugX"], -P["LugHalfY"], P["LugHalfY"], CupBotZ, MouthZ)
-    cup = cup.fuse(lug)
+    face = Part.Face(CupOutline())
+    face.translate(V(0, 0, CupBotZ))
+    cup = face.extrude(V(0, 0, MouthZ - CupBotZ))
     i = P["Interf"]
     rm = (StopDia(P["Proud"]) - i) / 2
     rs = (P["StopSmallD"] - i) / 2
@@ -320,16 +366,17 @@ def Cup():
     bore = bore.fuse(Part.makeCylinder(rm, 1.0, V(0, 0, MouthZ - 0.01)))
     cup = cup.cut(bore)
     cup = cup.cut(Part.makeCylinder(P["VentD"] / 2, P["CupFloor"] + 2, V(0, 0, CupBotZ - 1)))
-    # slot for the arm's tang, open at the top and at +x
+    # slot for the arm's tang, open at the top and at +x; it stays outside the cup's cylinder, so the wall round
+    # the stopper keeps its full thickness
     h = P["ArmT"] / 2 + 0.15
-    cup = cup.cut(Box(CupOutR - 1.5, CupOutR + P["LugX"] + 1, -h, h, CupBotZ + 2.0, MouthZ + 1))
+    cup = cup.cut(Box(CupOutR, CupOutR + P["LugX"] + 1, -h, h, TangZ[0] - 0.2, MouthZ + 1))
     for x, z in LugScrews:
-        cup = cup.cut(CylY((x, z), 1.6, -P["LugHalfY"] - 1, P["LugHalfY"] + 1))
+        cup = cup.cut(CylY((x, z), ScrewR, -P["LugHalfY"] - 1, P["LugHalfY"] + 1))
     return cup.removeSplitter()
 
 
-TangRect = [(CupOutR - 1.3, CupBotZ + 2.2), (CupOutR + P["LugX"] + 3.0, CupBotZ + 2.2),
-            (CupOutR + P["LugX"] + 3.0, MouthZ - 0.5), (CupOutR - 1.3, MouthZ - 0.5)]
+TangRect = [(TangX0, TangZ[0]), (CupOutR + P["LugX"] + 3.0, TangZ[0]),
+            (CupOutR + P["LugX"] + 3.0, TangZ[1]), (TangX0, TangZ[1])]
 EarEnds0 = [Polar(P["HornHoleR"], EarAng0 + s * P["LostMotion"] / 2) for s in (-1, 1)]
 SlotW = P["HornPinD"] + P["SlotClear"]
 
@@ -355,7 +402,7 @@ def Arm():
     for e in EarEnds0:
         arm = arm.cut(CylY(e, w, y0 - 1, y1 + 1))
     for x, z in LugScrews:
-        arm = arm.cut(CylY((x, z), 1.6, y0 - 1, y1 + 1))
+        arm = arm.cut(CylY((x, z), ScrewR, y0 - 1, y1 + 1))
     # press hole for the 4 x 16 crank pin, through the arm and the edge of the hub
     arm = arm.cut(CylY(CrankPt0, P["PinPressD"] / 2, P["HubY0"] - 1, y1 + 1))
     return arm.removeSplitter()
@@ -413,9 +460,14 @@ def Yoke():
         # coincident edges to trip on
         cheek = cheek.fuse(XZSolid(Sector(r0, r1 - 0.05, a0 + 0.02, a1 - 0.02), cy1 - 1.0, P["StopY1"]))
     yoke = cheek.cut(CylY((Px, Pz), P["DowelSlip"] / 2, cy0 - 1, cy1 + 0.5))
-    # relief under the crank pin's end as it orbits
+    # relief under the crank pin's end as it orbits, kept MinWall inside the cheek's outline so it leaves no
+    # slivers where the outline comes near it (there the pin's end runs 0.15 off the face, as the hub's does)
     r0, r1 = P["CrankR"] - P["PinD"] / 2 - 0.3, P["CrankR"] + P["PinD"] / 2 + 0.3
-    yoke = yoke.cut(CylY((Px, Pz), r1, cy1 - P["PinRelief"], cy1 + 0.01).cut(CylY((Px, Pz), r0, cy1 - 1, cy1 + 1)))
+    ring = CylY((Px, Pz), r1, cy1 - P["PinRelief"], cy1 + 0.01).cut(CylY((Px, Pz), r0, cy1 - 1, cy1 + 1))
+    outline = max(cheek.slice(V(0, 1, 0), cy1 - 0.25), key=lambda w: Part.Face(w).Area)
+    inner = Part.Face(outline).makeOffset2D(-MinWall)
+    inner.translate(V(0, cy1 - P["PinRelief"] - 1.0 - (cy1 - 0.25), 0))
+    yoke = yoke.cut(ring.common(inner.extrude(V(0, P["PinRelief"] + 2.0, 0))))
     # radial M3 grub screw from below into the dowel hole
     yoke = yoke.cut(Part.makeCylinder(1.25, 8.5, V(Px, 0.5 * (cy0 + cy1), Pz - 9.0), V(0, 0, 1)))
     # bridge over to the servo plate
@@ -430,19 +482,10 @@ def Yoke():
     for s in (-1, 1):
         plate = plate.cut(CylY((Px, zc + s * P["EarHoleSpacing"] / 2), 0.85, P["PlateY"][0] - 1, P["PlateY"][1] + 1))
     yoke = yoke.fuse(plate)
-    # mounting land on the plate's +y face (shims go between it and the post), and side lips that hug the
-    # post's outer x faces
-    x0, x1 = P["PostX"]
-    sx = 0.5 * (x0 + x1)
-    z0, z1 = LandZ
-    yl = P["PlateY"][1] + P["LandT"]
-    yoke = yoke.fuse(Box(x0, x1, P["PlateY"][1] - 0.01, yl, z0, z1))
-    ly1 = P["PostY"][0] + P["LipDepth"]
-    g, t = P["LipGap"], P["LipT"]
-    yoke = yoke.fuse(Box(x1 + g, x1 + g + t, P["PlateY"][1] - 0.01, ly1, z0, z1))
-    yoke = yoke.fuse(Box(x0 - g - t, x0 - g, P["PlateY"][1] - 0.01, ly1, P["LipMinusZ"][0], P["LipMinusZ"][1]))
+    # the plate's +y face bolts flat to the post, M5 washers between them; clearance holes for the M5 bolts
+    sx = 0.5 * sum(P["PostX"])
     for z in P["YokeBoltZ"]:
-        yoke = yoke.cut(CylY((sx, z), 2.75, P["PlateY"][0] - 1, ly1 + 1))
+        yoke = yoke.cut(CylY((sx, z), 2.75, P["PlateY"][0] - 1, P["PlateY"][1] + 1))
     # anchor boss: the anchor pin's hole (one per entry of AnchorDs), run up to the plate top as a block that
     # carries the pin's grub screw
     hx = P["AnchorBlockHalfX"]
@@ -454,16 +497,6 @@ def Yoke():
         yoke = yoke.cut(CylY(a, P["PivotHoleD"] / 2, P["AnchorBossY0"] - 1, P["PlateY"][1] + 1))
         yoke = yoke.cut(Part.makeCylinder(1.25, P["PlateTopZ"] - a[1] + 1.0, V(a[0], AnchorGrubY, a[1]), V(0, 0, 1)))
     return yoke.removeSplitter()
-
-
-def Shim():
-    """Printed 0.5 shim between the land and the post (print several; the stack sets y)."""
-    x0, x1 = P["PostX"]
-    z0, z1 = LandZ
-    sh = Box(x0 + 0.3, x1 - 0.3, 0.0, 0.5, z0 + 0.3, z1 - 0.3)
-    for z in P["YokeBoltZ"]:
-        sh = sh.cut(CylY((0.5 * (x0 + x1), z), 2.75, -1, 2))
-    return sh
 
 
 def Post():
@@ -499,7 +532,9 @@ def Syringe():
     s = Part.makeCone(P["TipR"], P["TipBaseR"], P["ConeZ0"], V(0, 0, 0))
     s = s.fuse(Part.makeCone(P["TipBaseR"], P["BarrelR"], P["ShoulderZ"] - P["ConeZ0"], V(0, 0, P["ConeZ0"])))
     s = s.fuse(Part.makeCylinder(P["BarrelR"], P["BarrelTopZ"] - P["ShoulderZ"], V(0, 0, P["ShoulderZ"])))
-    return s
+    # the flange's hub at the top (45 OD); the finger flanges' outline and direction are not measured, so left out
+    s = s.fuse(Part.makeCylinder(P["FlangeHubR"], P["FlangeT"], V(0, 0, P["BarrelTopZ"] - P["FlangeT"])))
+    return s.cut(Part.makeCylinder(P["TipBore"] / 2, 2.0, V(0, 0, -1.0)))   # the tip's bore at its end
 
 
 def Servo():
@@ -569,11 +604,17 @@ def SlabCut(x0, x1):
     return Box(x0, x1, y0 - 10, y0, -10, 10).fuse(Box(x0, x1, y1, y1 + 10, -10, 10))
 
 
+def PivotDisc():
+    """A disc round a strut end's pivot hole, across the strut's whole width, so the flats leave a full wall."""
+    return Part.makeCylinder(P["PivotDiscR"], 6.0, V(0, P["StrutY"] - 3.0, 0), V(0, 1, 0))
+
+
 def StrutEye(boss=True):
     """The eye on the crank, in the strut's local frame: crank pivot at x 0, the strut along +x. Its boss
     bears on the arm's +y face (in place of the washers under the old crank screw)."""
     rs = P["SeatD"] / 2
     e = CylX(-4.0, P["EyeCT"], rs).cut(SlabCut(-5.0, 4.0))
+    e = e.fuse(PivotDisc())             # full width round the pivot hole, where the flats would thin it
     if boss:
         e = e.fuse(CylY((0.0, 0.0), P["EyeBossR"], P["EyeBossY0"], P["StrutY"] - 3.0 + 0.01))
     e = e.cut(PinHoleY(0.0))
@@ -583,7 +624,8 @@ def StrutEye(boss=True):
 
 def StrutBody():
     """The guide body on the anchor, local frame: anchor pivot at x 0, the strut along -x."""
-    b = CylX(-BodyCA, 4.0, P["BodyD"] / 2).cut(PinHoleY(0.0)).cut(SlabCut(-6.5, 5.0))   # flat under the boss
+    b = CylX(-BodyCA, 4.0, P["BodyD"] / 2).cut(SlabCut(-P["PinClr"], 5.0))   # flats under the boss, off the rod bore
+    b = b.fuse(PivotDisc()).cut(PinHoleY(0.0))
     b = b.cut(CylX(-BodyCA - 1, -P["PinClr"], P["RodD"] / 2 + 0.1))                     # blind rod bore
     return b.removeSplitter()
 
@@ -708,6 +750,22 @@ def Overhang(shape):
     return a
 
 
+MinWall = 1.2
+
+
+def HoleWall(shape, normal, off, c, r):
+    """Least wall round a hole of radius r centred on c, in the section of shape by the plane normal . p = off:
+    the distance from c to the nearest section edge that is not the hole's own, less r."""
+    d = 9e9
+    for wire in shape.slice(V(*normal), off):
+        for e in wire.Edges:
+            cv = getattr(e.Curve, "Center", None)
+            if cv is not None and (cv - c).Length < 0.05 and abs(e.Curve.Radius - r) < 0.05:
+                continue
+            d = min(d, e.distToShape(Part.Vertex(c))[0])
+    return d - r
+
+
 def BedArea(shape):
     """Area of the faces lying on z = 0 (the build plate)."""
     return sum(f.Area for f in shape.Faces if f.BoundBox.ZMax < 1e-3)
@@ -729,7 +787,8 @@ def Checks(parts):
     ArmGravity.update(m=m_, cog=(sum(sh.Solids[0].CenterOfMass.x * sh.Volume * rho for sh, rho in pieces) / m_,
                                  sum(sh.Solids[0].CenterOfMass.z * sh.Volume * rho for sh, rho in pieces) / m_))
     out.append("Tip cap (issue 243): pivot (%.1f, %.1f) from the tip end, arm %.1f to the face, swing %.0f deg" % (Px, Pz, ArmR, P["Swing"]))
-    out.append("All syringe and machine dimensions are photo estimates; servo and spring are typical or required values.")
+    out.append("The syringe is measured (owner, 2026-11-24); machine dimensions are photo estimates; servo and spring are typical")
+    out.append("or required values.")
     out.append("")
     out.append("Stopper and cup (size 00 silicone %.0f / %.0f x %.0f, big end on the tip)" % (P["StopBigD"], P["StopSmallD"], P["StopL"]))
     mouth = StopDia(P["Proud"])
@@ -740,11 +799,12 @@ def Checks(parts):
         P["Proud"] + sink, P["Proud"], sink, P["FloorClear"]))
     out.append("    small end, so the taper, not the floor, locates it; vent hole %.0f in the floor" % P["VentD"])
     cover = P["StopBigD"] / 2 - P["TipR"]
-    out.append("  face %.0f over a tip end of at most %.0f: %.1f of overlap all round when centred" % (P["StopBigD"], 2 * P["TipR"], cover))
+    out.append("  face %.0f over the %.2f tip end (measured; bore %.2f): %.1f of overlap all round when centred" % (
+        P["StopBigD"], 2 * P["TipR"], P["TipBore"], cover))
     out.append("  the seal force pushes the stopper deeper into its taper; uncapping pulls the tip away and")
     out.append("    puts no load on the fit")
     out.append("")
-    out.append("Seal force on the tip (strut spring %.1f x %.0f x %.0f, %d laps, seat shim %.1f; the arm's own %.0f g included)" % (
+    out.append("Seal force on the tip (strut spring %.1f x %.0f x %.0f, %d laps, seat washers %.1f; the arm's own %.0f g included)" % (
         P["WireD"], P["SpringOD"], P["SpringLf"], P["SpringLaps"], P["SeatShim"], ArmGravity["m"]))
     rows = []
     fLo, fHi, worstOff, worstPhi = 9e9, -9e9, 0.0, 0.0
@@ -782,11 +842,27 @@ def Checks(parts):
         math.degrees(math.atan(indent / (2 * P["TipR"]))) / abs(perMm)))
     out.append("    self-aligning cup; bench T4 decides")
     kAlt = P["GMod"] * P["WireD"] ** 4 / (8 * SpringDm ** 3 * P["AltSpring"]["Na"])
-    shims = (0.0, 0.5, 1.0, 1.5)
-    out.append("  seal by seat shim (ring centre to edge), as estimated (k %.3f) / if 12 coils are active (k %.3f):" % (SpringK, kAlt))
-    out.append("    " + "; ".join("%.1f: %.2f..%.2f / %.2f..%.2f N" % (
+    shims = [P["SeatWasherT"] * n for n in range(4)]
+    Cs_ = SpringDm / P["WireD"]
+    Kw_ = (4 * Cs_ - 1) / (4 * Cs_ - 4) + 0.615 / Cs_
+    phisAll = [-P["OverTravel"]] + [P["Swing"] * k / 340 for k in range(341)]
+
+    def StackOk(t):
+        """A seat-washer stack is allowed only if the spring stays off solid (both readings of the label) and under
+        the allowable shear at its shortest, with both rates."""
+        sm = min(SpringState(f, shim=t)[0] for f in phisAll)
+        taus = [8 * kk * (P["SpringLf"] - sm) * SpringDm * Kw_ / (math.pi * P["WireD"] ** 3) for kk in (SpringK, kAlt)]
+        return sm >= SpringSolid + P["SolidMargin"] and sm >= P["AltSpring"]["Solid"] + 0.5 and max(taus) <= P["TauAllow"]
+    okStacks = [t for t in shims if StackOk(t)]
+    out.append("  seal by seat washers (%.1f each; ring centre to edge), as estimated (k %.3f) / if 12 coils are active (k %.3f):" % (
+        P["SeatWasherT"], SpringK, kAlt))
+    out.append("    " + "; ".join("%.1f: %.2f..%.2f / %.2f..%.2f N%s" % (
         t, SolveContact((0.0, 0.0), shim=t)[1], SolveContact((0.0, 0.0), shim=t)[2],
-        SolveContact((0.0, 0.0), k=kAlt, shim=t)[1], SolveContact((0.0, 0.0), k=kAlt, shim=t)[2]) for t in shims))
+        SolveContact((0.0, 0.0), k=kAlt, shim=t)[1], SolveContact((0.0, 0.0), k=kAlt, shim=t)[2],
+        "" if t in okStacks else " (NOT allowed)") for t in shims))
+    ok = P["SeatShim"] in okStacks
+    out.append("    use at most %.1f of washers: more puts the spring near solid or over the allowable shear%s" % (
+        max(okStacks) if okStacks else 0.0, Flag(ok)))
     out.append("")
     out.append("Coilover strut (the spring rides on a %.0f mm steel rod that slides in the body's blind bore)" % P["RodD"])
     phis = [P["Swing"] * k / 340 for k in range(341)]
@@ -911,6 +987,7 @@ def Checks(parts):
         worst["spring"] = min(worst["spring"], MinDist(StrutAt(f, eyeBoss=False), others),
                               MinDist(sp, RotY(cup.fuse(stopper), f).fuse(servo).fuse(syr)))
         worst["strutYoke"] = min(worst.get("strutYoke", 9e9), MinDist(sp, yokeNoBoss))
+        worst["bodyYoke"] = min(worst.get("bodyYoke", 9e9), MinDist(StrutAt(f, parts=("body",)), yoke))
         # pin offset d from mid-slot: before dead centre the pin leads (it pushes the arm there opening; the
         # spring snaps the arm ahead of it closing), past dead centre it trails; at a rest pose it sits where
         # the servo stopped (servo angle 0 closed, Swing open), so near closed d >= -phi and near open
@@ -945,9 +1022,15 @@ def Checks(parts):
     out.append("  arm, cup and stopper to the syringe once 3 deg open: %.2f%s" % (worst["syringe"], Flag(ok)))
     ok = worst["spring"] >= 0.5
     out.append("  strut (eye, rod, spring, body) to the arm, cup, stopper, servo and syringe: %.2f%s" % (worst["spring"], Flag(ok)))
+    grow = max(0.0, P["SeatWasherOD"] / 2 - P["SeatD"] / 2)
+    ok = worst["spring"] - grow >= 0.3
+    out.append("    with seat washers (%.0f OD against the seat's %.1f) at least %.2f%s" % (
+        P["SeatWasherOD"], P["SeatD"], worst["spring"] - grow, Flag(ok)))
     ok = worst["strutYoke"] >= 0.5
     out.append("  strut to the yoke away from the anchor boss: %.2f (at the boss the body has 0.3 of axial play by design)%s" % (
         worst["strutYoke"], Flag(ok)))
+    ok = worst["bodyYoke"] >= 0.25
+    out.append("  strut body to the whole yoke, the boss included: %.2f%s" % (worst["bodyYoke"], Flag(ok)))
     out.append("  the spring has 0.8 of radial play on the rod, so it may brush the arm's face near open (rub only)")
     ok = worst["horn"] >= 0.5
     out.append("  horn stack (pin where the motion puts it in its slot) to the yoke, strut, crank pin, syringe: %.2f%s" % (
@@ -1048,8 +1131,8 @@ def Checks(parts):
     out.append("    %.3f mm at %.1f MPa (E %.0f MPa, long-term, assumed); the aluminium post adds %.4f; the bolted joints, with" % (
         dB, sB, P["PetgE"], dPost))
     out.append("    M5 preload far above these loads, are taken as rigid%s" % Flag(ok))
-    up = (P["RailBottomZ"] - 20.0) - LandZ[1]
-    down = LandZ[0] - P["PostBottomZ"]
+    up = (P["RailBottomZ"] - 20.0) - P["PlateTopZ"]          # the plate's top up to the corner brackets
+    down = min(P["YokeBoltZ"]) - 5.0 - P["PostBottomZ"]       # the lower T-nut (10 long) stays in the post
     ok = down >= 3.0 and up >= 3.0
     out.append("  height: the post's bottom must stay above the rim during a dose, a fixed height above the tip end, so the")
     out.append("    post's cut length is the set-up: measure the rail's bottom face to the tip end (photo %.0f +-%.0f), cut the" % (
@@ -1057,17 +1140,80 @@ def Checks(parts):
     out.append("    post square to that less %.0f; then the yoke's T-nuts slide %.0f down and %.0f up in the slot for the fine" % (
         P["PostBottomZ"], down, up))
     out.append("    setting, against about +-1.5 of measuring and cutting error%s" % Flag(ok))
-    out.append("  square: the land's side lips hug the post's outer faces (%.2f clearance a side), so the yoke cannot turn on" % P["LipGap"])
-    out.append("    the post; along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot")
-    out.append("  across (y): the land is %.1f; %.1f of 0.5 printed shims sits between it and the post nominally, so y moves" % (
-        P["LandT"], P["ShimNom"]))
-    out.append("    -%.1f (fewer) or + (more); set it with the arm closed on a fitted syringe, face centred on the tip" % P["ShimNom"])
-    grip = P["PlateY"][1] - P["PlateY"][0] + P["LandT"] + P["ShimNom"] + 1.0
-    out.append("  M5 bolt length: washer + plate + land + shims (%.0f nominally) + 5, so M5 x %.0f; its tip stays above the" % (
-        grip, grip + 5))
-    out.append("    slot floor")
+    # square: nothing keys the plate to the post; the two bolts' friction must hold the yoke against turning about
+    # y under the loads from outside the cap (the seal's reaction at the tip end and the peel on uncapping; the
+    # strut and the servo act inside it)
+    zb = 0.5 * sum(P["YokeBoltZ"])
+    lever = math.hypot(sx, zb)
+    # the largest push at the face: the seal and the peel, or the servo at stall if its S values are set wrong
+    fFace = max(fHi + P["PeelN"], P["StallNm"] * 1000 / ArmR)
+    need = fFace * lever
+    spacing = abs(P["YokeBoltZ"][1] - P["YokeBoltZ"][0])
+    have = 2 * P["BoltMu"] * P["BoltPreload"] * spacing / 2
+    F0 = P["BoltTorque"] / (P["NutFactor"] * 0.005)
+    bearing = F0 / (math.pi / 4 * (P["WasherOD"] ** 2 - 5.5 ** 2))
+    ok = have >= 2.0 * need and bearing <= P["PetgBearing"]
+    out.append("  square: the plate sits flat on the washers, with no key; the two bolts %.0f apart hold it by friction:" % spacing)
+    out.append("    %.0f N mm (mu %.1f and %.0f N a bolt, both ASSUMED, the preload after the PETG creeps) against %.0f N mm" % (
+        have, P["BoltMu"], P["BoltPreload"], need))
+    out.append("    from %.1f N at the tip end, %.0f from the bolts (the servo at stall with wrong S values; the seal and the" % (fFace, lever))
+    out.append("    peel give %.1f N); tighten to %.1f N m (about %.0f N, %.0f MPa on the PETG under a DIN 125 washer, against %.0f" % (
+        fHi + P["PeelN"], P["BoltTorque"], F0, bearing, P["PetgBearing"]))
+    out.append("    assumed); set the angle on the bench with the arm closed on a fitted syringe, then tighten; it is not")
+    out.append("    keyed, so set it again after the yoke comes off; re-tighten after the first week%s" % Flag(ok))
+    out.append("  along the shelf: the corner brackets' T-nuts slide in the rail's bottom slot")
+    g0 = P["GapWashers"]
+    gapOk = abs((P["PostY"][0] - P["PlateY"][1]) - g0 * P["WasherT"]) < 1e-6
+    reaches = {g: BoltReach(g) for g in (g0 - 1, g0, g0 + 1)}
+    ok = gapOk and all(r - P["TNutThread0"] >= 2.0 and r <= P["SlotFloor"] - 0.5 for r in reaches.values())
+    out.append("  across (y): %d M5 washers (%.1f thick, DIN 125) between the plate and the post on each bolt nominally; %d or %d" % (
+        g0, P["WasherT"], g0 - 1, g0 + 1))
+    out.append("    move the yoke +-%.1f; set it with the arm closed on a fitted syringe, face centred on the tip" % P["WasherT"])
+    out.append("  bolts: M5 x %.0f, three washers on each in all (four with %d in the gap), at least one under the head:" % (
+        P["BoltL"], g0 + 1))
+    gs = sorted(reaches)
+    out.append("    its tip reaches %s into the post with %s in the gap, so at least %.1f of" % (
+        ", ".join("%.1f" % reaches[g] for g in gs), ", ".join("%d" % g for g in gs), min(reaches.values()) - P["TNutThread0"]))
+    out.append("    thread in the T-nut and %.1f clear of the slot's floor (T-nut and slot simplified)%s" % (
+        P["SlotFloor"] - max(reaches.values()), Flag(ok)))
+    out.append("")
+    out.append("Walls round the holes (in a section through each, to the nearest other edge; at least %.1f, three" % MinWall)
+    out.append("perimeters of a 0.4 nozzle)")
+    sy = 0.5 * (P["ArmT"] / 2 + 0.15 + P["LugHalfY"])
+    zc = Pz - P["ShaftFromEnd"] + P["ServoL"] / 2
+    yc = P["CheekY"][1] - 1.5     # beside the grub screw's hole, which meets the dowel's hole by design
+    zm = MouthZ - 0.3
+    rows = [
+        ("arm: cup screws", arm, (0, 1, 0), 0.0, [(V(x, 0, z), ScrewR) for x, z in LugScrews]),
+        ("arm: crank pin", arm, (0, 1, 0), 0.0, [(V(CrankPt0[0], 0, CrankPt0[1]), P["PinPressD"] / 2)]),
+        ("arm: pivot dowel", arm, (0, 1, 0), 0.0, [(V(Px, 0, Pz), P["DowelBore"] / 2)]),
+        ("cup lug: screws", cup, (0, 1, 0), sy, [(V(x, sy, z), ScrewR) for x, z in LugScrews]),
+        ("cup: stopper bore to the tang slot, at the mouth", cup, (0, 0, 1), zm,
+         [(V(0, 0, zm), (StopDia(P["Proud"]) - P["Interf"]) / 2)]),
+        ("yoke: servo ear pilots", yoke, (0, 1, 0), 19.0,
+         [(V(Px, 19.0, zc + s * P["EarHoleSpacing"] / 2), 0.85) for s in (-1, 1)]),
+        ("yoke: M5 bolt holes", yoke, (0, 1, 0), 19.0, [(V(sx, 19.0, z), 2.75) for z in P["YokeBoltZ"]]),
+        ("yoke: anchor pin", yoke, (0, 1, 0), 19.0, [(V(AnchorPt[0], 19.0, AnchorPt[1]), P["PivotHoleD"] / 2)]),
+        ("yoke: pivot dowel in the cheek", yoke, (0, 1, 0), yc, [(V(Px, yc, Pz), P["DowelSlip"] / 2)]),
+    ]
+    eye, body = parts["StrutEye"], parts["StrutBody"]
+    for yy in (P["StrutY"] - 2.9, P["StrutY"], P["StrutY"] + 2.9):
+        rows.append(("strut eye: pivot hole (y %.1f)" % yy, eye, (0, 1, 0), yy, [(V(0, yy, 0), P["PivotHoleD"] / 2)]))
+        rows.append(("strut body: pivot hole (y %.1f)" % yy, body, (0, 1, 0), yy, [(V(0, yy, 0), P["PivotHoleD"] / 2)]))
+    for xx in (-P["PinClr"] - 0.1, -P["PinClr"] - 1.0, -BodyCA + 1.0):
+        rows.append(("strut body: rod bore (x %.1f)" % xx, body, (1, 0, 0), xx,
+                     [(V(xx, P["StrutY"], 0), P["RodD"] / 2 + 0.1)]))
+    for nm, shp, nrm, off, holes in rows:
+        w = min(HoleWall(shp, nrm, off, c, r) for c, r in holes)
+        ok = w >= MinWall - 1e-6
+        out.append("  %-48s %.2f%s" % (nm, w, Flag(ok)))
+    gapN = abs(LugScrews[1][1] - LugScrews[0][1])
+    ok = gapN >= NutAcrossCorners + 0.05
+    out.append("  cup screws %.2f apart: room for two M3 nuts (%.2f across corners) side by side%s" % (
+        gapN, NutAcrossCorners, Flag(ok)))
+    out.append("")
     out.append("Printing (each STEP in its print orientation): bed contact, and flat faces facing down off the bed")
-    for nm in ("CapArm", "StopperCup", "CapYoke", "StrutEye", "StrutBody", "CapShim", "HornTube"):
+    for nm in ("CapArm", "StopperCup", "CapYoke", "StrutEye", "StrutBody", "HornTube"):
         s = PrintPose(nm, parts[nm])
         ba, oh = BedArea(s), Overhang(s)
         down = [f.Area for f in s.Faces if f.Surface.__class__.__name__ == "Plane" and f.BoundBox.ZMin >= 1e-3
@@ -1075,8 +1221,8 @@ def Checks(parts):
         ok = ba >= max([0.0] + down) and oh <= 600.0   # the part stands on its largest downward face
         out.append("  %-10s bed %5.0f mm2, overhang %4.0f mm2 (steeper than 45 deg)%s" % (nm, ba, oh, Flag(ok)))
     out.append("  CapArm: +y face down, hub up. StopperCup: mouth up. CapYoke: upside down on its bridge and plate top,")
-    out.append("    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). CapShim:")
-    out.append("    flat, print four. HornTube: standing on its horn end, with a brim. PETG.")
+    out.append("    with a brim. StrutEye and StrutBody: standing on their spring seats, with a brim (small beds). HornTube:")
+    out.append("    standing on its horn end, with a brim. PETG.")
     out.append("")
     out.append("Parts and hardware (every pin is a dowel pin from the owner's 1.5 to 6 mm pin kit; no sleeves or bushings)")
     out.append("  stopper: size 00 solid silicone, the PUL FACTORY pack (any size 00; re-run with its sizes)")
@@ -1102,7 +1248,11 @@ def Checks(parts):
     out.append("  bracket: 2020 aluminium extrusion cut square to %.0f nominally (see height); 2 x 2020 corner brackets with" % (
         P["RailBottomZ"] - P["PostBottomZ"]))
     out.append("    4 x M5 x 10 and drop-in T-nuts (two in the rail's bottom slot, one in each of the post's x slots); yoke")
-    out.append("    to post: 2 x M5 x 12 with washers into spring-loaded drop-in T-nuts in the post's -y slot; CapShim x 4")
+    out.append("    to post: 2 x M5 x 12 at %.1f N m into spring-loaded drop-in T-nuts in the post's -y slot, with 6 x M5 washers (DIN 125," % (
+        P["BoltTorque"]))
+    out.append("    5.3 x 10 x 1.0): %d in the gap and %d under the head on each bolt (8 to set 3 in the gap)" % (
+        P["GapWashers"], HeadWashers()))
+    out.append("  seat washers (only if the measured spring needs more preload): small M4 washers, DIN 433, 4.3 x 8 x 0.5")
     phiI = (P["InsertPinRay"] - EarAng0 + 180.0) % 360.0 - 180.0
     s0 = (180 - P["Swing"]) / 2
     out.append("  assembly: on the bench, press the crank pin into the arm, the rod into the eye and the horn pin into the")
@@ -1117,15 +1267,13 @@ def Checks(parts):
     out.append("    pointing at the syringe, its cable kept on the +y side; turn the arm (about %.0f deg open) to meet the" % phiI)
     out.append("    pin with its slot, and hold the rod pointing at the anchor or hanging down, clear of the horn; ears")
     out.append("    screwed on the plate's +y face; (5) power the servo and send the open S value (no spring yet, so no")
-    out.append("    load; do not back-drive the servo by hand): spring and shim over the rod, body over rod and spring,")
+    out.append("    load; do not back-drive the servo by hand): seat washers and spring over the rod, body over both,")
     out.append("    line its hole up with the boss, push the anchor pin in from the plate's +y face until flush, grub")
     out.append("    screw from the top; (6) stopper cup on the arm, stopper in. Measure the spring first (free length,")
-    out.append("    coils, end type, rate) and set the seat shim")
+    out.append("    coils, end type, rate) and pick the seat washers")
     out.append("")
     out.append("Not known (bench, before printing)")
-    out.append("  the stopper sizes as delivered; the tip end OD and the shape of the catheter tip and cone below the")
-    out.append("  shoulder: the swing passes within about 2 of the modelled cone, which has no allowance, so MEASURE it")
-    out.append("  before printing; the tip end below the rail; the barrel's place in the rail gap; what else is")
+    out.append("  the stopper sizes as delivered; the tip end below the rail; the barrel's place in the rail gap; what else is")
     out.append("  under the rail at x %.0f..%.0f (and whether the barrel clamp wraps under it there); the servo's sizes, its" % (
         P["PostX"][0] - 20, P["PostX"][1] + 20))
     out.append("  real travel, its horn's holes and how high the horn seats on the spline; the spring's rate;")
@@ -1173,15 +1321,40 @@ def CupScrews():
     return out
 
 
+def HeadWashers(gap=None):
+    """Washers under each bolt's head: three washers on a bolt in all (four with three in the gap), so the
+    M5 x 12 always reaches 4 to 5 into the post."""
+    gap = P["GapWashers"] if gap is None else gap
+    return max(1, 3 - gap)
+
+
+def BoltReach(gap=None):
+    """How far the bolt's tip reaches past the post's face."""
+    gap = P["GapWashers"] if gap is None else gap
+    return P["BoltL"] - (HeadWashers(gap) + gap) * P["WasherT"] - (P["PlateY"][1] - P["PlateY"][0])
+
+
 def YokeBolts():
-    """2 x M5 x 12 socket head with washers, from the plate's -y face into the post's -y slot."""
+    """2 x M5 x 12 socket head with their head washers, from the plate's -y face into the post's -y slot."""
     sx = 0.5 * sum(P["PostX"])
-    yb = P["PlateY"][0]
+    yh = P["PlateY"][0] - HeadWashers() * P["WasherT"]      # under the head
     out = None
     for z in P["YokeBoltZ"]:
-        s = CylY((sx, z), 2.5, yb - 1.0, yb - 1.0 + 12.0).fuse(CylY((sx, z), 5.0, yb - 1.0, yb)).fuse(
-            CylY((sx, z), 4.25, yb - 6.0, yb - 1.0))
+        s = CylY((sx, z), 2.5, yh, yh + P["BoltL"]).fuse(CylY((sx, z), 4.25, yh - 5.0, yh))
         out = s if out is None else out.fuse(s)
+    return out
+
+
+def YokeWashers():
+    """The M5 washers on the bolts: under the heads, and in the gap between the plate and the post."""
+    sx = 0.5 * sum(P["PostX"])
+    t, ro, ri = P["WasherT"], P["WasherOD"] / 2, P["WasherID"] / 2
+    out = None
+    for z in P["YokeBoltZ"]:
+        for y0 in ([P["PlateY"][0] - t * (k + 1) for k in range(HeadWashers())] +
+                   [P["PlateY"][1] + t * k for k in range(P["GapWashers"])]):
+            w = CylY((sx, z), ro, y0, y0 + t).cut(CylY((sx, z), ri, y0 - 1, y0 + t + 1))
+            out = w if out is None else out.fuse(w)
     return out
 
 
@@ -1231,19 +1404,16 @@ def AssemblyParts(phi, parts, dispense):
     Add(yoke, "GrubScrew_M3x6", GrubScrew(), "grey")
     Add(yoke, "Servo_MG90S", Servo(), "purple")
     hp = HornParts(EarAng0 + phi)
-    Add(yoke, "Horn_and_M2x6", hp["horn"], "grey")
+    Add(yoke, "Horn_and_M2x5", hp["horn"], "grey")
     Add(yoke, "HornTube", hp["tube"], "yellow")
     Add(yoke, "HornPin_3x8", hp["pin"], "grey")
-    for k in range(int(round(P["ShimNom"] / 0.5))):
-        s = parts["CapShim"].copy()
-        s.translate(V(0, P["PlateY"][1] + P["LandT"] + 0.5 * k, 0))
-        Add(yoke, "CapShim_%d" % (k + 1), s, "red")
     br = "Bracket"
     Add(br, "Post_2020", Post(), "grey")
     Add(br, "CornerBrackets_2020", Brackets(), "grey")
     Add(br, "YokeBolts_M5x12", YokeBolts(), "grey")
+    Add(br, "YokeWashers_M5", YokeWashers(), "red")
     Add(br, "TNuts_M5", YokeTNuts(), "grey")
-    mach = "Machine (photo estimates)"
+    mach = "Machine (syringe measured, the rest photo estimates)"
     Add(mach, "Syringe_150mL", Syringe(), "pale", 60)
     rx0, rx1 = P["PostX"][0] - 110.0, P["PostX"][1] + 80.0
     Add(mach, "ShelfRail_2020", Rail2020X(rx0, rx1, P["RailY"][0], P["RailBottomZ"]), "grey", 50)
@@ -1275,10 +1445,10 @@ OverlapOK = {
     frozenset(("GuideRod_4x30", "StrutEye")): (PressVol(P["RodD"], P["RodPress"]), "the rod is pressed into the eye"),
     frozenset(("CrankPin_4x16", "CapArm")): (CrankPressVol(), "the crank pin is pressed into the arm"),
     frozenset(("HornPin_3x8", "HornTube")): (PressVol(P["HornPinD"], P["HornPinPress"], 0.1), "the pin is pressed into the tube"),
-    frozenset(("Horn_and_M2x6", "HornTube")): (
+    frozenset(("Horn_and_M2x5", "HornTube")): (
         math.pi * (1.0 ** 2 - (P["HornPilotD"] / 2) ** 2) * (P["HornScrewL"] - (P["HornY"][1] - P["HornY"][0])),
         "the M2 screw cuts its thread in the tube's pilot"),
-    frozenset(("Horn_and_M2x6", "Servo_MG90S")): (53.9, "the horn's hub sits on the servo's spline"),
+    frozenset(("Horn_and_M2x5", "Servo_MG90S")): (53.9, "the horn's hub sits on the servo's spline"),
 }
 
 
@@ -1406,7 +1576,7 @@ def Draw(parts, checks, path):
     Sect(ax4, StrutAt(0.0), (0, 0, 1), Pz + 0.3, "x", "y", tol["spring"], 0.5)
     for shp, col in ((yoke, tol["yoke"]), (post, tol["yoke"])):
         Sect(ax4, shp, (0, 0, 1), 0.5 * sum(P["YokeBoltZ"]), "x", "y", col, 0.25, 0.3)
-    ax4.set_title("Plan at the pivot (z %.0f), with the post, land and side lips at the bolts (z %.0f) faint" % (
+    ax4.set_title("Plan at the pivot (z %.0f), with the post and the plate at the bolts (z %.0f) faint" % (
         Pz, 0.5 * sum(P["YokeBoltZ"])), fontsize=10)
     ax4.set_xlim(-30, 75)
     ax4.set_ylim(-20, 48)
@@ -1428,8 +1598,6 @@ def PrintPose(name, shp):
         s.rotate(V(0, 0, 0), V(1, 0, 0), -90)          # +y face (y 3) down, the hub up
     elif name == "CapYoke":
         s.rotate(V(0, 0, 0), V(1, 0, 0), 180)          # upside down, the bridge top on the bed
-    elif name == "CapShim":
-        s.rotate(V(0, 0, 0), V(1, 0, 0), -90)          # flat
     elif name == "StrutEye":
         s.rotate(V(0, 0, 0), V(0, 1, 0), 90)           # spring seat down, the pivot end up
     elif name == "HornTube":
@@ -1443,7 +1611,7 @@ def PrintPose(name, shp):
 
 def Main():
     parts = {"CapArm": Arm(), "StopperCup": Cup(), "CapYoke": Yoke(), "StrutEye": StrutEye(), "StrutBody": StrutBody(),
-             "CapShim": Shim(), "HornTube": HornTube()}
+             "HornTube": HornTube()}
     for k, s in parts.items():
         assert s.isValid() and len(s.Solids) == 1, "%s is not one valid solid (%d)" % (k, len(s.Solids))
     checks, bad = Checks(parts)
