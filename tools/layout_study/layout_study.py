@@ -38,7 +38,7 @@ Blocks = {
     "SSR": (46.6, 88.1, 78.4, "drv", True),        # 6 SSR sockets
     "LOGIC": (211.6, 53.0, 52.5, "log", True),     # Mega on its carrier + 0V-S groups
     "FIELD": (284.0, 42.5, 42.0, "log", True),     # field terminal rail
-    "SHIELD": (52.4, 22.0, 40.0, "drv", True),     # motor shield clamp bar (assumed), across the duct's end (#264)
+    "SHIELD": (216.0, 13.0, 13.0, "drv", True),    # motor shields' bar, EC2GB152 (size assumed), by the duct (#264)
 }
 PsuFlat = (240.0, 126.0, 65.0 + Rail + Clip)        # the PSU lying on its 240 x 126 face; measured
                                                     # 240 x 126 x 65 (2026-10-21, issue #202)

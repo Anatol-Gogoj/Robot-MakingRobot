@@ -149,48 +149,50 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="26" y="149.2" font-size="1.8" style="fill:#000">TB6600 driver of the mask library elevator (U</text>
 <text x="26" y="151.6" font-size="1.8" style="fill:#000">axis, issue #264), on F2-12</text>
 <text x="73" y="149.2" font-size="1.8" style="fill:#000">drivers rail</text>
-<text x="8" y="154" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
-<text x="26" y="154" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
-<text x="73" y="154" font-size="1.8" style="fill:#000">motor duct's end</text>
-<text x="8" y="156.4" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
-<text x="26" y="156.4" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
-<text x="73" y="156.4" font-size="1.8" style="fill:#000">behind back run</text>
-<text x="8" y="158.8" font-size="1.8" style="fill:#000" font-weight="bold">12 V DC-DC</text>
-<text x="26" y="158.8" font-size="1.8" style="fill:#000">Mean Well DDR-60G-12, isolated: 12 V for the</text>
-<text x="26" y="161.2" font-size="1.8" style="fill:#000">screen, fed by F1-3</text>
-<text x="73" y="158.8" font-size="1.8" style="fill:#000">behind slot 2</text>
-<text x="8" y="164.8" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
-<text x="8" y="167.8" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
-<text x="26" y="167.8" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
-<text x="26" y="170.2" font-size="1.8" style="fill:#000">while K1 is in</text>
-<text x="73" y="167.8" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="172.6" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
-<text x="26" y="172.6" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
-<text x="26" y="175" font-size="1.8" style="fill:#000">(GPIO 20)</text>
-<text x="73" y="172.6" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="177.4" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
-<text x="26" y="177.4" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
-<text x="26" y="179.8" font-size="1.8" style="fill:#000">E-stop</text>
-<text x="73" y="177.4" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="182.2" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
-<text x="26" y="182.2" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
-<text x="26" y="184.6" font-size="1.8" style="fill:#000">lid shut</text>
-<text x="73" y="182.2" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="187" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
-<text x="26" y="187" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
-<text x="26" y="189.4" font-size="1.8" style="fill:#000">for now)</text>
-<text x="73" y="187" font-size="1.8" style="fill:#000">lid</text>
-<text x="8" y="191.8" font-size="1.8" style="fill:#000" font-weight="bold">S6</text>
-<text x="26" y="191.8" font-size="1.8" style="fill:#000">Start / Resume push button (NO, green): Pi GPIO</text>
-<text x="26" y="194.2" font-size="1.8" style="fill:#000">16, Run All or resume a hold</text>
-<text x="73" y="191.8" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="196.6" font-size="1.8" style="fill:#000" font-weight="bold">S7</text>
-<text x="26" y="196.6" font-size="1.8" style="fill:#000">Stop push button (NO, red): Pi GPIO 25, M410 and</text>
-<text x="26" y="199" font-size="1.8" style="fill:#000">a soft stop of the run</text>
-<text x="73" y="196.6" font-size="1.8" style="fill:#000">operator panel</text>
-<text x="8" y="201.4" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
-<text x="26" y="201.4" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
-<text x="73" y="201.4" font-size="1.8" style="fill:#000">at the valve</text>
+<text x="8" y="154" font-size="1.8" style="fill:#000" font-weight="bold">shield bar</text>
+<text x="26" y="154" font-size="1.8" style="fill:#000">Siemens EC2GB152: a terminal for each motor</text>
+<text x="26" y="156.4" font-size="1.8" style="fill:#000">cable's drain wire, bonded to PE</text>
+<text x="73" y="154" font-size="1.8" style="fill:#000">beside the motor</text>
+<text x="73" y="156.4" font-size="1.8" style="fill:#000">duct</text>
+<text x="8" y="158.8" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
+<text x="26" y="158.8" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
+<text x="73" y="158.8" font-size="1.8" style="fill:#000">behind back run</text>
+<text x="8" y="161.2" font-size="1.8" style="fill:#000" font-weight="bold">12 V DC-DC</text>
+<text x="26" y="161.2" font-size="1.8" style="fill:#000">Mean Well DDR-60G-12, isolated: 12 V for the</text>
+<text x="26" y="163.6" font-size="1.8" style="fill:#000">screen, fed by F1-3</text>
+<text x="73" y="161.2" font-size="1.8" style="fill:#000">behind slot 2</text>
+<text x="8" y="167.2" font-size="2.3" font-weight="bold">Outside the box (sheet 1)</text>
+<text x="8" y="170.2" font-size="1.8" style="fill:#000" font-weight="bold">S1, H1</text>
+<text x="26" y="170.2" font-size="1.8" style="fill:#000">panel knob that switches K1 on; H1 its lamp, lit</text>
+<text x="26" y="172.6" font-size="1.8" style="fill:#000">while K1 is in</text>
+<text x="73" y="170.2" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="175" font-size="1.8" style="fill:#000" font-weight="bold">S2</text>
+<text x="26" y="175" font-size="1.8" style="fill:#000">E-stop mushroom: NC1 drops K2, NC2 tells the Pi</text>
+<text x="26" y="177.4" font-size="1.8" style="fill:#000">(GPIO 20)</text>
+<text x="73" y="175" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="179.8" font-size="1.8" style="fill:#000" font-weight="bold">S3</text>
+<text x="26" y="179.8" font-size="1.8" style="fill:#000">Reset push button (NO): pulls K2 in after an</text>
+<text x="26" y="182.2" font-size="1.8" style="fill:#000">E-stop</text>
+<text x="73" y="179.8" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="184.6" font-size="1.8" style="fill:#000" font-weight="bold">S4</text>
+<text x="26" y="184.6" font-size="1.8" style="fill:#000">lid switch in series with the UV array: closed =</text>
+<text x="26" y="187" font-size="1.8" style="fill:#000">lid shut</text>
+<text x="73" y="184.6" font-size="1.8" style="fill:#000">lid</text>
+<text x="8" y="189.4" font-size="1.8" style="fill:#000" font-weight="bold">S5</text>
+<text x="26" y="189.4" font-size="1.8" style="fill:#000">lid switch to Mega pin 39 (UV_LID_INTERLOCK, off</text>
+<text x="26" y="191.8" font-size="1.8" style="fill:#000">for now)</text>
+<text x="73" y="189.4" font-size="1.8" style="fill:#000">lid</text>
+<text x="8" y="194.2" font-size="1.8" style="fill:#000" font-weight="bold">S6</text>
+<text x="26" y="194.2" font-size="1.8" style="fill:#000">Start / Resume push button (NO, green): Pi GPIO</text>
+<text x="26" y="196.6" font-size="1.8" style="fill:#000">16, Run All or resume a hold</text>
+<text x="73" y="194.2" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="199" font-size="1.8" style="fill:#000" font-weight="bold">S7</text>
+<text x="26" y="199" font-size="1.8" style="fill:#000">Stop push button (NO, red): Pi GPIO 25, M410 and</text>
+<text x="26" y="201.4" font-size="1.8" style="fill:#000">a soft stop of the run</text>
+<text x="73" y="199" font-size="1.8" style="fill:#000">operator panel</text>
+<text x="8" y="203.8" font-size="1.8" style="fill:#000" font-weight="bold">D1</text>
+<text x="26" y="203.8" font-size="1.8" style="fill:#000">1N4007 across the argon valve's coil, band to +</text>
+<text x="73" y="203.8" font-size="1.8" style="fill:#000">at the valve</text>
 <text x="95" y="22" font-size="1.8" style="fill:#000" font-weight="bold">Pi</text>
 <text x="113" y="22" font-size="1.8" style="fill:#000">Raspberry Pi 5 with the touch screen, runs</text>
 <text x="113" y="24.4" font-size="1.8" style="fill:#000">rmr_bridge.py</text>
@@ -519,7 +521,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="268" y="29.8" font-size="1.8" style="fill:#000" font-weight="bold">UF</text>
 <text x="278" y="29.8" font-size="1.8" style="fill:#000">upper front grommet: Mega USB, J11, Pi GPIO</text>
 <text x="268" y="32.2" font-size="1.8" style="fill:#000" font-weight="bold">UR</text>
-<text x="278" y="32.2" font-size="1.8" style="fill:#000">upper right grommet: X7 tower, 1 motor cable</text>
+<text x="278" y="32.2" font-size="1.8" style="fill:#000">upper right grommet: X7 tower, U's motor cable</text>
 <text x="268" y="34.6" font-size="1.8" style="fill:#000" font-weight="bold">LL</text>
 <text x="278" y="34.6" font-size="1.8" style="fill:#000">lower left grommet: ODrive 24 V, Pi 5 V, screen 12 V, door cable</text>
 <text x="268" y="37" font-size="1.8" style="fill:#000" font-weight="bold">inlet</text>
