@@ -148,10 +148,10 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="8" y="149.2" font-size="1.8" style="fill:#000" font-weight="bold">U</text>
 <text x="26" y="149.2" font-size="1.8" style="fill:#000">TB6600 driver of the mask library elevator (U</text>
 <text x="26" y="151.6" font-size="1.8" style="fill:#000">axis, issue #264), on F2-12</text>
-<text x="73" y="149.2" font-size="1.8" style="fill:#000">right wall strip</text>
+<text x="73" y="149.2" font-size="1.8" style="fill:#000">drivers rail</text>
 <text x="8" y="154" font-size="1.8" style="fill:#000" font-weight="bold">shield clamp</text>
 <text x="26" y="154" font-size="1.8" style="fill:#000">grips the motor cables' shields, bonded to PE</text>
-<text x="73" y="154" font-size="1.8" style="fill:#000">past the drivers</text>
+<text x="73" y="154" font-size="1.8" style="fill:#000">motor duct's end</text>
 <text x="8" y="156.4" font-size="1.8" style="fill:#000" font-weight="bold">ground bar</text>
 <text x="26" y="156.4" font-size="1.8" style="fill:#000">upper PE bar on the upper plate's PE stud</text>
 <text x="73" y="156.4" font-size="1.8" style="fill:#000">behind back run</text>

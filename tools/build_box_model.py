@@ -57,7 +57,7 @@ RubberFill, StudFill, ClipFill = "#444444", "#444444", W.PostFill
 # The packing study's block names (DeckSolids' block) as the rails are named in UpperRails() and
 # LowerRails().
 RailName = {"FIELD": "field terminal rail", "LOGIC": "logic rail", "SSR": "SSR rail",
-            "DRV": "driver rail", "DRVU": "U driver rail", "SHIELD": "shield clamp", "RFB": "fuse rail", "R24": "24 V rail",
+            "DRV": "driver rail", "SHIELD": "shield clamp", "RFB": "fuse rail", "R24": "24 V rail",
             "PS6": "servo PSU rail", "PS5": "5 V PSU rail", "PSU": "24 V PSU rail", "R110": "110 V rail"}
 KeyName = {"Stop": "end clamp", "Cover": "end cover"}
 
