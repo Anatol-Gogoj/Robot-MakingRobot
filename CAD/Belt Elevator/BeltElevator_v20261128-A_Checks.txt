@@ -1,0 +1,108 @@
+Belt elevator v20261128-A: checks (tools/build_belt_elevator.py)
+====================================================================================================
+
+Geometry
+  60T pitch diameter 38.20; belt on the tooth tips r 18.845..20.225 (teeth not modelled)
+  library: shaft z 40.0, idler axle z 308.0, loop length 656.0 mm (both ends in the carriage clamp);
+    idler flanges z 286.5..329.5 (OD 43, ASSUMED), idler bracket z 287.0..328.0
+  cartridge: shaft z 40.0, idler axle z 314.9, loop length 669.8 mm (both ends in the carriage clamp);
+    idler flanges z 293.4..336.4 (OD 43, ASSUMED), idler bracket z 293.9..334.9
+  drive flange top z 61.5
+  library pad top 179.73..344.00 (PA + PB = 523.73); C 159.52..345.24, D 149.02..334.74 (PC + PD = 494.26)
+
+Clamp window (carriage of height 30, centre = pad top - clamp drop, set per column)
+  carriage centre at least 78.5 (2 mm over the drive flanges) and at most 269.5 (library) or 276.4 (cartridge
+  tower), 2 mm under the idler flanges and the bracket
+  the study's 66 puts every carriage top into its idler pulley at the top of its travel: CHANGED
+    A pad 179.73..344.00, drop window 74.50..101.23, drop 76.0 ok -> carriage centre 103.73..268.00 inside
+    B pad 179.73..344.00, drop window 74.50..101.23, drop 76.0 ok -> carriage centre 103.73..268.00 inside
+    C pad 159.52..345.24, drop window 68.84..81.02, drop 76.0 ok -> carriage centre 83.52..269.24 inside
+    D pad 149.02..334.74, drop window 58.34..70.52, drop 64.4 ok -> carriage centre 84.62..270.34 inside
+
+D's landing (lane cart-d): eject face 355.0, landing top 339.50, so a spent cartridge drops 15.5 mm
+  grown head envelope bottom at a library pick 340.83: D's top (landing top = tube rim) 1.33 under it ok
+  grown head envelope bottom at a C pick 346.50: D's top (landing top = tube rim) 7.00 under it ok
+  fixed parts to D's whole tube (no notch): nearest IdlerBracketD 2.19, IdlerSliderD_y28 2.19, Idler688D2 3.19, IdlerAxleD 3.19 ok
+  drop path (r 54.5, z 339.50..350.24, unguided above the rim): ok; nearest 4.76 (PadArmD at t 0.00)
+
+Fixed parts against each other (snapshot; overlap volume > 0.01 mm^3)
+  ok, no overlaps (the worm and wheel share their tooth depth by design)
+
+Fixed parts against the reference cages and tubes
+  ok
+Fixed parts against the stack zones (where masks and cartridges can be)
+  ok
+  library fixed parts to every stack zone, cage and tube, at least 1.0: ok
+    IdlerBracketA              StackZoneA               3.25 mm
+    LibHousingLower            SpiderPostA              4.31 mm
+    LibHousingUpper            SpiderPostA              4.31 mm
+    IdlerBracketA              CageRingA                4.50 mm
+    GuideRodA1                 StackZoneA               8.03 mm
+    GuideRodA1                 CageRingA               10.33 mm
+
+Travel sweep: moving parts against everything else, 13 states per tower, other tower at both ends
+  ok, every gap >= 1.0 mm
+  tightest gaps (moving part / other, smallest over the travel, t = position of the first column):
+    PadArmB                CageRodB_120m                    1.98 mm at t 0.17
+    PadArmB                CageRodB_120p                    1.98 mm at t 0.50
+    PadArmB                CageRodB_240p                    1.98 mm at t 0.58
+    PadArmA                CageRodA_120m                    1.98 mm at t 0.83
+    PadArmB                CageRodB_240m                    1.98 mm at t 0.75
+    PadArmA                CageRodA_120p                    1.98 mm at t 0.17
+    PadArmA                CageRodA_240m                    1.98 mm at t 0.75
+    PadArmA                CageRodA_240p                    1.98 mm at t 0.25
+    PadArmD                TubeD                            2.00 mm at t 0.42
+    PadArmC                TubeC                            2.00 mm at t 0.67
+    BiasPlateA             LibCommonShaft                   2.00 mm at t 0.00
+    BiasPlateA             PulleyDriveA                     2.00 mm at t 0.00
+    PadArmB                CageRingB                        2.24 mm at t 0.00
+    PadArmA                CageRingA                        2.24 mm at t 1.00
+  tightest gaps of the cartridge tower's moving parts (C and D):
+    PadArmD                TubeD                            2.00 mm at t 0.42
+    PadArmC                TubeC                            2.00 mm at t 0.67
+    CarriageC              GuideRodC1                       3.50 mm at t 0.58
+    CarriageC              GuideRodC2                       3.50 mm at t 0.92
+    CarriageD              GuideRodD1                       3.50 mm at t 0.00
+    CarriageD              GuideRodD2                       3.50 mm at t 0.75
+    BeltC                  IdlerBracketC                    3.78 mm at t 0.00
+    BeltD                  IdlerBracketD                    3.78 mm at t 0.00
+    PadArmC                IdlerBracketC                    5.19 mm at t 0.75
+    PadArmC                IdlerSliderC_y289                5.19 mm at t 0.83
+
+Belts against every stack zone, their own column's included, gap >= 1.0 (ADDED: a belt runs the whole
+  height beside its own stack, so the travel sweep's own-zone exemption does not hold for it)
+  ok; nearest 19.59 mm (BeltA/StackZoneA at lib t 0.0)
+Free runs against their own carriage's window, over the travel, gap >= 1.0 (ADDED: the travel sweep never
+  pairs a belt with its own carriage)
+  ok; tightest A 2.00, B 2.00, C 2.00, D 2.00
+Library stack zones inside the strip, x 1.0..257.5, y 0..458.8 (ADDED: build_mask_stowage.py PileX keeps the
+  ears 1 mm inside the strip's left edge; the same 1 mm holds here for the label ear's seatings: the 150
+  deg seating starts at x 1.09, so LabelAngle cannot grow past 270 without moving the columns)
+  StackZoneA x 1.09..134.00, y 31.19..163.53  ok
+  StackZoneB x 1.09..134.00, y 211.19..343.53  ok
+
+Head envelope (build_mask_stowage.py HeadEnvelope, grown by 2.0) against every part at the matching state
+  62 poses: library picks and places at S0 with the latch slide, C picks, D ejects, T1/T2, the A-B transit
+  this design's parts: ok, none inside the grown envelope
+  nearest part outside the grown envelope: 1.26 mm (C pick, 1 cartridge, PadArmC)
+  library tower only: nearest part to the grown envelope 1.96 mm (A pick, 1 mask, slide +0, PadArmA); to the real legs 4.76 mm (A pick, 1 mask, slide +0, PadArmA)
+  the study's layout (other columns' cages, tubes and stack zones): ok
+
+Bounds
+  all parts x 9.5..254.0 (strip 0..258.5 less 1 mm to the box's screw heads), y 1.0..417.0 (0..458.8), z 0.0..345.2  ok
+  tallest library-side fixed part z 329.50: L-E ceiling 337.0 met; A-B transit legs with margin 350.5
+
+Worm stage
+  mu 0.2: forward efficiency 0.224; a stalled 17HS08 (16 N.cm) puts 1.79 N.m on the wheel, against KHK's 1.96 N.m (PG1-50R1, Lewis): margin 1.09, WARNING
+  mu 0.4: forward efficiency 0.125; a stalled 17HS08 (16 N.cm) puts 1.00 N.m on the wheel, against KHK's 1.96 N.m (PG1-50R1, Lewis): margin 1.97
+  running: worst cartridge load 17.9 N at r 19.10 = 0.34 N.m on the wheel shaft, margin 5.7
+  centre distance 33.0 modelled (KHK mounting distance); print the housing at 33.1 for backlash
+  library bias: 612 g of steel in one stepped plate on carriage A's front face (study: 612 g, 6 N); 76.0 x 10.5 x 110.3 overall, lowest point z 10.4
+
+Not modelled
+  belt teeth, the toothed belt clamp (slots, plate, 2 x M3), set screws, the housing's joining screws and
+  its fixing to the table, the feet's and blocks' fixing, any cover over the pulley nips and the worm mesh,
+  the tubes' and cages' supports, the beams B1/B2 and the library beams, the masks and cartridges
+  bearing retention and the worm's thrust path are drawn only as bores in the housing
+
+0 check(s) failed, 1 warning(s)
