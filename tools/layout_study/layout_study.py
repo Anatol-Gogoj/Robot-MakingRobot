@@ -35,6 +35,7 @@ Blocks = {
     "PS5": (41.5, 90.0, 62.0, "dc", True),         # Pi supply, DDR-30G-5 (ADR-0021, issue #244)
     "PS12": (66.5, 90.0, 62.0, "dc", True),        # 12 V DC-DC for the screen (ADR-0020, issue #220)
     "DRV": (242.0, 124.4, 85.5, "drv", True),      # 7 TB6600 + motor duct
+    "DRVU": (107.5, 35.0, 85.5, "drv", True),      # the U TB6600 along its own rail, ground block end (issue #264)
     "SSR": (46.6, 88.1, 78.4, "drv", True),        # 6 SSR sockets
     "LOGIC": (211.6, 53.0, 52.5, "log", True),     # Mega on its carrier + 0V-S groups
     "FIELD": (284.0, 42.5, 42.0, "log", True),     # field terminal rail
@@ -68,14 +69,16 @@ Nets = [
     ("LOGIC", "DRV", 28), ("LOGIC", "FIELD", 16), ("LOGIC", "SSR", 4),
     ("FIELD", "SSR", 5), ("LOGIC", "R24", 2),                        # tower inputs, pin 43 sense
     ("LOGIC", "UF", 4),                                              # USB and J11
-    ("DRV", "SHIELD", 28), ("SHIELD", "UL", 24), ("SHIELD", "UR", 4),  # motor cables
+    ("DRV", "SHIELD", 28), ("SHIELD", "UL", 28), ("SHIELD", "UR", 4),  # motor cables
+    ("RFB", "DRVU", 1), ("R24", "DRVU", 1), ("LOGIC", "DRVU", 4),    # U: F2-12, 0V-P 2, signals + COM
+    ("DRVU", "SHIELD", 4),                                           # U motor cable (issue #264)
     ("FIELD", "UL", 30), ("FIELD", "UR", 8),                         # field cables
 ]
 
 
 def Arch(name):
     """Deck of each block, the PSU pose, and the box height rules for an architecture."""
-    up = ["DRV", "SSR", "LOGIC", "FIELD", "SHIELD", "PS12"]
+    up = ["DRV", "DRVU", "SSR", "LOGIC", "FIELD", "SHIELD", "PS12"]
     lo = ["R110", "PSU", "R24", "RFB", "PS6", "PS5"]
     if name in ("A", "A*"):
         return {"deck": {**{b: "lower" for b in lo}, **{b: "upper" for b in up}}, "psu": "standing"}

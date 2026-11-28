@@ -183,167 +183,187 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <circle class="dot" cx="110.5" cy="92" r="0.6" fill="#000"/>
 <path class="zs" d="M8 140 L346 140"/>
 <rect x="346" y="138.7" width="2.23" height="2.6" fill="#fff" stroke="#000" stroke-width=".25"/>
-<circle class="dot" cx="15" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M15 84 L15 90"/>
-<rect class="symf" x="14" y="85" width="2" height="4"/>
-<path class="sym" d="M15 85 L15 89"/>
-<path class="ve" d="M15 90 L15 106"/>
-<path class="zp" d="M19 106 L19 92"/>
-<circle class="dot" cx="19" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M24 106 L24 101.2"/>
-<path class="mo" d="M26.5 106 L26.5 101.2"/>
-<path class="mo" d="M29 106 L29 101.2"/>
-<path class="mo" d="M31.5 106 L31.5 101.2"/>
-<path class="mo" d="M24 101.2 L31.5 101.2"/>
-<path class="mo" d="M27.75 101.2 L27.75 100.8"/>
-<circle class="symf" cx="27.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="12" y="106" width="24" height="16"/>
-<path class="sg" d="M17 122 L17 150"/>
-<path class="sg" d="M22 122 L22 150"/>
-<path class="sg" d="M27 122 L27 150"/>
-<path class="zs" d="M32 122 L32 140"/>
-<circle class="dot" cx="32" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="43" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M43 84 L43 90"/>
-<rect class="symf" x="42" y="85" width="2" height="4"/>
-<path class="sym" d="M43 85 L43 89"/>
-<path class="ve" d="M43 90 L43 106"/>
-<path class="zp" d="M47 106 L47 92"/>
-<circle class="dot" cx="47" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M52 106 L52 101.2"/>
-<path class="mo" d="M54.5 106 L54.5 101.2"/>
-<path class="mo" d="M57 106 L57 101.2"/>
-<path class="mo" d="M59.5 106 L59.5 101.2"/>
-<path class="mo" d="M52 101.2 L59.5 101.2"/>
-<path class="mo" d="M55.75 101.2 L55.75 100.8"/>
-<circle class="symf" cx="55.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="40" y="106" width="24" height="16"/>
-<path class="sg" d="M45 122 L45 150"/>
-<path class="sg" d="M50 122 L50 150"/>
-<path class="sg" d="M55 122 L55 150"/>
-<path class="zs" d="M60 122 L60 140"/>
-<circle class="dot" cx="60" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="71" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M71 84 L71 90"/>
-<rect class="symf" x="70" y="85" width="2" height="4"/>
-<path class="sym" d="M71 85 L71 89"/>
-<path class="ve" d="M71 90 L71 106"/>
-<path class="zp" d="M75 106 L75 92"/>
-<circle class="dot" cx="75" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M80 106 L80 101.2"/>
-<path class="mo" d="M82.5 106 L82.5 101.2"/>
-<path class="mo" d="M85 106 L85 101.2"/>
-<path class="mo" d="M87.5 106 L87.5 101.2"/>
-<path class="mo" d="M80 101.2 L87.5 101.2"/>
-<path class="mo" d="M83.75 101.2 L83.75 100.8"/>
-<circle class="symf" cx="83.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="68" y="106" width="24" height="16"/>
-<path class="sg" d="M73 122 L73 150"/>
-<path class="sg" d="M78 122 L78 150"/>
-<path class="sg" d="M83 122 L83 150"/>
-<path class="zs" d="M88 122 L88 140"/>
-<circle class="dot" cx="88" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="99" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M99 84 L99 90"/>
-<rect class="symf" x="98" y="85" width="2" height="4"/>
-<path class="sym" d="M99 85 L99 89"/>
-<path class="ve" d="M99 90 L99 106"/>
-<path class="zp" d="M103 106 L103 92"/>
-<circle class="dot" cx="103" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M108 106 L108 101.2"/>
-<path class="mo" d="M110.5 106 L110.5 101.2"/>
-<path class="mo" d="M113 106 L113 101.2"/>
-<path class="mo" d="M115.5 106 L115.5 101.2"/>
-<path class="mo" d="M108 101.2 L115.5 101.2"/>
-<path class="mo" d="M111.75 101.2 L111.75 100.8"/>
-<circle class="symf" cx="111.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="96" y="106" width="24" height="16"/>
-<path class="sg" d="M101 122 L101 150"/>
-<path class="sg" d="M106 122 L106 150"/>
-<path class="sg" d="M111 122 L111 150"/>
-<path class="zs" d="M116 122 L116 140"/>
-<circle class="dot" cx="116" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="127" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M127 84 L127 90"/>
-<rect class="symf" x="126" y="85" width="2" height="4"/>
-<path class="sym" d="M127 85 L127 89"/>
-<path class="ve" d="M127 90 L127 106"/>
-<path class="zp" d="M131 106 L131 92"/>
-<circle class="dot" cx="131" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M136 106 L136 101.2"/>
-<path class="mo" d="M138.5 106 L138.5 101.2"/>
-<path class="mo" d="M141 106 L141 101.2"/>
-<path class="mo" d="M143.5 106 L143.5 101.2"/>
-<path class="mo" d="M136 101.2 L143.5 101.2"/>
-<path class="mo" d="M139.75 101.2 L139.75 100.8"/>
-<circle class="symf" cx="139.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="124" y="106" width="24" height="16"/>
-<path class="sg" d="M129 122 L129 150"/>
-<path class="sg" d="M134 122 L134 150"/>
-<path class="sg" d="M139 122 L139 150"/>
-<path class="zs" d="M144 122 L144 140"/>
-<circle class="dot" cx="144" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="155" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M155 84 L155 90"/>
-<rect class="symf" x="154" y="85" width="2" height="4"/>
-<path class="sym" d="M155 85 L155 89"/>
-<path class="ve" d="M155 90 L155 106"/>
-<path class="zp" d="M159 106 L159 92"/>
-<circle class="dot" cx="159" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M164 106 L164 101.2"/>
-<path class="mo" d="M166.5 106 L166.5 101.2"/>
-<path class="mo" d="M169 106 L169 101.2"/>
-<path class="mo" d="M171.5 106 L171.5 101.2"/>
-<path class="mo" d="M164 101.2 L171.5 101.2"/>
-<path class="mo" d="M167.75 101.2 L167.75 100.8"/>
-<circle class="symf" cx="167.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="152" y="106" width="24" height="16"/>
-<path class="sg" d="M157 122 L157 150"/>
-<path class="sg" d="M162 122 L162 150"/>
-<path class="sg" d="M167 122 L167 150"/>
-<path class="zs" d="M172 122 L172 140"/>
-<circle class="dot" cx="172" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="183" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M183 84 L183 90"/>
-<rect class="symf" x="182" y="85" width="2" height="4"/>
-<path class="sym" d="M183 85 L183 89"/>
-<path class="ve" d="M183 90 L183 106"/>
-<path class="zp" d="M187 106 L187 92"/>
-<circle class="dot" cx="187" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M192 106 L192 101.2"/>
-<path class="mo" d="M194.5 106 L194.5 101.2"/>
-<path class="mo" d="M197 106 L197 101.2"/>
-<path class="mo" d="M199.5 106 L199.5 101.2"/>
-<path class="mo" d="M192 101.2 L199.5 101.2"/>
-<path class="mo" d="M195.75 101.2 L195.75 100.8"/>
-<circle class="symf" cx="195.75" cy="97.6" r="3.2"/>
-<rect class="bx" x="180" y="106" width="24" height="16"/>
-<path class="sg" d="M185 122 L185 150"/>
-<path class="sg" d="M190 122 L190 150"/>
-<path class="sg" d="M195 122 L195 150"/>
-<path class="zs" d="M200 122 L200 140"/>
-<circle class="dot" cx="200" cy="140" r="0.6" fill="#33BBEE"/>
-<circle class="dot" cx="211" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M211 84 L211 90"/>
-<rect class="symf" x="210" y="85" width="2" height="4"/>
-<path class="sym" d="M211 85 L211 89"/>
-<path class="ve" d="M211 90 L211 106"/>
-<path class="zp" d="M215 106 L215 92"/>
-<circle class="dot" cx="215" cy="92" r="0.6" fill="#000"/>
-<path class="mo" d="M221 106 L221 101.2"/>
-<path class="mo" d="M224 106 L224 101.2"/>
-<path class="mo" d="M227 106 L227 101.2"/>
-<path class="mo" d="M221 101.2 L227 101.2"/>
-<path class="mo" d="M224 101.2 L224 100.8"/>
-<circle class="symf" cx="224" cy="97.6" r="3.2"/>
-<rect class="bxl" x="233" y="95" width="9" height="5"/>
-<path class="sg" d="M237.5 100 L237.5 106"/>
-<rect class="bx" x="208" y="106" width="34" height="16"/>
-<path class="sg" d="M212 122 L212 150"/>
-<path class="sg" d="M219 122 L219 150"/>
-<path class="zs" d="M226 122 L226 140"/>
-<circle class="dot" cx="226" cy="140" r="0.6" fill="#33BBEE"/>
-<path class="lv" d="M234 122 L234 131" stroke-dasharray="1.1 .8"/>
+<circle class="dot" cx="14.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M14.75 84 L14.75 90"/>
+<rect class="symf" x="13.75" y="85" width="2" height="4"/>
+<path class="sym" d="M14.75 85 L14.75 89"/>
+<path class="ve" d="M14.75 90 L14.75 106"/>
+<path class="zp" d="M18.42 106 L18.42 92"/>
+<circle class="dot" cx="18.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M23 106 L23 101.2"/>
+<path class="mo" d="M25.29 106 L25.29 101.2"/>
+<path class="mo" d="M27.58 106 L27.58 101.2"/>
+<path class="mo" d="M29.88 106 L29.88 101.2"/>
+<path class="mo" d="M23 101.2 L29.88 101.2"/>
+<path class="mo" d="M26.44 101.2 L26.44 100.8"/>
+<circle class="symf" cx="26.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="12" y="106" width="22" height="16"/>
+<path class="sg" d="M16.58 122 L16.58 150"/>
+<path class="sg" d="M21.17 122 L21.17 150"/>
+<path class="sg" d="M25.75 122 L25.75 150"/>
+<path class="zs" d="M30.33 122 L30.33 140"/>
+<circle class="dot" cx="30.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="39.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M39.75 84 L39.75 90"/>
+<rect class="symf" x="38.75" y="85" width="2" height="4"/>
+<path class="sym" d="M39.75 85 L39.75 89"/>
+<path class="ve" d="M39.75 90 L39.75 106"/>
+<path class="zp" d="M43.42 106 L43.42 92"/>
+<circle class="dot" cx="43.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M48 106 L48 101.2"/>
+<path class="mo" d="M50.29 106 L50.29 101.2"/>
+<path class="mo" d="M52.58 106 L52.58 101.2"/>
+<path class="mo" d="M54.88 106 L54.88 101.2"/>
+<path class="mo" d="M48 101.2 L54.88 101.2"/>
+<path class="mo" d="M51.44 101.2 L51.44 100.8"/>
+<circle class="symf" cx="51.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="37" y="106" width="22" height="16"/>
+<path class="sg" d="M41.58 122 L41.58 150"/>
+<path class="sg" d="M46.17 122 L46.17 150"/>
+<path class="sg" d="M50.75 122 L50.75 150"/>
+<path class="zs" d="M55.33 122 L55.33 140"/>
+<circle class="dot" cx="55.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="64.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M64.75 84 L64.75 90"/>
+<rect class="symf" x="63.75" y="85" width="2" height="4"/>
+<path class="sym" d="M64.75 85 L64.75 89"/>
+<path class="ve" d="M64.75 90 L64.75 106"/>
+<path class="zp" d="M68.42 106 L68.42 92"/>
+<circle class="dot" cx="68.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M73 106 L73 101.2"/>
+<path class="mo" d="M75.29 106 L75.29 101.2"/>
+<path class="mo" d="M77.58 106 L77.58 101.2"/>
+<path class="mo" d="M79.88 106 L79.88 101.2"/>
+<path class="mo" d="M73 101.2 L79.88 101.2"/>
+<path class="mo" d="M76.44 101.2 L76.44 100.8"/>
+<circle class="symf" cx="76.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="62" y="106" width="22" height="16"/>
+<path class="sg" d="M66.58 122 L66.58 150"/>
+<path class="sg" d="M71.17 122 L71.17 150"/>
+<path class="sg" d="M75.75 122 L75.75 150"/>
+<path class="zs" d="M80.33 122 L80.33 140"/>
+<circle class="dot" cx="80.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="89.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M89.75 84 L89.75 90"/>
+<rect class="symf" x="88.75" y="85" width="2" height="4"/>
+<path class="sym" d="M89.75 85 L89.75 89"/>
+<path class="ve" d="M89.75 90 L89.75 106"/>
+<path class="zp" d="M93.42 106 L93.42 92"/>
+<circle class="dot" cx="93.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M98 106 L98 101.2"/>
+<path class="mo" d="M100.29 106 L100.29 101.2"/>
+<path class="mo" d="M102.58 106 L102.58 101.2"/>
+<path class="mo" d="M104.88 106 L104.88 101.2"/>
+<path class="mo" d="M98 101.2 L104.88 101.2"/>
+<path class="mo" d="M101.44 101.2 L101.44 100.8"/>
+<circle class="symf" cx="101.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="87" y="106" width="22" height="16"/>
+<path class="sg" d="M91.58 122 L91.58 150"/>
+<path class="sg" d="M96.17 122 L96.17 150"/>
+<path class="sg" d="M100.75 122 L100.75 150"/>
+<path class="zs" d="M105.33 122 L105.33 140"/>
+<circle class="dot" cx="105.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="114.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M114.75 84 L114.75 90"/>
+<rect class="symf" x="113.75" y="85" width="2" height="4"/>
+<path class="sym" d="M114.75 85 L114.75 89"/>
+<path class="ve" d="M114.75 90 L114.75 106"/>
+<path class="zp" d="M118.42 106 L118.42 92"/>
+<circle class="dot" cx="118.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M123 106 L123 101.2"/>
+<path class="mo" d="M125.29 106 L125.29 101.2"/>
+<path class="mo" d="M127.58 106 L127.58 101.2"/>
+<path class="mo" d="M129.88 106 L129.88 101.2"/>
+<path class="mo" d="M123 101.2 L129.88 101.2"/>
+<path class="mo" d="M126.44 101.2 L126.44 100.8"/>
+<circle class="symf" cx="126.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="112" y="106" width="22" height="16"/>
+<path class="sg" d="M116.58 122 L116.58 150"/>
+<path class="sg" d="M121.17 122 L121.17 150"/>
+<path class="sg" d="M125.75 122 L125.75 150"/>
+<path class="zs" d="M130.33 122 L130.33 140"/>
+<circle class="dot" cx="130.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="139.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M139.75 84 L139.75 90"/>
+<rect class="symf" x="138.75" y="85" width="2" height="4"/>
+<path class="sym" d="M139.75 85 L139.75 89"/>
+<path class="ve" d="M139.75 90 L139.75 106"/>
+<path class="zp" d="M143.42 106 L143.42 92"/>
+<circle class="dot" cx="143.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M148 106 L148 101.2"/>
+<path class="mo" d="M150.29 106 L150.29 101.2"/>
+<path class="mo" d="M152.58 106 L152.58 101.2"/>
+<path class="mo" d="M154.88 106 L154.88 101.2"/>
+<path class="mo" d="M148 101.2 L154.88 101.2"/>
+<path class="mo" d="M151.44 101.2 L151.44 100.8"/>
+<circle class="symf" cx="151.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="137" y="106" width="22" height="16"/>
+<path class="sg" d="M141.58 122 L141.58 150"/>
+<path class="sg" d="M146.17 122 L146.17 150"/>
+<path class="sg" d="M150.75 122 L150.75 150"/>
+<path class="zs" d="M155.33 122 L155.33 140"/>
+<circle class="dot" cx="155.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="164.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M164.75 84 L164.75 90"/>
+<rect class="symf" x="163.75" y="85" width="2" height="4"/>
+<path class="sym" d="M164.75 85 L164.75 89"/>
+<path class="ve" d="M164.75 90 L164.75 106"/>
+<path class="zp" d="M168.42 106 L168.42 92"/>
+<circle class="dot" cx="168.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M173 106 L173 101.2"/>
+<path class="mo" d="M175.29 106 L175.29 101.2"/>
+<path class="mo" d="M177.58 106 L177.58 101.2"/>
+<path class="mo" d="M179.88 106 L179.88 101.2"/>
+<path class="mo" d="M173 101.2 L179.88 101.2"/>
+<path class="mo" d="M176.44 101.2 L176.44 100.8"/>
+<circle class="symf" cx="176.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="162" y="106" width="22" height="16"/>
+<path class="sg" d="M166.58 122 L166.58 150"/>
+<path class="sg" d="M171.17 122 L171.17 150"/>
+<path class="sg" d="M175.75 122 L175.75 150"/>
+<path class="zs" d="M180.33 122 L180.33 140"/>
+<circle class="dot" cx="180.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="189.75" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M189.75 84 L189.75 90"/>
+<rect class="symf" x="188.75" y="85" width="2" height="4"/>
+<path class="sym" d="M189.75 85 L189.75 89"/>
+<path class="ve" d="M189.75 90 L189.75 106"/>
+<path class="zp" d="M193.42 106 L193.42 92"/>
+<circle class="dot" cx="193.42" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M198 106 L198 101.2"/>
+<path class="mo" d="M200.29 106 L200.29 101.2"/>
+<path class="mo" d="M202.58 106 L202.58 101.2"/>
+<path class="mo" d="M204.88 106 L204.88 101.2"/>
+<path class="mo" d="M198 101.2 L204.88 101.2"/>
+<path class="mo" d="M201.44 101.2 L201.44 100.8"/>
+<circle class="symf" cx="201.44" cy="97.6" r="3.2"/>
+<rect class="bx" x="187" y="106" width="22" height="16"/>
+<path class="sg" d="M191.58 122 L191.58 150"/>
+<path class="sg" d="M196.17 122 L196.17 150"/>
+<path class="sg" d="M200.75 122 L200.75 150"/>
+<path class="zs" d="M205.33 122 L205.33 140"/>
+<circle class="dot" cx="205.33" cy="140" r="0.6" fill="#33BBEE"/>
+<circle class="dot" cx="215" cy="84" r="0.6" fill="#EE3377"/>
+<path class="ve" d="M215 84 L215 90"/>
+<rect class="symf" x="214" y="85" width="2" height="4"/>
+<path class="sym" d="M215 85 L215 89"/>
+<path class="ve" d="M215 90 L215 106"/>
+<path class="zp" d="M219 106 L219 92"/>
+<circle class="dot" cx="219" cy="92" r="0.6" fill="#000"/>
+<path class="mo" d="M225 106 L225 101.2"/>
+<path class="mo" d="M228 106 L228 101.2"/>
+<path class="mo" d="M231 106 L231 101.2"/>
+<path class="mo" d="M225 101.2 L231 101.2"/>
+<path class="mo" d="M228 101.2 L228 100.8"/>
+<circle class="symf" cx="228" cy="97.6" r="3.2"/>
+<rect class="bxl" x="237" y="95" width="9" height="5"/>
+<path class="sg" d="M241.5 100 L241.5 106"/>
+<rect class="bx" x="212" y="106" width="34" height="16"/>
+<path class="sg" d="M216 122 L216 150"/>
+<path class="sg" d="M223 122 L223 150"/>
+<path class="zs" d="M230 122 L230 140"/>
+<circle class="dot" cx="230" cy="140" r="0.6" fill="#33BBEE"/>
+<path class="lv" d="M238 122 L238 131" stroke-dasharray="1.1 .8"/>
 <rect class="bx" x="10" y="150" width="238" height="10"/>
 <circle class="dot" cx="264" cy="84" r="0.6" fill="#EE3377"/>
 <path class="ve" d="M264 84 L264 90"/>
@@ -407,8 +427,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <path class="zp" d="M322 120.5 L322 125"/>
 <path class="zp" d="M320.4 125 L323.6 125"/>
 <path class="zp" d="M321 125.7 L323 125.7"/>
-<circle class="dot" cx="344" cy="84" r="0.6" fill="#EE3377"/>
-<path class="ve" d="M344 84 L344 86.5"/>
 <path class="zs" d="M8 140 L8 198 L128 198"/>
 <path class="sg" d="M16 160 L16 176"/>
 <path class="sym" d="M14.4 176 L17.6 176"/>
@@ -649,92 +667,101 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="246.5" y="92.6" font-size="1.7" font-weight="bold">0V-P</text>
 <text x="347.12" y="140.58" font-size="1.6" text-anchor="middle" font-weight="bold">S</text>
 <text x="281" y="139" font-size="1.8" style="fill:#4477AA" stroke="#fff" stroke-width="0.81" paint-order="stroke" text-anchor="end" font-weight="bold">0V-S signal bus</text>
-<text x="16.5" y="87" font-size="1.6">F2-1</text>
-<text x="16.5" y="89" font-size="1.6">5 A</text>
-<text x="27.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="24" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">X</text>
-<text x="24" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="24" y="118" font-size="1.6" text-anchor="middle">Gantry X</text>
-<text x="17" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A0</text>
-<text x="22" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A1</text>
-<text x="27" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">38</text>
-<text x="44.5" y="87" font-size="1.6">F2-2</text>
-<text x="44.5" y="89" font-size="1.6">5 A</text>
-<text x="55.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="52" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Y1</text>
-<text x="52" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="52" y="118" font-size="1.6" text-anchor="middle">Gantry Y</text>
-<text x="45" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A6</text>
-<text x="50" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A7</text>
-<text x="55" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A2</text>
-<text x="72.5" y="87" font-size="1.6">F2-3</text>
-<text x="72.5" y="89" font-size="1.6">5 A</text>
-<text x="83.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="80" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Y2</text>
-<text x="80" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="80" y="118" font-size="1.6" text-anchor="middle">follows Y</text>
-<text x="73" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">36</text>
-<text x="78" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">34</text>
-<text x="83" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">30</text>
-<text x="100.5" y="87" font-size="1.6">F2-4</text>
-<text x="100.5" y="89" font-size="1.6">5 A</text>
-<text x="111.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="108" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Z</text>
-<text x="108" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="108" y="118" font-size="1.6" text-anchor="middle">Gantry Z</text>
-<text x="101" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">46</text>
-<text x="106" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">48</text>
-<text x="111" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">A8</text>
-<text x="128.5" y="87" font-size="1.6">F2-5</text>
-<text x="128.5" y="89" font-size="1.6">5 A</text>
-<text x="139.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="136" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">A</text>
-<text x="136" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="136" y="118" font-size="1.6" text-anchor="middle">Filter feed (I)</text>
-<text x="129" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">2</text>
-<text x="134" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">9</text>
-<text x="139" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">12</text>
-<text x="156.5" y="87" font-size="1.6">F2-6</text>
-<text x="156.5" y="89" font-size="1.6">5 A</text>
-<text x="167.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="164" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">B</text>
-<text x="164" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="164" y="118" font-size="1.6" text-anchor="middle">Syringe ht (J)</text>
-<text x="157" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">21</text>
-<text x="162" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">22</text>
-<text x="167" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">31</text>
-<text x="184.5" y="87" font-size="1.6">F2-7</text>
-<text x="184.5" y="89" font-size="1.6">5 A</text>
-<text x="195.75" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="192" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">C</text>
-<text x="192" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
-<text x="192" y="118" font-size="1.6" text-anchor="middle">Syringe (K)</text>
-<text x="185" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">13</text>
-<text x="190" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">19</text>
-<text x="195" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">20</text>
-<text x="15" y="105.4" font-size="1.3" text-anchor="middle">+V</text>
-<text x="19" y="105.4" font-size="1.3" text-anchor="middle">0V</text>
-<text x="17" y="123.9" font-size="1.3" text-anchor="middle">PUL+</text>
-<text x="22" y="123.9" font-size="1.3" text-anchor="middle">DIR+</text>
-<text x="27" y="123.9" font-size="1.3" text-anchor="middle">ENA+</text>
-<text x="32" y="123.9" font-size="1.3" text-anchor="middle">COM</text>
-<text x="212.5" y="87" font-size="1.6">F2-8</text>
-<text x="212.5" y="89" font-size="1.6">10 A, 14 AWG</text>
-<text x="224" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
-<text x="237.5" y="98.2" font-size="1.4" text-anchor="middle">AMT102</text>
-<text x="225" y="111" font-size="2.4" text-anchor="middle" font-weight="bold">ODrive S1</text>
-<text x="225" y="114" font-size="1.6" text-anchor="middle">spin coater, D5312s</text>
-<text x="225" y="117" font-size="1.5" text-anchor="middle">J11, isolated UART</text>
-<text x="212" y="123.9" font-size="1.3" text-anchor="middle">J11-3 TX</text>
-<text x="212" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">17</text>
-<text x="219" y="123.9" font-size="1.3" text-anchor="middle">J11-4 RX</text>
-<text x="219" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">16</text>
-<text x="212" y="154.6" font-size="1.3" text-anchor="middle">RX2</text>
-<text x="219" y="154.6" font-size="1.3" text-anchor="middle">TX2</text>
-<text x="226" y="123.9" font-size="1.3" text-anchor="middle">GND</text>
-<text x="234" y="123.9" font-size="1.3" text-anchor="middle">5V</text>
-<text x="234" y="133.6" font-size="1.4" text-anchor="middle">J11 logic 5 V:</text>
-<text x="234" y="135.5" font-size="1.4" text-anchor="middle">which side? (note 3)</text>
+<text x="16.25" y="87" font-size="1.5">F2-1</text>
+<text x="16.25" y="89" font-size="1.5">5 A</text>
+<text x="26.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="23" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">X</text>
+<text x="23" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="23" y="118" font-size="1.45" text-anchor="middle">Gantry X</text>
+<text x="16.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A0</text>
+<text x="21.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A1</text>
+<text x="25.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">38</text>
+<text x="41.25" y="87" font-size="1.5">F2-2</text>
+<text x="41.25" y="89" font-size="1.5">5 A</text>
+<text x="51.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="48" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Y1</text>
+<text x="48" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="48" y="118" font-size="1.45" text-anchor="middle">Gantry Y</text>
+<text x="41.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A6</text>
+<text x="46.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A7</text>
+<text x="50.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A2</text>
+<text x="66.25" y="87" font-size="1.5">F2-3</text>
+<text x="66.25" y="89" font-size="1.5">5 A</text>
+<text x="76.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="73" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Y2</text>
+<text x="73" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="73" y="118" font-size="1.45" text-anchor="middle">follows Y</text>
+<text x="66.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">36</text>
+<text x="71.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">34</text>
+<text x="75.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">30</text>
+<text x="91.25" y="87" font-size="1.5">F2-4</text>
+<text x="91.25" y="89" font-size="1.5">5 A</text>
+<text x="101.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="98" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">Z</text>
+<text x="98" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="98" y="118" font-size="1.45" text-anchor="middle">Gantry Z</text>
+<text x="91.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">46</text>
+<text x="96.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">48</text>
+<text x="100.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">A8</text>
+<text x="116.25" y="87" font-size="1.5">F2-5</text>
+<text x="116.25" y="89" font-size="1.5">5 A</text>
+<text x="126.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="123" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">A</text>
+<text x="123" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="123" y="118" font-size="1.45" text-anchor="middle">Filter feed (I)</text>
+<text x="116.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">2</text>
+<text x="121.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">9</text>
+<text x="125.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">12</text>
+<text x="141.25" y="87" font-size="1.5">F2-6</text>
+<text x="141.25" y="89" font-size="1.5">5 A</text>
+<text x="151.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="148" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">B</text>
+<text x="148" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="148" y="118" font-size="1.45" text-anchor="middle">Syringe ht (J)</text>
+<text x="141.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">21</text>
+<text x="146.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">22</text>
+<text x="150.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">31</text>
+<text x="166.25" y="87" font-size="1.5">F2-7</text>
+<text x="166.25" y="89" font-size="1.5">5 A</text>
+<text x="176.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="173" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">C</text>
+<text x="173" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="173" y="118" font-size="1.45" text-anchor="middle">Syringe (K)</text>
+<text x="166.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">13</text>
+<text x="171.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">19</text>
+<text x="175.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">20</text>
+<text x="191.25" y="87" font-size="1.5">F2-12</text>
+<text x="191.25" y="89" font-size="1.5">5 A</text>
+<text x="201.44" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="198" y="112.2" font-size="3.2" text-anchor="middle" font-weight="bold">U</text>
+<text x="198" y="115.6" font-size="1.7" text-anchor="middle">TB6600</text>
+<text x="198" y="118" font-size="1.45" text-anchor="middle">Mask library</text>
+<text x="191.58" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">37</text>
+<text x="196.17" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">41</text>
+<text x="200.75" y="152.6" font-size="1.6" text-anchor="middle" font-weight="bold">49</text>
+<text x="14.75" y="105.4" font-size="1.3" text-anchor="middle">+V</text>
+<text x="18.42" y="105.4" font-size="1.3" text-anchor="middle">0V</text>
+<text x="16.58" y="123.9" font-size="1.2" text-anchor="middle">PUL+</text>
+<text x="21.17" y="123.9" font-size="1.2" text-anchor="middle">DIR+</text>
+<text x="25.75" y="123.9" font-size="1.2" text-anchor="middle">ENA+</text>
+<text x="30.33" y="123.9" font-size="1.2" text-anchor="middle">COM</text>
+<text x="216.5" y="87" font-size="1.6">F2-8</text>
+<text x="216.5" y="89" font-size="1.6">10 A, 14 AWG</text>
+<text x="228" y="98.4" font-size="2.3" text-anchor="middle" font-weight="bold">M</text>
+<text x="241.5" y="98.2" font-size="1.4" text-anchor="middle">AMT102</text>
+<text x="229" y="111" font-size="2.4" text-anchor="middle" font-weight="bold">ODrive S1</text>
+<text x="229" y="114" font-size="1.6" text-anchor="middle">spin coater, D5312s</text>
+<text x="229" y="117" font-size="1.5" text-anchor="middle">J11, isolated UART</text>
+<text x="216" y="123.9" font-size="1.3" text-anchor="middle">J11-3 TX</text>
+<text x="216" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">17</text>
+<text x="223" y="123.9" font-size="1.3" text-anchor="middle">J11-4 RX</text>
+<text x="223" y="152.6" font-size="1.7" text-anchor="middle" font-weight="bold">16</text>
+<text x="216" y="154.6" font-size="1.3" text-anchor="middle">RX2</text>
+<text x="223" y="154.6" font-size="1.3" text-anchor="middle">TX2</text>
+<text x="230" y="123.9" font-size="1.3" text-anchor="middle">GND</text>
+<text x="238" y="123.9" font-size="1.3" text-anchor="middle">5V</text>
+<text x="238" y="133.6" font-size="1.4" text-anchor="middle">J11 logic 5 V:</text>
+<text x="238" y="135.5" font-size="1.4" text-anchor="middle">which side? (note 3)</text>
 <text x="129" y="156.6" font-size="2" text-anchor="middle" font-weight="bold">Arduino Mega 2560 on a screw-terminal breakout   |   Marlin, BOARD_RAMPS_14_RMR (1025)   |   pins by board label</text>
 <text x="247.4" y="152.35" font-size="1.5" text-anchor="end" font-weight="bold">5</text>
 <text x="247.4" y="154.35" font-size="1.5" text-anchor="end" font-weight="bold">6</text>
@@ -782,8 +809,6 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="334.6" y="117.4" font-size="1.3">1N4007</text>
 <text x="334.6" y="119.2" font-size="1.3">band to +</text>
 <text x="322" y="127.4" font-size="1.4" text-anchor="middle">0V-P</text>
-<text x="344" y="89.2" font-size="1.5" text-anchor="middle">F2-12</text>
-<text x="344" y="91" font-size="1.5" text-anchor="middle">spare</text>
 <text x="10" y="200.6" font-size="1.5" style="fill:#4477AA">0V-S (same bus as above, joined at the left)</text>
 <text x="10" y="165.2" font-size="1.6" stroke="#fff" stroke-width="0.72" paint-order="stroke" font-weight="bold">Endstops: NO, COM to 0V-S</text>
 <text x="16" y="158.8" font-size="1.7" text-anchor="middle" font-weight="bold">3</text>
@@ -915,7 +940,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="258" y="165" font-size="2" font-weight="bold">Drive and wiring rules</text>
 <text x="258" y="168" font-size="1.6">Every driver: PUL-, DIR- and ENA- jumpered at the driver (COM);</text>
 <text x="258" y="170.3" font-size="1.6">one COM wire per driver to 0V-S. Driver top: +V, 0V, A+, A-, B+, B-.</text>
-<text x="258" y="172.6" font-size="1.6">F2-1 to F2-8 on 14 AWG copper. Motor shields to PE at the driver end only.</text>
+<text x="258" y="172.6" font-size="1.6">F2-1 to F2-8 and F2-12 on 14 AWG copper. Motor shields to PE at the driver end only.</text>
 <text x="258" y="174.9" font-size="1.6">Mega pins are board labels (A0 = D54, A2 = D56, A8 = D62, A9 = D63).</text>
 <text x="258" y="177.2" font-size="1.6">1 k pull-ups on pin 43 and GPIO 20: they read power contacts.</text>
 <text x="258" y="179.5" font-size="1.6">Servo, lid and UV wires cross the hinge: stranded, service loop,</text>

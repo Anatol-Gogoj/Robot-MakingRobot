@@ -414,7 +414,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="300" y="94.4" font-size="1.35">Drill Ø4.2 through a slot floor into the bore,</text>
 <text x="300" y="96.2" font-size="1.35">tap M5; M5 x 16 with a ring lug and a tooth</text>
 <text x="300" y="98" font-size="1.35">washer. One 12 AWG home run per part to its</text>
-<text x="300" y="99.8" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 27, 2 bars.</text>
+<text x="300" y="99.8" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 29, 2 bars.</text>
 <text x="300" y="101.6" font-size="1.35">DIN rails through their PE terminals, TB6600s</text>
 <text x="300" y="103.4" font-size="1.35">under an ear screw. Measure each part to PE</text>
 <text x="300" y="105.2" font-size="1.35">at 0.2 to 10 A (IEC 60204-1 18.2.2).</text>
@@ -509,7 +509,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="216" y="186.65" font-size="1.2">outside: u along x (front at 0) or y (left at 0), v up; turn it over to match. Screws Ø5.5 on the slot centre lines,</text>
 <text x="216" y="188.3" font-size="1.2">10 from each post end, ring screws at an even pitch, except the lower front and back panels: their bottom post screws</text>
 <text x="216" y="189.95" font-size="1.2">sit at 30 in vertical slots, through the gantry mount brackets, and they have no ring screw (sheet 5); the top has 8</text>
-<text x="216" y="191.6" font-size="1.2">into the lid ring and Ø10 over each lid screw. Vents: 21 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk</text>
+<text x="216" y="191.6" font-size="1.2">into the lid ring and Ø10 over each lid screw. Vents: 24 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk</text>
 <text x="216" y="193.25" font-size="1.2">grommets in Ø50 holes (two upper left, upper front, upper right, lower left), each held by a Ø64 acrylic ring pressed</text>
 <text x="216" y="194.9" font-size="1.2">onto its sleeve behind the wall; caliper one grommet before cutting. Q0 is the inlet's switch if that is 2-pole. Read</text>
 <text x="216" y="196.55" font-size="1.2">back from the DXFs: least web 4 mm (2 needed). Order list: bom_frame.csv. NOT CUT YET, placeholders until the owner's</text>
