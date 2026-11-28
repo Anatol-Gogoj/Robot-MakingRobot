@@ -1076,7 +1076,7 @@ class DeckWiring:
         return r
 
     def InLane(self, name, lane, x=None, y=None):
-        """An end inside a lane: a cable slot, the shield clamp, or a grommet at the lane's end."""
+        """An end inside a lane: a cable slot, the shield bar, or a grommet at the lane's end."""
         L = self.Lanes[lane]
         self.Ends[name] = ("i", self.M.X(x) if L.Axis == "x" else self.M.Y(y), lane)
 
@@ -1359,7 +1359,8 @@ def DuctBox(deck, start):
 
 def GroundBar(kind):
     """The ground bar's footprint on its plate's PE stud, its first screw on the stud. The bar is
-    not chosen in size (OpenScrews()); this box only places it."""
+    not measured (OpenScrews()); this box only places it. The shield bar is the same EC2GB152 but is drawn
+    at its package's length (PartSize["ShieldBar"]): measuring one settles both (ADR-0022)."""
     px, py = PeStud[kind]
     return (px - 6.0, py - 3.0, px + 6.0, py + 23.0) if kind == "base" else (px - 4.0, py - 6.0, px + 4.0, py + 24.0)
 
@@ -1538,7 +1539,7 @@ def UpperWiring(d):
     In = Frame + RingClear
     fd, sd, md = UpRows["field duct"], UpRows["signal duct"], UpRows["motor duct"]
     up = UpperRails()
-    clamp = ClampBox()
+    clamp = ShieldBarBox()
     back0, back1 = BackRunX - DuctWide / 2, BackRunX + DuctWide / 2
     feed = DuctBox("upper", "24 V feeds")
     ssrIn = DuctBox("upper", "SSR inputs")
@@ -1548,8 +1549,8 @@ def UpperWiring(d):
     u = dict((k, uu) for _, uu, _, k in CableEntries)
     # lanes: the ducts (the 24 V feed duct reaching down to slot 1, the motor duct, the back run reaching
     # the left wall); free channels in front of the logic rail (slot 3, the front grommet), along the left
-    # wall (field cables), behind the SSRs (their outputs, slot 2), out of the shield clamp into the back
-    # run, along the right wall, and behind the back run to the ground bar
+    # wall (field cables), behind the SSRs (their outputs, slot 2), to and past the shield bar, along the
+    # right wall, and behind the back run to the ground bar
     d.AddLane("front", (Frame + 1.0, 2.0, LogicRail0 - 0.5, sd[0]), "y")
     d.AddLane("left wall", (Frame + 1.0, 2.0, BoxD - Frame, FieldRail0 - 17.0), "x")
     d.AddLane("field duct", (LogicRail0 - 0.5, fd[0], back0, fd[1]), "x")
@@ -1560,21 +1561,19 @@ def UpperWiring(d):
     # the 24 V feed duct's lane reaches up past slot 1 to slot 2's channel: the screen's 12 V pair runs in
     # the duct from the DC-DC's output toward slot 2 (issue #264)
     d.AddLane("feed duct", (feed[0], s2[3], feed[2], md[0]), "y")
-    # the shield clamp lies across the motor duct's back end (issue #264): the motor cables cross it into
-    # the back run, and the upper right grommet's cable leaves it toward the wall
-    d.AddLane("motor duct", (DrvX[0], md[0], clamp[0], md[1]), "x")
-    d.AddLane("clamp out", (clamp[2], md[0], back0, md[1]), "x")
+    # the shield bar lies beside the motor duct's back end (issue #264): the motor cables stay in the
+    # duct to the back run, and each cable's drain wire crosses from the duct to its own terminal on the
+    # bar. U's cable, nearest the upper right grommet, passes the bar's back end to the wall.
+    d.AddLane("motor duct", (DrvX[0], md[0], back0, md[1]), "x")
+    d.AddLane("drains", (clamp[0], md[1], clamp[2], clamp[1]), "x")
     d.AddLane("back run", (back0, 0.0, back1, md[1]), "y")
-    d.AddLane("to UR", (clamp[0] + 1.0, clamp[3], clamp[2] - 1.0, BoxW), "y")
+    d.AddLane("past bar", (clamp[2], md[1], back0, clamp[3]), "y")
     d.AddLane("right wall", (Frame + 1.0, clamp[3], back1, BoxW - 2.0), "x")
     d.AddLane("behind", (back1, In, bar[0] - 2.0, BoxW - 2.0), "y")
     dc = B["12 V DC-DC"]
     d.InLane("S1", "feed duct", y=(s1[1] + s1[3]) / 2)
     d.InLane("S2", "slot 2", x=(s2[0] + s2[2]) / 2)
     d.InLane("S3", "front", y=(s3[1] + s3[3]) / 2)
-    d.InLane("clamp", "motor duct", x=clamp[0])
-    d.InLane("clamp out", "clamp out", x=clamp[2])
-    d.InLane("clamp out UR", "to UR", y=clamp[3])
     d.InLane("ULM", "back run", y=0.0)
     d.Exit("UL", "left wall", "left", u["UL"] - 21.0, u["UL"] + 21.0)
     d.Exit("UF", "front", "front", u["UF"] - 21.0, u["UF"] + 21.0)
@@ -1608,12 +1607,13 @@ def UpperWiring(d):
         d.Part(name, B[name], [name], size=1.05, at=(0.5, 0.55))
         d.Face(name, "x0", "SSR inputs", ["IN+", "IN-"], ["+", "-"], size=0.8, pad=0.05)
         d.Face(name, "x1", "SSR outputs", ["OUT+", "OUT-"], ["+", "-"], size=0.8, pad=0.05)
-    # drivers and the shield clamp
+    # drivers and the shield bar
     for ax in RowAxes:
         d.Part(ax, B[ax], [ax, "TB6600"] + (["mask library"] if ax == "U" else []), size=2.0)
         d.Face(ax, "y0", "signal duct", ["SIG", "COM"], ["sig", "com"])
         d.Face(ax, "y1", "motor duct", ["+V", "0V", "M"], ["+V", "0V", "M"])
-    d.Part("clamp", clamp, ["shield clamp", "motor shields"], size=1.2, rot=-90, dashed=True)
+    d.Part("clamp", clamp, ["shield bar, EC2GB152: motor drain wires"], size=1.1, at=(0.5, 0.7), dashed=True)
+    d.Face("clamp", "y0", "drains", DriveAxes, DriveAxes, size=0.8)
     d.Face("clamp", "y1", "right wall", ["PE"], [""])
     d.Part("bar", bar, ["ground bar"], size=1.1, rot=-90, dashed=True)
     d.Face("bar", "x0", "behind", ["1", "2", "3"], ["", "", ""])
@@ -1626,9 +1626,10 @@ def UpperWiring(d):
     for i, ax in enumerate(DriveAxes):
         W("sgc", "MEGA.g" + ax, ax + ".SIG")
         W("zs", ax + ".COM", "0V-S.%db" % (i + 1))
-        W("cb", ax + ".M", "clamp", weight=2)
-    W("cb", "clamp out", "ULM", weight=3)
-    d.Out("cb", "clamp out UR", "UR", weight=2)
+        W("pe", ax + ".M", "clamp." + ax)          # the cable's drain wire to the shield bar
+        if ax != ShieldUrAxis:
+            W("cb", ax + ".M", "ULM", weight=2)
+    d.Out("cb", ShieldUrAxis + ".M", "UR", weight=2)
     for i, (ax, pin) in enumerate(EndstopPins):
         W("sg", "MEGA." + pin, "X4.%db" % (i + 1))
     W("zs", "X4.7b", "0V-S.3a")
@@ -1881,8 +1882,7 @@ def DeckSheet(deck):
 
 def CrossChecks(d):
     """Raise unless no two parts overlap on paper and no drawn wire passes through a part: a run may
-    end on a part's face but not cross its inside. Motor cables pass the shield clamp, which holds
-    their shields."""
+    end on a part's face but not cross its inside."""
     eps = 0.05
 
     def Inside(a, b):
@@ -1910,8 +1910,6 @@ def CrossChecks(d):
         for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
             seg = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
             for key, r in parts:
-                if cls == "cb" and key == "clamp":
-                    continue
                 if (x1 == x2 and r[0] + eps < x1 < r[2] - eps and Inside((r[0], seg[1], r[2], seg[3]), r)) or                         (y1 == y2 and r[1] + eps < y1 < r[3] - eps and Inside((seg[0], r[1], seg[2], r[3]), r)):
                     raise ValueError("%s deck: a %s wire runs through %s" % (d.Deck, cls, key))
 
@@ -1939,7 +1937,7 @@ ExitNotes = {
     "ULM": ["Upper left grommet 2", "7 motor cables, gantry PE trunk"],
     "UF": ["Upper front grommet", "to the operator panel: Mega USB, Pi GPIO to the tower SSRs;",
            "to the spin coater base: J11 (ODrive UART)"],
-    "UR": ["Upper right grommet", "X7 to the tower, 1 motor cable"],
+    "UR": ["Upper right grommet", "X7 to the tower, U's motor cable"],
 }
 FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "U"],
            "FB1": ["spare", "5 V PSU", "12 V DC-DC", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
@@ -1971,8 +1969,10 @@ def WireNotes(deck):
             "F2-1 to F2-7 and F2-12 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.",
             "The PSU's terminal order is assumed."]
     return common + [
-        "Motor cables: shield to the clamp bar; seven leave by the upper left grommet and one by the upper",
-        "right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.",
+        "Motor cables: each drain wire, spliced to a short 14 AWG green lead (the bar's setscrews take 14 to",
+        "4 AWG), to its own terminal of the shield bar (EC2GB152, size assumed). Seven leave by the upper left",
+        "grommet, U's by the upper right one.",
+        "Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.",
         "The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck",
         "behind every rail; the upper left grommet, beside X7, would save most of that run.",
         "1 k from 5V to 43 and 100 nF from 40 to GND on the Mega's screw shield."]
@@ -2057,7 +2057,7 @@ NameParts = [
         ("X ... C", "TB6600 drivers: X, Y1, Y2 (follows Y), Z, A (filter feed), B (syringe height), "
                     "C (syringe)", "drivers rail"),
         ("U", "TB6600 driver of the mask library elevator (U axis, issue #264), on F2-12", "drivers rail"),
-        ("shield clamp", "grips the motor cables' shields, bonded to PE", "motor duct's end"),
+        ("shield bar", "Siemens EC2GB152: a terminal for each motor cable's drain wire, bonded to PE", "beside the motor duct"),
         ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
         ("12 V DC-DC", "Mean Well DDR-60G-12, isolated: 12 V for the screen, fed by F1-3", "behind slot 2"),
     ]),
@@ -2081,7 +2081,7 @@ NameEntries = [
     ("UL", "upper left grommet: field cables X4, X5, X6"),
     ("ULM", "upper left grommet 2: 7 motor cables, gantry PE"),
     ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
-    ("UR", "upper right grommet: X7 tower, 1 motor cable"),
+    ("UR", "upper right grommet: X7 tower, U's motor cable"),
     ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, screen 12 V, door cable"),
     ("inlet", "IEC inlet with switch Q0, back panel"),
     ("gland", "M20 gland, back panel: door 110 V cable"),
@@ -2132,7 +2132,7 @@ def NameEnd(name):
     if "#" in name:
         return name.split("#")[0]
     if "." not in name:
-        return "shield clamp" if name.startswith("clamp") else name
+        return "shield bar" if name.startswith("clamp") else name
     key, term = name.split(".", 1)
     if key == "MEGA":
         return "Mega " + ({"GND": "GND", "USB": "USB"}.get(term) or
@@ -2144,7 +2144,7 @@ def NameEnd(name):
     if key in ("FB1", "FB2"):
         return "%s %s" % (key, term) if term == "IN" else "F%s-%s" % (key[2], term)
     for bus, text in (("0V-S2", "0V-S2"), ("0V-S", "0V-S"), ("0V-P 2", "0V-P 2"), ("0V-P", "0V-P 1"),
-                      ("Star S", "star S"), ("bar", "ground bar"), ("clamp", "shield clamp")):
+                      ("Star S", "star S"), ("bar", "ground bar"), ("clamp", "shield bar")):
         if key == bus:
             return text
     if key in SsrNames:
@@ -3043,8 +3043,9 @@ PartSize = {
     "DDR12": (52.5, 90.0, 54.5, True, "rail"),   # Mean Well DDR-60G-12, the screen's 12 V (ADR-0020):
                                                  # 52.5 W x 90 H x 54.5 D on TS35 (DDR-60-SPEC,
                                                  # 2026-03-31, mechanical page)
-    "Clamp": (22.0, 52.4, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed; 52.4 long is what the
-                                                 # duct and the strip leave it (ClampBox, issue #264)
+    "ShieldBar": (216.0, 13.0, 13.0, False, "plate"),  # the motor shields' bar, a Siemens EC2GB152 like the PE
+                                                 # bars (issue #269); not measured: 216 long is its package's
+                                                 # 8.50 in (Menards, EC2GB15PU), 13 its 0.50 in depth
 }
 
 
@@ -3074,7 +3075,7 @@ RingName = "Grommet ring"
 # the packing study's name for the exit). The owner chose the walls; the study (layout 3b, ADR-0010)
 # moved each along its wall: upper left at the middle of the field rail and in the back corridor
 # past its end, where the motor cables' back run ends (RunChecks); upper front on the Mega's centre
-# line; upper right behind the shield clamp; lower left past the fuse rail's end, in front of the
+# line; upper right beside the shield bar; lower left past the fuse rail's end, in front of the
 # 5 V PSU (moved from 292 when FB1 became a 12-way and the fuse rail grew over it: issue #158).
 CableEntries = [("Upper side, left", 182.0, "the field cables", "UL"),
                 ("Upper side, left", 390.0, "most motor cables", "ULM"),
@@ -3162,8 +3163,8 @@ NylocH = {"M4": 5.0}
 NylocAcross = 7 / math.cos(math.radians(30))   # M4 nyloc across corners, sharp: 7 across flats (DIN 985)
 # The ground bars' screws take a plain nut from the M5 assortment (ISO 4032: 4.7 tall, 8 across flats)
 # and an external tooth washer (DIN 6797 A, 0.6 thick; measure one) between bar and plate. The bar is
-# not chosen, so sheet 4 gives their length from its foot (OpenScrews). The shield clamp's fasteners
-# are taken as M4 into a nyloc, like a duct's.
+# not chosen, so sheet 4 gives their length from its foot (OpenScrews). The shield bar is the same part
+# and takes the same screws (issue #264).
 PlainNutH = {"M5": 4.7}
 HexNutAcross = {"M5": 8 / math.cos(math.radians(30))}
 ToothWasherT = 0.6
@@ -3267,24 +3268,22 @@ def HangGaps():
 def OpenScrews():
     """[(screws, thread, plate, least tail, longest tail, what sets it)] for the plate screws whose
     hardware is not chosen: each ground bar's, at its plate's PE stud and, for the upper bars' other
-    screws, anywhere over the lower deck off the mid ring and its brackets; and the shield clamp's,
-    anywhere in its box. The least tail carries the nut and two threads past it; the longest ends 1 mm
+    screws, anywhere over the lower deck off the mid ring and its brackets; and the shield bar's,
+    anywhere along it. The least tail carries the nut and two threads past it; the longest ends 1 mm
     over the floor where the base plate sags most, or keeps TailRoom under the upper plate. Raises if no
     length fits."""
     floor = FootH - PlateSag(E5052, Nu5052, BasePlateT) - 1.0
     bar = PlainNutH["M5"] + 2 * ThreadPitch["M5"]
     px, py = PeStud["upper"]
     r = HexNutAcross["M5"] / 2
-    c0, d0, c1, d1 = ClampBox()
-    rc = NylocAcross / 2
+    c0, d0, c1, d1 = ShieldBarBox()
     top, name = max((s["top"], "lower deck's " + (s["label"] or s["key"] or s["kind"]))
                     for s in DeckSolids() if s["deck"] == "lower")
     out = [("ground bar", "M5", "base", bar, floor, "floor"),
            ("ground bar", "M5", "upper", bar) + TailRoom((px - r, py - r, px + r, py + r)),
            ("other ground bar", "M5", "upper", bar,
             LowBay - PlateSag(E5052, Nu5052, UpPlateT) - PartClear - top, name),
-           ("shield clamp", "M4", "upper", NylocH["M4"] + 2 * ThreadPitch["M4"])
-           + TailRoom((c0 - rc, d0 - rc, c1 + rc, d1 + rc))]
+           ("shield bar", "M5", "upper", bar) + TailRoom((c0 - r, d0 - r, c1 + r, d1 + r))]
     for what, thread, plate, least, room, name in out:
         if room < least - 1e-6:
             raise ValueError("%s screws through the %s plate: no %s fits; the nut and two threads need %.1f mm "
@@ -3347,16 +3346,18 @@ def UpDeckRows():
 UpRows = UpDeckRows()
 DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(len(RowAxes))]   # TB6600 left edges along x, 28 wide
 # The eighth driver, U (issue #264, ADR-0022), stands on the drivers' rail with the others, where the shield
-# clamp and cable slot 1 used to be. The clamp moved to the motor duct's back end, just in front of the back
-# run, where it still lies across the duct, so that the motor cables cross it, and reaches on into the strip
-# between the duct and the right wall, leaving ClampChan for the wires along the wall; slot 1 and its 24 V
+# clamp and cable slot 1 used to be. The clamp is replaced by a shield bar, a ground bar with a terminal for
+# each motor cable's drain wire, lying along x in the strip between the motor duct and the right wall, its
+# back end ShieldGap in front of the back run and ShieldChan left along the wall; slot 1 and its 24 V
 # feed duct moved
 # into the gap between the drivers' rail and the 12 V DC-DC's: the drivers' row blocks y 154.5 to 250.5
 # from the front ring to the DC-DC, and behind it the plate is over the 110 VAC compartment, so the feeds
 # can pass the row only there.
-ClampGap = 2.0                     # from the clamp's back face to the back run
-ClampChan = 14.0                   # from the clamp's wall end to RingClear: the upper right grommet's motor
-                                   # cable, the tower cable and the clamp's and ground bar's PE pass there
+ShieldGap = 2.0                    # from the shield bar's back end to the back run
+ShieldChan = 14.0                  # from the shield bar's wall side to RingClear: the upper right grommet's
+                                   # motor cable, the tower cable and the PE wires pass there
+ShieldUrAxis = "U"                 # the driver whose motor cable leaves by the upper right grommet: U's
+                                   # stands nearest it
 FeedGap = 1.0                      # from the 24 V feed duct to each rail end beside it
 # What the study placed freely (tools/layout_study/layout3b_build.json); everything else follows
 # from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
@@ -4251,7 +4252,7 @@ def BondPoints():
             ("upper", "lid ring rail", 4, "tapped bond hole, ring lug"),
             ("upper", "DIN rail: field, logic, SSRs, drivers", rails["upper"], "its PE terminal"),
             ("upper", "TB6600 case", len(DriveAxes), "ring lug and tooth washer under an ear screw"),
-            ("upper", "motor shield clamp", 1, "ring lug"),
+            ("upper", "motor shield bar", 1, "ring lug"),
             ("upper", "link to the lower module", 1, "unclamp to lift the module"),
             ("upper", "trunk to the gantry bar", 1, "leaves with the motor cables")]
 
@@ -4523,17 +4524,16 @@ def LowerRails():
     }
 
 
-def ClampBox():
-    """The motor cable shield clamp bar: across the motor duct at its back end, ClampGap in front of the back
-    run, from the duct's inner wall into the strip toward the right wall, ClampChan short of RingClear
-    (issue #264). Raises if PartSize's length does not fit there."""
-    x1 = BackRunX - DuctWide / 2 - ClampGap
-    y0 = UpRows["motor duct"][0]
-    y1 = y0 + PartSize["Clamp"][1]
-    if y1 > BoxW - Frame - RingClear - ClampChan + 1e-9:
-        raise ValueError("the shield clamp reaches y %.1f, past the %s mm channel along the right wall"
-                         % (y1, Mm(ClampChan)))
-    return (x1 - PartSize["Clamp"][0], y0, x1, y1)
+def ShieldBarBox():
+    """The motor shields' bar (issue #269): along x in the strip between the motor duct and the right wall,
+    ShieldChan short of RingClear, its back end ShieldGap in front of the back run. Raises if it does not
+    fit between the duct and that channel."""
+    x1 = BackRunX - DuctWide / 2 - ShieldGap
+    y1 = BoxW - Frame - RingClear - ShieldChan
+    y0 = y1 - PartSize["ShieldBar"][1]
+    if y0 < UpRows["motor duct"][1] - 1e-9:
+        raise ValueError("the shield bar reaches y %.1f, into the motor duct" % y0)
+    return (x1 - PartSize["ShieldBar"][0], y0, x1, y1)
 
 
 def FeedX():
@@ -4550,8 +4550,8 @@ def Ducts():
     """[(deck, (x0, y0, x1, y1), width, label, in the mains compartment)]: the slotted duct runs,
     which meet in tees. Upper deck: a narrow duct in each channel, one joining them between the logic
     rail's end and the SSRs, and one taking the driver 24 V from slot 1 to the motor duct between the
-    drivers' rail and the 12 V DC-DC's; the motor duct behind the drivers to the shield clamp at its back
-    end, and the back run, which carries the motor cables across the corridor behind every rail to the
+    drivers' rail and the 12 V DC-DC's; the motor duct behind the drivers, with the shield bar beside its
+    back end, and the back run, which carries the motor cables across the corridor behind every rail to the
     upper left grommet. Lower deck: one
     between the fuse rail and the 24 V rail, and one in the mains compartment between the PSU and
     the 110 V rail."""
@@ -4571,7 +4571,7 @@ def Ducts():
          "duct 1/2 x 1 in: driver signals", False),
         ("upper", (ssrX - n, fd[1], ssrX + n, sd[0]), DuctNarrow, "SSR inputs", False),
         ("upper", (feedX - n, CableSlots[0][3] + 2.0, feedX + n, md[0]), DuctNarrow, "24 V feeds", False),
-        ("upper", (DrvX[0], md[0], ClampBox()[0], md[1]), DuctWide,
+        ("upper", (DrvX[0], md[0], back0, md[1]), DuctWide,
          "duct 1 x 1 1/2 in: motor cables, driver 24 V", False),
         ("upper", (back0, Frame + RingClear, back1, md[1]), DuctWide,
          "duct 1 x 1 1/2 in: back run, motor cables to the upper left grommet", False),
@@ -4589,7 +4589,7 @@ MainsBlocks = ("PSU", "R110")
 def DeckSolids():
     """Everything standing on the two decks, as boxes in deck coordinates seen from above:
     [dict(deck, kind, box (x0, y0, x1, y1), key, label, fill, block, mount, top, dashed, alongX,
-    mains)]. kind is rail, part, duct or clamp; top is the height over the deck; block is the
+    mains)]. kind is rail, part, duct or clamp (the shield bar); top is the height over the deck; block is the
     packing study's name for the group the box belongs to; mains marks the 110 VAC compartment."""
     out = []
     for deck, rails in (("upper", UpperRails()), ("lower", LowerRails())):
@@ -4611,9 +4611,9 @@ def DeckSolids():
         out.append(dict(deck=deck, kind="duct", box=box, key=None, label=label, fill="#fff", block=None,
                         mount="plate", top=DuctTall[w], dashed=True,
                         alongX=box[2] - box[0] >= box[3] - box[1], mains=mains))
-    out.append(dict(deck="upper", kind="clamp", box=ClampBox(), key="Clamp", label="shield clamp",
-                    fill=ZoneFill["drv"], block="SHIELD", mount="plate", top=MountedH("Clamp"),
-                    dashed=not PartSize["Clamp"][3], alongX=False, mains=False))
+    out.append(dict(deck="upper", kind="clamp", box=ShieldBarBox(), key="ShieldBar", label="shield bar",
+                    fill=ZoneFill["drv"], block="SHIELD", mount="plate", top=MountedH("ShieldBar"),
+                    dashed=not PartSize["ShieldBar"][3], alongX=True, mains=False))
     return out
 
 
@@ -4635,7 +4635,7 @@ def StudyBlocks():
             e[:] = [min(e[0], s["box"][0]), min(e[1], s["box"][1]), max(e[2], s["box"][2]),
                     max(e[3], s["box"][3])]
     ext["DRV"][3] = UpRows["motor duct"][1]
-    rot = {"SSR": 1, "SHIELD": 1}
+    rot = {"SSR": 1}
     return {b: ((e[0] + e[2]) / 2, (e[1] + e[3]) / 2, rot.get(b, 0)) for b, e in ext.items()}
 
 
@@ -4805,7 +4805,7 @@ def PlanLabel(s):
              "PSU6": (["Servo", "DDR-30G-5", "5.4 V"], 1.0, 0),
              "PSU5": (["5 V", "DDR-30G-5", "Pi"], 1.0, 0),
              "DDR12": (["12 V DC-DC", "52.5 x 90", "screen"], 1.1, 0),
-             "Clamp": (["shield clamp"], 1.1, -90)}
+             "ShieldBar": (["shield bar"], 1.1, 0)}
     if key in fixed:
         return fixed[key]
     narrow = s["alongX"] and s["box"][2] - s["box"][0] < 14
@@ -4953,7 +4953,7 @@ def BuildPacking():
     Tag(fr, upper["SSR"]["a0"] / 2 + upper["SSR"]["a1"] / 2, UpDeck + 66, ["SSRs behind"], size=1.0)
     Tag(fr, upper["drivers"]["centre"], UpDeck + 50, ["TB6600s", "68 + clip 10 + rail 7.5"], size=1.15)
     Tag(fr, sum(UpRows["motor duct"]) / 2, UpDeck + 19, ["motor duct"], size=1.0, rot=-90)
-    Tag(fr, (ClampBox()[1] + ClampBox()[3]) / 2, UpDeck + 20, ["shield clamp"], size=1.0, rot=-90)
+    Tag(fr, (ShieldBarBox()[1] + ShieldBarBox()[3]) / 2, UpDeck + 22, ["shield bar"], size=1.0, rot=-90)
     fr.DimV(LoDeck, UpPlate0, BoxW, "%s mm lower" % Mm(UpPlate0 - LoDeck))
     fr.DimV(UpDeck, TopIn, BoxW, "%s mm upper" % Mm(round(TopIn - UpDeck, 1)))
     sh.Text(fr.X(upper["drivers"]["centre"]), fr.Y(TopIn - 6) + 0.4,
@@ -4973,7 +4973,7 @@ def BuildPacking():
     SectionFrame(sd, BoxD)
     Elevation(sd, "y")
     mainsDuct = [s["box"] for s in solids if s["kind"] == "duct" and s["mains"]][0]
-    clamp = ClampBox()
+    clamp = ShieldBarBox()
     Tag(sd, Mid(lower["24 V PSU"]), LoDeck + 42, ["24 V PSU, flat", "fan face this side"])
     if MountedH("K2") > MountedH("PSU24"):    # the measured PSU stands taller and hides K2 (issue #202)
         Tag(sd, Mid(lower["24 V"], "K2"), LoDeck + 71.6, ["K2 behind"], size=1.0)
@@ -4984,7 +4984,7 @@ def BuildPacking():
     Tag(sd, Mid(lower["110 V"], "X0"), LoDeck + 45.7, ["5 V PSU behind"], size=0.9)
     Tag(sd, (Mid(lower["110 V"], "PE") + Mid(lower["110 V"], "X1")) / 2, LoDeck + 46.3, ["FB1 behind"], size=0.9)
     Tag(sd, (upper["drivers"]["a0"] + clamp[0]) / 2, UpDeck + 19, ["motor duct"])
-    Tag(sd, (clamp[0] + clamp[2]) / 2, UpDeck + 20, ["shield clamp"], size=1.0, rot=-90)
+    Tag(sd, (clamp[0] + clamp[2]) / 2, UpDeck + 7, ["shield bar, nearest"], size=1.0)
     for key, label, a0, a1 in upper["drivers"]["run"]:
         Tag(sd, (a0 + a1) / 2, UpDeck + 70, [label], size=1.4)
     Tag(sd, upper["SSR"]["centre"], UpDeck + 60, ["SSRs"])
@@ -5070,8 +5070,8 @@ def BuildPacking():
             "UK 2.5 B 6.2 x 42.5 x 42; 5 V and servo DDR-30G-5",
             "35 x 90 x 54.5 (datasheet); Mega 99 x 53 (A000067);",
             "12 V DC-DC 52.5 x 90 x 54.5 (datasheet).",
-            "Assumed (dashed): F0, F3, PE blocks, end and",
-            "shield clamps, Mega height. Heights add the rail."]),
+            "Assumed (dashed): F0, F3, PE blocks, end clamps,",
+            "the shield bar, Mega height. Heights add the rail."]),
         ("Layout 3b (ADR-0010)", [
             "From the CP-SAT packing study: %s" % "{:,}".format(wireDrawn),
             "conductor-mm as drawn (%s at the study's" % "{:,}".format(wireStudy),
@@ -5233,8 +5233,9 @@ def BuildFrame():
         bars = [w for w in openWin if "ground bar" in w[0]]
         barLen = [math.ceil((ToothWasherT + max(BasePlateT, UpPlateT) + max(w[3] for w in bars)) * 10) / 10,
                   math.floor((ToothWasherT + min(BasePlateT, UpPlateT) + min(w[4] for w in bars)) * 10) / 10]
-        clampW = [w for w in openWin if w[0] == "shield clamp"][0]
-        clampLen = [math.ceil((UpPlateT + clampW[3]) * 10) / 10, math.floor((UpPlateT + clampW[4]) * 10) / 10]
+        clampW = [w for w in openWin if w[0] == "shield bar"][0]
+        clampLen = [math.ceil((ToothWasherT + UpPlateT + clampW[3]) * 10) / 10,
+                    math.floor((ToothWasherT + UpPlateT + clampW[4]) * 10) / 10]
         if kind == "base":
             px, py = PeStud[kind]
             sched = ["%d x %s%s: M5 into the lower posts, with the feet" % (len(PostCentres), Dia, Mm(HoleM5)),
@@ -5256,7 +5257,7 @@ def BuildFrame():
                      % Mm(ScrewEnd),
                      "of the run; the tails end %s mm or more over what stands below (HangGaps)"
                      % Mm(math.floor(hangGap * 10) / 10),
-                     "Shield clamp: M4 into a nyloc, the clamp's base + %s to + %s long; ground bar screws off the mid "
+                     "Shield bar: M5, plain nut, tooth washer, the bar's foot + %s to + %s long; ground bar screws off the mid "
                      "ring and its corner brackets (OpenScrews)" % (Mm(clampLen[0]), Mm(clampLen[1])),
                      "Cable slots, round ends, edge trim:  " +
                      ";  ".join("%d: x %s-%s, y %s-%s" % (i + 1, Mm(a0), Mm(a1), Mm(b0), Mm(b1))
@@ -5727,7 +5728,7 @@ def BuildGantry():
 # corner, x toward the back, y toward the right wall, so the plate is seen from below), so the shop can
 # hold each drawing against the file it cuts from. ShopChecks() reads each DXF back from disk and
 # refuses a chart, as printed, that differs from it. Only the plate's own holes and slots are drawn;
-# the DIN rail, duct, ground bar and shield clamp holes are drilled at assembly (sheet 4).
+# the DIN rail, duct, ground bar and shield bar holes are drilled at assembly (sheet 4).
 # Datums: the centres of the corner holes A1 and A3 (ShopDatums), which the frame's studs and feet
 # screws pass, not the cut edges. Every centre is +/-ShopPosTol from them and every edge lies on its
 # nominal line or up to ShopOutlineTol[1] inside it, so the plate is never larger than nominal round
@@ -6584,7 +6585,7 @@ def BomRows():
         ("Cable duct", Mc, Buy, "Slotted wire duct 1 W x 1 1/2 H", "7578K14",
          "Slotted wire duct with snap-on cover, 1 1/2 in high x 1 in wide", "%d mm" % round(wideDuct),
          "3 1/4 ft length", math.ceil(wideDuct / (3.25 * 304.8)), 23.74,
-         "motor duct behind the drivers to the shield clamp, and the back run to the upper left grommet",
+         "motor duct behind the drivers, and the back run to the upper left grommet",
          "McMaster price of 2026-10-15; gray or white"),
         # ---- PE bonding of the box
         ("PE bonding", Amz, Buy, "Ground bar kit, %d terminals" % BarTerminals, "B007ZZGSQI",
@@ -6594,6 +6595,13 @@ def BomRows():
          "None was on hand (issue #158); a spare uxcell 1-in 9-out block is no substitute: 9 ways, insulated "
          "from the plate, and the same body as the 0 V blocks. Never two parts per terminal. Its foot is not "
          "measured: sheet 4 gives the screw window from it. " + read),
+        ("PE bonding", Amz, Buy, "Ground bar kit, %d terminals, for the motor shields" % BarTerminals, "B007ZZGSQI",
+         "SIEMENS EC2GB152 ground bar kit: %d terminal positions and a ground lug" % BarTerminals,
+         "shield bar 1", "each", 1, 10.38,
+         "the shield bar beside the motor duct: each motor cable's drain wire on its own terminal (8 of %d)"
+         % BarTerminals,
+         "The same kit as the PE bars (issue #264), one more than the five the plates and the gantry take. Its "
+         "size is not measured; sheet 3 draws it at its package's 8.50 x 0.50 in. " + read),
         ("PE bonding", Amz, Buy, "12 AWG stranded green THHN, 50 ft", "B0DPK8KDLJ",
          "THHN wire 12 gauge 50 ft, stranded copper, green", "%.1f m" % wireM, "50 ft roll",
          boxRolls, 29.99,
@@ -6605,8 +6613,8 @@ def BomRows():
          "12-10 AWG #10 stud heat-shrink ring terminals", lugs, "pack of 100", 1, 9.99,
          "the part end of each jumper; the bar end goes bare into its clamp", "Also the gantry jumpers"),
         ("PE bonding", Amz, Buy, "External tooth lock washers, 304, M2.5 to M12", "B0CP7YZ9JY",
-         "500 pcs external tooth (star) lock washer assortment", lugs + 2 * nBars, "kit", 1, 9.99,
-         "under each ring lug, under the bars on both plates",
+         "500 pcs external tooth (star) lock washer assortment", lugs + 2 * (nBars + 1), "kit", 1, 9.99,
+         "under each ring lug, under the bars on both plates and the shield bar",
          "Per-size counts are not listed; DIN 6797 A, taken as 0.6 thick for M5 (measure one: sheet 4's ground "
          "bar screw length counts it)"),
         ("PE bonding", Amz, Buy, "Ground terminal block USLKG 5, green-yellow, 20", "B07M9LDK8F",
