@@ -82,7 +82,12 @@ ClassColor = {"ac": TolRed, "va": TolBlue, "ve": TolMagenta, "zp": "#000", "zs":
 DriverPins = {  # drawn axis: (PUL+ = STEP, DIR+ = DIR, ENA+ = ENABLE)
     "X": ("A0", "A1", "38"), "Y1": ("A6", "A7", "A2"), "Y2": ("36", "34", "30"),
     "Z": ("46", "48", "A8"), "A": ("2", "9", "12"), "B": ("21", "22", "31"),
-    "C": ("13", "19", "20")}
+    "C": ("13", "19", "20"),
+    # U, the mask library elevator (issue #264): the storage study's pin plan. PIN_MAP.md lists 37, 41 and 49
+    # as free in the current build; the firmware has no U axis yet (tools/check_wiring_pins.py: PENDING)
+    "U": ("37", "41", "49")}
+PendingAxes = ("U",)               # drawn, but not in the firmware yet
+SchDrvW, SchDrvPitch = 22.0, 25.0  # sheet 1: driver box width and pitch, eight in a row
 EndstopPins = [("X", "3"), ("Y", "14"), ("Z", "40"), ("A", "15"), ("B", "23"), ("C", "A9")]
 OtherPins = {"servo gripper": "5", "servo lid": "6", "UV SSR": "4", "valve SSR": "42",
              "lid switch S5": "39", "motor power sense": "43", "ODrive TX2": "16",
@@ -568,50 +573,54 @@ def BuildSchematic():
     sh.Text(281, zsY - 1.0, "0V-S signal bus", size=1.8, fill=TolBrightBlue, weight="bold", halo=True,
             anchor="end")
 
-    drivers = [(12, "X", "F2-1", "Gantry X"), (40, "Y1", "F2-2", "Gantry Y"),
-               (68, "Y2", "F2-3", "follows Y"), (96, "Z", "F2-4", "Gantry Z"),
-               (124, "A", "F2-5", "Filter feed (I)"), (152, "B", "F2-6", "Syringe ht (J)"),
-               (180, "C", "F2-7", "Syringe (K)")]
+    # eight driver columns, 22 wide at a 25 pitch (issue #264: the eighth, U, drives the mask library
+    # elevator from the spare F2-12); every offset inside a column is scaled from the old 24 mm box
+    dw = SchDrvW / 24.0
+    drivers = [(12 + SchDrvPitch * i, ax, fz, desc) for i, (ax, fz, desc) in enumerate([
+        ("X", "F2-1", "Gantry X"), ("Y1", "F2-2", "Gantry Y"), ("Y2", "F2-3", "follows Y"),
+        ("Z", "F2-4", "Gantry Z"), ("A", "F2-5", "Filter feed (I)"), ("B", "F2-6", "Syringe ht (J)"),
+        ("C", "F2-7", "Syringe (K)"), ("U", "F2-12", "Mask library")])]
     pins = DriverPins
     megaY0, megaY1 = 150.0, 160.0
     dTop, dBot = 106.0, 122.0
     for cx, ax, fz, desc in drivers:
-        fx = cx + 3
+        fx = cx + 3 * dw
         sh.Dot(fx, fb2Y, "ve")
         FuseV(sh, fx, fb2Y, 90.0, "ve")
         sh.Wire([(fx, 90.0), (fx, dTop)], "ve")
-        sh.Text(fx + 1.5, 87.0, fz, size=1.6)
-        sh.Text(fx + 1.5, 89.0, "5 A", size=1.6)
-        gx = cx + 7
+        sh.Text(fx + 1.5, 87.0, fz, size=1.5)
+        sh.Text(fx + 1.5, 89.0, "5 A", size=1.5)
+        gx = cx + 7 * dw
         sh.Wire([(gx, dTop), (gx, zpY)], "zp")
         sh.Dot(gx, zpY)
-        mx = cx + 15.75
-        for k, ox in enumerate((12.0, 14.5, 17.0, 19.5)):
+        mox = [o * dw for o in (12.0, 14.5, 17.0, 19.5)]
+        mx = cx + (mox[0] + mox[-1]) / 2
+        for ox in mox:
             sh.Wire([(cx + ox, dTop), (cx + ox, 101.2)], "mo")
-        sh.Wire([(cx + 12.0, 101.2), (cx + 19.5, 101.2)], "mo")
+        sh.Wire([(cx + mox[0], 101.2), (cx + mox[-1], 101.2)], "mo")
         sh.Wire([(mx, 101.2), (mx, 100.8)], "mo")
         Motor(sh, mx, 97.6, 3.2)
-        sh.Rect(cx, dTop, 24, dBot - dTop, "bx")
-        sh.Text(cx + 12, dTop + 6.2, ax, size=3.2, anchor="middle", weight="bold")
-        sh.Text(cx + 12, dTop + 9.6, "TB6600", size=1.7, anchor="middle")
-        sh.Text(cx + 12, dTop + 12.0, desc, size=1.6, anchor="middle")
+        sh.Rect(cx, dTop, SchDrvW, dBot - dTop, "bx")
+        sh.Text(cx + SchDrvW / 2, dTop + 6.2, ax, size=3.2, anchor="middle", weight="bold")
+        sh.Text(cx + SchDrvW / 2, dTop + 9.6, "TB6600", size=1.7, anchor="middle")
+        sh.Text(cx + SchDrvW / 2, dTop + 12.0, desc, size=1.45, anchor="middle")
         pp = pins[ax]
         for k, ox in enumerate((5.0, 10.0, 15.0)):
-            sh.Wire([(cx + ox, dBot), (cx + ox, megaY0)], "sg")
-            sh.Text(cx + ox, megaY0 + 2.6, pp[k], size=1.7, anchor="middle", weight="bold")
-        sh.Wire([(cx + 20, dBot), (cx + 20, zsY)], "zs")
-        sh.Dot(cx + 20, zsY, "zs")
+            sh.Wire([(cx + ox * dw, dBot), (cx + ox * dw, megaY0)], "sg")
+            sh.Text(cx + ox * dw, megaY0 + 2.6, pp[k], size=1.6, anchor="middle", weight="bold")
+        sh.Wire([(cx + 20 * dw, dBot), (cx + 20 * dw, zsY)], "zs")
+        sh.Dot(cx + 20 * dw, zsY, "zs")
     # pin key on the X driver
     cx = 12
-    sh.Text(cx + 3, dTop - 0.6, "+V", size=1.3, anchor="middle")
-    sh.Text(cx + 7, dTop - 0.6, "0V", size=1.3, anchor="middle")
-    sh.Text(cx + 5, dBot + 1.9, "PUL+", size=1.3, anchor="middle")
-    sh.Text(cx + 10, dBot + 1.9, "DIR+", size=1.3, anchor="middle")
-    sh.Text(cx + 15, dBot + 1.9, "ENA+", size=1.3, anchor="middle")
-    sh.Text(cx + 20, dBot + 1.9, "COM", size=1.3, anchor="middle")
+    sh.Text(cx + 3 * dw, dTop - 0.6, "+V", size=1.3, anchor="middle")
+    sh.Text(cx + 7 * dw, dTop - 0.6, "0V", size=1.3, anchor="middle")
+    sh.Text(cx + 5 * dw, dBot + 1.9, "PUL+", size=1.2, anchor="middle")
+    sh.Text(cx + 10 * dw, dBot + 1.9, "DIR+", size=1.2, anchor="middle")
+    sh.Text(cx + 15 * dw, dBot + 1.9, "ENA+", size=1.2, anchor="middle")
+    sh.Text(cx + 20 * dw, dBot + 1.9, "COM", size=1.2, anchor="middle")
 
     # ODrive column
-    ox0 = 208.0
+    ox0 = 212.0
     fx = ox0 + 3
     sh.Dot(fx, fb2Y, "ve")
     FuseV(sh, fx, fb2Y, 90.0, "ve")
@@ -740,11 +749,7 @@ def BuildSchematic():
     sh.Text(vx + 12.6, 119.2, "band to +", size=1.3)
     sh.Wire([(vx, 120.5), (vx, 125.0)], "zp")
     RailTag(sh, vx, 125.0, "0V-P", "zp", size=1.4)
-    # F2-12 spare
-    sh.Dot(344, fb2Y, "ve")
-    sh.Wire([(344, fb2Y), (344, 86.5)], "ve")
-    sh.Text(344, 89.2, "F2-12", size=1.5, anchor="middle")
-    sh.Text(344, 91.0, "spare", size=1.5, anchor="middle")
+    # F2-12 feeds the U driver, drawn with the others (issue #264)
 
     # ------------------------------------------------ band 3: Mega bottom edge
     zs2 = 198.0
@@ -926,7 +931,7 @@ def BuildSchematic():
     dn = ["Drive and wiring rules",
           "Every driver: PUL-, DIR- and ENA- jumpered at the driver (COM);",
           "one COM wire per driver to 0V-S. Driver top: +V, 0V, A+, A-, B+, B-.",
-          "F2-1 to F2-8 on 14 AWG copper. Motor shields to PE at the driver end only.",
+          "F2-1 to F2-8 and F2-12 on 14 AWG copper. Motor shields to PE at the driver end only.",
           "Mega pins are board labels (A0 = D54, A2 = D56, A8 = D62, A9 = D63).",
           "1 k pull-ups on pin 43 and GPIO 20: they read power contacts.",
           "Servo, lid and UV wires cross the hinge: stranded, service loop,",
@@ -1369,10 +1374,12 @@ def SlotWires():
     An end in a slot or a grommet is named by it; the door cable passes slot 3 to the lower left
     grommet."""
     out = []
-    for i, ax in enumerate(DriveAxes):
-        out.append((1, "ve", "FB2.%d" % (i + 1), "%s.+V" % ax, "F2-%d to driver %s +V" % (i + 1, ax)))
     for ax in DriveAxes:
-        out.append((1, "zp", "0V-P.%s" % ax, "%s.0V" % ax, "0V-P 1 to driver %s 0V" % ax))
+        n = FuseUse["FB2"].index(ax) + 1
+        out.append((1, "ve", "FB2.%d" % n, "%s.+V" % ax, "F2-%d to driver %s +V" % (n, ax)))
+    for ax in DriveAxes:
+        bar, name = ("0V-P 2", "0V-P 2") if ax in ZpTwoAxes else ("0V-P", "0V-P 1")
+        out.append((1, "zp", "%s.%s" % (bar, ax), "%s.0V" % ax, "%s to driver %s 0V" % (name, ax)))
     out += [(2, "ve", "FB2.10", "SSR-UV.OUT+", "F2-10 to SSR-UV +"),
             (2, "ve", "FB2.11", "SSR-valve.OUT+", "F2-11 to SSR-valve +"),
             (2, "va", "FB1.4", "tower R.OUT+", "F1-4 to the tower SSRs + (jumpered)"),
@@ -1453,10 +1460,12 @@ def LowerWiring(d):
     d.Face("Star S", "y1", "top", ["IN", "PE"], ["in", ""])
     d.Part("0V-P", B["0V-P"], ["0V-P 1", "linked to 0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P", "y0", "duct", ["IN", "K2", "LK"], ["in", "", ""])
-    d.Face("0V-P", "y1", "top", DriveAxes, [""] * 7)
+    zp1 = [ax for ax in DriveAxes if ax not in ZpTwoAxes]
+    d.Face("0V-P", "y1", "top", zp1, [""] * len(zp1))
     d.Part("0V-P 2", B["0V-P 2"], ["0V-P 2"], size=1.35, rot=-90)
     d.Face("0V-P 2", "y0", "duct", ["IN", "OD"], ["in", ""])
-    d.Face("0V-P 2", "y1", "top", ["UV", "V", "T"], [""] * 3)
+    zp2 = ["UV", "V", "T"] + [ax for ax in DriveAxes if ax in ZpTwoAxes]
+    d.Face("0V-P 2", "y1", "top", zp2, [""] * len(zp2))
     d.Part("servo PSU", sp, ["Servo PSU", "DDR-30G-5", "5.4 V"], size=1.3)
     d.Face("servo PSU", "y0", "duct", ["IN+", "IN-", "OUT+", "OUT-"], ["+24", "0V", "+5.4V", "0V"])
     d.Part("5 V PSU", B["5 V PSU"], ["5 V PSU", "DDR-30G-5", "for the Pi"], size=1.3, at=(0.5, 0.6))
@@ -1537,32 +1546,35 @@ def UpperWiring(d):
     bar = GroundBar("upper")
     s1, s2, s3 = CableSlots
     u = dict((k, uu) for _, uu, _, k in CableEntries)
-    # lanes: the ducts (the 24 V feed duct reaching down to slot 1, the motor duct in two parts either
-    # side of the shield clamp, the back run reaching the left wall); free channels in front of the
-    # logic rail (slot 3, the front grommet), along the left wall (field cables), behind the SSRs
-    # (their outputs, slot 2), along the right wall, and behind the back run to the ground bar
+    # lanes: the ducts (the 24 V feed duct reaching down to slot 1, the motor duct, the back run reaching
+    # the left wall); free channels in front of the logic rail (slot 3, the front grommet), along the left
+    # wall (field cables), behind the SSRs (their outputs, slot 2), out of the shield clamp into the back
+    # run, along the right wall, and behind the back run to the ground bar
     d.AddLane("front", (Frame + 1.0, 2.0, LogicRail0 - 0.5, sd[0]), "y")
     d.AddLane("left wall", (Frame + 1.0, 2.0, BoxD - Frame, FieldRail0 - 17.0), "x")
     d.AddLane("field duct", (LogicRail0 - 0.5, fd[0], back0, fd[1]), "x")
-    d.AddLane("signal duct", (In, sd[0], up["drivers"]["a1"], sd[1]), "x")
+    d.AddLane("signal duct", (In, sd[0], DuctBox("upper", "duct 1/2 x 1 in: driver signals")[2], sd[1]), "x")
     d.AddLane("SSR inputs", ssrIn, "y")
     d.AddLane("SSR outputs", (ssr[2], fd[1], back0, s2[3]), "y")
     d.AddLane("slot 2", (s2[0] - 2.0, s2[1], back0, s2[3]), "x")
-    d.AddLane("feed duct", (feed[0], UpRows["drivers"][0], feed[2], md[0]), "y")
-    d.AddLane("motor duct", (In, md[0], clamp[0], md[1]), "x")
-    d.AddLane("motor duct 2", (clamp[2], md[0], back0, md[1]), "x")
+    # the 24 V feed duct's lane reaches up past slot 1 to slot 2's channel: the screen's 12 V pair runs in
+    # the duct from the DC-DC's output toward slot 2 (issue #264)
+    d.AddLane("feed duct", (feed[0], s2[3], feed[2], md[0]), "y")
+    # the shield clamp lies across the motor duct's back end (issue #264): the motor cables cross it into
+    # the back run, and the upper right grommet's cable leaves it toward the wall
+    d.AddLane("motor duct", (DrvX[0], md[0], clamp[0], md[1]), "x")
+    d.AddLane("clamp out", (clamp[2], md[0], back0, md[1]), "x")
     d.AddLane("back run", (back0, 0.0, back1, md[1]), "y")
-    d.AddLane("to UR", (clamp[0] + 1.0, md[0], clamp[2] - 1.0, BoxW), "y")
-    d.AddLane("right wall", (Frame + 1.0, md[1], back1, BoxW - 2.0), "x")
+    d.AddLane("to UR", (clamp[0] + 1.0, clamp[3], clamp[2] - 1.0, BoxW), "y")
+    d.AddLane("right wall", (Frame + 1.0, clamp[3], back1, BoxW - 2.0), "x")
     d.AddLane("behind", (back1, In, bar[0] - 2.0, BoxW - 2.0), "y")
     dc = B["12 V DC-DC"]
-    d.AddLane("beside DC-DC", (clamp[2], s2[3], dc[0], md[0]), "y")
     d.InLane("S1", "feed duct", y=(s1[1] + s1[3]) / 2)
     d.InLane("S2", "slot 2", x=(s2[0] + s2[2]) / 2)
     d.InLane("S3", "front", y=(s3[1] + s3[3]) / 2)
     d.InLane("clamp", "motor duct", x=clamp[0])
-    d.InLane("clamp out", "motor duct 2", x=clamp[2])
-    d.InLane("clamp out UR", "to UR", y=(md[0] + md[1]) / 2)
+    d.InLane("clamp out", "clamp out", x=clamp[2])
+    d.InLane("clamp out UR", "to UR", y=clamp[3])
     d.InLane("ULM", "back run", y=0.0)
     d.Exit("UL", "left wall", "left", u["UL"] - 21.0, u["UL"] + 21.0)
     d.Exit("UF", "front", "front", u["UF"] - 21.0, u["UF"] + 21.0)
@@ -1583,13 +1595,13 @@ def UpperWiring(d):
     top = [p for _, p in EndstopPins] + ["GND", "5", "6", "39", "43", "4", "42"]
     d.Face("MEGA", "y0", "field duct", top)
     d.Face("MEGA", "y1", "signal duct", ["g" + ax for ax in DriveAxes] + ["16", "17"],
-           [""] * 7 + ["16 TX2", "17 RX2"], pad=0.04)
+           [""] * len(DriveAxes) + ["16 TX2", "17 RX2"], pad=0.04)
     for ax in DriveAxes:
         x, y = d.Ends["MEGA.g" + ax][1:3]
         d.Sh.Text(x + 0.4, y - 1.2, "%s: %s" % (ax, " ".join(DriverPins[ax])), size=0.95, anchor="start", rot=-90)
     d.Face("MEGA", "x0", "front", ["USB"])
-    d.Block("0V-S", B["0V-S"], ["X", "Y1", "Y2", "Z", "A", "B", "C", "J", "lk"], "field duct", "signal duct",
-            bridges=[(0, 8)], title="0V-S")
+    d.Block("0V-S", B["0V-S"], ["X", "Y1", "Y2", "Z", "A", "B", "C", "U", "J", "lk"], "field duct",
+            "signal duct", bridges=[(0, 9)], title="0V-S")
     d.Block("0V-S2", B["0V-S2"], ["1", "2", "3", "lk"], "field duct", "signal duct", bridges=[(0, 3)], title="0V-S2")
     # SSR rail
     for name in SsrNames:
@@ -1597,8 +1609,8 @@ def UpperWiring(d):
         d.Face(name, "x0", "SSR inputs", ["IN+", "IN-"], ["+", "-"], size=0.8, pad=0.05)
         d.Face(name, "x1", "SSR outputs", ["OUT+", "OUT-"], ["+", "-"], size=0.8, pad=0.05)
     # drivers and the shield clamp
-    for ax in DriveAxes:
-        d.Part(ax, B[ax], [ax, "TB6600"], size=2.0)
+    for ax in RowAxes:
+        d.Part(ax, B[ax], [ax, "TB6600"] + (["mask library"] if ax == "U" else []), size=2.0)
         d.Face(ax, "y0", "signal duct", ["SIG", "COM"], ["sig", "com"])
         d.Face(ax, "y1", "motor duct", ["+V", "0V", "M"], ["+V", "0V", "M"])
     d.Part("clamp", clamp, ["shield clamp", "motor shields"], size=1.2, rot=-90, dashed=True)
@@ -1608,7 +1620,7 @@ def UpperWiring(d):
     # the screen's 12 V DC-DC (ADR-0020): input toward slot 2, output toward the motor duct
     d.Part("12 V DC-DC", dc, ["12 V DC-DC", "DDR-60G-12", "screen, isolated"], size=1.4)
     d.Face("12 V DC-DC", "y0", "slot 2", ["+Vin", "-Vin"], ["+24", "0V"])
-    d.Face("12 V DC-DC", "y1", "motor duct 2", ["+Vo", "-Vo"], ["+12V", "0V"])
+    d.Face("12 V DC-DC", "y1", "motor duct", ["+Vo", "-Vo"], ["+12V", "0V"])
 
     W = d.W
     for i, ax in enumerate(DriveAxes):
@@ -1629,7 +1641,7 @@ def UpperWiring(d):
     W("sg", "MEGA.42", "SSR-valve.IN+")
     W("zs", "SSR-UV.IN-", "0V-S2.1b")
     W("zs", "SSR-valve.IN-", "0V-S2.2b")
-    W("zs", "0V-S2.4a", "0V-S.9a")
+    W("zs", "0V-S2.4a", "0V-S.10a")
     W("ve", "SSR-UV.OUT-", "X6.1b")
     W("ve", "SSR-valve.OUT-", "X6.5b")
     for i, name in enumerate(TowerSsr):
@@ -1641,7 +1653,7 @@ def UpperWiring(d):
     d.Out("sgc", "MEGA.USB", "UF")
     d.Out("sg", "MEGA.17", "UF")
     d.Out("sg", "MEGA.16", "UF")
-    d.Out("zs", "0V-S.8b", "UF")
+    d.Out("zs", "0V-S.9b", "UF")
     for name in TowerSsr:
         d.Out("sg", name + ".IN+", "UF")
     d.Out("sg", "tower R.IN-", "UF")
@@ -1924,15 +1936,15 @@ ExitNotes = {
     "gland": ["M20 gland: door 110 V", "X1 1-3 and PE"],
     "UL": ["Upper left grommet: field cables", "X4 to the endstops, a pair each; X5 to the servos;",
            "X6 to the lid (S4 and UV array, S5) and the argon valve"],
-    "ULM": ["Upper left grommet 2", "6 motor cables, gantry PE trunk"],
+    "ULM": ["Upper left grommet 2", "7 motor cables, gantry PE trunk"],
     "UF": ["Upper front grommet", "to the operator panel: Mega USB, Pi GPIO to the tower SSRs;",
            "to the spin coater base: J11 (ODrive UART)"],
     "UR": ["Upper right grommet", "X7 to the tower, 1 motor cable"],
 }
-FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "spare"],
+FuseUse = {"FB2": ["X", "Y1", "Y2", "Z", "A", "B", "C", "ODrive", "servo", "UV", "valve", "U"],
            "FB1": ["spare", "5 V PSU", "12 V DC-DC", "tower", "latch", "spare", "spare", "spare", "spare", "spare", "spare",
                    "spare"]}
-FuseAmps = {"FB2": ["5", "5", "5", "5", "5", "5", "5", "10", "3", "2", "2", ""],
+FuseAmps = {"FB2": ["5", "5", "5", "5", "5", "5", "5", "10", "3", "2", "2", "5"],
             "FB1": ["", "3", "3", "3", "3", "", "", "", "", "", "", ""]}
 
 
@@ -1945,7 +1957,7 @@ def WireNotes(deck):
         "F1-1, X8 and X2 4-5 are spare (NC2 and the home button are wired at the panel). The ODrive sits in",
         "the spin coater's base. The screen takes 12 V from the isolated DC-DC on F1-3 (ADR-0020).",
         "Gauges (issue #205): mains, the PSU to F3 and S, F3 to K2 and FB1, K2's pole jumper, K2 to FB2, S to",
-        "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 with their 0 V returns, and the servo 5.4 V and Pi 5 V",
+        "0V-P and the 0V-P link: 12 AWG copper. F2-1 to F2-8 and F2-12 with their 0 V returns, the servo 5.4 V and Pi 5 V",
         "pairs: 14 AWG copper. The F0 rung: 18 AWG UL 1015, 600 V. The screen's 12 V: the plug's 18 AWG",
         "pigtail. Everything else: the 20 AWG on hand, copper-clad aluminum (about 3 A), on fuses of 3 A or less.",
         "PE home runs of the frame, the DIN rails and the TB6600 cases go to the ground bars (sheet 4).",
@@ -1956,10 +1968,10 @@ def WireNotes(deck):
         return common + [
             "Mains duct: a separator between the 110 VAC wires and the PSU's DC and PE leads. Every 110 VAC",
             "terminal finger-safe or covered (ADR-0013). Fuses: F3-1 25 A and F3-2 10 A (10 x 38 mm, DC),",
-            "F2-1 to F2-7 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.",
+            "F2-1 to F2-7 and F2-12 5 A, F2-8 10 A, F2-9 3 A, F2-10 and F2-11 2 A; F1-2 to F1-5 3 A; F0 1 A T.",
             "The PSU's terminal order is assumed."]
     return common + [
-        "Motor cables: shield to the clamp bar; six leave by the upper left grommet and one by the upper",
+        "Motor cables: shield to the clamp bar; seven leave by the upper left grommet and one by the upper",
         "right one: pick which on the bench. Each TB6600: PUL-, DIR- and ENA- jumpered to COM at the driver.",
         "The tower cable leaves X7 by the upper right grommet, as sheet 3 has it, so it crosses the deck",
         "behind every rail; the upper left grommet, beside X7, would save most of that run.",
@@ -2036,7 +2048,7 @@ NameParts = [
         ("X7", "status tower: red, amber, green, buzzer, common", "field rail"),
         ("X8", "spare (was the screen supply and the home button)", "field rail"),
         ("Mega", "Arduino Mega 2560 on a screw shield; runs on the Pi's USB", "logic rail"),
-        ("0V-S", "signal 0 V bus, 9 linked: driver COMs, Mega GND, endstops", "logic rail"),
+        ("0V-S", "signal 0 V bus, 10 linked: driver COMs, Mega GND, endstops", "logic rail"),
         ("0V-S2", "second 0V-S group: SSR input returns, S5 return", "logic rail"),
         ("SSR-UV", "DC solid-state relay: Mega pin 4 switches the UV array", "SSR rail"),
         ("SSR-valve", "DC solid-state relay: Mega pin 42 switches the argon valve", "SSR rail"),
@@ -2044,7 +2056,8 @@ NameParts = [
         ("buzzer", "DC SSR: Pi GPIO 26 switches the tower's buzzer", "SSR rail"),
         ("X ... C", "TB6600 drivers: X, Y1, Y2 (follows Y), Z, A (filter feed), B (syringe height), "
                     "C (syringe)", "drivers rail"),
-        ("shield clamp", "grips the motor cables' shields, bonded to PE", "past the drivers"),
+        ("U", "TB6600 driver of the mask library elevator (U axis, issue #264), on F2-12", "drivers rail"),
+        ("shield clamp", "grips the motor cables' shields, bonded to PE", "motor duct's end"),
         ("ground bar", "upper PE bar on the upper plate's PE stud", "behind back run"),
         ("12 V DC-DC", "Mean Well DDR-60G-12, isolated: 12 V for the screen, fed by F1-3", "behind slot 2"),
     ]),
@@ -2066,7 +2079,7 @@ NameParts = [
 
 NameEntries = [
     ("UL", "upper left grommet: field cables X4, X5, X6"),
-    ("ULM", "upper left grommet 2: 6 motor cables, gantry PE"),
+    ("ULM", "upper left grommet 2: 7 motor cables, gantry PE"),
     ("UF", "upper front grommet: Mega USB, J11, Pi GPIO"),
     ("UR", "upper right grommet: X7 tower, 1 motor cable"),
     ("LL", "lower left grommet: ODrive 24 V, Pi 5 V, screen 12 V, door cable"),
@@ -2104,7 +2117,7 @@ FieldUse.update({
     ("X2", 6): "spare: NC2 is wired at the panel", ("X2", 7): "spare",
     ("X0", 1): "L from the inlet", ("X0", 3): "N from the inlet", ("X0", 5): "PE from the inlet",
     ("X1", 1): "to S1", ("X1", 2): "from S1: K1 coil, H1", ("X1", 3): "N to H1",
-    ("PE", 3): "door plate PE", ("0V-S", 8): "ODrive J11 GND", ("0V-P 2", "OD"): "ODrive DC-",
+    ("PE", 3): "door plate PE", ("0V-S", 9): "ODrive J11 GND", ("0V-P 2", "OD"): "ODrive DC-",
 })
 
 
@@ -3030,7 +3043,8 @@ PartSize = {
     "DDR12": (52.5, 90.0, 54.5, True, "rail"),   # Mean Well DDR-60G-12, the screen's 12 V (ADR-0020):
                                                  # 52.5 W x 90 H x 54.5 D on TS35 (DDR-60-SPEC,
                                                  # 2026-03-31, mechanical page)
-    "Clamp": (22.0, 124.0, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed
+    "Clamp": (22.0, 52.4, 40.0, False, "plate"),  # motor cable shield clamp bar, assumed; 52.4 long is what the
+                                                 # duct and the strip leave it (ClampBox, issue #264)
 }
 
 
@@ -3312,7 +3326,9 @@ PostCentres = [(Frame / 2, Frame / 2), (Frame / 2, BoxW - Frame / 2),
 DuctWide, DuctNarrow, RowGap = 25.4, 12.7, 3.0
 DuctTall = {DuctWide: 38.1, DuctNarrow: 25.4}
 Chan = 18.0
-DriveAxes = ["X", "Y1", "Y2", "Z", "A", "B", "C"]
+DriveAxes = ["X", "Y1", "Y2", "Z", "A", "B", "C", "U"]   # every TB6600
+RowAxes = DriveAxes                # all eight on the drivers' rail (issue #264)
+ZpTwoAxes = ("U",)                 # drivers returned to 0V-P 2: 0V-P 1's nine outputs are all used
 
 
 def UpDeckRows():
@@ -3329,17 +3345,31 @@ def UpDeckRows():
 
 
 UpRows = UpDeckRows()
-DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(7)]   # TB6600 left edges along x, 28 wide
+DrvX = [Frame + RingClear + 5.0 + 34.0 * i for i in range(len(RowAxes))]   # TB6600 left edges along x, 28 wide
+# The eighth driver, U (issue #264, ADR-0022), stands on the drivers' rail with the others, where the shield
+# clamp and cable slot 1 used to be. The clamp moved to the motor duct's back end, just in front of the back
+# run, where it still lies across the duct, so that the motor cables cross it, and reaches on into the strip
+# between the duct and the right wall, leaving ClampChan for the wires along the wall; slot 1 and its 24 V
+# feed duct moved
+# into the gap between the drivers' rail and the 12 V DC-DC's: the drivers' row blocks y 154.5 to 250.5
+# from the front ring to the DC-DC, and behind it the plate is over the 110 VAC compartment, so the feeds
+# can pass the row only there.
+ClampGap = 2.0                     # from the clamp's back face to the back run
+ClampChan = 14.0                   # from the clamp's wall end to RingClear: the upper right grommet's motor
+                                   # cable, the tower cable and the clamp's and ground bar's PE pass there
+FeedGap = 1.0                      # from the 24 V feed duct to each rail end beside it
 # What the study placed freely (tools/layout_study/layout3b_build.json); everything else follows
 # from a neighbour, a channel or the ring, and StudyMatch() holds every block centre to that file.
 FieldRail0 = 40.0                  # front end of the field terminal rail
 LogicRail0 = 38.0                  # front end of the logic rail; the Mega's USB jack faces the front
-# The screen's 12 V DC-DC (ADR-0020) has the upper deck's one free spot: between the shield clamp and
-# the back run, behind cable slot 2, on its own short rail along x, its back face level with the
-# drivers'. Its rail reaches Dc12RailEnd past each end of the DC-DC, room for the rail's USLKG 5 ground
-# block (6.2 mm), and stops 1 mm short of the clamp; it gets its input up slot 2 and sends its 12 V down it.
-Dc12X0 = 313.0                     # front end of the DC-DC itself
-Dc12RailEnd = 7.0                  # rail past each end of it
+# The screen's 12 V DC-DC (ADR-0020) stands behind the drivers' rail, behind cable slot 2, on its own
+# short rail along x, its back face level with the drivers'. Its rail reaches Dc12RailEnd past the DC-DC's
+# back end, room for the rail's USLKG 5 ground block (6.2 mm), and Dc12RailFront past its front end; the
+# 24 V feed duct runs between the drivers' rail and this one, FeedGap clear of each (issue #264). It gets
+# its input up slot 2 and sends its 12 V down it.
+Dc12RailFront = 2.0                # rail past the DC-DC's front end
+Dc12RailEnd = 7.0                  # rail past its back end, for the ground block
+Dc12X0 = 316.0                     # front end of the DC-DC itself; its rail starts 15 mm past the drivers'
 DcDcBlockEnd = 6.5                 # rail past one end of each DDR-30G-5 for its USLKG 5 (6.2 wide), ADR-0021
 DcDcGap = 0.5                      # between the servo converter's rail and the Pi converter's
 R24Rail0 = 32.0                    # front end of the 24 V rail: F3, K2, Star S, the 0V-P bars. F3
@@ -3364,9 +3394,9 @@ InletU = (PsuY0 + PsuY1) / 2       # the IEC inlet on the back panel, in line wi
 BackRunX = [u for _, u, _, k in CableEntries if k == "ULM"][0]   # the motor cables' back run
 # Cable passes through the upper plate (x0, y0, x1, y1), 13 wide with round ends, each beside the
 # open end of its duct (a duct's base is solid) and over a free channel of the lower deck, and none
-# over the 110 VAC compartment (RunChecks()): 1 rises between the drivers' rail end and the shield
-# clamp to the 24 V duct, 2 behind the SSR rail, 3 in front of the Mega, beside X2 and K2.
-CableSlots = [(267.5, 156.0, 280.5, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0, 90.0, 36.0, 106.0)]
+# over the 110 VAC compartment (RunChecks()): 1 rises between the drivers' rail end and the 12 V DC-DC's
+# rail to the 24 V duct (issue #264), 2 behind the SSR rail, 3 in front of the Mega, beside X2 and K2.
+CableSlots = [(300.0, 156.0, 313.0, 178.0), (290.0, 136.0, 350.0, 149.0), (23.0, 90.0, 36.0, 106.0)]
 SlotUse = ["driver 24 V feeds, 0V-P returns", "SSR feeds and returns, servo 5.4 V",
            "X2, the E-stop latch, pin 43 sense"]
 # PE studs: each plate carries its module's ground bar(s) on bare metal (BondPoints()). The base
@@ -3702,7 +3732,7 @@ def PanelScrews(name):
 
 
 def TopVents():
-    """Three slots over each TB6600, across its 96 mm depth: (u0, v0, u1, v1) on the top."""
+    """Three slots over each TB6600 along its 96 mm length: (u0, v0, u1, v1) on the top."""
     y0, y1 = UpRows["drivers"]
     out = []
     for x in DrvX:
@@ -4220,7 +4250,7 @@ def BondPoints():
             ("upper", "upper post", 4, "tapped bond hole, ring lug"),
             ("upper", "lid ring rail", 4, "tapped bond hole, ring lug"),
             ("upper", "DIN rail: field, logic, SSRs, drivers", rails["upper"], "its PE terminal"),
-            ("upper", "TB6600 case", 7, "ring lug and tooth washer under an ear screw"),
+            ("upper", "TB6600 case", len(DriveAxes), "ring lug and tooth washer under an ear screw"),
             ("upper", "motor shield clamp", 1, "ring lug"),
             ("upper", "link to the lower module", 1, "unclamp to lift the module"),
             ("upper", "trunk to the gantry bar", 1, "leaves with the motor cables")]
@@ -4432,9 +4462,9 @@ def UpperRails():
     def Row(r):
         return sum(UpRows[r]) / 2
     drv = []
-    for i, ax in enumerate(DriveAxes):
+    for i, ax in enumerate(RowAxes):
         drv += ([6.0] if i else []) + [("TB6600", ax)]
-    logic = DinRun(True, Row("logic"), TerminalRun(LogicRail0 + 5.0, [("0V-S", 9), ("0V-S2", 4)],
+    logic = DinRun(True, Row("logic"), TerminalRun(LogicRail0 + 5.0, [("0V-S", 10), ("0V-S2", 4)],
                                                    lead=[("Mega", "Mega 2560"), 4.0]),
                    "LOGIC", ZoneFill["fld"])
     ssr = [("SSR", s) for s in ("SSR-UV", "SSR-valve", "tower R", "tower A", "tower G", "buzzer")]
@@ -4447,7 +4477,8 @@ def UpperRails():
                       RailRun(UpRows["logic"][0] + 5.0, ssr), "SSR", ZoneFill["log"]),
         "drivers": DinRun(True, Row("drivers"), RailRun(DrvX[0], drv), "DRV", ZoneFill["drv"]),
         "12 V DC-DC": DinRun(True, UpRows["drivers"][1] - PartSize["DDR12"][1] / 2,
-                             RailRun(Dc12X0, [("DDR12", "12 V DC-DC")]), "PS12", ZoneFill["24"], Dc12RailEnd),
+                             RailRun(Dc12X0, [("DDR12", "12 V DC-DC"), Dc12RailEnd - Dc12RailFront]), "PS12",
+                             ZoneFill["24"], Dc12RailFront),
     }
 
 
@@ -4493,39 +4524,55 @@ def LowerRails():
 
 
 def ClampBox():
-    """The motor cable shield clamp bar: one channel past the drivers' rail, along the drivers and
-    their motor duct."""
-    x0, y0 = UpperRails()["drivers"]["a1"] + Chan, UpRows["drivers"][0]
-    return (x0, y0, x0 + PartSize["Clamp"][0], y0 + PartSize["Clamp"][1])
+    """The motor cable shield clamp bar: across the motor duct at its back end, ClampGap in front of the back
+    run, from the duct's inner wall into the strip toward the right wall, ClampChan short of RingClear
+    (issue #264). Raises if PartSize's length does not fit there."""
+    x1 = BackRunX - DuctWide / 2 - ClampGap
+    y0 = UpRows["motor duct"][0]
+    y1 = y0 + PartSize["Clamp"][1]
+    if y1 > BoxW - Frame - RingClear - ClampChan + 1e-9:
+        raise ValueError("the shield clamp reaches y %.1f, past the %s mm channel along the right wall"
+                         % (y1, Mm(ClampChan)))
+    return (x1 - PartSize["Clamp"][0], y0, x1, y1)
+
+
+def FeedX():
+    """Centre line of the 24 V feed duct: cable slot 1's, between the drivers' rail end and the 12 V
+    DC-DC's rail (issue #264). Raises unless the duct keeps FeedGap from both."""
+    up = UpperRails()
+    c = (CableSlots[0][0] + CableSlots[0][2]) / 2
+    if min(c - DuctNarrow / 2 - up["drivers"]["a1"], up["12 V DC-DC"]["a0"] - c - DuctNarrow / 2) < FeedGap - 1e-9:
+        raise ValueError("the 24 V feed duct at x %.2f keeps less than %s mm from a rail end" % (c, Mm(FeedGap)))
+    return c
 
 
 def Ducts():
     """[(deck, (x0, y0, x1, y1), width, label, in the mains compartment)]: the slotted duct runs,
     which meet in tees. Upper deck: a narrow duct in each channel, one joining them between the logic
-    rail's end and the SSRs, and one taking the driver 24 V from slot 1 to the motor duct; the motor
-    duct behind the drivers to the shield clamp, on past it, and the back run, which carries the
-    motor cables across the corridor behind every rail to the upper left grommet. Lower deck: one
+    rail's end and the SSRs, and one taking the driver 24 V from slot 1 to the motor duct between the
+    drivers' rail and the 12 V DC-DC's; the motor duct behind the drivers to the shield clamp at its back
+    end, and the back run, which carries the motor cables across the corridor behind every rail to the
+    upper left grommet. Lower deck: one
     between the fuse rail and the 24 V rail, and one in the mains compartment between the PSU and
     the 110 V rail."""
     up, lo = UpperRails(), LowerRails()
     n, w = DuctNarrow / 2, DuctWide / 2
     fd, sd, md = UpRows["field duct"], UpRows["signal duct"], UpRows["motor duct"]
     drv0, drv1 = up["drivers"]["a0"], up["drivers"]["a1"]
-    clamp = ClampBox()
     ssrX = (up["logic"]["a1"] + up["SSR"]["centre"] - PartSize["SSR"][1] / 2) / 2
-    feedX = (drv1 + clamp[0]) / 2
+    feedX = FeedX()
     back0, back1 = BackRunX - w, BackRunX + w
     lowY = (lo["fuses"]["centre"] + PartSize["FB2"][1] / 2 + lo["24 V"]["centre"] - PartSize["K2"][1] / 2) / 2
     mainsX = (PsuX0 + PartSize["PSU24"][0] + lo["110 V"]["a0"]) / 2
     return [
         ("upper", (FieldRail0, fd[0], back0, fd[1]), DuctNarrow, "duct 1/2 x 1 in: field signals, SSR outputs",
          False),
-        ("upper", (drv0, sd[0], drv1, sd[1]), DuctNarrow, "duct 1/2 x 1 in: driver signals", False),
+        ("upper", (drv0, sd[0], min(drv1, CableSlots[1][0] - 1.0), sd[1]), DuctNarrow,
+         "duct 1/2 x 1 in: driver signals", False),
         ("upper", (ssrX - n, fd[1], ssrX + n, sd[0]), DuctNarrow, "SSR inputs", False),
         ("upper", (feedX - n, CableSlots[0][3] + 2.0, feedX + n, md[0]), DuctNarrow, "24 V feeds", False),
-        ("upper", (drv0, md[0], clamp[0], md[1]), DuctWide, "duct 1 x 1 1/2 in: motor cables, driver 24 V",
-         False),
-        ("upper", (clamp[2], md[0], back0, md[1]), DuctWide, "motor cables", False),
+        ("upper", (DrvX[0], md[0], ClampBox()[0], md[1]), DuctWide,
+         "duct 1 x 1 1/2 in: motor cables, driver 24 V", False),
         ("upper", (back0, Frame + RingClear, back1, md[1]), DuctWide,
          "duct 1 x 1 1/2 in: back run, motor cables to the upper left grommet", False),
         ("lower", (Frame + RingClear, lowY - n, lo["fuses"]["a1"], lowY + n), DuctNarrow,
@@ -4906,6 +4953,7 @@ def BuildPacking():
     Tag(fr, upper["SSR"]["a0"] / 2 + upper["SSR"]["a1"] / 2, UpDeck + 66, ["SSRs behind"], size=1.0)
     Tag(fr, upper["drivers"]["centre"], UpDeck + 50, ["TB6600s", "68 + clip 10 + rail 7.5"], size=1.15)
     Tag(fr, sum(UpRows["motor duct"]) / 2, UpDeck + 19, ["motor duct"], size=1.0, rot=-90)
+    Tag(fr, (ClampBox()[1] + ClampBox()[3]) / 2, UpDeck + 20, ["shield clamp"], size=1.0, rot=-90)
     fr.DimV(LoDeck, UpPlate0, BoxW, "%s mm lower" % Mm(UpPlate0 - LoDeck))
     fr.DimV(UpDeck, TopIn, BoxW, "%s mm upper" % Mm(round(TopIn - UpDeck, 1)))
     sh.Text(fr.X(upper["drivers"]["centre"]), fr.Y(TopIn - 6) + 0.4,
@@ -5698,8 +5746,9 @@ ShopDrawn = "A. GOGOJ"
 ShopDwg = {"base": ("RMR-CB-DECK-BASE", "DECK PLATE, BASE"),
            "upper": ("RMR-CB-DECK-UPPER", "DECK PLATE, UPPER")}
 ShopRevs = {"base": [("A", "FIRST RELEASE, ISSUE #213", "2026-10-27", "AG")],   # (rev, what, date, by)
-            "upper": [("A", "FIRST RELEASE, ISSUE #213", "2026-10-27", "AG")]}
-ShopGeomPin = {"base": "ba884c308b80", "upper": "b83e9e4bd798"}
+            "upper": [("A", "FIRST RELEASE, ISSUE #213", "2026-10-27", "AG"),
+                      ("B", "SLOT D1 MOVED 32.5 BACK, ISSUE #264", "2026-11-28", "AG")]}
+ShopGeomPin = {"base": "ba884c308b80", "upper": "8630abdf620a"}
 ShopPosTol = 0.15                  # hole and slot centres from the datums, plus or minus
 ShopSizeTol = (0.2, 0.0)           # hole and slot sizes: plus, minus
 ShopOutlineTol = (0.0, 0.5)        # each edge from its nominal line: outward, inward
@@ -6388,7 +6437,8 @@ def BomRows():
     boxRolls = math.ceil(wireM / RollM) - 1   # the wire on hand covers what is left
     narrowDuct, wideDuct = ductLen[DuctNarrow], ductLen[DuctWide]
     ductScrews = sum(max(2, 1 + math.ceil(max(b[2] - b[0], b[3] - b[1]) / 150.0)) for _, b, _, _, _ in Ducts())
-    clipNames = {"TB6600": "TB6600", "Mega": "Mega carrier", "PSU24": "24 V PSU", "PSU6": "servo PSU",
+    clipNames = {"TB6600": "TB6600",
+                 "Mega": "Mega carrier", "PSU24": "24 V PSU", "PSU6": "servo PSU",
                  "PSU5": "5 V PSU"}
     clips = {}
     for s in DeckSolids():
@@ -6534,7 +6584,7 @@ def BomRows():
         ("Cable duct", Mc, Buy, "Slotted wire duct 1 W x 1 1/2 H", "7578K14",
          "Slotted wire duct with snap-on cover, 1 1/2 in high x 1 in wide", "%d mm" % round(wideDuct),
          "3 1/4 ft length", math.ceil(wideDuct / (3.25 * 304.8)), 23.74,
-         "motor duct behind the drivers, past the clamp, and the back run to the upper left grommet",
+         "motor duct behind the drivers to the shield clamp, and the back run to the upper left grommet",
          "McMaster price of 2026-10-15; gray or white"),
         # ---- PE bonding of the box
         ("PE bonding", Amz, Buy, "Ground bar kit, %d terminals" % BarTerminals, "B007ZZGSQI",
@@ -6586,7 +6636,7 @@ def BomRows():
         ("Power wiring", Amz, Buy, "14 AWG stranded THHN, red, 50 ft", "B0G13N5WGX",
          "YDDECW THHN/THWN-2 14 AWG stranded copper, 600 V, 90 C, UL 83, nylon over PVC, 50 ft, red",
          "the 14 AWG runs of sheet 2", "50 ft roll", 1, 19.99,
-         "+ of F2-1 to F2-8 (drivers, ODrive), the servo 5.4 V and the Pi 5 V",
+         "+ of F2-1 to F2-8 and F2-12 (drivers, ODrive), the servo 5.4 V and the Pi 5 V",
          "Copper (issue #205): the 20 AWG on hand is copper-clad aluminum and conducts like 22 AWG copper, 3 A "
          "(NFPA 79 Table 12.5.1), under these 5 and 10 A fuses. If a 2.5 mm2 ferrule does not fit the TB6600 "
          "and SSR terminals, buy 16 AWG. About 32 ft needed, 42 for the NFPA 79 version (ADR-0019). " + wread),
@@ -6638,6 +6688,12 @@ def BomRows():
          "%d %% efficiency, under the 3 A of F1-2 and F2-9, and its 110 to 150 %% overload limit acts before the "
          "fuse; inrush 15 A typical at 24 V, duration not given. Mean Well DDR-30-SPEC (2026-03-31). Price read %s"
          % (30.0 / (DdrEff * Dc12InMin), Mm(Dc12InMin), round(100 * DdrEff), DdrDate)),
+        ("Drives", "as the seven on hand", NotBought, "TB6600 stepper driver, one more", "-",
+         "the same TB6600 as the seven on hand, 96 x 68 x 28 mm (measured)", 1, "each", 1, None,
+         "U, the mask library elevator, on F2-12 and 0V-P 2, eighth on the drivers' rail (issue #264)",
+         "To buy, not priced yet (a priced line must be bought, BomCsv): the seven came in the 2026-09-14 "
+         "order. Buy the same model, so its printed clip and its "
+         "terminal faces match the drawings, and set its current for the U motor before the first move"),
         ("Power supplies", Dk, Buy, "DC plug pigtail, 5.5 x 2.5 mm, right angle, 18 AWG, 6 ft", "10-02226",
          "Tensility 10-02226 (Digi-Key 839-10-02226-ND): 1830 mm of 2-conductor 18 AWG UL 2464, 300 V, 80 C, "
          "from a 5.5 x 2.5 mm right-angle DC plug (center red, sleeve black) to stripped, tinned leads; rated "
@@ -6744,7 +6800,7 @@ def BomRows():
          "Iron Forge Cable 20 AWG automotive primary wire, 10 x 100 ft, copper-clad aluminum, PVC, 105 C "
          "(ordered 2026-09-14)", "", "-", 0, None, "signals, and loads fused at 3 A or less",
          "It conducts like 22 AWG copper (3 A, NFPA 79 Table 12.5.1) and its listing rules out 110/220 VAC: "
-         "never on F2-1 to F2-8, the servo 5.4 V or Pi 5 V pairs, the PSU trunks or the F0 rung (issue #205)"),
+         "never on F2-1 to F2-8 or F2-12, the servo 5.4 V or Pi 5 V pairs, the PSU trunks or the F0 rung (issue #205)"),
         ("Not in this BoM", "not chosen", NotBought, "Pluggable inter-deck terminals, USB isolator", "-",
          "", "", "-", 0, None, "", ""),
     ]

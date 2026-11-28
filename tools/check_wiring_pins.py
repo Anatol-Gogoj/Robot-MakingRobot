@@ -73,6 +73,8 @@ def Main():
     bad = 0
     rows = []
     for ax, labels in draw_wiring.DriverPins.items():
+        if ax in draw_wiring.PendingAxes:
+            continue
         for kind, label in zip(("STEP", "DIR", "ENABLE"), labels):
             name = "%s_%s_PIN" % (marlinAxis[ax], kind)
             rows.append((ax + " " + kind, label, name, Pin(name)))
@@ -89,6 +91,42 @@ def Main():
         bad += not ok
         print("%-4s %-22s drawn %-4s = D%-3d firmware %-22s %s"
               % ("ok" if ok else "FAIL", what, label, BoardToDigital(label), name, fw))
+
+    # Axes drawn but not in the firmware yet (issue #264: U, the mask library elevator): each pin must be
+    # free of every other drawn pin, and the firmware must either leave the axis's pins undefined or
+    # define them as drawn. A pin the stock RAMPS file gives only to an LCD or SD card (none fitted) is
+    # not caught here; PIN_MAP.md's known-free list is the source for those.
+    # A define may name another macro (#define U_STEP_PIN AUX4_07): resolve it through the numeric
+    # defines of both pin files; one that does not resolve is a FAIL, never a silent PEND.
+    rawRe = re.compile(r"^\s*#define\s+(\w+)\s+(\w+)\b")
+    raw = {}
+    for path in (RampsPins, RmrPins):            # the RMR file wins, as it includes the RAMPS one first
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                m = rawRe.match(line)
+                if m:
+                    raw[m.group(1)] = m.group(2)
+    taken = {BoardToDigital(label): what for what, label, _, _ in rows}
+    for ax in draw_wiring.PendingAxes:
+        for kind, label in zip(("STEP", "DIR", "ENABLE"), draw_wiring.DriverPins[ax]):
+            name, want = "%s_%s_PIN" % (ax, kind), BoardToDigital(label)
+            val = raw.get(name)
+            fw = None if val is None else (int(val) if val.lstrip("-").isdigit() else
+                                           rmr.get(val, ramps.get(val)))
+            clash = taken.get(want)
+            if clash is not None:
+                ok, why = False, "clashes with " + clash
+            elif val is None:
+                ok, why = True, "not defined yet"
+            elif fw is None:
+                ok, why = False, "defined as %s, which does not resolve to a pin number" % val
+            else:
+                ok, why = fw == want, "%s (D%d)" % (val, fw)
+            bad += not ok
+            print("%-4s %-22s drawn %-4s = D%-3d firmware %-22s %s"
+                  % (("PEND" if val is None else "ok") if ok else "FAIL", ax + " " + kind, label, want, name, why))
+            taken[want] = ax + " " + kind
+            rows.append((ax + " " + kind, label, name, fw))
 
     svgDir = os.path.join(Root, "docs", "wiring")
     with open(os.path.join(svgDir, "wiring_schematic_legal.svg"), encoding="utf-8") as f:

@@ -84,7 +84,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <rect x="130" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <rect x="217.4" y="30" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
 <rect x="217.4" y="94.58" width="4" height="4" fill="none" stroke="#000" stroke-width="0.18" stroke-dasharray="1.2 .7"/>
-<path d="M186.1 62.5 L186.1 64.3 A1.3 1.3 0 0 1 183.5 64.3 L183.5 62.5 A1.3 1.3 0 0 1 186.1 62.5 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
+<path d="M192.6 62.5 L192.6 64.3 A1.3 1.3 0 0 1 190 64.3 L190 62.5 A1.3 1.3 0 0 1 192.6 62.5 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M189.3 57.2 L198.7 57.2 A1.3 1.3 0 0 1 198.7 59.8 L189.3 59.8 A1.3 1.3 0 0 1 189.3 57.2 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M137.2 49.3 L137.2 49.9 A1.3 1.3 0 0 1 134.6 49.9 L134.6 49.3 A1.3 1.3 0 0 1 137.2 49.3 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
 <path d="M135.45 31.55 L137.35 31.55 A0.45 0.45 0 0 1 137.35 32.45 L135.45 32.45 A0.45 0.45 0 0 1 135.45 31.55 Z" style="fill:#fff" stroke="#000" stroke-width="0.25"/>
@@ -293,7 +293,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="16" y="116.03" font-size="1.3">Ground bar screws, both plates: M5, plain nut below, tooth washer under the bar; the bar's foot + 8.5 to + 13.1 long (OpenScrews)</text>
 <text x="130" y="28.4" font-size="2.2" font-weight="bold">B  Upper plate</text>
 <text x="221.4" y="28.4" font-size="1.4" text-anchor="end">deck_upper_plate.dxf</text>
-<text x="184.8" y="60.6" font-size="1.3" text-anchor="middle" font-weight="bold">1</text>
+<text x="191.3" y="60.6" font-size="1.3" text-anchor="middle" font-weight="bold">1</text>
 <text x="194" y="56.6" font-size="1.3" text-anchor="middle" font-weight="bold">2</text>
 <text x="135.9" y="47.4" font-size="1.3" text-anchor="middle" font-weight="bold">3</text>
 <text x="213.8" y="86.45" font-size="1.2" text-anchor="end" font-weight="bold">PE</text>
@@ -324,8 +324,8 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="130" y="110.48" font-size="1.3">Template: cut this DXF from 1/8 in acrylic; drill, then nibble the slots to it.</text>
 <text x="130" y="112.33" font-size="1.3">DIN rail and duct holes from the final layout: M4 x 12, nyloc below, 15 mm or more from each end</text>
 <text x="130" y="114.18" font-size="1.3">of the run; the tails end 13.1 mm or more over what stands below (HangGaps)</text>
-<text x="130" y="116.03" font-size="1.3">Shield clamp: M4 into a nyloc, the clamp's base + 8 to + 61.6 long; ground bar screws off the mid ring and its corner brackets (OpenScrews)</text>
-<text x="130" y="117.88" font-size="1.3">Cable slots, round ends, edge trim:  1: x 267.5-280.5, y 156-178;  2: x 290-350, y 136-149;  3: x 23-36, y 90-106</text>
+<text x="130" y="116.03" font-size="1.3">Shield clamp: M4 into a nyloc, the clamp's base + 8 to + 31.1 long; ground bar screws off the mid ring and its corner brackets (OpenScrews)</text>
+<text x="130" y="117.88" font-size="1.3">Cable slots, round ends, edge trim:  1: x 300-313, y 156-178;  2: x 290-350, y 136-149;  3: x 23-36, y 90-106</text>
 <text x="130" y="119.73" font-size="1.3">1: driver 24 V feeds, 0V-P returns.  2: SSR feeds and returns, servo 5.4 V.  3: X2, the E-stop latch, pin 43 sense.  None over the 110 VAC compartment (y 183.9 up).</text>
 <text x="18" y="131.4" font-size="2.2" font-weight="bold">C  Frame from the right side</text>
 <text x="109.4" y="131.4" font-size="1.4" text-anchor="end">studs dark, screws dashed</text>
@@ -414,7 +414,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="300" y="94.4" font-size="1.35">Drill Ø4.2 through a slot floor into the bore,</text>
 <text x="300" y="96.2" font-size="1.35">tap M5; M5 x 16 with a ring lug and a tooth</text>
 <text x="300" y="98" font-size="1.35">washer. One 12 AWG home run per part to its</text>
-<text x="300" y="99.8" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 27, 2 bars.</text>
+<text x="300" y="99.8" font-size="1.35">module's bar: lower 17 parts, 2 bars; upper 28, 2 bars.</text>
 <text x="300" y="101.6" font-size="1.35">DIN rails through their PE terminals, TB6600s</text>
 <text x="300" y="103.4" font-size="1.35">under an ear screw. Measure each part to PE</text>
 <text x="300" y="105.2" font-size="1.35">at 0.2 to 10 A (IEC 60204-1 18.2.2).</text>
@@ -509,7 +509,7 @@ path,line{fill:none;stroke-linecap:butt;stroke-linejoin:miter}
 <text x="216" y="186.65" font-size="1.2">outside: u along x (front at 0) or y (left at 0), v up; turn it over to match. Screws Ø5.5 on the slot centre lines,</text>
 <text x="216" y="188.3" font-size="1.2">10 from each post end, ring screws at an even pitch, except the lower front and back panels: their bottom post screws</text>
 <text x="216" y="189.95" font-size="1.2">sit at 30 in vertical slots, through the gantry mount brackets, and they have no ring screw (sheet 5); the top has 8</text>
-<text x="216" y="191.6" font-size="1.2">into the lid ring and Ø10 over each lid screw. Vents: 21 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk</text>
+<text x="216" y="191.6" font-size="1.2">into the lid ring and Ø10 over each lid screw. Vents: 24 slots 4 x 88 on 8 over the TB6600s. Cable entries: 5 desk</text>
 <text x="216" y="193.25" font-size="1.2">grommets in Ø50 holes (two upper left, upper front, upper right, lower left), each held by a Ø64 acrylic ring pressed</text>
 <text x="216" y="194.9" font-size="1.2">onto its sleeve behind the wall; caliper one grommet before cutting. Q0 is the inlet's switch if that is 2-pole. Read</text>
 <text x="216" y="196.55" font-size="1.2">back from the DXFs: least web 4 mm (2 needed). Order list: bom_frame.csv. NOT CUT YET, placeholders until the owner's</text>
