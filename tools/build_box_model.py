@@ -2,7 +2,7 @@
 
 Every solid comes from the generator that draws sheets 3 and 4 and writes the plate and panel DXFs:
 the frame stack (BoxD, LowBay, the post and ring heights), DeckSolids() for every DIN rail, part,
-duct and the shield clamp, PlateGeom() for the two deck plates, PanelGeom() for the side and top
+duct and the shield bar, PlateGeom() for the two deck plates, PanelGeom() for the side and top
 panels and GrommetAt() for the cable entries. Nothing is read off a drawing, so a change in the
 generator moves the model on the next run. Parts are blocks at their real size; a part whose size
 the generator marks as assumed (dashed on sheet 3) is drawn translucent and carries
@@ -57,7 +57,7 @@ RubberFill, StudFill, ClipFill = "#444444", "#444444", W.PostFill
 # The packing study's block names (DeckSolids' block) as the rails are named in UpperRails() and
 # LowerRails().
 RailName = {"FIELD": "field terminal rail", "LOGIC": "logic rail", "SSR": "SSR rail",
-            "DRV": "driver rail", "SHIELD": "shield clamp", "RFB": "fuse rail", "R24": "24 V rail",
+            "DRV": "driver rail", "SHIELD": "shield bar", "RFB": "fuse rail", "R24": "24 V rail",
             "PS6": "servo PSU rail", "PS5": "5 V PSU rail", "PSU": "24 V PSU rail", "R110": "110 V rail"}
 KeyName = {"Stop": "end clamp", "Cover": "end cover"}
 

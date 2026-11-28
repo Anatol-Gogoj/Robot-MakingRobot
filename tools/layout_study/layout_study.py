@@ -33,12 +33,12 @@ Blocks = {
     "RFB": (322.0, 47.8, 50.7, "dc", True),        # FB2 and FB1, both 12-way (issue #158)
     "PS6": (41.5, 90.0, 62.0, "dc", True),         # servo supply, DDR-30G-5 (ADR-0021, issue #244)
     "PS5": (41.5, 90.0, 62.0, "dc", True),         # Pi supply, DDR-30G-5 (ADR-0021, issue #244)
-    "PS12": (66.5, 90.0, 62.0, "dc", True),        # 12 V DC-DC for the screen (ADR-0020, issue #220)
-    "DRV": (242.0, 124.4, 85.5, "drv", True),      # 7 TB6600 + motor duct
+    "PS12": (61.5, 90.0, 62.0, "dc", True),        # 12 V DC-DC for the screen (ADR-0020); rail 2 + 7 past it (#264)
+    "DRV": (276.0, 124.4, 85.5, "drv", True),      # 8 TB6600 + motor duct (U joined the row, issue #264)
     "SSR": (46.6, 88.1, 78.4, "drv", True),        # 6 SSR sockets
     "LOGIC": (211.6, 53.0, 52.5, "log", True),     # Mega on its carrier + 0V-S groups
     "FIELD": (284.0, 42.5, 42.0, "log", True),     # field terminal rail
-    "SHIELD": (124.0, 22.0, 40.0, "drv", True),    # motor shield clamp bar (assumed)
+    "SHIELD": (216.0, 13.0, 13.0, "drv", True),    # motor shields' bar, EC2GB152 (size assumed), by the duct (#264)
 }
 PsuFlat = (240.0, 126.0, 65.0 + Rail + Clip)        # the PSU lying on its 240 x 126 face; measured
                                                     # 240 x 126 x 65 (2026-10-21, issue #202)
@@ -58,17 +58,17 @@ Exits = {
 Nets = [
     ("INLET", "R110", 3), ("R110", "PSU", 3),                       # mains, K1, PE
     ("PSU", "R24", 4), ("R24", "RFB", 4),                            # V+ to F3, F3 and K2 out, 0V
-    ("RFB", "DRV", 7), ("R24", "DRV", 7),                            # driver feeds and returns
+    ("RFB", "DRV", 8), ("R24", "DRV", 8),                            # driver feeds and returns
     ("RFB", "PS6", 1), ("PS6", "R24", 1), ("PS6", "FIELD", 2),       # servo supply
     ("RFB", "LL", 2),                                                # ODrive 24 V feed
     ("RFB", "SSR", 3), ("SSR", "R24", 2), ("SSR", "FIELD", 8),       # UV, valve, tower feeds/outputs
     ("RFB", "PS5", 2), ("PS5", "LL", 2),                             # Pi supply
     ("RFB", "PS12", 1), ("PS12", "R24", 1), ("PS12", "LL", 2),      # screen 12 V (issue #220)
     ("RFB", "FIELD", 1), ("FIELD", "R24", 2), ("FIELD", "LL", 5),    # E-stop latch, door cable
-    ("LOGIC", "DRV", 28), ("LOGIC", "FIELD", 16), ("LOGIC", "SSR", 4),
+    ("LOGIC", "DRV", 32), ("LOGIC", "FIELD", 16), ("LOGIC", "SSR", 4),
     ("FIELD", "SSR", 5), ("LOGIC", "R24", 2),                        # tower inputs, pin 43 sense
     ("LOGIC", "UF", 4),                                              # USB and J11
-    ("DRV", "SHIELD", 28), ("SHIELD", "UL", 24), ("SHIELD", "UR", 4),  # motor cables
+    ("DRV", "SHIELD", 32), ("SHIELD", "UL", 28), ("SHIELD", "UR", 4),  # motor cables
     ("FIELD", "UL", 30), ("FIELD", "UR", 8),                         # field cables
 ]
 
