@@ -157,12 +157,14 @@ P = dict(
     B626=(6.0, 19.0, 6.0), B608=(8.0, 22.0, 7.0),            # bore, OD, width
     B688=(8.0, 16.0, 5.0),  # 688ZZ, ASSUMED (ISO 15 dimension series 18; no datasheet read). CHANGED: new, D's idler
     CouplerD=14.0, CouplerL=20.0,                            # 5-to-6 mm coupler, ASSUMED
-    MotorSide=42.3, MotorL=22.0, MotorShaftD=5.0, MotorShaftL=24.0,   # 17HS08-1004S, ASSUMED (body length not read)
+    # 17HS08-1004S: CHANGED from 22 / 24 (ASSUMED) to the StepperOnline listing read 2026-11-28: 42 x 42 x 21.5 mm
+    # body, 5 mm shaft 20 mm long
+    MotorSide=42.3, MotorL=21.5, MotorShaftD=5.0, MotorShaftL=20.0,
     MotorPilotD=22.0, MotorPilotH=2.0, MotorHoleSpacing=31.0,         # NEMA 17 face
-    # housing outside. The -v wall stands 2 mm off the worm (OD 18); the motor wall is a 13 mm standoff, so the
-    # 17HS08's 24 mm shaft (ASSUMED) starts where the worm shaft ends, in the coupler's middle
-    Hu=(-37.0, 63.0), Hv=(-18.0, 24.0), Hz=(0.0, 95.0),
-    HLeftWall=8.0, HMotorWall=13.0, HFloor=12.0, HRoof=4.0, HWallV=7.0,
+    # housing outside. The -v wall stands 2 mm off the worm (OD 18); the motor wall is a 9 mm standoff (CHANGED from
+    # 13 with the 20 mm shaft), so the motor shaft starts where the worm shaft ends, in the coupler's middle
+    Hu=(-37.0, 59.0), Hv=(-18.0, 24.0), Hz=(0.0, 95.0),
+    HLeftWall=8.0, HMotorWall=9.0, HFloor=12.0, HRoof=4.0, HWallV=7.0,
     RibU=(19.0, 27.0), RibZ0=62.0,                            # rib carrying the motor-side 626
     SplitZ=73.0,            # housing halves split at the worm axis
     # ---- placement (belt study section 3; the wheel planes are this model's)
